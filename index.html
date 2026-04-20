@@ -498,7 +498,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
       <a href="#/wallets" class="nav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg>Hesaplarım</a>
       <a href="#/transactions" class="nav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg>İşlemler</a>
       <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
-      <a href="#/analytics" class="nav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg>Analiz & Bütçe</a>
+      <a href="#/analytics" class="nav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg>Analiz</a>
       <a href="#/goals" class="nav-link" data-route="/goals"><svg class="nav-icon"><use href="#icon-target"/></svg>Hedefler</a>
       <a href="#/debts" class="nav-link" data-route="/debts"><svg class="nav-icon"><use href="#icon-briefcase"/></svg>Borç & Alacak</a>
     </div>
@@ -599,7 +599,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
     <!-- ANALİZ -->
     <div id="view-analytics" class="view">
       <div class="flex justify-between items-center mb-6">
-        <div><h1 class="text-h1">Analiz & Bütçe</h1><p class="text-subtitle">Harcama istatistikleri ve limitler</p></div>
+        <div><h1 class="text-h1">Analiz</h1><p class="text-subtitle">Harcama istatistikleri ve limitler</p></div>
       </div>
       <div class="css-grid grid-cols-3 mb-5 stagger-1" id="analyticsSummary"></div>
       <div class="card mb-5 stagger-1">
@@ -707,6 +707,14 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
           <div class="toggle-row" id="notifHaftalik" onclick="App.Notifications.toggleSetting('haftalik')">
             <div><div class="font-bold" style="font-size:15px">Haftalık Özet</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px">Her Pazartesi haftalık rapor</div></div>
             <div class="toggle-track" id="notifHaftalikTrack"><div class="toggle-thumb"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title mb-4" style="gap:8px"><svg class="nav-icon" style="color:var(--status-warn)"><use href="#icon-transfer"/></svg>Döviz Kurları</h2>
+          <p class="text-subtitle mb-4">Ana para biriminize göre güncel kur değerleri.</p>
+          <div id="kurBilgiBox" style="min-height:60px">
+            <div style="color:var(--text-muted);font-size:14px">Yükleniyor...</div>
           </div>
         </div>
 
@@ -1068,7 +1076,7 @@ const LANGS = {
     ui:{
       dashboard:'Ana Sayfa',netWorth:'Net Varlık',monthExpense:'Bu Ay Gider',monthIncome:'Bu Ay Gelir',cashFlow:'Aylık Nakit Akışı',
       goals:'Hedeflerim',debtSummary:'Borç & Alacak',recentTx:'Son İşlemler',upcoming:'Yaklaşan Ödemeler',
-      wallets:'Hesaplarım',transactions:'İşlemler',recurring:'Abonelikler',analytics:'Analiz & Bütçe',settings:'Ayarlar',
+      wallets:'Hesaplarım',transactions:'İşlemler',recurring:'Abonelikler',analytics:'Analiz',settings:'Ayarlar',
       addWallet:'Hesap Ekle',addTx:'İşlem Ekle',addRecurring:'Abonelik Ekle',addGoal:'Hedef Ekle',
       save:'Kaydet',cancel:'İptal',delete:'Sil',edit:'Düzenle',confirm:'Evet, Devam Et',
       expense:'Gider',income:'Gelir',category:'Kategori',account:'Hesap',amount:'Tutar',date:'Tarih',description:'Açıklama',
@@ -1093,7 +1101,7 @@ const LANGS = {
     ui:{
       dashboard:'Dashboard',netWorth:'Net Worth',monthExpense:'This Month Expenses',monthIncome:'This Month Income',cashFlow:'Monthly Cash Flow',
       goals:'My Goals',debtSummary:'Debts & Receivables',recentTx:'Recent Transactions',upcoming:'Upcoming Payments',
-      wallets:'My Accounts',transactions:'Transactions',recurring:'Subscriptions',analytics:'Analytics & Budget',settings:'Settings',
+      wallets:'My Accounts',transactions:'Transactions',recurring:'Subscriptions',analytics:'Analytics',settings:'Settings',
       addWallet:'Add Account',addTx:'Add Transaction',addRecurring:'Add Subscription',addGoal:'Add Goal',
       save:'Save',cancel:'Cancel',delete:'Delete',edit:'Edit',confirm:'Yes, Proceed',
       expense:'Expense',income:'Income',category:'Category',account:'Account',amount:'Amount',date:'Date',description:'Description',
@@ -1395,10 +1403,20 @@ const Notifications = {
 const App = {
   Notifications,
   ExchangeRate:{
-    rates:{USD:1,EUR:1,GBP:1,TRY:1},
+    rates:{USD:1,EUR:0.92,GBP:0.79,TRY:32}, // bootstrap fallback
+    _loadCache(){
+      // Daha önce çekilmiş kurları hemen yükle
+      if(Core.state.settings.cachedRates){
+        this.rates=Core.state.settings.cachedRates;
+        return true;
+      }
+      return false;
+    },
     async fetch(){
       try{
-        const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD',{signal:AbortSignal.timeout(5000)});
+        const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),5000);
+        const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD',{signal:ctrl.signal});
+        clearTimeout(tid);
         if(!r.ok)throw new Error('fetch fail');
         const d=await r.json();
         this.rates=d.rates;
@@ -1423,9 +1441,9 @@ const App = {
     needsFetch(){
       const hasFx=Core.state.wallets.some(w=>w.currency&&w.currency!==Core.state.settings.currency);
       if(!hasFx)return false;
-      // Cache varsa ve 6 saatten yeni ise fetch etme
       const last=Core.state.settings.lastRateUpdate||0;
-      return (Date.now()-last)>6*60*60*1000;
+      // Cache yoksa veya 6 saatten eskiyse fetch et
+      return !Core.state.settings.cachedRates||(Date.now()-last)>6*60*60*1000;
     }
   },
   init(){
@@ -1495,7 +1513,9 @@ const App = {
     Core.state.recurring.forEach(s=>{
       if(cD===s.day){
         Core.state.transactions.push({id:Core.Utils.generateId(),type:'expense',amount:s.amount,desc:`${s.name} (Abonelik)`,cat:s.cat,wallet:s.wallet,date:t.toISOString().split('T')[0]});
-        const w=Core.state.wallets.find(x=>x.id===s.wallet);if(w)w.balance-=s.amount;add++;
+        const w=Core.state.wallets.find(x=>x.id===s.wallet);
+        if(w){const mc2=Core.state.settings.currency||'TRY';const wc2=w.currency||mc2;const recDelta=wc2!==mc2?App.ExchangeRate.convert(-s.amount,mc2,wc2):-s.amount;w.balance+=recDelta;}
+        add++;
       }
     });
     if(add>0){Core.state.settings.lastProcessedDate=tStr;Core.DB.save();UI.Toasts.show(`${add} abonelik işlendi.`);}
@@ -1585,7 +1605,7 @@ const App = {
       },
       upd(){
         const wallets=Core.state.wallets;
-        const opt=wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance)})</option>`).join('');
+        const opt=wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
         ['goal_action_wallet','trn_from','trn_to'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opt;});
         const da=document.getElementById('debt_action_wallet');if(da)da.innerHTML='<option value="none">Sadece kaydı düş</option>'+opt;
         if(document.getElementById('filterTxWallet'))document.getElementById('filterTxWallet').innerHTML=`<option value="all">Tüm Hesaplar</option>`+wallets.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
@@ -1625,7 +1645,7 @@ const App = {
     },
     Transactions:{
       setType(type,btn){document.getElementById('tx_type_val').value=type;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');},
-      _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">Önce hesap eklemelisiniz.</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
+      _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">Önce hesap eklemelisiniz.</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id,wrapId,hiddenId){document.getElementById(hiddenId).value=id;document.querySelectorAll(`#${wrapId} .wallet-pill`).forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));},
       renderSetup(){this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_date').valueAsDate=new Date();this.renderTable();},
       quickFilter(wId){window.location.hash='/transactions';setTimeout(()=>{const fw=document.getElementById('filterTxWallet');if(fw){fw.value=wId;this.renderTable();}},150);},
@@ -1670,6 +1690,7 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         const type=document.getElementById('tx_type_val').value;
         const amount=parseFloat(document.getElementById('tx_amount').value);
         const wId=document.getElementById('tx_wallet').value;
+        const mainCur=Core.state.settings.currency||'TRY';
         const cat=document.getElementById('tx_cat_val').value||'Diğer';
         const desc=document.getElementById('tx_desc').value.trim();
         const date=document.getElementById('tx_date').value;
@@ -1677,8 +1698,15 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         if(!wId){UI.Toasts.show('Hesap seçmelisiniz.','error');return;}
 
         const p={id:id||Core.Utils.generateId(),type,amount,desc,cat,wallet:wId,date};
-        if(id){const ix=Core.state.transactions.findIndex(x=>x.id===id);if(ix!==-1){const old=Core.state.transactions[ix];const w=Core.state.wallets.find(x=>x.id===old.wallet);if(w)w.balance+=(old.type==='income'?-old.amount:old.amount);Core.state.transactions[ix]=p;}}else Core.state.transactions.push(p);
-        const w=Core.state.wallets.find(x=>x.id===wId);if(w&&!id)w.balance+=(type==='income'?amount:-amount);
+        if(id){const ix=Core.state.transactions.findIndex(x=>x.id===id);if(ix!==-1){const old=Core.state.transactions[ix];const ow=Core.state.wallets.find(x=>x.id===old.wallet);if(ow){const owCur=ow.currency||mainCur;const revDelta=owCur!==mainCur?App.ExchangeRate.convert(old.type==='income'?-old.amount:old.amount,mainCur,owCur):(old.type==='income'?-old.amount:old.amount);ow.balance+=revDelta;}Core.state.transactions[ix]=p;}}else Core.state.transactions.push(p);
+        // Wallet balance'ı kendi para biriminde güncelle
+        // Kullanıcı tutarı mainCur cinsinden girer, wallet farklıysa çevir
+        const w=Core.state.wallets.find(x=>x.id===wId);
+        if(w&&!id){
+          const wCur=w.currency||mainCur;
+          const balDelta=wCur!==mainCur?App.ExchangeRate.convert(type==='income'?amount:-amount,mainCur,wCur):(type==='income'?amount:-amount);
+          w.balance+=balDelta;
+        }
         Core.DB.save();
         // Bütçe kontrol bildirimi
         if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+t.amount);Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif('SAGI Finance — Bütçe Uyarısı',`${b.cat} kategorisinde bütçenizin %${Math.round(perc)}'ini kullandınız.`);});}
@@ -1700,7 +1728,7 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         const net=mInc-mExp;
         const aS=document.getElementById('analyticsSummary');
         if(aS)aS.innerHTML=`<div class="card"><div class="text-caption mb-2">Bu Ay Gelir</div><div class="kpi-value color-success">${Core.Utils.formatMoney(mInc)}</div></div><div class="card"><div class="text-caption mb-2">Bu Ay Gider</div><div class="kpi-value color-danger">${Core.Utils.formatMoney(mExp)}</div></div><div class="card"><div class="text-caption mb-2">Net Tasarruf</div><div class="kpi-value ${net>=0?'color-success':'color-danger'}">${Core.Utils.formatMoney(net)}</div></div>`;
-        const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),ml=d.toLocaleDateString('tr-TR',{month:'short'}),mTxs=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===d.getMonth()&&new Date(t.date).getFullYear()===d.getFullYear());months.push({label:ml,inc:mTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),exp:mTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)});}
+        const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),ml=d.toLocaleDateString('tr-TR',{month:'short'}),mTxs=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===d.getMonth()&&new Date(t.date).getFullYear()===d.getFullYear());months.push({label:ml,inc:mTxs.filter(t=>t.type==='income').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0),exp:mTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0)});}
         UI.ChartEngine.drawBarChart('trendBarChart',months);
         const cat={};mTx.filter(t=>t.type==='expense').forEach(t=>cat[t.cat]=(cat[t.cat]||0)+t.amount);
         UI.ChartEngine.drawDonut('mainDonutChart',cat);
@@ -1721,7 +1749,7 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       _renderCatPills(){const wrap=document.getElementById('recCatPills');if(!wrap)return;const cur=document.getElementById('rec_cat_val')?.value||'';const cats=['Kira','Elektrik','Su','Doğalgaz','Telefon','İnternet','Fatura','Abonelik','Sigorta','Ulaşım','Eğitim'];wrap.innerHTML=cats.map(c=>`<div class="cat-pill${c===cur?' selected':''}" onclick="App.Controllers.Recurring._pickCat('${c}')">${c}</div>`).join('');},
       _pickCat(name){document.getElementById('rec_cat_val').value=name;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.toggle('selected',p.textContent===name));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=name;lbl.style.display='inline';}const ci=document.getElementById('rec_cat_custom');if(ci)ci.value='';},
       setCatCustom(val){document.getElementById('rec_cat_val').value=val;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.remove('selected'));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=val||'';lbl.style.display=val?'inline':'none';}},
-      _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">Önce hesap eklemelisiniz.</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
+      _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">Önce hesap eklemelisiniz.</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id){document.getElementById('rec_wallet').value=id;document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));},
       render(){const g=document.getElementById('recurringGrid');if(!Core.state.recurring.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-repeat"/></svg></div><h3>Abonelik Kaydı Yok</h3><p>Kira, fatura, Netflix gibi düzenli ödemelerinizi ekleyin.</p><button class="btn btn-primary" onclick="App.Controllers.Recurring.openModal()">Abonelik Ekle</button></div>`;return;}g.innerHTML=Core.state.recurring.map(s=>`<div class="card"><div class="flex justify-between items-center mb-4"><div class="font-bold" style="font-size:17px">${s.name}</div><button class="act-btn danger" onclick="App.Controllers.Recurring.delete('${s.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div><div class="text-caption mb-3 color-accent">${s.cat}</div><div class="flex items-center gap-2 mb-4 text-subtitle font-medium"><svg class="nav-icon" style="width:13px"><use href="#icon-wallet"/></svg>${Core.state.wallets.find(w=>w.id===s.wallet)?.name||'Silinmiş Hesap'}</div><div class="flex justify-between items-end pt-4" style="border-top:1px solid var(--border-light)"><div class="text-subtitle">Ayın ${s.day}. günü</div><div class="font-display font-bold color-danger" style="font-size:21px;letter-spacing:-.5px">-${Core.Utils.formatMoney(s.amount)}</div></div></div>`).join('');},
       openModal(){this._renderWalletPills();document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent='Kategori Seçin';cb.classList.remove('has-value');}UI.Modals.open('modalRecurring');},
@@ -1733,14 +1761,57 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent='Yeni Hedef Ekle';UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent='Hedefi Düzenle';UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value,p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target:parseFloat(document.getElementById('goal_target').value),current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show('Hedef kaydedildi.');},
-      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show('Lütfen önce bir hesap ekleyin.','error');Core.temp.goalId=id;Core.temp.goalType=type;document.getElementById('goal_action_amount').value='';document.getElementById('goal_action_wallet').innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance)})</option>`).join('');document.getElementById('goalActionTitle').textContent=type==='add'?'Hedefe Para Yatır':'Hedeften Para Çek';document.getElementById('goalActionBtn').textContent=type==='add'?'Yatır':'Çek';UI.Modals.open('modalGoalAction');},
-      executeAction(){const a=parseFloat(document.getElementById('goal_action_amount').value),wId=document.getElementById('goal_action_wallet').value;if(isNaN(a)||a<=0)return;const g=Core.state.goals.find(x=>x.id===Core.temp.goalId),w=Core.state.wallets.find(x=>x.id===wId);if(!w)return;if(g){if(Core.temp.goalType==='add'){g.current+=a;w.balance-=a;Core.state.transactions.push({id:Core.Utils.generateId(),type:'expense',amount:a,desc:`Hedefe Yatırım: ${g.name}`,cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]});}else{const rem=Math.min(g.current,a);g.current-=rem;w.balance+=rem;Core.state.transactions.push({id:Core.Utils.generateId(),type:'income',amount:rem,desc:`Hedeften Çekim: ${g.name}`,cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]});}Core.DB.save();UI.Modals.close('modalGoalAction');this.render();UI.Toasts.show('İşlem tamamlandı.');}},
+      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show('Lütfen önce bir hesap ekleyin.','error');Core.temp.goalId=id;Core.temp.goalType=type;document.getElementById('goal_action_amount').value='';document.getElementById('goal_action_wallet').innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goalActionTitle').textContent=type==='add'?'Hedefe Para Yatır':'Hedeften Para Çek';document.getElementById('goalActionBtn').textContent=type==='add'?'Yatır':'Çek';UI.Modals.open('modalGoalAction');},
+      executeAction(){
+        const a=parseFloat(document.getElementById('goal_action_amount').value),wId=document.getElementById('goal_action_wallet').value;
+        if(isNaN(a)||a<=0)return;
+        const g=Core.state.goals.find(x=>x.id===Core.temp.goalId),w=Core.state.wallets.find(x=>x.id===wId);
+        if(!w)return;
+        const mc=Core.state.settings.currency||'TRY';const wc=w.currency||mc;
+        if(g){
+          if(Core.temp.goalType==='add'){
+            g.current+=a;
+            const d=wc!==mc?App.ExchangeRate.convert(-a,mc,wc):-a;w.balance+=d;
+            Core.state.transactions.push({id:Core.Utils.generateId(),type:'expense',amount:a,desc:'Hedefe Yatırım: '+g.name,cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]});
+          }else{
+            const rem=Math.min(g.current,a);g.current-=rem;
+            const d2=wc!==mc?App.ExchangeRate.convert(rem,mc,wc):rem;w.balance+=d2;
+            Core.state.transactions.push({id:Core.Utils.generateId(),type:'income',amount:rem,desc:'Hedeften Çekim: '+g.name,cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]});
+          }
+          Core.DB.save();UI.Modals.close('modalGoalAction');this.render();UI.Toasts.show('İşlem tamamlandı.');
+        }
+      },
       delete(id){UI.Confirm.show('Bu hedefi silmek istediğinize emin misiniz?',()=>{Core.state.goals=Core.state.goals.filter(g=>g.id!==id);Core.DB.save();this.render();UI.Toasts.show('Hedef silindi.');});}
     },
     Transfer:{
       openModal(){if(!Core.state.wallets.length)return UI.Toasts.show('İşlem için önce hesap eklemelisiniz.','error');document.getElementById('trn_from').innerHTML=Core.state.wallets.map(w=>`<option value="w_${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance)})</option>`).join('');this.updateToOptions();document.getElementById('trn_amount').value='';UI.Modals.open('modalTransfer');},
       updateToOptions(){const fV=document.getElementById('trn_from').value,tE=document.getElementById('trn_to');let o='<optgroup label="Hesaplar">';Core.state.wallets.forEach(w=>{if("w_"+w.id!==fV)o+=`<option value="w_${w.id}">${w.name}</option>`;});o+='</optgroup><optgroup label="Hedefler">';Core.state.goals.forEach(g=>{o+=`<option value="g_${g.id}">${g.name}</option>`;});o+='</optgroup>';tE.innerHTML=o;},
-      execute(){const fS=document.getElementById('trn_from').value,tS=document.getElementById('trn_to').value,a=parseFloat(document.getElementById('trn_amount').value);if(isNaN(a)||a<=0)return;const fW=Core.state.wallets.find(w=>w.id===fS.split('_')[1]);if(!fW)return;const tType=tS.split('_')[0],tId=tS.split('_')[1];let tName='';fW.balance-=a;if(tType==='w'){const tW=Core.state.wallets.find(w=>w.id===tId);if(tW){tW.balance+=a;tName=tW.name;Core.state.transactions.push({id:Core.Utils.generateId(),type:'income',amount:a,desc:`Transfer Alındı: ${fW.name}`,cat:'Transfer',wallet:tId,date:new Date().toISOString().split('T')[0]});}}else if(tType==='g'){const g=Core.state.goals.find(x=>x.id===tId);if(g){g.current+=a;tName=g.name;}}Core.state.transactions.push({id:Core.Utils.generateId(),type:'expense',amount:a,desc:`Transfer Gönderildi: ${tName}`,cat:'Transfer',wallet:fW.id,date:new Date().toISOString().split('T')[0]});Core.DB.save();UI.Modals.close('modalTransfer');UI.Toasts.show('Transfer tamamlandı.');UI.Router.handleRoute();}
+      execute(){
+        const fS=document.getElementById('trn_from').value,tS=document.getElementById('trn_to').value;
+        const a=parseFloat(document.getElementById('trn_amount').value);
+        if(isNaN(a)||a<=0)return;
+        const fW=Core.state.wallets.find(w=>w.id===fS.split('_')[1]);if(!fW)return;
+        const mc=Core.state.settings.currency||'TRY';
+        const fCur=fW.currency||mc;
+        // Kullanıcı mainCur'da tutar girer, kaynak hesabın currency'sine çevir
+        const fDelta=fCur!==mc?App.ExchangeRate.convert(-a,mc,fCur):-a;
+        fW.balance+=fDelta;
+        const tType=tS.split('_')[0],tId=tS.split('_')[1];let tName='';
+        if(tType==='w'){
+          const tW=Core.state.wallets.find(w=>w.id===tId);
+          if(tW){
+            const tCur=tW.currency||mc;
+            const tDelta=tCur!==mc?App.ExchangeRate.convert(a,mc,tCur):a;
+            tW.balance+=tDelta;tName=tW.name;
+            Core.state.transactions.push({id:Core.Utils.generateId(),type:'income',amount:a,desc:'Transfer Alındı: '+fW.name,cat:'Transfer',wallet:tId,date:new Date().toISOString().split('T')[0]});
+          }
+        }else if(tType==='g'){
+          const g=Core.state.goals.find(x=>x.id===tId);
+          if(g){g.current+=a;tName=g.name;}
+        }
+        Core.state.transactions.push({id:Core.Utils.generateId(),type:'expense',amount:a,desc:'Transfer Gönderildi: '+tName,cat:'Transfer',wallet:fW.id,date:new Date().toISOString().split('T')[0]});
+        Core.DB.save();UI.Modals.close('modalTransfer');UI.Toasts.show('Transfer tamamlandı.');UI.Router.handleRoute();
+      }
     },
     Debts:{
       render(){
@@ -1751,13 +1822,64 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       },
       openModal(dir){document.getElementById('debt_dir').value=dir;document.getElementById('debt_id').value='';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debtLinkRow').classList.remove('active');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent=dir==='borç'?'Borç Ekle':'Alacak Ekle';App.Controllers.Wallets.upd();UI.Modals.open('modalDebt');},
       edit(id){const d=Core.state.debts.find(x=>x.id===id);if(d){document.getElementById('debt_id').value=d.id;document.getElementById('debt_dir').value=d.dir;document.getElementById('debt_name').value=d.name;document.getElementById('debt_amount').value=d.amount;document.getElementById('debt_date').value=d.date||'';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent='Kaydı Düzenle';UI.Modals.open('modalDebt');}},
-      save(){const id=document.getElementById('debt_id').value,dir=document.getElementById('debt_dir').value,name=document.getElementById('debt_name').value.trim(),amt=parseFloat(document.getElementById('debt_amount').value);const p={id:id||Core.Utils.generateId(),dir,name,amount:amt,date:document.getElementById('debt_date').value||null};if(id){const ix=Core.state.debts.findIndex(x=>x.id===id);if(ix!==-1)Core.state.debts[ix]=p;}else Core.state.debts.push(p);if(document.getElementById('debt_link_val').value==='1'&&!id){const wId=document.getElementById('debt_wallet').value,w=Core.state.wallets.find(x=>x.id===wId);if(w){const tType=dir==='borç'?'income':'expense',tDesc=dir==='borç'?`Borç Alındı: ${name}`:`Borç Verildi: ${name}`;w.balance+=(tType==='income'?amt:-amt);Core.state.transactions.push({id:Core.Utils.generateId(),type:tType,amount:amt,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString().split('T')[0]});}}Core.DB.save();UI.Modals.close('modalDebt');this.render();UI.Toasts.show('Kayıt eklendi.');},
-      prepAction(id){Core.temp.debtId=id;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?'Ödeme Yap':'Tahsilat Al';document.getElementById('debt_action_wallet').innerHTML='<option value="none">Sadece kaydı düş</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance)})</option>`).join('');document.getElementById('debt_action_amount').value='';UI.Modals.open('modalDebtAction');},
-      executeAction(){const a=parseFloat(document.getElementById('debt_action_amount').value),wId=document.getElementById('debt_action_wallet').value;if(isNaN(a)||a<=0)return;const d=Core.state.debts.find(x=>x.id===Core.temp.debtId);if(d){const rem=Math.min(d.amount,a);d.amount-=rem;if(wId!=='none'){const w=Core.state.wallets.find(x=>x.id===wId);if(w){const tType=d.dir==='borç'?'expense':'income',tDesc=d.dir==='borç'?`Borç Ödemesi: ${d.name}`:`Tahsilat: ${d.name}`;w.balance+=(tType==='income'?rem:-rem);Core.state.transactions.push({id:Core.Utils.generateId(),type:tType,amount:rem,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString().split('T')[0]});}}if(d.amount<=0){Core.state.debts=Core.state.debts.filter(x=>x.id!==d.id);UI.Toasts.show('Hesap tamamen kapatıldı.');}else UI.Toasts.show('Ödeme kaydedildi.');Core.DB.save();UI.Modals.close('modalDebtAction');this.render();}},
+      save(){const id=document.getElementById('debt_id').value,dir=document.getElementById('debt_dir').value,name=document.getElementById('debt_name').value.trim(),amt=parseFloat(document.getElementById('debt_amount').value);const p={id:id||Core.Utils.generateId(),dir,name,amount:amt,date:document.getElementById('debt_date').value||null};if(id){const ix=Core.state.debts.findIndex(x=>x.id===id);if(ix!==-1)Core.state.debts[ix]=p;}else Core.state.debts.push(p);if(document.getElementById('debt_link_val').value==='1'&&!id){const wId=document.getElementById('debt_wallet').value,w=Core.state.wallets.find(x=>x.id===wId);if(w){const tType=dir==='borç'?'income':'expense',tDesc=dir==='borç'?'Borç Alındı: '+name:'Borç Verildi: '+name;const mc=Core.state.settings.currency||'TRY';const wc=w.currency||mc;const delta=tType==='income'?amt:-amt;const wDelta=wc!==mc?App.ExchangeRate.convert(delta,mc,wc):delta;w.balance+=wDelta;Core.state.transactions.push({id:Core.Utils.generateId(),type:tType,amount:amt,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString().split('T')[0]});}}Core.DB.save();UI.Modals.close('modalDebt');this.render();UI.Toasts.show('Kayıt eklendi.');},
+      prepAction(id){Core.temp.debtId=id;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?'Ödeme Yap':'Tahsilat Al';document.getElementById('debt_action_wallet').innerHTML='<option value="none">Sadece kaydı düş</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';UI.Modals.open('modalDebtAction');},
+      executeAction(){
+        const a=parseFloat(document.getElementById('debt_action_amount').value);
+        const wId=document.getElementById('debt_action_wallet').value;
+        if(isNaN(a)||a<=0)return;
+        const d=Core.state.debts.find(x=>x.id===Core.temp.debtId);
+        if(!d)return;
+        const mainCur=Core.state.settings.currency||'TRY';
+        const actualPay=Math.min(d.amount,a);
+        const overpay=Math.round((a-d.amount)*100)/100; // fazla ödeme miktarı
+        // Borç miktarını düşür (tamamen kapat veya azalt)
+        d.amount=Math.max(0,d.amount-a);
+        // Wallet bakiyesini güncelle
+        if(wId!=='none'){
+          const w=Core.state.wallets.find(x=>x.id===wId);
+          if(w){
+            const wCur=w.currency||mainCur;
+            const tType=d.dir==='borç'?'expense':'income';
+            const tDesc=d.dir==='borç'?'Borç Ödemesi: '+d.name:'Tahsilat: '+d.name;
+            const delta=d.dir==='borç'?-a:a;
+            const walletDelta=wCur!==mainCur?App.ExchangeRate.convert(delta,mainCur,wCur):delta;
+            w.balance+=walletDelta;
+            Core.state.transactions.push({id:Core.Utils.generateId(),type:tType,amount:a,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString().split('T')[0]});
+          }
+        }
+        // Fazla ödeme → karşı tarafta alacak/borç yarat
+        if(overpay>0.01){
+          const counterDir=d.dir==='borç'?'alacak':'borç';
+          const counterDesc=d.dir==='borç'?'Fazla Ödeme — '+d.name:'Fazla Tahsilat — '+d.name;
+          Core.state.debts.push({id:Core.Utils.generateId(),dir:counterDir,name:d.name,amount:overpay,date:null});
+          UI.Toasts.show('Fazla ödeme nedeniyle '+(counterDir==='alacak'?'alacak':'borç')+' kaydı oluşturuldu.');
+        }
+        if(d.amount<=0){
+          Core.state.debts=Core.state.debts.filter(x=>x.id!==d.id);
+          if(overpay<=0.01)UI.Toasts.show('Hesap tamamen kapatıldı.');
+        }else{
+          UI.Toasts.show('Ödeme kaydedildi.');
+        }
+        Core.DB.save();UI.Modals.close('modalDebtAction');this.render();
+      },
       delete(id){UI.Confirm.show('Bu kaydı silmek istediğinize emin misiniz?',()=>{Core.state.debts=Core.state.debts.filter(d=>d.id!==id);Core.DB.save();this.render();UI.Toasts.show('Kayıt silindi.');});}
     },
     Settings:{
-      renderForm(){const s=Core.state.settings;if(document.getElementById('set_name'))document.getElementById('set_name').value=s.name||'';if(document.getElementById('set_currency'))document.getElementById('set_currency').value=s.currency||'TRY';if(document.getElementById('set_anim'))document.getElementById('set_anim').value=s.anim||'on';const curLang=s.lang||LANG;['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const lb=document.getElementById('set_lang_'+curLang);if(lb)lb.classList.add('active');this.applyTheme();},
+      renderForm(){const s=Core.state.settings;if(document.getElementById('set_name'))document.getElementById('set_name').value=s.name||'';if(document.getElementById('set_currency'))document.getElementById('set_currency').value=s.currency||'TRY';if(document.getElementById('set_anim'))document.getElementById('set_anim').value=s.anim||'on';const curLang=s.lang||LANG;['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const lb=document.getElementById('set_lang_'+curLang);if(lb)lb.classList.add('active');this.applyTheme();
+        // Kur bilgisini güncelle
+        const kurInfo=document.getElementById('kurBilgiBox');
+        if(kurInfo){
+          const rates=App.ExchangeRate.rates;
+          const last=s.lastRateUpdate?new Date(s.lastRateUpdate).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Güncellenmedi';
+          const mc=s.currency||'TRY';
+          const rateRows=['USD','EUR','GBP'].filter(cur=>cur!==mc).map(cur=>{
+            const rate=App.ExchangeRate.convert(1,cur,mc);
+            return `<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--border-light)"><span class="font-bold">1 ${cur}</span><span class="font-display font-bold" style="color:var(--brand-accent)">${Core.Utils.formatMoney(rate)}</span></div>`;
+          }).join('');
+          kurInfo.innerHTML=`<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Son güncelleme: ${last}</div>${rateRows}<button class="btn btn-outline btn-sm w-full mt-4" onclick="App.ExchangeRate.fetch().then(()=>{App.Controllers.Settings.renderForm();UI.Toasts.show('Kurlar güncellendi.');})" style="margin-top:12px">Kurları Güncelle</button>`;
+        }
+      },
       togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?'Gizlilik modu açık':'Gizlilik modu kapalı');},
       applyPrivacy(){const isOn=Core.state.settings.privacy==='on';const sBtn=document.getElementById('sidePrivacyBtn'),hBtn=document.getElementById('headerPrivacyBtn'),sIcon=document.getElementById('sidePrivacyIcon'),hIcon=document.getElementById('headerPrivacyIcon');if(isOn){if(sBtn)sBtn.classList.add('active');if(hBtn)hBtn.classList.add('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye-off"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye-off"/>';}else{if(sBtn)sBtn.classList.remove('active');if(hBtn)hBtn.classList.remove('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye"/>'; }},
       setTheme(mode){Core.state.settings.theme=mode;Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?'Koyu mod aktif':'Açık mod aktif');},
