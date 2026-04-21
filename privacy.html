@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gizlilik Politikası — SAGI Finance</title>
+<meta name="description" content="SAGI Finance gizlilik politikası. Verileriniz yalnızca cihazınızda saklanır.">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand:#4f46e5;
+    --bg:#f4f5f7;
+    --surface:#ffffff;
+    --text:#111827;
+    --text-secondary:#4b5563;
+    --text-muted:#9ca3af;
+    --border:rgba(0,0,0,0.07);
+    --radius:16px;
+    --font-display:'Outfit',sans-serif;
+    --font-body:'Inter',sans-serif;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#09090b; --surface:#141416;
+      --text:#f9fafb; --text-secondary:#a1a1aa;
+      --text-muted:#71717a; --border:rgba(255,255,255,0.07);
+    }
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+  body{
+    font-family:var(--font-body);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+    line-height:1.7;
+    min-height:100vh;
+  }
+
+  /* ── HEADER ── */
+  .site-header{
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    padding:0 24px;
+    height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:10;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    background:rgba(255,255,255,0.88);
+  }
+  @media(prefers-color-scheme:dark){
+    .site-header{background:rgba(20,20,22,0.88);}
+  }
+  .brand{
+    font-family:var(--font-display);
+    font-size:20px;
+    font-weight:800;
+    color:var(--text);
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand-dot{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--brand);
+    display:inline-block;
+  }
+  .brand small{
+    font-size:12px;
+    font-weight:500;
+    opacity:0.5;
+    font-style:italic;
+    margin-left:2px;
+  }
+  .back-link{
+    font-size:14px;
+    font-weight:600;
+    color:var(--brand);
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 16px;
+    border-radius:99px;
+    border:1.5px solid rgba(79,70,229,0.2);
+    transition:all .2s;
+  }
+  .back-link:hover{background:rgba(79,70,229,0.07);}
+  .back-link svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;}
+
+  /* ── HERO ── */
+  .hero{
+    text-align:center;
+    padding:64px 24px 48px;
+    max-width:680px;
+    margin:0 auto;
+  }
+  .hero-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--brand);
+    background:rgba(79,70,229,0.09);
+    border:1px solid rgba(79,70,229,0.2);
+    border-radius:99px;
+    padding:5px 14px;
+    margin-bottom:20px;
+  }
+  .hero-badge svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
+  .hero h1{
+    font-family:var(--font-display);
+    font-size:clamp(28px,5vw,40px);
+    font-weight:800;
+    letter-spacing:-.03em;
+    line-height:1.15;
+    margin-bottom:16px;
+    color:var(--text);
+  }
+  .hero p{
+    font-size:17px;
+    color:var(--text-secondary);
+    max-width:520px;
+    margin:0 auto 28px;
+    line-height:1.7;
+  }
+  .hero-meta{
+    font-size:13px;
+    color:var(--text-muted);
+    font-weight:500;
+  }
+  .hero-meta strong{color:var(--text-secondary);}
+
+  /* ── HIGHLIGHT CARD ── */
+  .highlight{
+    max-width:680px;
+    margin:0 auto 40px;
+    padding:0 24px;
+  }
+  .highlight-card{
+    background:linear-gradient(135deg,rgba(79,70,229,0.08),rgba(99,102,241,0.05));
+    border:1.5px solid rgba(79,70,229,0.18);
+    border-radius:var(--radius);
+    padding:24px 28px;
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+  .highlight-icon{
+    width:44px;height:44px;
+    border-radius:12px;
+    background:rgba(79,70,229,0.12);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .highlight-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;}
+  .highlight-card h3{
+    font-family:var(--font-display);
+    font-size:16px;font-weight:700;
+    color:var(--brand);margin-bottom:6px;
+  }
+  .highlight-card p{font-size:15px;color:var(--text-secondary);line-height:1.65;}
+
+  /* ── CONTENT ── */
+  .content{
+    max-width:680px;
+    margin:0 auto;
+    padding:0 24px 80px;
+  }
+  .section{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:28px 32px;
+    margin-bottom:16px;
+  }
+  .section h2{
+    font-family:var(--font-display);
+    font-size:18px;
+    font-weight:700;
+    color:var(--text);
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .section h2 .num{
+    width:28px;height:28px;
+    border-radius:8px;
+    background:rgba(79,70,229,0.1);
+    color:var(--brand);
+    font-size:13px;
+    font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .section p{
+    font-size:15px;
+    color:var(--text-secondary);
+    line-height:1.75;
+    margin-bottom:12px;
+  }
+  .section p:last-child{margin-bottom:0;}
+  .section ul{
+    list-style:none;
+    margin:10px 0 0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .section ul li{
+    font-size:15px;
+    color:var(--text-secondary);
+    padding-left:22px;
+    position:relative;
+    line-height:1.65;
+  }
+  .section ul li::before{
+    content:'';
+    position:absolute;
+    left:4px;top:9px;
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--brand);
+    opacity:.6;
+  }
+  .tag{
+    display:inline-block;
+    font-size:12px;
+    font-weight:700;
+    padding:3px 9px;
+    border-radius:99px;
+    background:rgba(34,160,107,0.1);
+    color:#22a06b;
+    border:1px solid rgba(34,160,107,0.2);
+    margin-left:8px;
+    vertical-align:middle;
+  }
+  .tag.warn{
+    background:rgba(217,119,6,0.1);
+    color:#d97706;
+    border-color:rgba(217,119,6,0.2);
+  }
+
+  /* ── CONTACT ── */
+  .contact-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:28px 32px;
+    text-align:center;
+  }
+  .contact-card h2{
+    font-family:var(--font-display);
+    font-size:18px;font-weight:700;
+    margin-bottom:10px;
+  }
+  .contact-card p{
+    font-size:15px;
+    color:var(--text-secondary);
+    margin-bottom:20px;
+    line-height:1.65;
+  }
+  .contact-card a{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--brand);
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    padding:12px 24px;
+    border-radius:99px;
+    text-decoration:none;
+    transition:opacity .2s;
+  }
+  .contact-card a:hover{opacity:.88;}
+  .contact-card a svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;}
+
+  /* ── FOOTER ── */
+  .site-footer{
+    text-align:center;
+    padding:32px 24px;
+    border-top:1px solid var(--border);
+    font-size:13px;
+    color:var(--text-muted);
+    font-weight:500;
+  }
+  .site-footer strong{color:var(--text-secondary);}
+
+  @media(max-width:520px){
+    .section{padding:22px 20px;}
+    .hero{padding:48px 20px 36px;}
+    .highlight{padding:0 16px;}
+    .content{padding:0 16px 60px;}
+    .contact-card{padding:22px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="./" class="brand">
+    <div class="brand-dot"></div>
+    SAGI<small>Finance</small>
+  </a>
+  <a href="./" class="back-link">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Uygulamaya Dön
+  </a>
+</header>
+
+<div class="hero">
+  <div class="hero-badge">
+    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Gizlilik Politikası
+  </div>
+  <h1>Verileriniz size aittir.</h1>
+  <p>SAGI Finance, kişisel finans verilerinizi yalnızca cihazınızda saklar. Hiçbir sunucuya, üçüncü tarafa veya reklam ağına veri göndermeyiz.</p>
+  <div class="hero-meta">Son güncelleme: <strong>Ocak 2025</strong> &nbsp;·&nbsp; Versiyon 1.0</div>
+</div>
+
+<div class="highlight">
+  <div class="highlight-card">
+    <div class="highlight-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+    </div>
+    <div>
+      <h3>Yerel depolama — bulut yok</h3>
+      <p>Tüm verileriniz (hesaplar, işlemler, hedefler) yalnızca <strong>tarayıcınızın localStorage</strong>'ında tutulur. Cihazı temizlediğinizde veri silinir. Hiçbir veri bizim sunucularımıza ulaşmaz.</p>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="section">
+    <h2><span class="num">1</span>Toplanan Veriler</h2>
+    <p>SAGI Finance, aşağıdaki verileri <strong>yalnızca cihazınızda</strong> saklar:</p>
+    <ul>
+      <li>Hesap adları, bakiyeler ve para birimleri</li>
+      <li>Gelir ve gider işlemleri (tutar, kategori, tarih, açıklama)</li>
+      <li>Abonelik ve düzenli ödeme kayıtları</li>
+      <li>Borç ve alacak takipleri</li>
+      <li>Finansal hedefler ve birikim verileri</li>
+      <li>Uygulama tercihleri (dil, tema, para birimi)</li>
+    </ul>
+    <p style="margin-top:14px">Bu verilerin hiçbiri sunucularımıza, analitik servislerine veya üçüncü taraflara iletilmez.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">2</span>Döviz Kuru Verileri</h2>
+    <p>Uygulamanızda döviz hesabı kullanıyorsanız, güncel kur verilerini almak için aşağıdaki ücretsiz, anahtarsız API'lere ağ isteği yapılır:</p>
+    <ul>
+      <li>exchangerate-api.com</li>
+      <li>open.er-api.com</li>
+      <li>frankfurter.app</li>
+    </ul>
+    <p style="margin-top:14px">Bu istekler yalnızca döviz kurlarını içerir. Kimlik bilgisi, hesap verisi veya kişisel bilgi gönderilmez. Kur verileri cihazınızda önbelleğe alınır.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">3</span>Google Fonts</h2>
+    <p>Uygulama, Outfit ve Inter fontlarını yüklemek için Google Fonts CDN'ini kullanır. Bu istek sırasında tarayıcınızın IP adresi Google'ın sunucularına ulaşabilir. <span class="tag warn">Harici</span></p>
+    <p>Fonts API'nin gizlilik politikası için: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--brand)">policies.google.com/privacy</a></p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">4</span>Çerezler ve İzleme</h2>
+    <p>SAGI Finance <strong>çerez (cookie) kullanmaz</strong>, reklam ağlarına bağlanmaz ve kullanıcı davranışını izlemez. Google Analytics, Facebook Pixel veya benzeri herhangi bir izleme aracı entegre değildir.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">5</span>Veri Güvenliği</h2>
+    <p>Verileriniz cihazınızın tarayıcısına ait localStorage alanında şifrelenmeden saklanır. Bu nedenle:</p>
+    <ul>
+      <li>Cihazınızı başkalarıyla paylaşmaktan kaçının</li>
+      <li>Tarayıcı verilerini silerseniz uygulama verileri de silinir</li>
+      <li>Düzenli JSON yedeği almanızı öneririz (Ayarlar → Veri Yönetimi)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">6</span>Bildirimler</h2>
+    <p>Bildirim iznini kabul ederseniz, uygulama yalnızca şu bildirimleri gönderir: abonelik ödeme hatırlatmaları, borç vade uyarıları ve bütçe limiti bildirimleri.</p>
+    <p>Bildirimler cihazınızda yerel olarak tetiklenir. Herhangi bir push bildirim sunucusu kullanılmaz. Bildirimleri istediğiniz zaman Ayarlar → Bildirimler bölümünden kapatabilirsiniz.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">7</span>Çocukların Gizliliği</h2>
+    <p>SAGI Finance, 13 yaşın altındaki çocuklara yönelik bir uygulama değildir ve bu yaş grubundan bilerek veri toplamaz.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">8</span>Politika Değişiklikleri</h2>
+    <p>Bu gizlilik politikası gerektiğinde güncellenebilir. Önemli değişikliklerde uygulama içinde bildirim gösterilir. Güncel politikayı her zaman bu sayfada bulabilirsiniz.</p>
+  </div>
+
+  <div class="contact-card" style="margin-top:16px">
+    <h2>Soru veya geri bildirim</h2>
+    <p>Gizlilik ile ilgili herhangi bir sorunuz varsa GitHub üzerinden ulaşabilirsiniz.</p>
+    <a href="https://github.com/semiharin/ooda" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      GitHub'da İletişim
+    </a>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <strong>SAGI Finance</strong> — Verileriniz yalnızca cihazınızda. &nbsp;·&nbsp; © 2025
+</footer>
+
+</body>
+</html>
