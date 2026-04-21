@@ -9,8 +9,31 @@
 <meta name="theme-color" content="#4f46e5">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
+// SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
+window._swReg = null;
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(()=>console.log("SW aktif")).catch(e=>console.log("SW hata",e));
+  navigator.serviceWorker.register('./sw.js', {scope: './'})
+    .then(reg => {
+      window._swReg = reg;
+      console.log('[SAGI] SW aktif, scope:', reg.scope);
+      // Yeni bir SW beklemede ise hemen aktif et
+      if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (nw) nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            nw.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+    })
+    .catch(e => console.warn('[SAGI] SW kayıt hatası:', e));
+
+  // SW kontrolü değişince (yeni SW devreye girince) sayfayı yenile
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; window.location.reload(); }
+  });
 }
 </script>
 <script>
@@ -1598,7 +1621,31 @@ const Notifications = {
   },
   sendNotif(title,body){
     if(!this.granted)return;
-    try{new Notification(title,{body,icon:'/favicon.ico'});}catch(e){}
+    // SW üzerinden showNotification dene — Android Chrome dahil tüm mobil platformlarda çalışır
+    // window._swReg: SW kayıt referansı (SW register bloğunda set edilir)
+    const swReg = window._swReg || (navigator.serviceWorker && navigator.serviceWorker.controller && {
+      showNotification: (t,o) => navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF',title:t,...o})
+    });
+    if(swReg && swReg.showNotification){
+      // SW üzerinden — mobilde de çalışır
+      try{
+        swReg.showNotification(title,{
+          body,
+          tag:'sagi-notif-'+Date.now(),
+          icon:'./icon-192.png',
+          vibrate:[200,100,200],
+          requireInteraction:false,
+          data:{url:'./'}
+        });
+        return;
+      }catch(e){}
+    }
+    // Fallback: klasik Web Notification API (desktop, bazı tarayıcılar)
+    try{ new Notification(title,{body,icon:'./icon-192.png'}); }catch(e){}
+    // SW controller'a mesaj ile de dene (SW'nin message handler'ı varsa çalışır)
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      try{ navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF',title,body}); }catch(e){}
+    }
   },
   updateUI(){
     if(!this.supported)return;
