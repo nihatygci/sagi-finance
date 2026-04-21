@@ -1,113 +1,227 @@
-// SAGI Finance Service Worker - v2
-const CACHE_NAME = "sagi-cache-v2";
-const RUNTIME_CACHE = "sagi-runtime-v1";
+// ════════════════════════════════════════════════════════════════
+//  SAGI Finance — Service Worker v3
+//
+//  STRATEJİ:
+//  • index.html        → Network-first, 10sn timeout → Cache fallback
+//    (Güncelleme garantisi: yeni deploy her zaman alınır)
+//  • Fontlar/3rd party → Cache-first (değişmez varlıklar)
+//  • Kur API'si        → Network only, SW bypass (cache'lemiyoruz)
+//  • Diğer GET         → Stale-while-revalidate
+//
+//  MOBİL BİLDİRİM:
+//  • SW üzerinden showNotification() — Android Chrome dahil çalışır
+//  • Ana sayfadan "sagi-notify" mesajı gelince bildirim göster
+//  • Bildirime tıklanınca uygulamayı aç / odağa al
+// ════════════════════════════════════════════════════════════════
 
-// Önbelleğe alınacak kritik varlıklar (Assets)
-const urlsToCache = [
-  "/",
-  "/index.html",
-  // Google Fonts (Çevrimdışı kullanım için stil dosyası)
-  "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
-  // Manifest ve Icon için base URL (Opsiyonel)
-  "/manifest.webmanifest"
+const VERSION    = 'v3';
+const CACHE_APP  = `sagi-app-${VERSION}`;   // HTML, font CSS
+const CACHE_FONT = `sagi-fonts-${VERSION}`; // Font dosyaları
+
+// Bu URL'ler kurulumda önceden cache'lenir
+const PRECACHE = [
+  './',           // index.html alias
+  './index.html',
 ];
 
-// 1. KURULUM: Kritik dosyaları hemen indir
-self.addEventListener("install", event => {
-  console.log("[SW] Install");
+// Hiçbir zaman SW üzerinden cache'lenmesin
+const BYPASS_PATTERNS = [
+  /exchangerate-api\.com/,
+  /open\.er-api\.com/,
+  /frankfurter\.app/,
+  /fonts\.googleapis\.com\/css/,  // CSS'i cache ama font dosyaları ayrı
+];
+
+// ── 1. KURULUM ────────────────────────────────────────────────────
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log("[SW] Önbelleğe alınıyor:", urlsToCache);
-        return cache.addAll(urlsToCache);
+    caches.open(CACHE_APP)
+      .then(cache => cache.addAll(PRECACHE))
+      .then(() => {
+        console.log('[SW] v3 kuruldu, cache hazır');
+        // Beklemeden aktif ol — eski SW'yi bekletme
+        return self.skipWaiting();
       })
-      .then(() => self.skipWaiting()) // Yeni SW hemen devreye girsin
+      .catch(err => {
+        // Precache başarısız olsa bile SW kurulsun (offline olmayabilir)
+        console.warn('[SW] Precache kısmen başarısız:', err);
+      })
   );
 });
 
-// 2. AKTİVASYON: Eski önbellekleri temizle
-self.addEventListener("activate", event => {
-  console.log("[SW] Activate");
+// ── 2. AKTİVASYON ────────────────────────────────────────────────
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME && cache !== RUNTIME_CACHE) {
-            console.log("[SW] Eski önbellek siliniyor:", cache);
-            return caches.delete(cache);
-          }
-        })
-      );
-    }).then(() => self.clients.claim()) // Kontrolü hemen ele al
-  );
-});
-
-// 3. FETCH: Stale-While-Revalidate Stratejisi (Önbellek -> Güncelle)
-// Bu strateji: Kullanıcıya anında önbellekteki eski içeriği gösterir, arkadan yenisi indirir.
-self.addEventListener("fetch", event => {
-  // Sadece GET isteklerini işle (POST isteklerini engelleme)
-  if (event.request.method !== 'GET') return;
-
-  // API istekleri veya Chrome eklentileri (chrome-extension) için işlem yapma
-  const url = new URL(event.request.url);
-  if (url.protocol === 'chrome-extension:' || url.pathname.includes('/api/')) {
-      return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      // Arkada fetch promise'i başlat (önbelleği güncellemek için)
-      const fetchPromise = fetch(event.request).then(networkResponse => {
-        // Geçerli bir yanıt varsa runtime önbelleğe kaydet
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(RUNTIME_CACHE).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(error => {
-        console.log("[SW] Fetch hatası (çevrimdışı olabilir):", error);
-        // Hata durumunda (çevrimdışı) cachedResponse zaten aşağıda döndürülecek
-      });
-
-      // Önbellekte varsa hemen göster, yoksa ağdan bekle
-      return cachedResponse || fetchPromise;
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE_APP && k !== CACHE_FONT)
+          .map(k => {
+            console.log('[SW] Eski cache siliniyor:', k);
+            return caches.delete(k);
+          })
+      )
+    ).then(() => {
+      console.log('[SW] v3 aktif, tüm sekmeleri kontrol alıyor');
+      // Tüm açık sekmeleri hemen yeni SW'ye bağla (yenile gerekmez)
+      return self.clients.claim();
     })
   );
 });
 
-// 4. NAVIGATION FALLBACK: SPA yönlendirmeleri için index.html'e dön
-// Kullanıcı "/dashboard" yazdığında index.html'i göster (Uygulama Router'ı halleder)
-self.addEventListener("fetch", event => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        // Ağ yoksa, önbellekteki index.html'i gönder
-        return caches.match('/index.html');
-      })
-    );
+// ── 3. FETCH ─────────────────────────────────────────────────────
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // GET olmayan istekleri (POST vb.) geç
+  if (req.method !== 'GET') return;
+
+  // chrome-extension veya data URL → geç
+  if (url.protocol === 'chrome-extension:' || url.protocol === 'data:') return;
+
+  // Kur API'leri → her zaman network, asla cache
+  if (BYPASS_PATTERNS.some(p => p.test(url.href))) return;
+
+  // Google Fonts CSS → stale-while-revalidate (bant genişliği tasarrufu)
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    event.respondWith(fontStrategy(req));
+    return;
   }
+
+  // index.html ve navigation istekleri → Network-first
+  // (Her zaman güncel HTML alınır; offline'da cache fallback)
+  const isNavigation = req.mode === 'navigate';
+  const isIndexHtml  = url.pathname.endsWith('/') ||
+                       url.pathname.endsWith('/index.html') ||
+                       url.pathname === url.origin + '/';
+
+  if (isNavigation || isIndexHtml) {
+    event.respondWith(networkFirstStrategy(req));
+    return;
+  }
+
+  // Diğer app varlıkları → stale-while-revalidate
+  event.respondWith(staleWhileRevalidate(req));
 });
 
-// sw.js dosyasının EN ALTINA ekleyin
-self.addEventListener('notificationclick', function(event) {
+// ── Fetch Stratejileri ────────────────────────────────────────────
+
+// Network-first: 8sn dene → başarısız olursa cache'den sun
+async function networkFirstStrategy(req) {
+  const cache = await caches.open(CACHE_APP);
+  try {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const netRes = await fetch(req, { signal: ctrl.signal });
+    clearTimeout(timer);
+
+    if (netRes.ok) {
+      // Başarılı → cache'e yaz (bir sonraki offline için)
+      cache.put(req, netRes.clone());
+    }
+    return netRes;
+  } catch (_) {
+    // Network yok / timeout → cache'den dön
+    const cached = await cache.match(req) || await cache.match('./index.html');
+    if (cached) {
+      console.log('[SW] Offline: cache\'den sunuluyor');
+      return cached;
+    }
+    // Cache de yok — tarayıcı varsayılan hatasını göster
+    return new Response('SAGI Finance yüklenemiyor. İnternet bağlantısını kontrol edin.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' }
+    });
+  }
+}
+
+// Stale-while-revalidate: cache'den hemen sun, arka planda güncelle
+async function staleWhileRevalidate(req) {
+  const cache  = await caches.open(CACHE_APP);
+  const cached = await cache.match(req);
+
+  const fetchPromise = fetch(req).then(res => {
+    if (res.ok && res.type !== 'opaque') {
+      cache.put(req, res.clone());
+    }
+    return res;
+  }).catch(() => null);
+
+  return cached || await fetchPromise;
+}
+
+// Font stratejisi: önce cache, yoksa network'ten al ve cache'le
+async function fontStrategy(req) {
+  const cache  = await caches.open(CACHE_FONT);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+
+  try {
+    const res = await fetch(req);
+    if (res.ok) cache.put(req, res.clone());
+    return res;
+  } catch (_) {
+    return new Response('', { status: 503 });
+  }
+}
+
+// ── 4. MOBİL BİLDİRİM — SW showNotification ─────────────────────
+// Ana sayfadan postMessage ile tetiklenir:
+//   navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF', title, body})
+
+self.addEventListener('message', event => {
+  // Yeni SW'yi hemen aktif et (güncelleme gelince yeniden yüklemeye gerek kalmasın)
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] SKIP_WAITING alındı, hemen aktif oluyor');
+    self.skipWaiting();
+    return;
+  }
+
+  if (!event.data || event.data.type !== 'SHOW_NOTIF') return;
+
+  const { title = 'SAGI Finance', body = '', tag = 'sagi-notif' } = event.data;
+
+  // showNotification SW içinde çalışır → Android Chrome dahil tüm platformlar
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      tag,                // Aynı tag → eski bildirimi günceller (spam olmaz)
+      icon:  './icon-192.png',
+      badge: './icon-96.png',
+      vibrate: [200, 100, 200],
+      requireInteraction: false,
+      data: { url: './' }
+    })
+  );
+});
+
+// ── 5. BİLDİRİME TIKLANMA ────────────────────────────────────────
+self.addEventListener('notificationclick', event => {
   event.notification.close();
-  
-  // Bildirime tıklanınca uygulamayı aç veya odağa al
+
+  const targetUrl = (event.notification.data && event.notification.data.url) || './';
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(function(clientList) {
-        // Eğer uygulama zaten açıksa ona odaklan
-        for (let client of clientList) {
-          if (client.url.includes('/') && 'focus' in client) {
+      .then(clientList => {
+        // Zaten açık bir SAGI sekmesi var mı?
+        for (const client of clientList) {
+          if (client.url.includes(self.registration.scope)) {
             return client.focus();
           }
         }
-        // Açık değilse yeni pencere aç
-        if (clients.openWindow) {
-          return clients.openWindow('/');
-        }
+        // Yoksa yeni pencere aç
+        return clients.openWindow(targetUrl);
       })
   );
+});
+
+// ── 6. ARKA PLAN SENKRONIZASYON (opsiyonel, desteklenirse) ────────
+// Background Sync: uygulama kapalıyken bile belirli aralıklarla check
+self.addEventListener('sync', event => {
+  if (event.tag === 'sagi-daily-check') {
+    // Gelecekte push notification sunucu entegrasyonu buraya
+    console.log('[SW] Background sync: sagi-daily-check');
+  }
 });
