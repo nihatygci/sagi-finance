@@ -1840,11 +1840,13 @@ const App = {
         App.processRecurring();
         Notifications.check();
         // Bildirim izni: daha önce sorulmamışsa ilk açılışta sor
+        /*
         if(Notifications.supported && Notification.permission==='default' && Core.state.settings.onboarded){
           setTimeout(()=>{
             UI.Confirm.show(t('confNotifPerm'),()=>Notifications.requestPermission());
           }, 2000);
         }
+        */
         // Exchange rate: önbelleği yükle ve gerekirse tazele, sonra yeniden çiz
         App.ExchangeRate._loadCache();
         App.ExchangeRate.ensureFresh().then(()=>{
