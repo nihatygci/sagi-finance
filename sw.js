@@ -1,4 +1,3 @@
-/*
 // SAGI Finance Service Worker - v2
 const CACHE_NAME = "sagi-cache-v2";
 const RUNTIME_CACHE = "sagi-runtime-v1";
@@ -112,4 +111,3 @@ self.addEventListener('notificationclick', function(event) {
       })
   );
 });
-*/
