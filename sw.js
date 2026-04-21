@@ -89,3 +89,25 @@ self.addEventListener("fetch", event => {
     );
   }
 });
+
+// sw.js dosyasının EN ALTINA ekleyin
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  
+  // Bildirime tıklanınca uygulamayı aç veya odağa al
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(function(clientList) {
+        // Eğer uygulama zaten açıksa ona odaklan
+        for (let client of clientList) {
+          if (client.url.includes('/') && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Açık değilse yeni pencere aç
+        if (clients.openWindow) {
+          return clients.openWindow('/');
+        }
+      })
+  );
+});
