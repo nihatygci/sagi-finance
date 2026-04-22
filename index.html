@@ -218,6 +218,10 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 .radio-item.selected .radio-dot::after{opacity:1}
 .radio-label{font-size:15px;font-weight:500;flex:1}
 
+/* TX SELECT MODE */
+.tx-row-selected{background:rgba(79,70,229,.05)!important}
+input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;height:16px;cursor:pointer;border-radius:4px;flex-shrink:0}
+
 /* CUSTOM TOGGLE (checkbox replacement) */
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--bg-body);border:1.5px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;transition:all .2s;user-select:none}
 .toggle-row:hover{border-color:var(--brand-accent)}
@@ -520,17 +524,17 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
       <a href="#/dashboard" class="nav-link" data-route="/dashboard"><svg class="nav-icon"><use href="#icon-home"/></svg>Ana Sayfa</a>
       <a href="#/wallets" class="nav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg>Hesaplarım</a>
       <a href="#/transactions" class="nav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg>İşlemler</a>
-      <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
       <a href="#/analytics" class="nav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg>Analiz</a>
+      <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
       <a href="#/goals" class="nav-link" data-route="/goals"><svg class="nav-icon"><use href="#icon-target"/></svg>Hedefler</a>
       <a href="#/debts" class="nav-link" data-route="/debts"><svg class="nav-icon"><use href="#icon-briefcase"/></svg>Borç & Alacak</a>
     </div>
     <div class="nav-section" style="margin-top:auto;padding-bottom:16px">
       <a href="./privacy.html" target="_blank" rel="noopener" class="nav-link">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Gizlilik Politikası
+        <span data-i18n="privacyPolicy">Gizlilik Politikası</span>
       </a>
-      <a href="#/settings" class="nav-link" data-route="/settings"><svg class="nav-icon"><use href="#icon-settings"/></svg>Ayarlar</a>
+      <a href="#/settings" class="nav-link" data-route="/settings"><svg class="nav-icon"><use href="#icon-settings"/></svg><span data-i18n="settings">Ayarlar</span></a>
     </div>
   </aside>
 
@@ -548,7 +552,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
         <div class="card"><div class="text-caption mb-2" data-i18n="netWorth">Net Varlık</div><div class="kpi-value color-primary" id="kpiNetWorth">₺0</div></div>
         <div class="card"><div class="text-caption mb-2" data-i18n="monthExpense">Bu Ay Gider</div><div class="kpi-value color-danger" id="kpiExpense">₺0</div></div>
         <div class="card"><div class="text-caption mb-2" data-i18n="monthIncome">Bu Ay Gelir</div><div class="kpi-value color-success" id="kpiIncome">₺0</div></div>
-        <div class="card"><div class="text-caption mb-2" data-i18n="cashFlow">Aylık Nakit Akışı</div><div class="kpi-value" id="kpiFlow">₺0</div></div>
+        <div class="card"><div class="text-caption mb-2" data-i18n="cashFlow">Aylık Nakit Akışı</div><div class="kpi-value color-warn" id="kpiFlow">₺0</div></div>
       </div>
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
         <div class="card">
@@ -586,11 +590,35 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
       <div class="flex flex-col mb-5 gap-5">
         <div class="flex justify-between items-center">
           <div><h1 class="text-h1" data-i18n="transactions">İşlemler</h1><p class="text-subtitle" data-i18n="txSubtitle">Tüm gelir ve giderleriniz</p></div>
+          <div class="flex gap-2">
+          <button class="btn btn-outline" id="txSelectModeBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" title="Seç">
+            <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-check"/></svg>
+            <span id="txSelectModeLabel">Seç</span>
+          </button>
           <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
+        </div>
         </div>
         <div class="card p-4 stagger-1">
           <div class="css-grid grid-cols-4 items-end">
-            <div class="form-group mb-0"><label class="form-label" data-i18n="filterDate">Tarih</label><select class="form-control" id="filterTxDate"><option value="all" data-i18n="filterAllTimes">Tüm Zamanlar</option><option value="this_month" selected data-i18n="filterThisMonth">Bu Ay</option><option value="last_month" data-i18n="filterLastMonth">Geçen Ay</option></select></div>
+            <div class="form-group mb-0">
+              <label class="form-label" data-i18n="filterDate">Tarih</label>
+              <select class="form-control" id="filterTxDate" onchange="App.Controllers.Transactions.onDateFilterChange(this.value)">
+                <option value="all" data-i18n="filterAllTimes">Tüm Zamanlar</option>
+                <option value="this_month" selected data-i18n="filterThisMonth">Bu Ay</option>
+                <option value="last_month" data-i18n="filterLastMonth">Geçen Ay</option>
+                <option value="last_3months">Son 3 Ay</option>
+                <option value="last_6months">Son 6 Ay</option>
+                <option value="last_year">Son 1 Yıl</option>
+                <option value="custom">Özel Tarih</option>
+              </select>
+              <div id="customDateRange" style="display:none;margin-top:8px;display:none">
+                <div class="flex gap-2 items-center">
+                  <input type="date" class="form-control" id="filterDateFrom" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
+                  <span style="color:var(--text-muted);font-size:12px">—</span>
+                  <input type="date" class="form-control" id="filterDateTo" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
+                </div>
+              </div>
+            </div>
             <div class="form-group mb-0"><label class="form-label" data-i18n="filterSearch">Arama</label><input type="text" class="form-control" id="filterTxSearch" data-i18n-ph="filterSearchPh" placeholder="Açıklama..."></div>
             <div class="form-group mb-0"><label class="form-label" data-i18n="filterType">Tür</label><select class="form-control" id="filterTxType"><option value="all" data-i18n="all">Tümü</option><option value="income" data-i18n="filterIncome">Gelir (+)</option><option value="expense" data-i18n="filterExpense">Gider (-)</option></select></div>
             <div class="form-group mb-0">
@@ -608,8 +636,15 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
           </table>
         </div>
         <div class="flex justify-between items-center p-5" style="border-top:1px solid var(--border-light);background:var(--bg-surface-hover)" id="txFooter">
-          <div class="text-subtitle font-medium" id="txPageInfo" data-i18n="totalTx">Toplam 0 işlem</div>
+          <div class="flex items-center gap-3">
+            <div class="text-subtitle font-medium" id="txPageInfo"></div>
+            <button class="btn btn-outline btn-sm" id="txSelectBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" style="font-size:12px;padding:5px 12px">Seç</button>
+            <button class="btn btn-outline btn-sm color-danger" id="txDeleteSelectedBtn" onclick="App.Controllers.Transactions.deleteSelected()" style="display:none;font-size:12px;padding:5px 12px;border-color:var(--status-danger-bg)">Seçilenleri Sil (<span id="txSelectedCount">0</span>)</button>
+          </div>
+          <div class="flex gap-2">
+          <button class="btn btn-outline btn-sm color-danger" id="deleteSelectedBtn" style="display:none;border-color:var(--status-danger-bg)" onclick="App.Controllers.Transactions.deleteSelected()">Seçilenleri Sil (<span id="selectedCount">0</span>)</button>
           <button class="btn btn-outline btn-sm color-danger" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
+        </div>
         </div>
       </div>
     </div>
@@ -711,29 +746,39 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
         <div class="card">
           <h2 class="card-title mb-5"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="notifTitle">Bildirimler</span></h2>
           <p class="text-subtitle mb-5" data-i18n="notifDesc">Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.</p>
-          <div id="notifPermBox" style="background:rgba(79,70,229,.07);border:1px solid rgba(79,70,229,.2);border-radius:var(--radius-md);padding:16px;margin-bottom:16px;display:none">
+          <!-- Ana bildirim toggle -->
+          <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
+            <div>
+              <div class="font-bold" style="font-size:15px">Bildirimleri Etkinleştir</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="notifMasterDesc">Tüm bildirimleri açın veya kapatın</div>
+            </div>
+            <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
+          </div>
+
+          <!-- İzin kutusu (permission verilmemişse görünür) -->
+          <div id="notifPermBox" style="background:rgba(79,70,229,.07);border:1px solid rgba(79,70,229,.2);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
             <button class="btn btn-primary btn-sm w-full" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
           </div>
-          <div id="notifStatusBox" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:var(--radius-md);background:var(--status-success-bg);color:var(--status-success);font-weight:600;font-size:14px" data-i18n="notifActive">
-            ✓ Bildirimler aktif
-          </div>
 
-          <div class="toggle-row" id="notifAbonelik" onclick="App.Notifications.toggleSetting('abonelik')">
-            <div><div class="font-bold" style="font-size:15px" data-i18n="notifSub">Abonelik Hatırlatmaları</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifSubDesc">Ödeme günü bildir</div></div>
-            <div class="toggle-track" id="notifAbonelikTrack"><div class="toggle-thumb"></div></div>
-          </div>
-          <div class="toggle-row" id="notifBorc" onclick="App.Notifications.toggleSetting('borc')">
-            <div><div class="font-bold" style="font-size:15px" data-i18n="notifDebt">Borç & Vade Uyarıları</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifDebtDesc">3 gün öncesinden bildir</div></div>
-            <div class="toggle-track" id="notifBorcTrack"><div class="toggle-thumb"></div></div>
-          </div>
-          <div class="toggle-row" id="notifButce" onclick="App.Notifications.toggleSetting('butce')">
-            <div><div class="font-bold" style="font-size:15px" data-i18n="notifBudget">Bütçe Limit Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifBudgetDesc">%80 dolduğunda bildir</div></div>
-            <div class="toggle-track" id="notifButceTrack"><div class="toggle-thumb"></div></div>
-          </div>
-          <div class="toggle-row" id="notifHaftalik" onclick="App.Notifications.toggleSetting('haftalik')">
-            <div><div class="font-bold" style="font-size:15px" data-i18n="notifWeekly">Haftalık Özet</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifWeeklyDesc">Her Pazartesi haftalık rapor</div></div>
-            <div class="toggle-track" id="notifHaftalikTrack"><div class="toggle-thumb"></div></div>
+          <!-- Alt bildirim toggle'ları (master kapalıysa soluk görünür, tıklanamaz) -->
+          <div id="notifSubToggles" style="transition:opacity .25s;margin-top:4px">
+            <div class="toggle-row" id="notifAbonelik" onclick="App.Notifications.toggleSetting('abonelik')">
+              <div><div class="font-bold" style="font-size:15px" data-i18n="notifSub">Abonelik Hatırlatmaları</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifSubDesc">Ödeme günü bildir</div></div>
+              <div class="toggle-track" id="notifAbonelikTrack"><div class="toggle-thumb"></div></div>
+            </div>
+            <div class="toggle-row" id="notifBorc" onclick="App.Notifications.toggleSetting('borc')">
+              <div><div class="font-bold" style="font-size:15px" data-i18n="notifDebt">Borç & Vade Uyarıları</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifDebtDesc">3 gün öncesinden bildir</div></div>
+              <div class="toggle-track" id="notifBorcTrack"><div class="toggle-thumb"></div></div>
+            </div>
+            <div class="toggle-row" id="notifButce" onclick="App.Notifications.toggleSetting('butce')">
+              <div><div class="font-bold" style="font-size:15px" data-i18n="notifBudget">Bütçe Limit Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifBudgetDesc">%80 dolduğunda bildir</div></div>
+              <div class="toggle-track" id="notifButceTrack"><div class="toggle-thumb"></div></div>
+            </div>
+            <div class="toggle-row" id="notifHaftalik" onclick="App.Notifications.toggleSetting('haftalik')">
+              <div><div class="font-bold" style="font-size:15px" data-i18n="notifWeekly">Haftalık Özet</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="notifWeeklyDesc">Her Pazartesi haftalık rapor</div></div>
+              <div class="toggle-track" id="notifHaftalikTrack"><div class="toggle-thumb"></div></div>
+            </div>
           </div>
         </div>
 
@@ -770,10 +815,10 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
   <!-- BOTTOM NAV — 5 sekme düz: Ana/İşlemler/Abonelikler/Hesaplar/Analiz -->
   <nav class="app-bottom-nav">
     <a href="#/dashboard" class="bnav-link" data-route="/dashboard"><svg class="nav-icon"><use href="#icon-home"/></svg><span class="bnav-text" data-i18n="dashboard">Ana Sayfa</span></a>
-    <a href="#/transactions" class="bnav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg><span class="bnav-text" data-i18n="transactions">İşlemler</span></a>
-    <a href="#/recurring" class="bnav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg><span class="bnav-text" data-i18n="recurring">Abonelikler</span></a>
     <a href="#/wallets" class="bnav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg><span class="bnav-text" data-i18n="wallets">Hesaplar</span></a>
+    <a href="#/transactions" class="bnav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg><span class="bnav-text" data-i18n="transactions">İşlemler</span></a>
     <a href="#/analytics" class="bnav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg><span class="bnav-text" data-i18n="analytics">Analiz</span></a>
+    <a href="#/settings" class="bnav-link" data-route="/settings"><svg class="nav-icon"><use href="#icon-settings"/></svg><span class="bnav-text" data-i18n="settings">Ayarlar</span></a>
   </nav>
 </div>
 
@@ -917,9 +962,10 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 
 <div class="modal-overlay" id="modalRecurring">
   <div class="modal-content">
-    <div class="modal-header"><h3 class="modal-title" data-i18n="addRecurring">Abonelik Ekle</h3><button class="act-btn" onclick="UI.Modals.close('modalRecurring')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div>
+    <div class="modal-header"><h3 class="modal-title" id="recModalTitle" data-i18n="addRecurring">Abonelik Ekle</h3><button class="act-btn" onclick="UI.Modals.close('modalRecurring')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div>
     <div class="modal-body">
       <form id="recForm" onsubmit="event.preventDefault();App.Controllers.Recurring.save()">
+        <input type="hidden" id="rec_id" value="">
         <input type="hidden" id="rec_wallet" value="">
 
         <div class="form-group"><label class="form-label" data-i18n="recNameLabel">Abonelik Adı</label><input type="text" class="form-control" id="rec_name" data-i18n-ph="recNamePh" placeholder="Örn: Netflix, Kira, Elektrik" required autocomplete="off"></div>
@@ -1056,7 +1102,17 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
           </div>
           <input type="hidden" id="bud_cat" value="" required>
         </div>
-        <div class="form-group mb-0"><label class="form-label" data-i18n="monthlyLimit">Aylık Limit</label><input type="number" step="0.01" class="form-control" id="bud_amount" placeholder="0.00" required></div>
+        <div class="css-grid grid-cols-2 gap-4">
+          <div class="form-group mb-0"><label class="form-label" data-i18n="monthlyLimit">Aylık Limit</label><input type="number" step="0.01" class="form-control" id="bud_amount" placeholder="0.00" required></div>
+          <div class="form-group mb-0"><label class="form-label">Para Birimi</label>
+            <select class="form-control" id="bud_currency">
+              <option value="TRY">₺ TRY</option>
+              <option value="USD">$ USD</option>
+              <option value="EUR">€ EUR</option>
+              <option value="GBP">£ GBP</option>
+            </select>
+          </div>
+        </div>
       </form>
     </div>
     <div class="modal-footer"><button type="button" class="btn btn-outline" data-i18n="cancel" onclick="UI.Modals.close('modalBudget')">İptal</button><button type="submit" form="budForm" class="btn btn-primary" data-i18n="save">Kaydet</button></div>
@@ -1105,7 +1161,7 @@ const LANGS = {
       // Nav
       dashboard:'Ana Sayfa',netWorth:'Net Varlık',monthExpense:'Bu Ay Gider',monthIncome:'Bu Ay Gelir',cashFlow:'Aylık Nakit Akışı',
       goals:'Hedeflerim',debts:'Borç & Alacak',debtSummary:'Borç & Alacak',recentTx:'Son İşlemler',upcoming:'Yaklaşan Ödemeler',
-      wallets:'Hesaplarım',transactions:'İşlemler',recurring:'Abonelikler',analytics:'Analiz',settings:'Ayarlar',
+      wallets:'Hesaplarım',transactions:'İşlemler',recurring:'Abonelikler',analytics:'Analiz',settings:'Ayarlar',privacyPolicy: 'Gizlilik Politikası',
       mainMenu:'Ana Menü',
       // Actions
       addWallet:'Hesap Ekle',addTx:'İşlem Ekle',addRecurring:'Abonelik Ekle',addGoal:'Hedef Ekle',
@@ -1247,7 +1303,7 @@ const LANGS = {
     ui:{
       dashboard:'Dashboard',netWorth:'Net Worth',monthExpense:'This Month Expenses',monthIncome:'This Month Income',cashFlow:'Monthly Cash Flow',
       goals:'My Goals',debts:'Debts & Receivables',debtSummary:'Debts & Receivables',recentTx:'Recent Transactions',upcoming:'Upcoming Payments',
-      wallets:'My Accounts',transactions:'Transactions',recurring:'Subscriptions',analytics:'Analytics',settings:'Settings',
+      wallets:'My Accounts',transactions:'Transactions',recurring:'Subscriptions',analytics:'Analytics',settings:'Settings',privacyPolicy: 'Privacy Policy',
       mainMenu:'Main Menu',
       addWallet:'Add Account',addTx:'Add Transaction',addRecurring:'Add Subscription',addGoal:'Add Goal',
       addDebt:'Add Debt',addReceivable:'Add Receivable',addLimit:'Add Limit',addFirstTx:'Add First Transaction',
@@ -1654,22 +1710,53 @@ const Notifications = {
   updateUI(){
     if(!this.supported)return;
     const granted=this.granted;
+    const masterOn=granted&&Core.state.settings.notifMaster!==false; // varsayılan: açık
+    // Master toggle
+    const masterTrack=document.getElementById('notifMasterTrack');
+    const masterRow=document.getElementById('notifMasterRow');
+    const masterDesc=document.getElementById('notifMasterDesc');
+    if(masterTrack){masterOn?masterTrack.classList.add('on'):masterTrack.classList.remove('on');}
+    if(masterRow){masterOn?masterRow.classList.add('active'):masterRow.classList.remove('active');}
+    if(masterDesc){masterDesc.textContent=masterOn?'Bildirimler açık':'Bildirimleri kapatmak için kaydırın';}
+    // İzin kutusu
     const permBox=document.getElementById('notifPermBox');
-    const statusBox=document.getElementById('notifStatusBox');
-    if(permBox)permBox.style.display=granted?'none':'block';
-    if(statusBox)statusBox.style.display=granted?'block':'none';
+    if(permBox)permBox.style.display=(!granted&&masterOn)?'block':'none';
+    // Alt toggle'lar — master kapalıysa soluk + devre dışı
+    const sub=document.getElementById('notifSubToggles');
+    if(sub){sub.style.opacity=masterOn?'1':'0.35';sub.style.pointerEvents=masterOn?'':'none';}
     const notifs=Core.state.settings.notifications||{};
     ['abonelik','borc','butce','haftalik'].forEach(key=>{
       const K=key.charAt(0).toUpperCase()+key.slice(1);
       const track=document.getElementById('notif'+K+'Track');
       const row=document.getElementById('notif'+K);
-      if(track){notifs[key]?track.classList.add('on'):track.classList.remove('on');}
-      if(row){notifs[key]?row.classList.add('active'):row.classList.remove('active');}
+      const on=masterOn&&notifs[key];
+      if(track){on?track.classList.add('on'):track.classList.remove('on');}
+      if(row){on?row.classList.add('active'):row.classList.remove('active');}
     });
+  },
+  toggleMaster(){
+    if(!this.supported){UI.Toasts.show(t('msgNotifUnsup'),'error');return;}
+    if(!this.granted){
+      // İzin yok — açmaya çalışıyor, izin iste
+      this.requestPermission().then(()=>{
+        if(this.granted){Core.state.settings.notifMaster=true;Core.DB.save();this.updateUI();}
+      });
+      return;
+    }
+    // İzin var — toggle et
+    const current=Core.state.settings.notifMaster!==false;
+    Core.state.settings.notifMaster=!current;
+    if(!current){
+      // Açılıyor — tüm sub-toggle'ları varsayılan aç
+      if(!Core.state.settings.notifications)Core.state.settings.notifications={};
+      Core.state.settings.notifications={abonelik:true,borc:true,butce:false,haftalik:false};
+    }
+    Core.DB.save();this.updateUI();
+    UI.Toasts.show(Core.state.settings.notifMaster?'Bildirimler açıldı.':'Bildirimler kapatıldı.');
   },
   toggleSetting(key){
     if(!this.supported){UI.Toasts.show(t('msgNotifUnsup'),'error');return;}
-    if(!this.granted){this.requestPermission();return;}
+    if(!this.granted||Core.state.settings.notifMaster===false){this.toggleMaster();return;}
     if(!Core.state.settings.notifications)Core.state.settings.notifications={};
     Core.state.settings.notifications[key]=!Core.state.settings.notifications[key];
     Core.DB.save();this.updateUI();
@@ -1677,6 +1764,7 @@ const Notifications = {
   },
   check(){
     if(!this.granted)return;
+    if(Core.state.settings.notifMaster===false)return; // master kapalı
     const notifs=Core.state.settings.notifications||{};
     if(notifs.abonelik){
       const today=new Date().getDate();
@@ -1855,7 +1943,8 @@ const App = {
         ov.addEventListener('click',()=>{sb.classList.remove('active');ov.classList.remove('active');});
         document.querySelectorAll('.nav-link').forEach(l=>l.addEventListener('click',()=>{if(window.innerWidth<1024){sb.classList.remove('active');ov.classList.remove('active');}}));
       }
-      ['filterTxSearch','filterTxType','filterTxWallet','filterTxDate'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>App.Controllers.Transactions.renderTable());});
+      ['filterTxSearch','filterTxType','filterTxWallet'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>App.Controllers.Transactions.renderTable());});
+      document.getElementById('filterTxDate')?.addEventListener('change',()=>App.Controllers.Transactions.onDateFilterChange());
       // Tutar input'u değiştiğinde dönüşüm hint'ini tazele
       document.getElementById('tx_amount')?.addEventListener('input',()=>App.Controllers.Transactions._updateAmountHint());
       Core.on('routeChanged',r=>{
@@ -1992,7 +2081,7 @@ const App = {
         document.getElementById('kpiNetWorth').textContent=Core.Utils.formatMoney(nw);
         document.getElementById('kpiExpense').textContent=Core.Utils.formatMoney(exp);
         const incEl=document.getElementById('kpiIncome');if(incEl)incEl.textContent=Core.Utils.formatMoney(inc);
-        const fEl=document.getElementById('kpiFlow');fEl.textContent=Core.Utils.formatMoney(flow);fEl.className=`kpi-value ${flow>=0?'color-success':'color-danger'}`;
+        const fEl=document.getElementById('kpiFlow');fEl.textContent=Core.Utils.formatMoney(flow);fEl.className='kpi-value color-warn';
 
         const dg=document.getElementById('dashGoals');
         if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const p=Math.min((g.current/g.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
@@ -2004,8 +2093,35 @@ const App = {
         const dtb=document.getElementById('dashRecentTxs');
         if(dtb){if(!recent.length)dtb.innerHTML=`<tr><td colspan="3" class="text-center color-muted" style="padding:28px">${t('noTx')}</td></tr>`;else dtb.innerHTML=recent.map(tx=>{const color=tx.type==='income'?'var(--status-success)':'var(--status-danger)';const txW=Core.state.wallets.find(x=>x.id===tx.wallet);const txCur=(txW&&txW.currency)||mainCur;return`<tr style="border-left:3px solid ${color}"><td style="padding-left:18px"><div class="font-medium" style="font-size:14px">${tx.desc||tx.cat}</div><div class="text-caption" style="text-transform:none">${Core.Utils.formatDate(tx.date)}</div></td><td class="text-right font-display font-bold" style="color:${color};padding-right:18px;font-size:14px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCur)}</td></tr>`;}).join('');}
 
-        const du=document.getElementById('dashUpcoming');
-        if(du){if(!Core.state.recurring.length)du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;else{const today=new Date().getDate();du.innerHTML=Core.state.recurring.slice(0,4).map(s=>{const diff=s.day-today,label=diff===0?t('diffDays0'):diff<0?t('diffDaysAgo',{n:Math.abs(diff)}):t('diffDaysAhead',{n:diff});return`<div class="upcoming-item"><div><div class="font-bold" style="font-size:14px">${s.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="font-display font-bold color-danger" style="font-size:16px">-${Core.Utils.formatMoney(s.amount)}</div></div>`;}).join('');}}
+                const du=document.getElementById('dashUpcoming');
+        if(du){
+          if(!Core.state.recurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
+          else{
+            const today=new Date().getDate(),now2=new Date();
+            const paidKey='sagi_paid_'+now2.getFullYear()+'_'+now2.getMonth();
+            const paidSet=new Set(JSON.parse(localStorage.getItem(paidKey)||'[]'));
+            du.innerHTML=Core.state.recurring.slice(0,5).map(s=>{
+              const diff=s.day-today,isPaid=paidSet.has(s.id);
+              let label='',urgency='';
+              if(isPaid){label='<span style="color:var(--status-success);font-weight:600">✓ Bu ay ödendi</span>';}
+              else if(diff===0){label=`<span style="color:var(--status-danger);font-weight:700">Bugün!</span>`;urgency='border-color:var(--status-danger);background:var(--status-danger-bg);';}
+              else if(diff<0&&diff>=-3){label=`<span style="color:var(--status-warn);font-weight:700">${Math.abs(diff)} gün geçti</span>`;urgency='border-color:var(--status-warn);background:var(--status-warn-bg);';}
+              else if(diff<0){label=`<span style="color:var(--text-muted)">${Math.abs(diff)} gün önce</span>`;}
+              else{label=`<span>${diff} gün sonra</span>`;}
+              const paidBtn=!isPaid?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 8px;margin-left:6px" onclick="App.Controllers.Dashboard.markPaid('${s.id}')">Ödendi</button>`:'';
+              return`<div class="upcoming-item" style="${urgency}"><div style="flex:1"><div class="font-bold" style="font-size:14px">${s.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="flex items-center gap-1"><div class="font-display font-bold color-danger" style="font-size:15px">-${Core.Utils.formatMoney(s.amount)}</div>${paidBtn}</div></div>`;
+            }).join('');
+            // Bildirim: son 3 günde ödenmemişse
+            if(Notifications.granted){Core.state.recurring.forEach(s=>{const diff=s.day-today;if(diff<0&&diff>=-3&&!paidSet.has(s.id)){const nk='sagi_nt_'+s.id+'_'+now2.getFullYear()+'_'+now2.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');Notifications.sendNotif('SAGI Finance',s.name+' ödemesi yapılmadı: '+Core.Utils.formatMoney(s.amount));}}});}
+          }
+        }
+      },
+      markPaid(recId){
+        const now=new Date();
+        const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
+        const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]');
+        if(!paidArr.includes(recId)){paidArr.push(recId);localStorage.setItem(paidKey,JSON.stringify(paidArr));}
+        this.render();UI.Toasts.show('Ödeme bu ay için işaretlendi.');
       }
     },
     Wallets:{
@@ -2100,9 +2216,73 @@ const App = {
       quickFilter(wId){window.location.hash='/transactions';setTimeout(()=>{const fw=document.getElementById('filterTxWallet');if(fw){fw.value=wId;this.renderTable();}},150);},
       quickAdd(wId){this.openModal();setTimeout(()=>{document.getElementById('tx_wallet').value=wId;document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${wId}'`)));},200);},
       clearFilters(){document.getElementById('filterTxSearch').value='';document.getElementById('filterTxType').value='all';document.getElementById('filterTxWallet').value='all';document.getElementById('filterTxDate').value='all';this.renderTable();},
+      _selectMode:false,
+      _selected:new Set(),
+      onDateFilterChange(){
+        const v=document.getElementById('filterTxDate')?.value;
+        const dr=document.getElementById('customDateRange');
+        if(dr)dr.style.display=v==='custom'?'flex':'none';
+        this.renderTable();
+      },
+      toggleSelectMode(){
+        this._selectMode=!this._selectMode;
+        this._selected.clear();
+        const btn=document.getElementById('txSelectModeBtn');
+        const lbl=document.getElementById('txSelectModeLabel');
+        const delBtn=document.getElementById('deleteSelectedBtn');
+        if(btn)btn.classList.toggle('btn-primary',this._selectMode);
+        if(lbl)lbl.textContent=this._selectMode?'İptal':'Seç';
+        if(delBtn)delBtn.style.display=this._selectMode?'inline-flex':'none';
+        this.renderTable();
+      },
+      toggleSelect(id){
+        if(this._selected.has(id))this._selected.delete(id);else this._selected.add(id);
+        const countEl=document.getElementById('selectedCount');
+        if(countEl)countEl.textContent=this._selected.size;
+        const delBtn=document.getElementById('deleteSelectedBtn');
+        if(delBtn)delBtn.style.display=(this._selectMode&&this._selected.size>0)?'inline-flex':'none';
+        // update row visual
+        document.querySelectorAll('.tx-select-cb').forEach(cb=>{cb.checked=this._selected.has(cb.dataset.id);});
+      },
+      deleteSelected(){
+        if(!this._selected.size)return;
+        UI.Confirm.show(`${this._selected.size} işlem silinecek. Devam?`,()=>{
+          const toDelete=Core.state.transactions.filter(t=>this._selected.has(t.id));
+          toDelete.forEach(tx=>App.Money.revertTx(tx));
+          Core.state.transactions=Core.state.transactions.filter(t=>!this._selected.has(t.id));
+          this._selected.clear();this._selectMode=false;
+          Core.DB.save();this.renderTable();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+          UI.Toasts.show('Seçili işlemler silindi.');
+          const btn=document.getElementById('txSelectModeBtn');if(btn)btn.classList.remove('btn-primary');
+          const lbl=document.getElementById('txSelectModeLabel');if(lbl)lbl.textContent='Seç';
+          const delBtn=document.getElementById('deleteSelectedBtn');if(delBtn)delBtn.style.display='none';
+        });
+      },
       getFiltered(){
-        const s=(document.getElementById('filterTxSearch')?.value||'').toLowerCase(),t=document.getElementById('filterTxType')?.value||'all',w=document.getElementById('filterTxWallet')?.value||'all',dF=document.getElementById('filterTxDate')?.value||'all',now=new Date();
-        return Core.state.transactions.filter(x=>{const mS=(x.desc.toLowerCase().includes(s)||x.cat.toLowerCase().includes(s)),mT=(t==='all'||x.type===t),mW=(w==='all'||x.wallet===w);let mD=true;if(dF==='this_month'){const xD=new Date(x.date);mD=xD.getMonth()===now.getMonth()&&xD.getFullYear()===now.getFullYear();}else if(dF==='last_month'){const xD=new Date(x.date);mD=xD.getMonth()===(now.getMonth()-1+12)%12&&xD.getFullYear()===(now.getMonth()===0?now.getFullYear()-1:now.getFullYear());}return mS&&mT&&mW&&mD;}).sort((a,b)=>new Date(b.date)-new Date(a.date)||b.id.localeCompare(a.id));
+        const s=(document.getElementById('filterTxSearch')?.value||'').toLowerCase();
+        const typ=document.getElementById('filterTxType')?.value||'all';
+        const w=document.getElementById('filterTxWallet')?.value||'all';
+        const dF=document.getElementById('filterTxDate')?.value||'all';
+        const now=new Date();
+        return Core.state.transactions.filter(x=>{
+          const mS=(x.desc||'').toLowerCase().includes(s)||(x.cat||'').toLowerCase().includes(s);
+          const mT=typ==='all'||x.type===typ;
+          const mW=w==='all'||x.wallet===w;
+          let mD=true;
+          const xD=new Date(x.date);
+          if(dF==='this_month'){mD=xD.getMonth()===now.getMonth()&&xD.getFullYear()===now.getFullYear();}
+          else if(dF==='last_month'){const pm=(now.getMonth()-1+12)%12,py=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();mD=xD.getMonth()===pm&&xD.getFullYear()===py;}
+          else if(dF==='last_3months'){const d3=new Date(now);d3.setMonth(d3.getMonth()-3);mD=xD>=d3;}
+          else if(dF==='last_6months'){const d6=new Date(now);d6.setMonth(d6.getMonth()-6);mD=xD>=d6;}
+          else if(dF==='last_year'){const dy=new Date(now);dy.setFullYear(dy.getFullYear()-1);mD=xD>=dy;}
+          else if(dF==='custom'){
+            const from=document.getElementById('filterDateFrom')?.value;
+            const to=document.getElementById('filterDateTo')?.value;
+            if(from)mD=mD&&x.date>=from;
+            if(to)mD=mD&&x.date<=to;
+          }
+          return mS&&mT&&mW&&mD;
+        }).sort((a,b)=>new Date(b.date)-new Date(a.date)||b.id.localeCompare(a.id));
       },
       renderTable(){
         const f=this.getFiltered(),cont=document.getElementById('txCardContainer');
@@ -2111,7 +2291,8 @@ const App = {
         const tb=document.getElementById('txTableBody');
         if(document.getElementById('txPageInfo'))document.getElementById('txPageInfo').textContent=f.length+' '+t('records');
         if(!f.length){tb.innerHTML=`<tr><td colspan="6" class="text-center color-muted" style="padding:48px">${t('noMatch')}</td></tr>`;return;}
-        tb.innerHTML=f.map(tx=>{const txWal=Core.state.wallets.find(x=>x.id===tx.wallet);const wN=txWal?.name||`<span class="color-muted">${t('deleted')}</span>`;const txCurD=(txWal?.currency)||'TRY';const color=tx.cat==='Transfer'?'var(--status-neutral)':(tx.type==='income'?'var(--status-success)':'var(--status-danger)');return`<tr style="border-left:3px solid ${color}"><td style="padding-left:22px"><div class="font-medium" style="font-size:14px">${Core.Utils.formatDate(tx.date)}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td><td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.duplicate('${tx.id}')" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-copy"/></svg></button><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td></tr>`;}).join('');
+        const sm=this._selectMode;
+        tb.innerHTML=f.map(tx=>{const txWal=Core.state.wallets.find(x=>x.id===tx.wallet);const wN=txWal?.name||`<span class="color-muted">${t('deleted')}</span>`;const txCurD=(txWal?.currency)||'TRY';const color=tx.cat==='Transfer'?'var(--status-neutral)':(tx.type==='income'?'var(--status-success)':'var(--status-danger)');const isSel=this._selected.has(tx.id);const cbCol=sm?`<td style="padding-left:14px;width:36px"><input type="checkbox" class="tx-select-cb" data-id="${tx.id}" ${isSel?'checked':''} onclick="event.stopPropagation();App.Controllers.Transactions.toggleSelect('${tx.id}')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--brand-accent)"></td>`:'';return`<tr style="border-left:3px solid ${color}${isSel?';background:rgba(79,70,229,.05)':''}" ${sm?`onclick="App.Controllers.Transactions.toggleSelect('${tx.id}')" style="cursor:pointer;border-left:3px solid ${color}${isSel?';background:rgba(79,70,229,.05)':''}"`:''}}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:14px">${Core.Utils.formatDate(tx.date)}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.duplicate('${tx.id}')" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-copy"/></svg></button><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;}).join('');
       },
       openModal(){
         this._renderWalletPills('txWalletPills','tx_wallet');
@@ -2210,22 +2391,37 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         const mExp=mTx.filter(t=>t.type==='expense').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0);
         const net=mInc-mExp;
         const aS=document.getElementById('analyticsSummary');
-        if(aS)aS.innerHTML=`<div class="card"><div class="text-caption mb-2">${t('thisMonthIncome')}</div><div class="kpi-value color-success">${Core.Utils.formatMoney(mInc)}</div></div><div class="card"><div class="text-caption mb-2">${t('thisMonthExpense')}</div><div class="kpi-value color-danger">${Core.Utils.formatMoney(mExp)}</div></div><div class="card"><div class="text-caption mb-2">${t('netSavings')}</div><div class="kpi-value ${net>=0?'color-success':'color-danger'}">${Core.Utils.formatMoney(net)}</div></div>`;
+        if(aS)aS.innerHTML=`<div class="card"><div class="text-caption mb-2">${t('thisMonthIncome')}</div><div class="kpi-value color-success">${Core.Utils.formatMoney(mInc)}</div></div><div class="card"><div class="text-caption mb-2">${t('thisMonthExpense')}</div><div class="kpi-value color-danger">${Core.Utils.formatMoney(mExp)}</div></div><div class="card"><div class="text-caption mb-2">${t('netSavings')}</div><div class="kpi-value color-warn">${Core.Utils.formatMoney(net)}</div></div>`;
         const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),ml=d.toLocaleDateString('tr-TR',{month:'short'}),mTxs=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===d.getMonth()&&new Date(t.date).getFullYear()===d.getFullYear());months.push({label:ml,inc:mTxs.filter(t=>t.type==='income').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0),exp:mTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0)});}
         UI.ChartEngine.drawBarChart('trendBarChart',months);
-        const cat={};mTx.filter(t=>t.type==='expense').forEach(t=>cat[t.cat]=(cat[t.cat]||0)+t.amount);
+        // Kategori breakdown — mainCur'a çevrilmiş tutarlar (App.Money.toMain kullanır)
+        const cat={};mTx.filter(t=>t.type==='expense').forEach(t=>cat[t.cat]=(cat[t.cat]||0)+App.Money.toMain(t));
         UI.ChartEngine.drawDonut('mainDonutChart',cat);
         const tot=Object.values(cat).reduce((s,v)=>s+v,0)||1;
         const bl=document.getElementById('categoryBreakdownList');
-        if(bl){if(!Object.keys(cat).length)bl.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:20px 0">${t('noExpData')}</div>`;else bl.innerHTML=Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(i=>{const c=Core.Utils.getCatColor(i[0]);return`<div class="mb-4"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:11px;height:11px;border-radius:50%;background:${c}"></div>${i[0]}</div><div class="font-bold">${Core.Utils.formatMoney(i[1])} <span class="color-muted" style="font-size:12px;font-weight:500">%${((i[1]/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(i[1]/tot)*100}%;background:${c}"></div></div></div>`;}).join('');}
+        if(bl){if(!Object.keys(cat).length)bl.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:20px 0">${t('noExpData')}</div>`;else bl.innerHTML=Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(i=>{const cc=Core.Utils.getCatColor(i[0]);return`<div class="mb-4"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:11px;height:11px;border-radius:50%;background:${cc}"></div>${i[0]}</div><div class="font-bold">${Core.Utils.formatMoney(i[1])} <span class="color-muted" style="font-size:12px;font-weight:500">%${((i[1]/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(i[1]/tot)*100}%;background:${cc}"></div></div></div>`;}).join('');}
         App.Controllers.Budgets.render(cat);
       }
     },
     Budgets:{
-      render(spentCats){const c=document.getElementById('budgetList');if(!Core.state.budgets||!Core.state.budgets.length){c.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:24px 0">${t('noLimitSet')}</div>`;return;}c.innerHTML=Core.state.budgets.map(b=>{const spent=spentCats[b.cat]||0,perc=Math.min((spent/b.amount)*100,100),isOver=spent>b.amount,barC=isOver?'var(--status-danger)':(perc>80?'var(--status-warn)':'var(--brand-accent)');return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${b.cat}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Budgets.edit('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Budgets.delete('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button></div></div><div class="flex justify-between text-subtitle mb-2"><span class="${isOver?'color-danger':''} font-bold">${Core.Utils.formatMoney(spent)}</span><span>${t('limit')} ${Core.Utils.formatMoney(b.amount)}</span></div><div class="progress-track" style="height:7px"><div class="progress-fill" style="width:${perc}%;background:${barC}"></div></div></div>`;}).join('');},
+      render(spentCats){
+        const c=document.getElementById('budgetList');
+        if(!Core.state.budgets||!Core.state.budgets.length){c.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:24px 0">${t('noLimitSet')}</div>`;return;}
+        const mc=Core.state.settings.currency||'TRY';
+        c.innerHTML=Core.state.budgets.map(b=>{
+          const budCur=b.currency||mc;
+          // spentCats mainCur'da; bütçe kendi currency'sinde ise convert
+          const spentInBudCur=budCur===mc?(spentCats[b.cat]||0):App.ExchangeRate.convert(spentCats[b.cat]||0,mc,budCur);
+          const spent=spentInBudCur,perc=Math.min((spent/b.amount)*100,100),isOver=spent>b.amount;
+          const barC=isOver?'var(--status-danger)':(perc>80?'var(--status-warn)':'var(--brand-accent)');
+          const curBadge=budCur!==mc?` <span style="font-size:11px;opacity:.7">${budCur}</span>`:'';
+          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${b.cat}${curBadge}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Budgets.edit('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Budgets.delete('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button></div></div><div class="flex justify-between text-subtitle mb-2"><span class="${isOver?'color-danger':''} font-bold">${Core.Utils.formatMoney(spent,budCur)}</span><span>${t('limit')} ${Core.Utils.formatMoney(b.amount,budCur)}</span></div><div class="progress-track" style="height:7px"><div class="progress-fill" style="width:${perc}%;background:${barC}"></div></div></div>`;
+        }).join('');
+      },
       openModal(){document.getElementById('bud_id').value='';document.getElementById('bud_cat').value='';document.getElementById('bud_amount').value='';const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent='Kategori Seçin';cb.classList.remove('has-value');}UI.Modals.open('modalBudget');},
-      edit(id){const b=Core.state.budgets.find(x=>x.id===id);if(b){document.getElementById('bud_id').value=b.id;document.getElementById('bud_cat').value=b.cat;document.getElementById('bud_amount').value=b.amount;const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=b.cat;cb.classList.add('has-value');}UI.Modals.open('modalBudget');}},
-      save(){const id=document.getElementById('bud_id').value,p={id:id||Core.Utils.generateId(),cat:document.getElementById('bud_cat').value.trim(),amount:parseFloat(document.getElementById('bud_amount').value)};if(id){const ix=Core.state.budgets.findIndex(x=>x.id===id);if(ix!==-1)Core.state.budgets[ix]=p;}else Core.state.budgets.push(p);Core.DB.save();UI.Modals.close('modalBudget');UI.Toasts.show(t('msgLimitSaved'));App.Controllers.Analytics.render();},
+      edit(id){const b=Core.state.budgets.find(x=>x.id===id);if(b){document.getElementById('bud_id').value=b.id;document.getElementById('bud_cat').value=b.cat;document.getElementById('bud_amount').value=b.amount;const budCurEl=document.getElementById('bud_currency');if(budCurEl)budCurEl.value=b.currency||(Core.state.settings.currency||'TRY');// currency buton seçimi güncelle
+document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===(b.currency||(Core.state.settings.currency||'TRY'))));const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=b.cat;cb.classList.add('has-value');}UI.Modals.open('modalBudget');}},
+      save(){const id=document.getElementById('bud_id').value;const budCurEl=document.getElementById('bud_currency');const p={id:id||Core.Utils.generateId(),cat:document.getElementById('bud_cat').value.trim(),amount:parseFloat(document.getElementById('bud_amount').value),currency:budCurEl?budCurEl.value:(Core.state.settings.currency||'TRY')};if(id){const ix=Core.state.budgets.findIndex(x=>x.id===id);if(ix!==-1)Core.state.budgets[ix]=p;}else Core.state.budgets.push(p);Core.DB.save();UI.Modals.close('modalBudget');UI.Toasts.show(t('msgLimitSaved'));App.Controllers.Analytics.render();},
       delete(id){UI.Confirm.show(t('confDelLimit'),()=>{Core.state.budgets=Core.state.budgets.filter(b=>b.id!==id);Core.DB.save();App.Controllers.Analytics.render();UI.Toasts.show(t('msgLimitRemoved'));});}
     },
     Recurring:{
@@ -2234,9 +2430,34 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       setCatCustom(val){document.getElementById('rec_cat_val').value=val;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.remove('selected'));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=val||'';lbl.style.display=val?'inline':'none';}},
       _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">Önce hesap eklemelisiniz.</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id){document.getElementById('rec_wallet').value=id;document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));},
-      render(){const g=document.getElementById('recurringGrid');if(!Core.state.recurring.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-repeat"/></svg></div><h3>${t('emptyRecTitle')}</h3><p>${t('emptyRecDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Recurring.openModal()">${t('addRecurring')}</button></div>`;return;}g.innerHTML=Core.state.recurring.map(s=>`<div class="card"><div class="flex justify-between items-center mb-4"><div class="font-bold" style="font-size:17px">${s.name}</div><button class="act-btn danger" onclick="App.Controllers.Recurring.delete('${s.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div><div class="text-caption mb-3 color-accent">${s.cat}</div><div class="flex items-center gap-2 mb-4 text-subtitle font-medium"><svg class="nav-icon" style="width:13px"><use href="#icon-wallet"/></svg>${Core.state.wallets.find(w=>w.id===s.wallet)?.name||t('deleted')}</div><div class="flex justify-between items-end pt-4" style="border-top:1px solid var(--border-light)"><div class="text-subtitle">${t('onDayOfMonth',{day:s.day})}</div><div class="font-display font-bold color-danger" style="font-size:21px;letter-spacing:-.5px">-${Core.Utils.formatMoney(s.amount)}</div></div></div>`).join('');},
-      openModal(){this._renderWalletPills();document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent='Kategori Seçin';cb.classList.remove('has-value');}UI.Modals.open('modalRecurring');},
-      save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const amount=parseFloat(document.getElementById('rec_amount').value);if(!amount)return UI.Toasts.show(t('msgAmountReq'),'error');const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';Core.state.recurring.push({id:Core.Utils.generateId(),name,amount,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1});Core.DB.save();UI.Modals.close('modalRecurring');this.render();UI.Toasts.show(t('msgRecAdded'));},
+      render(){const g=document.getElementById('recurringGrid');if(!Core.state.recurring.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-repeat"/></svg></div><h3>${t('emptyRecTitle')}</h3><p>${t('emptyRecDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Recurring.openModal()">${t('addRecurring')}</button></div>`;return;}g.innerHTML=Core.state.recurring.map(s=>`<div class="card"><div class="flex justify-between items-center mb-4"><div class="font-bold" style="font-size:17px">${s.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Recurring.edit('${s.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Recurring.delete('${s.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div><div class="text-caption mb-3 color-accent">${s.cat}</div><div class="flex items-center gap-2 mb-4 text-subtitle font-medium"><svg class="nav-icon" style="width:13px"><use href="#icon-wallet"/></svg>${Core.state.wallets.find(w=>w.id===s.wallet)?.name||t('deleted')}</div><div class="flex justify-between items-end pt-4" style="border-top:1px solid var(--border-light)"><div class="text-subtitle">${t('onDayOfMonth',{day:s.day})}</div><div class="font-display font-bold color-danger" style="font-size:21px;letter-spacing:-.5px">-${Core.Utils.formatMoney(s.amount)}</div></div></div>`).join('');},
+      openModal(editId){this._renderWalletPills();document.getElementById('rec_id').value=editId||'';document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent='Kategori Seçin';cb.classList.remove('has-value');}const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent='Abonelik Ekle';UI.Modals.open('modalRecurring');},
+      edit(id){
+        const s=Core.state.recurring.find(x=>x.id===id);if(!s)return;
+        this._renderWalletPills();
+        document.getElementById('rec_id').value=s.id;
+        document.getElementById('rec_name').value=s.name;
+        document.getElementById('rec_amount').value=s.amount;
+        document.getElementById('rec_day').value=s.day;
+        document.getElementById('rec_cat_val').value=s.cat;
+        document.getElementById('rec_wallet').value=s.wallet;
+        const cb=document.getElementById('recCatBtn');
+        if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=s.cat;cb.classList.add('has-value');}
+        // wallet pill seç
+        setTimeout(()=>document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${s.wallet}'`))),50);
+        const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent='Aboneliği Düzenle';
+        UI.Modals.open('modalRecurring');
+      },
+      save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const amount=parseFloat(document.getElementById('rec_amount').value);if(!amount)return UI.Toasts.show(t('msgAmountReq'),'error');const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';
+        const recId=document.getElementById('rec_id').value;
+        if(recId){
+          const ix=Core.state.recurring.findIndex(x=>x.id===recId);
+          if(ix!==-1)Core.state.recurring[ix]={...Core.state.recurring[ix],name,amount,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1};
+          Core.DB.save();UI.Modals.close('modalRecurring');this.render();UI.Toasts.show('Abonelik güncellendi.');
+        }else{
+          Core.state.recurring.push({id:Core.Utils.generateId(),name,amount,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1});
+          Core.DB.save();UI.Modals.close('modalRecurring');this.render();UI.Toasts.show(t('msgRecAdded'));
+        }},
       delete(id){
         const s=Core.state.recurring.find(x=>x.id===id);
         if(!s)return;
@@ -2262,7 +2483,16 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       }
     },
     Goals:{
-      render(){const g=document.getElementById('goalsGrid');if(!Core.state.goals.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-target"/></svg></div><h3>${t('emptyGoalTitle')}</h3><p>${t('emptyGoalDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;return;}g.innerHTML=Core.state.goals.map(x=>{const p=Math.min((x.current/x.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';let dH='';if(x.date){const mD=Math.max(0,Math.ceil((new Date(x.date)-new Date())/(1000*3600*24*30)));dH=`<div class="text-caption mb-3 color-warn">${t('endDateLabel')} ${Core.Utils.formatDate(x.date)} ${mD>0?`(${mD} ${t('monthsLeft')})`:`(${t('timeUp')})`}</div>`;}return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current)} / ${Core.Utils.formatMoney(x.target)}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
+      render(){const g=document.getElementById('goalsGrid');if(!Core.state.goals.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-target"/></svg></div><h3>${t('emptyGoalTitle')}</h3><p>${t('emptyGoalDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;return;}g.innerHTML=Core.state.goals.map(x=>{const p=Math.min((x.current/x.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';let dH='';if(x.date){
+          const diffMs=new Date(x.date)-new Date();
+          const diffDays=Math.ceil(diffMs/(1000*3600*24));
+          let timeLabel;
+          if(diffDays<=0)timeLabel=`(${t('timeUp')})`;
+          else if(diffDays<=7)timeLabel=`(${diffDays} gün kaldı)`;
+          else if(diffDays<=30)timeLabel=`(${Math.ceil(diffDays/7)} hafta kaldı)`;
+          else timeLabel=`(${Math.floor(diffDays/30)} ${t('monthsLeft')})`;
+          dH=`<div class="text-caption mb-3 color-warn">${t('endDateLabel')} ${Core.Utils.formatDate(x.date)} ${timeLabel}</div>`;
+        }return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current)} / ${Core.Utils.formatMoney(x.target)}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value,p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target:parseFloat(document.getElementById('goal_target').value),current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
