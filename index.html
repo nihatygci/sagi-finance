@@ -793,17 +793,39 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
         <div class="card" style="border-color:rgba(229,83,75,.18)">
           <h2 class="card-title color-danger mb-4" data-i18n="dataManagement">Veri Yönetimi</h2>
           <p class="text-subtitle mb-5" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</p>
-          <div class="settings-cell" style="background:var(--bg-surface-hover)">
+
+          <!-- Yedek Al -->
+          <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px">
             <div class="font-bold" data-i18n="backup">Yedek Al</div>
+            <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için. CSV — işlem geçmişi, Excel'de açılır.</div>
             <div class="flex gap-2">
-              <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">JSON</button>
+              <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">
+                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportCSV()">
+                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
+              </button>
             </div>
           </div>
-          <div class="settings-cell" style="background:var(--bg-surface-hover)">
+
+          <!-- Yedek Yükle -->
+          <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-top:8px">
             <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
-            <input type="file" id="importFile" accept=".json,application/json,text/plain,*/*" style="display:none" onchange="App.Controllers.Settings.importData(event)">
-            <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" data-i18n="chooseFile">Dosya Seç</label>
+            <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
+            <div class="flex gap-2 w-full">
+              <!-- accept + environment: saf dosya seçimi, kamera tetiklemeyen -->
+              <input type="file"
+                id="importFile"
+                accept=".json,application/json"
+                style="display:none"
+                onchange="App.Controllers.Settings.importData(event)">
+              <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
+                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
+                Dosya Seç (.json)
+              </label>
+            </div>
           </div>
+
           <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
           <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
         </div>
@@ -2671,9 +2693,94 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
       applyTheme(){document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');if(Core.state.settings.anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active');});},
       setLang(lang){LANG=lang;Core.state.settings.lang=lang;Core.DB.save();applyLang();['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const btn=document.getElementById('set_lang_'+lang);if(btn)btn.classList.add('active');UI.Toasts.show(lang==='tr'?t('msgTrSelected'):t('msgEnSelected'));},
       savePreferences(){const oC=Core.state.settings.currency,nC=document.getElementById('set_currency').value;Core.state.settings.name=document.getElementById('set_name').value;Core.state.settings.currency=nC;Core.state.settings.anim=document.getElementById('set_anim').value;Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));if(oC!==nC)setTimeout(()=>location.reload(),800);},
-      exportJSON(){Core.state.settings.lastExport=Date.now();Core.DB.save();const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(Core.state,null,2));a.download=`sagi_yedek_${new Date().toISOString().split('T')[0]}.json`;a.click();UI.Toasts.show(t('msgBackupDone'));},
+      exportJSON(){
+        Core.state.settings.lastExport=Date.now();
+        Core.DB.save();
+        const a=document.createElement('a');
+        a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(Core.state,null,2));
+        a.download=`sagi_yedek_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        UI.Toasts.show(t('msgBackupDone'));
+      },
 
-      importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d&&Array.isArray(d.wallets)){Core.state=d;Core.DB.save();UI.Toasts.show(t('msgImportDone'),'success');setTimeout(()=>location.reload(),1000);}else UI.Toasts.show(t('msgImportInvalid'),'error');}catch(err){UI.Toasts.show(t('msgImportFail'),'error');}e.target.value='';};r.readAsText(f);},
+      exportCSV(){
+        // UTF-8 BOM — Excel Türkçe karakterleri doğru okusun
+        const BOM = '\uFEFF';
+        const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+        const date = new Date().toISOString().split('T')[0];
+        let csv = BOM;
+
+        // ── HESAPLAR ──
+        csv += '## HESAPLAR\r\n';
+        csv += 'Ad,Tür,Para Birimi,Bakiye\r\n';
+        Core.state.wallets.forEach(w=>{
+          csv += [esc(w.name), esc(w.type), esc(w.currency||'TRY'), w.balance].join(',') + '\r\n';
+        });
+
+        // ── İŞLEMLER ──
+        csv += '\r\n## İŞLEMLER\r\n';
+        csv += 'Tarih,Tür,Kategori,Hesap,Para Birimi,Tutar,Açıklama\r\n';
+        const sorted = [...Core.state.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date));
+        sorted.forEach(tx=>{
+          const w = Core.state.wallets.find(x=>x.id===tx.wallet);
+          const wName = w ? w.name : 'Silinmiş';
+          const wCur  = (tx.amountCurrency) || (w && w.currency) || 'TRY';
+          const type  = tx.type==='income' ? 'Gelir' : 'Gider';
+          csv += [tx.date, esc(type), esc(tx.cat), esc(wName), esc(wCur), tx.amount, esc(tx.desc||'')].join(',') + '\r\n';
+        });
+
+        // ── ABONELİKLER ──
+        csv += '\r\n## ABONELİKLER\r\n';
+        csv += 'Ad,Kategori,Hesap,Tutar,Ayın Günü\r\n';
+        Core.state.recurring.forEach(s=>{
+          const w = Core.state.wallets.find(x=>x.id===s.wallet);
+          csv += [esc(s.name), esc(s.cat), esc(w?w.name:'Silinmiş'), s.amount, s.day].join(',') + '\r\n';
+        });
+
+        // ── HEDEFLER ──
+        if(Core.state.goals.length){
+          csv += '\r\n## HEDEFLER\r\n';
+          csv += 'Ad,Hedef Tutar,Mevcut,Son Tarih\r\n';
+          Core.state.goals.forEach(g=>{
+            csv += [esc(g.name), g.target, g.current, esc(g.date||'')].join(',') + '\r\n';
+          });
+        }
+
+        const a=document.createElement('a');
+        a.href='data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download=`sagi_islemler_${date}.csv`;
+        a.click();
+        UI.Toasts.show('CSV indirildi.');
+      },
+
+      importData(e){
+        const f=e.target.files[0];
+        if(!f)return;
+        // Sadece JSON kabul et
+        if(!f.name.endsWith('.json')&&!f.type.includes('json')){
+          UI.Toasts.show('Lütfen .json uzantılı yedek dosyası seçin.','error');
+          e.target.value='';
+          return;
+        }
+        const r=new FileReader();
+        r.onload=ev=>{
+          try{
+            const d=JSON.parse(ev.target.result);
+            if(d&&Array.isArray(d.wallets)){
+              Core.state=d;
+              Core.DB.save();
+              UI.Toasts.show(t('msgImportDone'),'success');
+              setTimeout(()=>location.reload(),1000);
+            }else{
+              UI.Toasts.show(t('msgImportInvalid'),'error');
+            }
+          }catch(err){
+            UI.Toasts.show(t('msgImportFail'),'error');
+          }
+          e.target.value='';
+        };
+        r.readAsText(f);
+      },
       factoryReset(){UI.Confirm.show(t('confFactory'),()=>{localStorage.removeItem(Core.DB.key);location.reload();});}
     }
   }
