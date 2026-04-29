@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>SAGI Finance</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#4f46e5">
@@ -37,36 +39,38 @@ if ('serviceWorker' in navigator) {
 </script>
 <script>
 (function(){
-  // Dark/light mode adaptive favicon using icon-192.png as base
-  // Light mode: original colored icon; Dark mode: inverted (white on dark)
-  const iconUrl='./icon-192.png';
-  // Static icon link
-  const li=document.createElement('link');li.rel='icon';li.type='image/png';li.href=iconUrl;document.head.appendChild(li);
-  const la=document.createElement('link');la.rel='apple-touch-icon';la.href=iconUrl;document.head.appendChild(la);
-  // Dark mode favicon swap
-  const applyFavicon=()=>{
-    const isDark=document.documentElement.getAttribute('data-theme')==='dark'||window.matchMedia('(prefers-color-scheme:dark)').matches;
-    const canvas=document.createElement('canvas');canvas.width=192;canvas.height=192;
-    const ctx=canvas.getContext('2d');
-    const img=new Image();img.src=iconUrl;
-    img.onload=()=>{
-      ctx.drawImage(img,0,0,192,192);
-      if(isDark){
-        // Invert for dark mode: draw white circle bg then draw icon inverted
-        ctx.globalCompositeOperation='difference';
-        ctx.fillStyle='white';
-        ctx.fillRect(0,0,192,192);
-      }
-      const li2=document.querySelector('link[rel="icon"]');
-      if(li2)li2.href=canvas.toDataURL('image/png');
-    };
+  const iconUrl = './icon-192.png';
+
+  // Favicon
+  const faviconLink = document.createElement('link');
+  faviconLink.rel = 'icon';
+  faviconLink.type = 'image/png';
+  faviconLink.href = iconUrl;
+  document.head.appendChild(faviconLink);
+
+  // Apple touch icon
+  const appleLink = document.createElement('link');
+  appleLink.rel = 'apple-touch-icon';
+  appleLink.href = iconUrl;
+  document.head.appendChild(appleLink);
+
+  // PWA manifest (sabit)
+  const manifest = {
+    name: "SAGI Finance",
+    short_name: "SAGI",
+    start_url: location.href,
+    display: "standalone",
+    background_color: "#f1f5f9",
+    theme_color: "#6C4DFF",
+    icons: [{ src: iconUrl, sizes: "192x192", type: "image/png" }]
   };
-  window.addEventListener('DOMContentLoaded',applyFavicon);
-  // Also observe theme changes
-  const obs=new MutationObserver(()=>applyFavicon());
-  obs.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  const manifest={name:"SAGI Finance",short_name:"SAGI",start_url:location.href,display:"standalone",background_color:"#f1f5f9",theme_color:"#6C4DFF",icons:[{src:iconUrl,sizes:"192x192",type:"image/png"}]};
-  const lm=document.createElement('link');lm.rel='manifest';lm.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));document.head.appendChild(lm);
+
+  const manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = URL.createObjectURL(
+    new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" })
+  );
+  document.head.appendChild(manifestLink);
 })();
 </script>
 <style>
