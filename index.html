@@ -1334,8 +1334,18 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
     <div class="modal-body">
       <form id="trnForm" onsubmit="event.preventDefault();App.Controllers.Transfer.execute()">
         <div class="form-group"><label class="form-label" data-i18n="transferFrom">Nereden?</label><select class="form-control" id="trn_from" required onchange="App.Controllers.Transfer.updateToOptions()"></select></div>
-        <div class="form-group"><label class="form-label" data-i18n="transferTo">Nereye?</label><select class="form-control" id="trn_to" required></select></div>
-        <div class="form-group mb-0"><label class="form-label" data-i18n="amount">Tutar</label><input type="number" step="0.01" class="form-control" id="trn_amount" placeholder="0.00" required></div>
+        <div class="form-group"><label class="form-label" data-i18n="transferTo">Nereye?</label><select class="form-control" id="trn_to" required onchange="App.Controllers.Transfer.updatePreview()"></select></div>
+        <div class="form-group mb-0">
+          <label class="form-label" id="trn_amount_label">Tutar</label>
+          <input type="number" step="0.01" class="form-control" id="trn_amount" placeholder="0.00" required oninput="App.Controllers.Transfer.updatePreview()">
+        </div>
+        <div id="trn_preview" style="display:none;margin-top:14px;padding:13px 16px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+            <span style="color:var(--text-secondary);font-weight:500">Karşı hesaba yatacak</span>
+            <span id="trn_preview_amount" style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px"></span>
+          </div>
+          <div id="trn_preview_rate" style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500"></div>
+        </div>
       </form>
     </div>
     <div class="modal-footer"><button type="button" class="btn btn-outline" data-i18n="cancel" onclick="UI.Modals.close('modalTransfer')">İptal</button><button type="submit" form="trnForm" class="btn btn-primary" data-i18n="completeTransfer">Aktarımı Tamamla</button></div>
@@ -1512,17 +1522,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
       </div>
       <!-- Borç: -->
       <div id="cardDetailDebt" style="display:none"></div>
-      <!-- Recent transactions -->
-      <h4 style="font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-        <svg class="nav-icon" style="width:16px;height:16px;color:var(--brand-accent)"><use href="#icon-list"/></svg>
-        Son Kart İşlemleri
-      </h4>
-      <div class="table-container" style="max-height:220px;overflow-y:auto;border-radius:var(--radius-md);border:1px solid var(--border-light)">
-        <table class="data-table">
-          <thead style="background:var(--bg-surface-hover)"><tr><th data-i18n="th_date">Tarih</th><th data-i18n="th_desc">Açıklama</th><th class="text-right" data-i18n="th_amount">Tutar</th></tr></thead>
-          <tbody id="cardDetailTxBody"></tbody>
-        </table>
-      </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail')">Kapat</button>
@@ -1844,7 +1843,8 @@ const App = {
   ExchangeRate:{
     rates:{USD:1,EUR:0.92,GBP:0.78,TRY:38.5},
     _fetching:null,
-    CACHE_MINUTES:5,
+    CACHE_MINUTES:60,
+    _lastSource:null,
     _loadCache(){
       if(Core.state.settings.cachedRates&&typeof Core.state.settings.cachedRates==='object'){
         const r=Core.state.settings.cachedRates;
@@ -1856,7 +1856,7 @@ const App = {
       if(this._fetching)return this._fetching;
       this._fetching=(async()=>{
         const tryFetch=async(url)=>{
-          const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),6000);
+          const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),8000);
           try{
             const r=await fetch(url,{signal:ctrl.signal,cache:'no-store'});
             clearTimeout(tid);
@@ -1864,23 +1864,49 @@ const App = {
             return await r.json();
           }catch(e){clearTimeout(tid);return null;}
         };
+        // Kaynak sırası: önce en güncel verileri sunanlar
+        // Tüm kaynaklar merkez bankası referans kurları (günlük) — intraday ücretsiz kur API'si mevcut değil
         const sources=[
-          {url:'https://api.exchangerate-api.com/v4/latest/USD',parse:d=>d&&d.rates&&d.rates.TRY?d.rates:null},
-          {url:'https://open.er-api.com/v6/latest/USD',parse:d=>d&&d.result==='success'&&d.rates&&d.rates.TRY?d.rates:null},
-          {url:'https://api.frankfurter.app/latest?from=USD',parse:d=>d&&d.rates&&d.rates.TRY?{...d.rates,USD:1}:null},
+          {
+            label:'ExchangeRate-API',
+            url:'https://api.exchangerate-api.com/v4/latest/USD',
+            parse:d=>d&&d.rates&&d.rates.TRY?d.rates:null
+          },
+          {
+            label:'Open Exchange Rates (er-api)',
+            url:'https://open.er-api.com/v6/latest/USD',
+            parse:d=>d&&d.result==='success'&&d.rates&&d.rates.TRY?d.rates:null
+          },
+          {
+            label:'Frankfurter (ECB)',
+            url:'https://api.frankfurter.dev/v2/rates?base=USD&quotes=TRY,EUR,GBP,USD',
+            parse:d=>{
+              if(!d||!d.rates)return null;
+              const r={...d.rates,USD:1};
+              return r.TRY?r:null;
+            }
+          },
+          {
+            label:'Frankfurter fallback (ECB)',
+            url:'https://api.frankfurter.app/latest?from=USD',
+            parse:d=>d&&d.rates&&d.rates.TRY?{...d.rates,USD:1}:null
+          },
         ];
         let rates=null;
+        let sourceLabel=null;
         for(const s of sources){
           const d=await tryFetch(s.url);
           const parsed=s.parse(d);
-          if(parsed){rates=parsed;break;}
+          if(parsed){rates=parsed;sourceLabel=s.label;break;}
         }
         if(!rates){
           if(!Core.state.settings.cachedRates)this.showKurToast();
           return false;
         }
         this.rates={...this.rates,...rates};
+        this._lastSource=sourceLabel;
         Core.state.settings.lastRateUpdate=Date.now();
+        Core.state.settings.lastRateSource=sourceLabel;
         Core.state.settings.cachedRates={...this.rates};
         Core.DB.save();
         this.hideKurToast();
@@ -2283,38 +2309,12 @@ const App = {
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="flex justify-between items-center mb-1">
-                <div>
-                  <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.65;font-weight:700;margin-bottom:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div>
-                  <div style="font-size:17px;font-weight:700;opacity:.95;letter-spacing:-.01em">${w.name}</div>
-                </div>
-                ${isDueUrgent?`<div class="cc-status-badge overdue">⚠ ${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}
-              </div>
-              <div class="cc-card-number">${maskedNum}</div>
-              <div style="font-size:11px;opacity:.6;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${t('ccDebt')}</div>
-              <div class="font-display font-bold" style="font-size:30px;letter-spacing:-1.5px;line-height:1;margin-bottom:4px">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>
-              <div class="cc-info-block">
-                <div class="cc-info-cell">
-                  <div class="cc-label">${t('ccLimit')}</div>
-                  <div class="cc-value">${Core.Utils.formatMoney(ccLimit,w.currency)}</div>
-                </div>
-                <div class="cc-info-cell">
-                  <div class="cc-label">${t('ccAvailable')}</div>
-                  <div class="cc-value" style="${ccAvail<ccLimit*0.2?'color:#f87171':''}">${Core.Utils.formatMoney(ccAvail,w.currency)}</div>
-                </div>
-                <div class="cc-info-cell" style="grid-column:1/-1">
-                  <div class="cc-label">${t('ccUsed')} <span style="font-size:12px;font-weight:800">${Math.round(ccUsedPerc)}%</span></div>
-                  <div class="cc-progress-track"><div class="cc-progress-fill ${ccProgressClass}" style="width:${ccUsedPerc}%"></div></div>
-                </div>
-                ${dueDay?`<div class="cc-info-cell"><div class="cc-label">${t('ccCutoffDay')}</div><div class="cc-value">${cutoffDay||'-'}</div></div><div class="cc-info-cell"><div class="cc-label">${t('ccDueDay')}</div><div class="cc-value" style="${isDueUrgent?'color:#fbbf24':''}">${dueDay}</div></div>`:''}
-              </div>`
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent?`<div class="cc-status-badge overdue">⚠ ${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}`
             : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px">${Core.Utils.formatMoney(w.balance,w.currency)}</div>`;
-          const ccPayBtn=isCC&&ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700;margin-top:10px" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:'';
           const standardBtns=isCC
-            ? `<div class="flex gap-2 mt-3"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>${ccPayBtn}`
+            ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>`
             : `<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>`;
-          const cardMinH=isCC?'min-height:320px':'';
-          return`<div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'});${cardMinH}">
+          return`<div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'})">
             <div class="flex justify-between items-start">
               <div class="chip-icon"></div>
               <div class="flex gap-2">
@@ -2322,11 +2322,10 @@ const App = {
                 <button class="act-btn" style="color:#fff" onclick="App.Controllers.Wallets.delete('${w.id}')"><svg class="nav-icon" style="width:17px;height:17px"><use href="#icon-trash"/></svg></button>
               </div>
             </div>
-            <div style="margin-top:${isCC?'14px':'auto'}">
+            <div style="margin-top:auto">
               ${mainAmount}
-              ${isCC?'':standardBtns}
+              ${standardBtns}
             </div>
-            ${isCC?`<div style="margin-top:auto;padding-top:4px">${standardBtns}</div>`:''}
           </div>`;
         }).join('');
         this.upd();
@@ -2530,26 +2529,6 @@ const App = {
         // Due cell highlight
         const dueCell=document.getElementById('cardDetailDueCell');
         if(dueCell)dueCell.classList.toggle('alert-day',isDueUrgent&&ccDebt>0);
-        // Transactions
-        const txs=Core.state.transactions
-          .filter(tx=>tx.wallet===cardId)
-          .sort((a,b)=>new Date(b.date)-new Date(a.date))
-          .slice(0,15);
-        const tbody=document.getElementById('cardDetailTxBody');
-        if(txs.length===0){
-          tbody.innerHTML=`<tr><td colspan="3" class="text-center color-muted" style="padding:20px">${t('noTx')}</td></tr>`;
-        }else{
-          tbody.innerHTML=txs.map(tx=>{
-            const color=tx.type==='income'?'var(--status-success)':'var(--status-danger)';
-            const sign=tx.type==='income'?'+':'-';
-            const isPayment=tx.cat==='Transfer';
-            return`<tr style="border-left:3px solid ${color}">
-              <td style="font-size:12px;padding-left:14px">${Core.Utils.formatDate(tx.date)}</td>
-              <td style="font-size:13px;font-weight:${isPayment?'700':'500'}">${tx.desc||tx.cat}${isPayment?'<span style="font-size:10px;margin-left:6px;opacity:.6;background:var(--bg-body);padding:2px 6px;border-radius:99px">Transfer</span>':''}</td>
-              <td class="text-right font-bold" style="color:${color};font-size:14px;padding-right:14px">${sign}${Core.Utils.formatMoney(tx.amount,cc.currency)}</td>
-            </tr>`;
-          }).join('');
-        }
         const payBtn=document.getElementById('cardDetailPayBtn');
         if(ccDebt>0){
           payBtn.style.display='inline-flex';
@@ -3045,36 +3024,105 @@ const App = {
       delete(id){UI.Confirm.show(t('confDelGoal'),()=>{Core.state.goals=Core.state.goals.filter(g=>g.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgGoalDeleted'));});}
     },
     Transfer:{
-      openModal(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirstTransfer'),'error');document.getElementById('trn_from').innerHTML=Core.state.wallets.map(w=>`<option value="w_${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance)})</option>`).join('');this.updateToOptions();document.getElementById('trn_amount').value='';UI.Modals.open('modalTransfer');},
-      updateToOptions(){const fV=document.getElementById('trn_from').value,tE=document.getElementById('trn_to');let o='<optgroup label="'+t('accounts')+'">';Core.state.wallets.forEach(w=>{if("w_"+w.id!==fV)o+=`<option value="w_${w.id}">${w.name}</option>`;});o+='</optgroup><optgroup label="'+t('goalsLabel')+'">';Core.state.goals.forEach(g=>{o+=`<option value="g_${g.id}">${g.name}</option>`;});o+='</optgroup>';tE.innerHTML=o;},
+      openModal(){
+        if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirstTransfer'),'error');
+        const fromSel=document.getElementById('trn_from');
+        fromSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
+        this.updateToOptions();
+        const amtInput=document.getElementById('trn_amount');
+        if(amtInput)amtInput.value='';
+        const prev=document.getElementById('trn_preview');
+        if(prev)prev.style.display='none';
+        this._updateAmountLabel();
+        UI.Modals.open('modalTransfer');
+      },
+      _updateAmountLabel(){
+        const fId=document.getElementById('trn_from')?.value;
+        const fW=fId?Core.state.wallets.find(w=>w.id===fId):null;
+        const fCur=fW?(fW.currency||'TRY'):'TRY';
+        const lbl=document.getElementById('trn_amount_label');
+        if(lbl)lbl.textContent='Tutar ('+fCur+')';
+      },
+      updatePreview(){
+        this._updateAmountLabel();
+        const fId=document.getElementById('trn_from')?.value;
+        const tS=document.getElementById('trn_to')?.value||'';
+        const a=parseFloat(document.getElementById('trn_amount')?.value);
+        const prev=document.getElementById('trn_preview');
+        if(!prev)return;
+        if(!fId||!tS||!a||isNaN(a)){prev.style.display='none';return;}
+        const fW=Core.state.wallets.find(w=>w.id===fId);
+        if(!fW){prev.style.display='none';return;}
+        const fCur=fW.currency||'TRY';
+        const colonIdx=tS.indexOf(':');
+        const tType=tS.substring(0,colonIdx);
+        const tId=tS.substring(colonIdx+1);
+        let tCur=null,receiveAmt=null;
+        if(tType==='w'){
+          const tW=Core.state.wallets.find(w=>w.id===tId);
+          if(!tW){prev.style.display='none';return;}
+          tCur=tW.currency||'TRY';
+          receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
+        }else if(tType==='g'){
+          tCur=App.Money.mainCur();
+          receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
+        }
+        if(receiveAmt===null){prev.style.display='none';return;}
+        const amtSpan=document.getElementById('trn_preview_amount');
+        const rateSpan=document.getElementById('trn_preview_rate');
+        if(amtSpan)amtSpan.textContent=Core.Utils.formatMoney(receiveAmt,tCur);
+        if(rateSpan){
+          if(fCur!==tCur){
+            const rate=App.ExchangeRate.convert(1,fCur,tCur);
+            rateSpan.textContent='1 '+fCur+' = '+Core.Utils.formatMoney(rate,tCur)+' · Kur otomatik uygulandı';
+          }else{
+            rateSpan.textContent='Aynı para birimi · Kur uygulanmadı';
+          }
+        }
+        prev.style.display='block';
+      },
+      updateToOptions(){
+        const fId=document.getElementById('trn_from').value;
+        const tE=document.getElementById('trn_to');
+        let o='<optgroup label="'+t('accounts')+'">';
+        Core.state.wallets.forEach(w=>{if(w.id!==fId)o+=`<option value="w:${w.id}">${w.name}</option>`;});
+        o+='</optgroup>';
+        if(Core.state.goals.length){
+          o+='<optgroup label="'+t('goalsLabel')+'">';
+          Core.state.goals.forEach(g=>{o+=`<option value="g:${g.id}">${g.name}</option>`;});
+          o+='</optgroup>';
+        }
+        tE.innerHTML=o;
+      },
       execute(){
-        const fS=document.getElementById('trn_from').value,tS=document.getElementById('trn_to').value;
+        const fId=document.getElementById('trn_from').value;
+        const tS=document.getElementById('trn_to').value;
         const a=parseFloat(document.getElementById('trn_amount').value);
         if(isNaN(a)||a<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
-        if(fS===tS){UI.Toasts.show(t('msgSameWallet'),'error');return;}
-        const fW=Core.state.wallets.find(w=>w.id===fS.split('_')[1]);if(!fW)return;
+        if(!fId||!tS){UI.Toasts.show(t('msgAccReq'),'error');return;}
+        const fW=Core.state.wallets.find(w=>w.id===fId);
+        if(!fW){UI.Toasts.show(t('msgAccReq'),'error');return;}
         const fCur=App.Money.walletCur(fW.id);
         const mc=App.Money.mainCur();
-        const tType=tS.split('_')[0],tId=tS.split('_')[1];let tName='';
+        const colonIdx=tS.indexOf(':');
+        const tType=tS.substring(0,colonIdx);
+        const tId=tS.substring(colonIdx+1);
+        if(fId===tId&&tType==='w'){UI.Toasts.show(t('msgSameWallet'),'error');return;}
         const outTx={id:Core.Utils.generateId(),type:'expense',amount:a,amountCurrency:fCur,desc:'',cat:'Transfer',wallet:fW.id,date:new Date().toISOString()};
         if(tType==='w'){
           const tW=Core.state.wallets.find(w=>w.id===tId);
-          if(tW){
-            const tCur=App.Money.walletCur(tW.id);
-            const receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
-            outTx.desc=t('transferSent',{name:tW.name});
-            tName=tW.name;
-            const inTx={id:Core.Utils.generateId(),type:'income',amount:receiveAmt,amountCurrency:tCur,desc:t('transferReceived',{name:fW.name}),cat:'Transfer',wallet:tId,date:outTx.date};
-            Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
-          }
+          if(!tW){UI.Toasts.show(t('msgAccReq'),'error');return;}
+          const tCur=App.Money.walletCur(tW.id);
+          const receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
+          outTx.desc=t('transferSent',{name:tW.name});
+          const inTx={id:Core.Utils.generateId(),type:'income',amount:receiveAmt,amountCurrency:tCur,desc:t('transferReceived',{name:fW.name}),cat:'Transfer',wallet:tW.id,date:outTx.date};
+          Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
         }else if(tType==='g'){
           const g=Core.state.goals.find(x=>x.id===tId);
-          if(g){
-            g.current+=App.ExchangeRate.convert(a,fCur,mc);
-            tName=g.name;
-            outTx.desc=t('transferToGoal',{name:g.name});
-            outTx.cat='Birikim';
-          }
+          if(!g){UI.Toasts.show(t('msgAccReq'),'error');return;}
+          g.current+=App.ExchangeRate.convert(a,fCur,mc);
+          outTx.desc=t('transferToGoal',{name:g.name});
+          outTx.cat='Birikim';
         }
         Core.state.transactions.push(outTx);App.Money.applyTx(outTx);
         Core.DB.save();UI.Modals.close('modalTransfer');UI.Toasts.show(t('msgTransferDone'));
@@ -3171,6 +3219,9 @@ const App = {
         if(kurInfo){
           const loc=LANG==='tr'?'tr-TR':(LANG==='en'?'en-US':'tr-TR');
           const last=s.lastRateUpdate?new Date(s.lastRateUpdate).toLocaleString(loc,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):t('ratesNotUpdated');
+          const src=s.lastRateSource||'—';
+          const ageMs=s.lastRateUpdate?(Date.now()-s.lastRateUpdate):null;
+          const ageStr=ageMs===null?'—':ageMs<3600000?(Math.round(ageMs/60000)+' dk önce'):(Math.round(ageMs/3600000)+' sa önce');
           const allCurs=['USD','EUR','GBP','TRY'];
           const rateRows=[];
           allCurs.forEach(from=>{
@@ -3181,7 +3232,14 @@ const App = {
               }
             });
           });
-          kurInfo.innerHTML=`<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${t('ratesLastUpdate')} ${last}</div><div style="max-height:340px;overflow-y:auto">${rateRows.join('')}</div><button class="btn btn-outline btn-sm w-full mt-4" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
+          const infoBar=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid var(--border-light);margin-bottom:12px">
+            <div>
+              <div style="font-size:12px;color:var(--text-muted);font-weight:500">Son güncelleme: <strong style="color:var(--text-secondary)">${last}</strong> <span style="opacity:.6">(${ageStr})</span></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Kaynak: <strong style="color:var(--text-secondary)">${src}</strong> · Referans kurlar günlük güncellenir</div>
+            </div>
+            <div style="font-size:10px;color:var(--status-warn);background:var(--status-warn-bg);padding:3px 9px;border-radius:99px;font-weight:700;white-space:nowrap">≈ Gösterge kur</div>
+          </div>`;
+          kurInfo.innerHTML=infoBar+`<div style="max-height:340px;overflow-y:auto">${rateRows.join('')}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
         }
       },
       togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
