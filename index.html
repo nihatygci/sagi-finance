@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#6C4DFF">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="./manifest.json">
 <script src="./languages.js"></script>
@@ -58,11 +58,15 @@ if ('serviceWorker' in navigator) {
   const manifest = {
     name: "SAGI Finance",
     short_name: "SAGI",
-    start_url: location.href,
+    start_url: "./",
+    scope: "./",
     display: "standalone",
-    background_color: "#f1f5f9",
+    background_color: "#6C4DFF",
     theme_color: "#6C4DFF",
-    icons: [{ src: iconUrl, sizes: "192x192", type: "image/png" }]
+    icons: [
+      { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+      { src: "./icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+    ]
   };
 
   const manifestLink = document.createElement('link');
