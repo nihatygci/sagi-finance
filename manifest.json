@@ -1,0 +1,11 @@
+{
+  "name": "SAGI Finance",
+  "short_name": "SAGI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#6C4DFF",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}
