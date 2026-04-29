@@ -29,7 +29,6 @@ if ('serviceWorker' in navigator) {
     })
     .catch(e => console.warn('[SAGI] SW kayıt hatası:', e));
 
-  // SW kontrolü değişince (yeni SW devreye girince) sayfayı yenile
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) { refreshing = true; window.location.reload(); }
@@ -38,24 +37,47 @@ if ('serviceWorker' in navigator) {
 </script>
 <script>
 (function(){
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="120" fill="#4f46e5"/><circle cx="256" cy="256" r="140" fill="none" stroke="#fff" stroke-width="38"/><circle cx="256" cy="256" r="42" fill="#fff"/></svg>`;
-  const icon="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
-  const li=document.createElement('link');li.rel='icon';li.href=icon;document.head.appendChild(li);
-  const la=document.createElement('link');la.rel='apple-touch-icon';la.href=icon;document.head.appendChild(la);
-  const manifest={name:"SAGI Finance",short_name:"SAGI",start_url:location.href,display:"standalone",background_color:"#f1f5f9",theme_color:"#4f46e5",icons:[{src:icon,sizes:"512x512",type:"image/svg+xml"}]};
+  // Dark/light mode adaptive favicon using icon-192.png as base
+  // Light mode: original colored icon; Dark mode: inverted (white on dark)
+  const iconUrl='./icon-192.png';
+  // Static icon link
+  const li=document.createElement('link');li.rel='icon';li.type='image/png';li.href=iconUrl;document.head.appendChild(li);
+  const la=document.createElement('link');la.rel='apple-touch-icon';la.href=iconUrl;document.head.appendChild(la);
+  // Dark mode favicon swap
+  const applyFavicon=()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark'||window.matchMedia('(prefers-color-scheme:dark)').matches;
+    const canvas=document.createElement('canvas');canvas.width=192;canvas.height=192;
+    const ctx=canvas.getContext('2d');
+    const img=new Image();img.src=iconUrl;
+    img.onload=()=>{
+      ctx.drawImage(img,0,0,192,192);
+      if(isDark){
+        // Invert for dark mode: draw white circle bg then draw icon inverted
+        ctx.globalCompositeOperation='difference';
+        ctx.fillStyle='white';
+        ctx.fillRect(0,0,192,192);
+      }
+      const li2=document.querySelector('link[rel="icon"]');
+      if(li2)li2.href=canvas.toDataURL('image/png');
+    };
+  };
+  window.addEventListener('DOMContentLoaded',applyFavicon);
+  // Also observe theme changes
+  const obs=new MutationObserver(()=>applyFavicon());
+  obs.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  const manifest={name:"SAGI Finance",short_name:"SAGI",start_url:location.href,display:"standalone",background_color:"#f1f5f9",theme_color:"#6C4DFF",icons:[{src:iconUrl,sizes:"192x192",type:"image/png"}]};
   const lm=document.createElement('link');lm.rel='manifest';lm.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));document.head.appendChild(lm);
 })();
 </script>
 <style>
 /* ══════════════════════════════════
-   SAGI FINANCE v15
+   SAGI FINANCE v16
    ══════════════════════════════════ */
 :root {
   --bg-body:#f4f5f7; --bg-surface:#fff; --bg-surface-hover:#f9fafb;
   --border-light:rgba(0,0,0,0.06); --border-focus:rgba(79,70,229,0.28);
   --brand-primary:#111827; --brand-accent:#4f46e5;
   --text-main:#111827; --text-secondary:#4b5563; --text-muted:#9ca3af;
-  /* Yumuşatılmış renk paleti */
   --status-success:#22a06b; --status-success-bg:rgba(34,160,107,0.09);
   --status-danger:#e5534b; --status-danger-bg:rgba(229,83,75,0.09);
   --status-warn:#d97706; --status-warn-bg:rgba(217,119,6,0.09);
@@ -125,7 +147,7 @@ table{width:100%;border-collapse:collapse}
 [data-theme="dark"] .nav-link.active{background:rgba(255,255,255,.03)}
 .nav-icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 
-/* BOTTOM NAV — 5 sekme düz, Diğer yok */
+/* BOTTOM NAV */
 .app-bottom-nav{display:flex;position:fixed;bottom:12px;left:12px;right:12px;height:var(--nav-h);background:rgba(255,255,255,.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-light);border-radius:28px;box-shadow:var(--shadow-floating);z-index:60;align-items:center;justify-content:space-around;padding:0 8px}
 [data-theme="dark"] .app-bottom-nav{background:rgba(22,22,26,.93)}
 @media(min-width:1024px){.app-bottom-nav{display:none}}
@@ -222,7 +244,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 .tx-row-selected{background:rgba(79,70,229,.05)!important}
 input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;height:16px;cursor:pointer;border-radius:4px;flex-shrink:0}
 
-/* CUSTOM TOGGLE (checkbox replacement) */
+/* CUSTOM TOGGLE */
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--bg-body);border:1.5px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;transition:all .2s;user-select:none}
 .toggle-row:hover{border-color:var(--brand-accent)}
 .toggle-row.active{border-color:var(--brand-accent);background:rgba(79,70,229,.05)}
@@ -257,7 +279,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .cat-pill.selected{border-color:var(--brand-accent);background:rgba(79,70,229,.1);color:var(--brand-accent)}
 [data-theme="dark"] .cat-pill.selected{background:rgba(99,102,241,.15)}
 
-/* WALLET PILLS (hesap seçimi) */
+/* WALLET PILLS */
 .wallet-pill-wrap{display:flex;flex-direction:column;gap:8px}
 .wallet-pill{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius-md);border:1.5px solid var(--border-light);background:var(--bg-body);cursor:pointer;transition:all .18s}
 .wallet-pill:active{transform:scale(.98)}
@@ -270,6 +292,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .wallet-pill.selected .wallet-pill-check{border-color:var(--brand-accent);background:var(--brand-accent)}
 .wallet-pill.selected .wallet-pill-check svg{color:#fff;display:block}
 .wallet-pill-check svg{display:none;width:12px;height:12px;stroke-width:3}
+
 /* PICKER BUTTON */
 .picker-btn{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;background:var(--bg-body);border:1.5px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;transition:all .2s;user-select:none}
 .picker-btn:hover,.picker-btn:focus{border-color:var(--brand-accent)}
@@ -323,7 +346,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
   .modal-footer .btn{flex:1}
 }
 
-/* ─── UNIFIED MODAL VARIANTS — küçük modaller için tutarlı boyutlar ─── */
 .modal-content.modal-sm{max-width:380px}
 .modal-content.modal-md{max-width:440px}
 .modal-content.modal-lg{max-width:540px}
@@ -333,7 +355,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
   .modal-content.modal-lg,.modal-content.modal-xl{max-width:100%}
 }
 
-/* Modal başlık ikon-rozet — modal türünü görsel olarak belirgin yapar */
 .modal-title-row{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
 .modal-title-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(79,70,229,.1);color:var(--brand-accent)}
 .modal-title-icon svg{width:20px;height:20px;stroke-width:2}
@@ -341,53 +362,76 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .modal-title-icon.danger{background:var(--status-danger-bg);color:var(--status-danger)}
 .modal-title-icon.warn{background:var(--status-warn-bg);color:var(--status-warn)}
 
-/* Modal info-row — ödeme onay, hesap silme onayı vb. ortak görsel */
 .modal-info-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:14px;font-size:14px;border:1px solid var(--border-light)}
 .modal-info-row .info-label{color:var(--text-secondary);font-weight:500}
 .modal-info-row .info-value{font-weight:700}
 
-/* ─── PAID BADGE — abonelik ödendi göstergesi ─── */
+/* PAID BADGE */
 .paid-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius-full);background:var(--status-success-bg);color:var(--status-success);font-size:11px;font-weight:700;letter-spacing:.01em;border:1px solid rgba(34,160,107,.18);white-space:nowrap}
 .paid-badge svg{width:11px;height:11px;stroke-width:3}
 
-/* ─── SELECT MODE — Seç/İptal butonu, tema bağımlı renkler ─── */
+/* SELECT MODE */
 .btn-select-mode{background:var(--bg-surface);border:1px solid var(--border-light);color:var(--text-main);font-weight:600;transition:all .2s}
 .btn-select-mode:hover{background:var(--bg-surface-hover)}
 .btn-select-mode.active{background:var(--bg-surface);color:var(--text-main);border-color:var(--text-main)}
 .btn-select-mode .nav-icon{transition:transform .2s}
 .btn-select-mode.active .nav-icon{transform:rotate(45deg);color:var(--status-danger)}
 .btn-select-mode.active .select-mode-label{color:var(--status-danger)}
-
-/* Seçili satır vurgusu */
 .tx-row-selected{background:rgba(79,70,229,.08) !important}
 
-/* ─── CREDIT CARD — kart bilgisi block'ları ─── */
-.cc-info-block{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding:12px;background:rgba(255,255,255,.1);border-radius:var(--radius-md);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.cc-info-cell .cc-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.78;margin-bottom:3px;font-weight:600}
-.cc-info-cell .cc-value{font-size:13px;font-weight:700;font-family:var(--font-display);letter-spacing:-.01em}
-.cc-progress-track{height:5px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden;margin-top:6px}
-.cc-progress-fill{height:100%;background:rgba(255,255,255,.85);transition:width .6s cubic-bezier(.16,1,.3,1)}
+/* CREDIT CARD */
+.cc-info-block{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding:14px;background:rgba(0,0,0,.18);border-radius:var(--radius-md);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
+.cc-info-cell .cc-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:4px;font-weight:700}
+.cc-info-cell .cc-value{font-size:14px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em}
+.cc-progress-track{height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin-top:7px}
+.cc-progress-fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.16,1,.3,1)}
+.cc-progress-fill.safe{background:rgba(255,255,255,.8)}
+.cc-progress-fill.warn{background:#fbbf24}
+.cc-progress-fill.danger{background:#f87171}
+/* CC card number row */
+.cc-card-number{font-family:var(--font-display);font-size:15px;letter-spacing:.22em;opacity:.6;margin-bottom:12px;font-weight:600}
+/* CC status badge on card */
+.cc-status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700;letter-spacing:.04em;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2);margin-top:6px;backdrop-filter:blur(8px)}
+.cc-status-badge.overdue{background:rgba(248,113,113,.25);border-color:rgba(248,113,113,.4)}
+/* CC detail modal enhancements */
+.cc-detail-hero{border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;position:relative;overflow:hidden;color:#fff;min-height:120px}
+.cc-detail-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 60%);z-index:1}
+.cc-detail-hero>*{position:relative;z-index:2}
+.cc-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.cc-stat-card{background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:16px;text-align:center}
+.cc-stat-card .cc-stat-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.cc-stat-card .cc-stat-value{font-size:18px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em}
+.cc-detail-progress-wrap{margin-bottom:20px}
+.cc-detail-progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;font-weight:600}
+.cc-detail-progress-track{height:10px;background:var(--bg-body);border-radius:99px;overflow:hidden;border:1px solid var(--border-light)}
+.cc-detail-progress-fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.16,1,.3,1)}
+.cc-date-row{display:flex;gap:10px;margin-bottom:20px}
+.cc-date-item{flex:1;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px;text-align:center}
+.cc-date-item .cc-date-label{font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.cc-date-item .cc-date-val{font-size:16px;font-weight:800;font-family:var(--font-display)}
+.cc-date-item.alert-day{border-color:rgba(217,119,6,.3);background:var(--status-warn-bg)}
+.cc-date-item.alert-day .cc-date-val{color:var(--status-warn)}
 
-/* ─── EXCHANGE RATE LIST — bayraksız, sadeleştirilmiş ─── */
-.fx-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border-light);gap:12px}
+/* EXCHANGE RATE LIST */
+.fx-row{display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid var(--border-light);gap:12px}
 .fx-row:last-child{border-bottom:none}
 .fx-from{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px}
 .fx-cur-pill{display:inline-flex;align-items:center;justify-content:center;min-width:40px;padding:3px 9px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-full);font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--text-secondary);font-family:var(--font-display)}
 .fx-arrow{color:var(--text-muted);font-size:13px;flex-shrink:0}
 .fx-to-value{font-weight:700;color:var(--brand-accent);font-family:var(--font-display);font-size:14px;letter-spacing:-.01em}
 
-/* ─── UPCOMING ITEM — yaklaşan ödeme satırı ─── */
+/* UPCOMING */
 .upcoming-item-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .upcoming-show-more{display:block;width:100%;padding:10px 14px;margin-top:10px;background:var(--bg-surface-hover);border:1px solid var(--border-light);border-radius:var(--radius-md);color:var(--text-secondary);font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
 .upcoming-show-more:hover{background:var(--bg-body);color:var(--text-main)}
 
-/* ─── DONUT CHART — tıklanabilirliği iyileştir (mobilde de) ─── */
+/* DONUT CHART */
 #mainDonutChart svg{cursor:pointer}
 #mainDonutChart svg path,#mainDonutChart svg circle{cursor:pointer;pointer-events:auto;transition:opacity .2s,stroke-width .2s}
 #mainDonutChart svg path:hover,#mainDonutChart svg circle:hover{opacity:.85;stroke-width:32}
 #mainDonutChart .chart-center-content{pointer-events:none}
 
-/* ─── TRANSFER FAB — para aktar butonu (Hesaplar sayfası) ─── */
+/* TRANSFER */
 .transfer-actions-row{display:flex;gap:10px;flex-wrap:wrap}
 @media(max-width:600px){.transfer-actions-row{width:100%}.transfer-actions-row .btn{flex:1}}
 
@@ -412,12 +456,15 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 @media(max-width:768px){.kpi-value{font-size:24px}}
 
 /* WALLET CARD */
-.wallet-card-premium{color:#fff;padding:28px;border-radius:var(--radius-xl);position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;box-shadow:var(--shadow-md);border:1px solid rgba(255,255,255,.1);transition:transform .3s}
-.wallet-card-premium:hover{transform:translateY(-3px)}
-.wallet-card-premium::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 50%);z-index:1}
+.wallet-card-premium{color:#fff;padding:26px;border-radius:var(--radius-xl);position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;box-shadow:var(--shadow-md),0 0 0 1px rgba(255,255,255,.08) inset;border:1px solid rgba(255,255,255,.08);transition:transform .3s,box-shadow .3s}
+.wallet-card-premium:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.12) inset}
+.wallet-card-premium::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 55%);z-index:1;pointer-events:none}
+.wallet-card-premium::after{content:'';position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);z-index:1;pointer-events:none}
 .wallet-card-premium>*{position:relative;z-index:10}
-.chip-icon{width:36px;height:26px;background:rgba(255,255,255,.2);border-radius:5px;margin-bottom:16px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.3)}
-.chip-icon::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.3)}
+/* Chip: realistic EMV chip */
+.chip-icon{width:38px;height:28px;background:linear-gradient(135deg,#d4af37,#f5d980 35%,#c8a020 70%,#e8c84a);border-radius:6px;margin-bottom:14px;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,.15);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.chip-icon::before{content:'';position:absolute;inset:4px;background:linear-gradient(135deg,#b8922a,#e8c44a);border-radius:3px}
+.chip-icon::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.2);transform:translateY(-50%)}
 
 /* INSIGHT */
 .insight-card{background:var(--bg-surface);border:1px solid var(--border-light);padding:18px;border-radius:var(--radius-lg);margin-bottom:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
@@ -428,11 +475,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* CHARTS */
 .chart-container{position:relative;width:100%;max-width:240px;margin:0 auto;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
 .chart-center-content{position:absolute;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
-
-/* Bar chart — fixed aspect, no stretch */
 .bar-chart-wrap{width:100%;overflow:hidden}
 .bar-chart-wrap svg{display:block;width:100%;height:180px}
-
 .upcoming-item{padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;background:var(--bg-body)}
 .comparison-bar{display:flex;height:10px;border-radius:var(--radius-full);overflow:hidden;background:var(--bg-body)}
 
@@ -463,13 +507,20 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .onboarding-card.active{display:block}
 .ob-icon-wrap{width:68px;height:68px;border-radius:50%;background:var(--brand-primary);color:var(--bg-surface);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:var(--shadow-md)}
 [data-theme="dark"] .ob-icon-wrap{background:#fff;color:#000}
+
+/* MARKA LOGOSU light / dark */
+.brand-icon { width: 32px; height: 32px; flex-shrink: 0; }
+.brand-icon-light { display: block; }
+.brand-icon-dark  { display: none;  }
+[data-theme="dark"] .brand-icon-light { display: none;  }
+[data-theme="dark"] .brand-icon-dark  { display: block; }
 </style>
 </head>
 <body>
 
 <div id="appLoader">
   <div class="loader-brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:40px;height:40px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    <img src="./icon-192.png" alt="SAGI" style="width:44px;height:44px;border-radius:25px;box-shadow:0 4px 16px rgba(108,77,255,.3)">
     SAGI
   </div>
   <div class="loader-progress-wrap"><div class="loader-progress-fill" id="loaderBar"></div></div>
@@ -479,7 +530,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 <div id="onboardingScreen" class="onboarding-overlay hidden">
   <div class="mesh-bg"></div>
   <div class="onboarding-card card active" id="ob_step_1">
-    <div class="ob-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:34px;height:34px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+    <div class="ob-icon-wrap" style="background:transparent;box-shadow:none"><img src="./icon-192.png" alt="SAGI" style="width:68px;height:68px;border-radius:50%;box-shadow:0 6px 24px rgba(108,77,255,.35)"></div>
     <h1 class="text-h1 mb-3">SAGI Finance</h1>
     <p class="text-subtitle mb-8" data-i18n="obWelcome">Tüm varlık ve harcamalarınızı tek ekrandan kolayca yönetin.</p>
     <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obStart" onclick="App.Controllers.Onboarding.nextStep(2)">Hadi Başlayalım</button>
@@ -562,7 +613,22 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 <div class="app-layout">
   <header class="app-header">
     <div class="brand-logo">
-      <svg class="nav-icon"><use href="#icon-target"/></svg>
+      <!-- LIGHT -->
+      <svg class="brand-icon brand-icon-light" viewBox="0 0 192 192" fill="none">
+        <circle cx="96" cy="96" r="96" fill="#FFFFFF"/>
+        <rect x="58" y="100" width="18" height="40" rx="4" fill="#6C4DFF"/>
+        <rect x="87" y="80" width="18" height="60" rx="4" fill="#6C4DFF"/>
+        <rect x="116" y="60" width="18" height="80" rx="4" fill="#6C4DFF"/>
+        <path d="M58 78 L58 58 L78 58" stroke="#6C4DFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <!-- DARK -->
+      <svg class="brand-icon brand-icon-dark" viewBox="0 0 192 192" fill="none">
+        <circle cx="96" cy="96" r="96" fill="#1E1E1E"/>
+        <rect x="58" y="100" width="18" height="40" rx="4" fill="#FFFFFF"/>
+        <rect x="87" y="80" width="18" height="60" rx="4" fill="#FFFFFF"/>
+        <rect x="116" y="60" width="18" height="80" rx="4" fill="#FFFFFF"/>
+        <path d="M58 78 L58 58 L78 58" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <span>SAGI<span style="font-size:13px;font-weight:500;opacity:.55;letter-spacing:.01em;margin-left:4px;font-style:italic">Finance</span></span>
     </div>
     <div class="flex gap-2">
@@ -577,7 +643,25 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 
   <aside class="app-sidebar" id="sidebar">
     <div class="flex justify-between items-center mb-8 px-1">
-      <div class="brand-logo"><svg class="nav-icon"><use href="#icon-target"/></svg><span>SAGI<span style="font-size:13px;font-weight:500;opacity:.55;letter-spacing:.01em;margin-left:4px;font-style:italic">Finance</span></span></div>
+      <div class="brand-logo">
+        <!-- LIGHT -->
+        <svg class="brand-icon brand-icon-light" viewBox="0 0 192 192" fill="none">
+          <circle cx="96" cy="96" r="96" fill="#FFFFFF"/>
+          <rect x="58" y="100" width="18" height="40" rx="4" fill="#6C4DFF"/>
+          <rect x="87" y="80" width="18" height="60" rx="4" fill="#6C4DFF"/>
+          <rect x="116" y="60" width="18" height="80" rx="4" fill="#6C4DFF"/>
+          <path d="M58 78 L58 58 L78 58" stroke="#6C4DFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <!-- DARK -->
+        <svg class="brand-icon brand-icon-dark" viewBox="0 0 192 192" fill="none">
+          <circle cx="96" cy="96" r="96" fill="#1E1E1E"/>
+          <rect x="58" y="100" width="18" height="40" rx="4" fill="#FFFFFF"/>
+          <rect x="87" y="80" width="18" height="60" rx="4" fill="#FFFFFF"/>
+          <rect x="116" y="60" width="18" height="80" rx="4" fill="#FFFFFF"/>
+          <path d="M58 78 L58 58 L78 58" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>SAGI<span style="font-size:13px;font-weight:500;opacity:.55;letter-spacing:.01em;margin-left:4px;font-style:italic">Finance</span></span>
+      </div>
       <button class="act-btn" id="sidePrivacyBtn" onclick="App.Controllers.Settings.togglePrivacy()" style="display:none">
         <svg class="nav-icon" id="sidePrivacyIcon"><use href="#icon-eye"/></svg>
       </button>
@@ -638,6 +722,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
         </div>
         <div class="card">
           <div class="card-header"><h2 class="card-title color-warn"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="upcoming">Yaklaşan Ödemeler</span></h2></div>
+          <div id="dashCCAlerts"></div>
           <div id="dashUpcoming" class="flex flex-col gap-3"></div>
         </div>
       </div>
@@ -668,7 +753,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
               </button>
               <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
             </div>
-            <!-- Seçilenleri Sil butonu — Seç'in altında görünür -->
             <button class="btn btn-outline btn-sm color-danger" id="txDeleteSelectedBtnTop" onclick="App.Controllers.Transactions.deleteSelected()" style="display:none;border-color:var(--status-danger-bg);color:var(--status-danger);font-size:12px;padding:6px 14px">
               <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg>
               <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
@@ -819,7 +903,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
         <div class="card">
           <h2 class="card-title mb-5"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="notifTitle">Bildirimler</span></h2>
           <p class="text-subtitle mb-5" data-i18n="notifDesc">Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.</p>
-          <!-- Ana bildirim toggle -->
           <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
             <div>
               <div class="font-bold" style="font-size:15px">Bildirimleri Etkinleştir</div>
@@ -827,14 +910,10 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
             </div>
             <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
           </div>
-
-          <!-- İzin kutusu (permission verilmemişse görünür) -->
           <div id="notifPermBox" style="background:rgba(79,70,229,.07);border:1px solid rgba(79,70,229,.2);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
             <button class="btn btn-primary btn-sm w-full" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
           </div>
-
-          <!-- Alt bildirim toggle'ları (master kapalıysa soluk görünür, tıklanamaz) -->
           <div id="notifSubToggles" style="transition:opacity .25s;margin-top:12px;display:flex;flex-direction:column;gap:10px">
             <div class="toggle-row" id="notifAbonelik" onclick="App.Notifications.toggleSetting('abonelik')">
               <div><div class="font-bold" style="font-size:15px" data-i18n="notifSub">Abonelik Hatırlatmaları</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifSubDesc">3 gün önce, 1 gün önce ve ödeme günü bildir</div></div>
@@ -866,8 +945,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
         <div class="card" style="border-color:rgba(229,83,75,.18)">
           <h2 class="card-title color-danger mb-4" data-i18n="dataManagement">Veri Yönetimi</h2>
           <p class="text-subtitle mb-5" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</p>
-
-          <!-- Yedek Al -->
           <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px">
             <div class="font-bold" data-i18n="backup">Yedek Al</div>
             <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
@@ -880,25 +957,17 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
               </button>
             </div>
           </div>
-
-          <!-- Yedek Yükle -->
           <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-top:8px">
             <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
             <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
             <div class="flex gap-2 w-full">
-              <!-- accept + environment: saf dosya seçimi, kamera tetiklemeyen -->
-              <input type="file"
-                id="importFile"
-                accept=".json,application/json"
-                style="display:none"
-                onchange="App.Controllers.Settings.importData(event)">
+              <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
               <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
                 <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
                 Dosya Seç (.json)
               </label>
             </div>
           </div>
-
           <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
           <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
         </div>
@@ -907,7 +976,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 
   </main>
 
-  <!-- BOTTOM NAV — 5 sekme düz: Ana/İşlemler/Abonelikler/Hesaplar/Analiz -->
+  <!-- BOTTOM NAV -->
   <nav class="app-bottom-nav">
     <a href="#/dashboard" class="bnav-link" data-route="/dashboard"><svg class="nav-icon"><use href="#icon-home"/></svg><span class="bnav-text" data-i18n="dashboard">Ana Sayfa</span></a>
     <a href="#/wallets" class="bnav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg><span class="bnav-text" data-i18n="wallets">Hesaplar</span></a>
@@ -949,8 +1018,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
         <input type="hidden" id="tx_cat_val" value="">
         <input type="hidden" id="tx_wallet" value="">
         <input type="hidden" id="tx_keep_open" value="0">
-
-        <!-- ADIM 1: Tür seçimi — büyük segment -->
         <div class="form-group">
           <div class="tx-type-seg" id="txTypeSeg">
             <button type="button" class="tx-type-btn active" data-val="expense" onclick="App.Controllers.Transactions.setType('expense',this)">
@@ -963,8 +1030,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
             </button>
           </div>
         </div>
-
-        <!-- ADIM 2: Tutar + Açıklama -->
         <div class="css-grid grid-cols-2 gap-4">
           <div class="form-group mb-0">
             <label class="form-label"><span data-i18n="amount">Tutar</span> <span id="txAmountCurHint" style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:6px"></span></label>
@@ -976,13 +1041,10 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
             <input type="date" class="form-control" id="tx_date" required>
           </div>
         </div>
-
         <div class="form-group" style="margin-top:18px">
           <label class="form-label" data-i18n="description">Açıklama</label>
           <input type="text" class="form-control" id="tx_desc" data-i18n-ph="descPh" placeholder="Kısa bir not ekleyin..." autocomplete="off">
         </div>
-
-        <!-- ADIM 3: Kategori seçimi -->
         <div class="form-group">
           <label class="form-label" data-i18n="category">Kategori</label>
           <div class="picker-btn" id="txCatBtn" onclick="UI.CatPicker.open('tx_cat_val','txCatBtn')">
@@ -991,14 +1053,10 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
           </div>
           <input type="hidden" id="tx_cat_val" value="">
         </div>
-
-        <!-- ADIM 4: Hesap seçimi -->
         <div class="form-group">
           <label class="form-label" data-i18n="account">Hesap</label>
           <div id="txWalletPills" class="wallet-pill-wrap"></div>
         </div>
-
-        <!-- Devam et toggle -->
         <div class="toggle-row" id="keepOpenRow" onclick="UI.toggleCustomCheck('keepOpenRow','tx_keep_open')">
           <div><div style="font-size:14px;font-weight:600" data-i18n="keepOpen">Kaydet ve bir tane daha ekle</div></div>
           <div class="toggle-track" id="keepOpenTrack"><div class="toggle-thumb"></div></div>
@@ -1044,7 +1102,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
             <input type="hidden" id="wal_type" value="Nakit">
           </div>
         </div>
-        <!-- KREDİ KARTI ALANLARI — sadece type='Kredi Kartı' iken açılır -->
         <div id="walCcFields" style="display:none">
           <div class="css-grid grid-cols-2 gap-4">
             <div class="form-group">
@@ -1106,9 +1163,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
       <form id="recForm" onsubmit="event.preventDefault();App.Controllers.Recurring.save()">
         <input type="hidden" id="rec_id" value="">
         <input type="hidden" id="rec_wallet" value="">
-
         <div class="form-group"><label class="form-label" data-i18n="recNameLabel">Abonelik Adı</label><input type="text" class="form-control" id="rec_name" data-i18n-ph="recNamePh" placeholder="Örn: Netflix, Kira, Elektrik" required autocomplete="off"></div>
-
         <div class="form-group mb-0"><label class="form-label" data-i18n="monthlyAmount">Aylık Tutar</label>
           <div class="flex gap-2">
             <input type="number" step="0.01" class="form-control" id="rec_amount" placeholder="0,00" required inputmode="decimal" style="flex:1">
@@ -1118,8 +1173,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
           </div>
         </div>
         <div class="form-group mb-0" style="margin-top:14px"><label class="form-label" data-i18n="dayOfMonth">Ayın Kaçında?</label><input type="number" min="1" max="31" class="form-control" id="rec_day" value="1" required></div>
-
-        <!-- Kategori -->
         <div class="form-group" style="margin-top:18px">
           <label class="form-label" data-i18n="category">Kategori</label>
           <div class="picker-btn" id="recCatBtn" onclick="UI.CatPicker.open('rec_cat_val','recCatBtn')">
@@ -1128,8 +1181,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
           </div>
           <input type="hidden" id="rec_cat_val" value="">
         </div>
-
-        <!-- Hesap seçimi -->
         <div class="form-group mb-0">
           <label class="form-label" data-i18n="payFromAccount">Ödenecek Hesap</label>
           <div id="recWalletPills" class="wallet-pill-wrap"></div>
@@ -1360,9 +1411,12 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
     <div class="modal-body">
       <form id="payCardForm" onsubmit="event.preventDefault();App.Controllers.Wallets.executeCardPayment()">
         <input type="hidden" id="payCardWalletId">
-        <div class="modal-info-row">
-          <span class="info-label" id="payCardName">—</span>
-          <span class="info-value color-danger" id="payCardDebt">₺0</span>
+        <div class="modal-info-row" style="background:var(--status-danger-bg);border-color:rgba(229,83,75,.2)">
+          <span class="info-label" id="payCardName" style="font-weight:700">—</span>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Güncel Borç</div>
+            <span class="info-value color-danger" id="payCardDebt" style="font-size:20px;font-family:var(--font-display)">₺0</span>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label" data-i18n="payAmount">Ödenecek Tutar</label>
@@ -1381,7 +1435,96 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
   </div>
 </div>
 
-<!-- KATEGORİ SEÇİM MODAL (unified) -->
+<!-- KREDİ KARTI DETAY MODALI -->
+<div class="modal-overlay" id="modalCardDetail">
+  <div class="modal-content modal-lg">
+    <div class="modal-header" style="padding-bottom:12px">
+      <div class="modal-title-row">
+        <div class="modal-title-icon" style="background:rgba(108,77,255,.12);color:#6C4DFF"><svg><use href="#icon-wallet"/></svg></div>
+        <div>
+          <h3 class="modal-title" id="cardDetailName" style="font-size:18px">Kart Detayı</h3>
+          <div id="cardDetailSubtitle" style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px"></div>
+        </div>
+      </div>
+      <button class="act-btn" onclick="UI.Modals.close('modalCardDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding-top:8px">
+      <!-- Hero mini card -->
+      <div class="cc-detail-hero" id="cardDetailHero" style="background:linear-gradient(135deg,#1a1a2e,#6366f1)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div>
+            <div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Kredi Kartı</div>
+            <div style="font-size:16px;font-weight:700" id="cardDetailHeroName">—</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div id="cardDetailDueBadge" style="display:none;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fbbf24;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700"></div>
+          </div>
+        </div>
+        <div style="font-size:12px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Güncel Borç</div>
+        <div style="font-size:32px;font-weight:800;font-family:var(--font-display);letter-spacing:-1.5px;line-height:1;color:#fff" id="cardDetailHeroDebt">₺0</div>
+        <!-- Mini progress on hero -->
+        <div style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.65;font-weight:600;margin-bottom:5px">
+            <span>Kullanım</span><span id="cardDetailHeroPerc">%0</span>
+          </div>
+          <div style="height:5px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden">
+            <div id="cardDetailHeroBar" style="height:100%;border-radius:99px;transition:width .7s cubic-bezier(.16,1,.3,1);background:rgba(255,255,255,.8)"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Stats row -->
+      <div class="cc-stat-grid">
+        <div class="cc-stat-card">
+          <div class="cc-stat-label">Limit</div>
+          <div class="cc-stat-value" id="cardDetailLimit">₺0</div>
+        </div>
+        <div class="cc-stat-card">
+          <div class="cc-stat-label">Kullanılabilir</div>
+          <div class="cc-stat-value color-success" id="cardDetailAvail">₺0</div>
+        </div>
+        <div class="cc-stat-card">
+          <div class="cc-stat-label">Kullanım %</div>
+          <div class="cc-stat-value" id="cardDetailPerc">%0</div>
+        </div>
+      </div>
+      <!-- Date row -->
+      <div class="cc-date-row" id="cardDetailDateRow">
+        <div class="cc-date-item" id="cardDetailCutoffCell">
+          <div class="cc-date-label">Hesap Kesim</div>
+          <div class="cc-date-val" id="cardDetailCutoff">-</div>
+        </div>
+        <div class="cc-date-item" id="cardDetailDueCell">
+          <div class="cc-date-label">Son Ödeme</div>
+          <div class="cc-date-val" id="cardDetailDue">-</div>
+        </div>
+        <div class="cc-date-item" id="cardDetailDaysCell" style="display:none">
+          <div class="cc-date-label">Kalan Süre</div>
+          <div class="cc-date-val" id="cardDetailDaysLeft">-</div>
+        </div>
+      </div>
+      <!-- Borç: -->
+      <div id="cardDetailDebt" style="display:none"></div>
+      <!-- Recent transactions -->
+      <h4 style="font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <svg class="nav-icon" style="width:16px;height:16px;color:var(--brand-accent)"><use href="#icon-list"/></svg>
+        Son Kart İşlemleri
+      </h4>
+      <div class="table-container" style="max-height:220px;overflow-y:auto;border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <table class="data-table">
+          <thead style="background:var(--bg-surface-hover)"><tr><th data-i18n="th_date">Tarih</th><th data-i18n="th_desc">Açıklama</th><th class="text-right" data-i18n="th_amount">Tutar</th></tr></thead>
+          <tbody id="cardDetailTxBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail')">Kapat</button>
+      <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> Tüm İşlemler</button>
+      <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> Ödeme Yap</button>
+    </div>
+  </div>
+</div>
+
+<!-- KATEGORİ SEÇİM MODAL -->
 <div class="modal-overlay" id="modalCatPicker">
   <div class="modal-content modal-md">
     <div class="modal-header">
@@ -1410,7 +1553,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 // global olarak window'a export edilmiştir.
 // ═══════════════════════════════════════
 
-
 // ═══════════════════════════════════════
 // CORE
 // ═══════════════════════════════════════
@@ -1434,7 +1576,9 @@ const Core = {
       try{return new Intl.NumberFormat(loc,{style:'currency',currency:c,minimumFractionDigits:0,maximumFractionDigits:2}).format(a||0);}
       catch(e){return (a||0).toFixed(2)+' '+c;}
     },
-    formatDate:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}):'',formatDateTime:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+(new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):'',formatDateOnly:(d)=>d?d.split('T')[0]:'',
+    formatDate:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}):'',
+    formatDateTime:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+(new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):'',
+    formatDateOnly:(d)=>d?d.split('T')[0]:'',
     getCatColor:(cat)=>{if(cat==='Transfer')return'var(--status-neutral)';const P=['#4f46e5','#0ea5e9','#22a06b','#d97706','#ec4899','#8b5cf6','#f43f5e','#14b8a6','#f97316','#06b6d4','#6366f1','#a855f7','#e5534b','#3b82f6','#10b981','#f59e0b','#ef4444','#3b82f6','#84cc16','#06b6d4','#8b5cf6','#f43f5e','#059669','#dc2626','#7c3aed','#db2777','#0891b2','#65a30d','#b45309','#0f766e','#1d4ed8','#9333ea','#c2410c','#0369a1','#15803d'];let hash=0;for(let i=0;i<cat.length;i++)hash=(cat.charCodeAt(i)*2654435761)^((hash<<5)-hash);return P[Math.abs(hash)%P.length];}
   },
   calculateForecast(){
@@ -1579,7 +1723,7 @@ document.addEventListener('click',e=>{
 });
 
 // ═══════════════════════════════════════
-// BİLDİRİM SİSTEMİ (güvenli, HTTPS gerektirmez)
+// BİLDİRİM SİSTEMİ
 // ═══════════════════════════════════════
 const Notifications = {
   get supported(){ return typeof Notification !== 'undefined'; },
@@ -1763,9 +1907,6 @@ const App = {
     }
   },
 
-  // ═══════════════════════════════════════
-  // Money — tek gerçek kaynak para matematiği
-  // ═══════════════════════════════════════
   Money:{
     txCurrency(tx){
       if(tx&&tx.amountCurrency)return tx.amountCurrency;
@@ -1887,9 +2028,8 @@ const App = {
         const wc=App.Money.walletCur(s.wallet);
         const mc=App.Money.mainCur();
         const txAmount=App.ExchangeRate.convert(s.amount,mc,wc);
-        // t() fonksiyonunun varlığını kontrol et
-        const desc = (typeof t === 'function') 
-          ? t('subscriptionLabel',{name:s.name}) 
+        const desc = (typeof window.t === 'function')
+          ? t('subscriptionLabel',{name:s.name})
           : (s.name + ' (Abonelik)');
         const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:t.toISOString()};
         Core.state.transactions.push(tx);
@@ -1900,8 +2040,7 @@ const App = {
     if(add>0){
       Core.state.settings.lastProcessedDate=tStr;
       Core.DB.save();
-      // t() varlığını kontrol et
-      if (typeof t === 'function') {
+      if (typeof window.t === 'function') {
         UI.Toasts.show(t('msgRecProcessed',{n:add}));
       } else {
         UI.Toasts.show(add + ' abonelik işlendi.');
@@ -1978,7 +2117,8 @@ const App = {
         const dtb=document.getElementById('dashRecentTxs');
         if(dtb){if(!recent.length)dtb.innerHTML=`<tr><td colspan="3" class="text-center color-muted" style="padding:28px">${t('noTx')}</td></tr>`;else dtb.innerHTML=recent.map(tx=>{const color=tx.type==='income'?'var(--status-success)':'var(--status-danger)';const txW=Core.state.wallets.find(x=>x.id===tx.wallet);const txCur=(txW&&txW.currency)||mainCur;return`<tr style="border-left:3px solid ${color}"><td style="padding-left:18px"><div class="font-medium" style="font-size:14px">${tx.desc||tx.cat}</div><div class="text-caption" style="text-transform:none">${Core.Utils.formatDate(tx.date)}${tx.date&&tx.date.includes('T')?' '+new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):''}</div></td><td class="text-right font-display font-bold" style="color:${color};padding-right:18px;font-size:14px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCur)}</td></tr>`;}).join('');}
 
-                const du=document.getElementById('dashUpcoming');
+        this.renderCCAlerts();
+        const du=document.getElementById('dashUpcoming');
         if(du){
           if(!Core.state.recurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
           else{
@@ -2064,7 +2204,6 @@ const App = {
         UI.Toasts.show(t('msgPayConfirmDone'));
         if(App.Controllers.Recurring.render)App.Controllers.Recurring.render();
       },
-      // ★ DÜZELTME 1: Daha sağlam eşleştirme
       unmarkPaidIfNeeded(txDesc){
         if(!txDesc)return;
         for(const s of Core.state.recurring){
@@ -2086,6 +2225,33 @@ const App = {
         if(!paidArr.includes(recId)){paidArr.push(recId);localStorage.setItem(paidKey,JSON.stringify(paidArr));}
         this.render();
         if(App.Controllers.Recurring.render)App.Controllers.Recurring.render();
+      },
+      // CC uyarı widget — dashboard upcoming altına ekle
+      renderCCAlerts(){
+        const ccWallets=Core.state.wallets.filter(w=>w.type==='Kredi Kartı'&&(-(w.balance||0))>0);
+        const container=document.getElementById('dashCCAlerts');
+        if(!container)return;
+        if(!ccWallets.length){container.innerHTML='';return;}
+        const today=new Date().getDate();
+        const monthDays=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+        container.innerHTML=ccWallets.map(cc=>{
+          const debt=Math.max(0,-(cc.balance||0));
+          const dueDay=parseInt(cc.ccDueDay)||0;
+          const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+monthDays-today):null;
+          const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5;
+          const urgStyle=isDueUrgent?'border-color:var(--status-warn);background:var(--status-warn-bg);':'';
+          const dueLabel=daysUntilDue===null?'':(daysUntilDue===0?'<span style="color:var(--status-danger);font-weight:700;font-size:11px">Bugün son ödeme!</span>':`<span style="color:var(--status-warn);font-size:11px;font-weight:600">${daysUntilDue} gün sonra son ödeme</span>`);
+          return`<div class="upcoming-item" style="${urgStyle}margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div class="font-bold" style="font-size:14px">💳 ${cc.name}</div>
+              <div class="text-caption" style="text-transform:none;margin-top:2px">${dueLabel||'Kredi Kartı Borcu'}</div>
+            </div>
+            <div class="upcoming-item-actions">
+              <div class="font-display font-bold color-danger" style="font-size:14px;text-align:right">-${Core.Utils.formatMoney(debt,cc.currency)}</div>
+              <button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Wallets.openCardPayment('${cc.id}')">Öde</button>
+            </div>
+          </div>`;
+        }).join('');
       }
     },
     Wallets:{
@@ -2098,23 +2264,49 @@ const App = {
           const ccDebt=Math.max(0,-(w.balance||0));
           const ccAvail=Math.max(0,ccLimit-ccDebt);
           const ccUsedPerc=ccLimit>0?Math.min(100,(ccDebt/ccLimit)*100):0;
+          const today=new Date().getDate();
+          // CC due date urgency
+          const dueDay=parseInt(w.ccDueDay)||0;
+          const cutoffDay=parseInt(w.ccCutoffDay)||0;
+          const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+(new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate())-today):null;
+          const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=3&&ccDebt>0;
+          const ccProgressClass=ccUsedPerc>=80?'danger':(ccUsedPerc>=50?'warn':'safe');
+          // Masked card number (last 4 digits from id for visual flair)
+          const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
+
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.78)">${t('ccDebt')}</div><div class="font-display font-bold mb-2" style="font-size:26px;letter-spacing:-1px">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>`
+            ? `<div class="flex justify-between items-center mb-1">
+                <div>
+                  <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.65;font-weight:700;margin-bottom:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div>
+                  <div style="font-size:17px;font-weight:700;opacity:.95;letter-spacing:-.01em">${w.name}</div>
+                </div>
+                ${isDueUrgent?`<div class="cc-status-badge overdue">⚠ ${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}
+              </div>
+              <div class="cc-card-number">${maskedNum}</div>
+              <div style="font-size:11px;opacity:.6;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${t('ccDebt')}</div>
+              <div class="font-display font-bold" style="font-size:30px;letter-spacing:-1.5px;line-height:1;margin-bottom:4px">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>
+              <div class="cc-info-block">
+                <div class="cc-info-cell">
+                  <div class="cc-label">${t('ccLimit')}</div>
+                  <div class="cc-value">${Core.Utils.formatMoney(ccLimit,w.currency)}</div>
+                </div>
+                <div class="cc-info-cell">
+                  <div class="cc-label">${t('ccAvailable')}</div>
+                  <div class="cc-value" style="${ccAvail<ccLimit*0.2?'color:#f87171':''}">${Core.Utils.formatMoney(ccAvail,w.currency)}</div>
+                </div>
+                <div class="cc-info-cell" style="grid-column:1/-1">
+                  <div class="cc-label">${t('ccUsed')} <span style="font-size:12px;font-weight:800">${Math.round(ccUsedPerc)}%</span></div>
+                  <div class="cc-progress-track"><div class="cc-progress-fill ${ccProgressClass}" style="width:${ccUsedPerc}%"></div></div>
+                </div>
+                ${dueDay?`<div class="cc-info-cell"><div class="cc-label">${t('ccCutoffDay')}</div><div class="cc-value">${cutoffDay||'-'}</div></div><div class="cc-info-cell"><div class="cc-label">${t('ccDueDay')}</div><div class="cc-value" style="${isDueUrgent?'color:#fbbf24':''}">${dueDay}</div></div>`:''}
+              </div>`
             : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px">${Core.Utils.formatMoney(w.balance,w.currency)}</div>`;
-          const ccTopLabel=isCC?`<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-3" style="font-size:16px;opacity:.92">${w.name}</div>`:'';
-          const ccInfo=isCC?`<div class="cc-info-block">
-            <div class="cc-info-cell"><div class="cc-label">${t('ccLimit')}</div><div class="cc-value">${Core.Utils.formatMoney(ccLimit,w.currency)}</div></div>
-            <div class="cc-info-cell"><div class="cc-label">${t('ccAvailable')}</div><div class="cc-value">${Core.Utils.formatMoney(ccAvail,w.currency)}</div></div>
-            <div class="cc-info-cell" style="grid-column:1/-1">
-              <div class="cc-label">${t('ccUsed')} ${Math.round(ccUsedPerc)}%</div>
-              <div class="cc-progress-track"><div class="cc-progress-fill" style="width:${ccUsedPerc}%"></div></div>
-            </div>
-            ${w.ccCutoffDay?`<div class="cc-info-cell"><div class="cc-label">${t('ccCutoffDay')}</div><div class="cc-value">${t('onDayOfMonth',{day:w.ccCutoffDay})}</div></div>`:''}
-            ${w.ccDueDay?`<div class="cc-info-cell"><div class="cc-label">${t('ccDueDay')}</div><div class="cc-value">${t('onDayOfMonth',{day:w.ccDueDay})}</div></div>`:''}
-          </div>`:'';
-          const ccPayBtn=isCC&&ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:13px;height:13px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:'';
-          const standardBtns=`<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>${ccPayBtn?'<div style="margin-top:8px">'+ccPayBtn+'</div>':''}`;
-          return`<div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'})">
+          const ccPayBtn=isCC&&ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700;margin-top:10px" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:'';
+          const standardBtns=isCC
+            ? `<div class="flex gap-2 mt-3"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>${ccPayBtn}`
+            : `<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>`;
+          const cardMinH=isCC?'min-height:320px':'';
+          return`<div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'});${cardMinH}">
             <div class="flex justify-between items-start">
               <div class="chip-icon"></div>
               <div class="flex gap-2">
@@ -2122,12 +2314,11 @@ const App = {
                 <button class="act-btn" style="color:#fff" onclick="App.Controllers.Wallets.delete('${w.id}')"><svg class="nav-icon" style="width:17px;height:17px"><use href="#icon-trash"/></svg></button>
               </div>
             </div>
-            <div style="margin-top:auto">
-              ${ccTopLabel}
+            <div style="margin-top:${isCC?'14px':'auto'}">
               ${mainAmount}
-              ${ccInfo}
-              ${standardBtns}
+              ${isCC?'':standardBtns}
             </div>
+            ${isCC?`<div style="margin-top:auto;padding-top:4px">${standardBtns}</div>`:''}
           </div>`;
         }).join('');
         this.upd();
@@ -2274,6 +2465,94 @@ const App = {
             Core.DB.save();this.render();App.Controllers.Dashboard.render();UI.Toasts.show(t('msgAccDeleted'));
           });
         }
+      },
+      _lastDetailCardId:null,
+      openCardDetail(cardId){
+        const cc=Core.state.wallets.find(x=>x.id===cardId);
+        if(!cc)return;
+        this._lastDetailCardId=cardId;
+        const ccDebt=Math.max(0,-(cc.balance||0));
+        const ccLimit=parseFloat(cc.ccLimit)||0;
+        const ccAvail=Math.max(0,ccLimit-ccDebt);
+        const ccUsedPerc=ccLimit>0?Math.min(100,(ccDebt/ccLimit)*100):0;
+        const today=new Date().getDate();
+        const dueDay=parseInt(cc.ccDueDay)||0;
+        const cutoffDay=parseInt(cc.ccCutoffDay)||0;
+        const monthDays=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+        const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+monthDays-today):null;
+        const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5&&ccDebt>0;
+        // Header
+        document.getElementById('cardDetailName').textContent=cc.name;
+        const sub=document.getElementById('cardDetailSubtitle');
+        if(sub)sub.textContent=cc.type+(cc.currency&&cc.currency!=='TRY'?' · '+cc.currency:'');
+        // Hero
+        const hero=document.getElementById('cardDetailHero');
+        if(hero)hero.style.background=`linear-gradient(135deg,${cc.c1||'#1a1a2e'},${cc.c2||'#6366f1'})`;
+        const heroName=document.getElementById('cardDetailHeroName');
+        if(heroName)heroName.textContent=cc.name;
+        const heroDebt=document.getElementById('cardDetailHeroDebt');
+        if(heroDebt)heroDebt.textContent=Core.Utils.formatMoney(ccDebt,cc.currency);
+        const heroPerc=document.getElementById('cardDetailHeroPerc');
+        if(heroPerc)heroPerc.textContent='%'+Math.round(ccUsedPerc);
+        const heroBar=document.getElementById('cardDetailHeroBar');
+        if(heroBar){heroBar.style.width=ccUsedPerc+'%';heroBar.style.background=ccUsedPerc>=80?'#f87171':(ccUsedPerc>=50?'#fbbf24':'rgba(255,255,255,.8)');}
+        // Due badge
+        const dueBadge=document.getElementById('cardDetailDueBadge');
+        if(dueBadge){if(isDueUrgent){dueBadge.style.display='block';dueBadge.textContent=daysUntilDue===0?'Bugün son ödeme!':daysUntilDue+' gün kaldı';}else{dueBadge.style.display='none';}}
+        // Stats
+        document.getElementById('cardDetailLimit').textContent=Core.Utils.formatMoney(ccLimit,cc.currency);
+        document.getElementById('cardDetailAvail').textContent=Core.Utils.formatMoney(ccAvail,cc.currency);
+        document.getElementById('cardDetailPerc').textContent='%'+Math.round(ccUsedPerc);
+        // Color the avail stat
+        const availStat=document.getElementById('cardDetailAvail');
+        if(availStat)availStat.style.color=ccAvail<ccLimit*0.2?'var(--status-danger)':'var(--status-success)';
+        // Dates
+        const cutoffEl=document.getElementById('cardDetailCutoff');
+        const dueEl=document.getElementById('cardDetailDue');
+        if(cutoffEl)cutoffEl.textContent=cutoffDay?'Ayın '+cutoffDay+'. günü':'-';
+        if(dueEl){dueEl.textContent=dueDay?'Ayın '+dueDay+'. günü':'-';if(isDueUrgent)dueEl.style.color='var(--status-warn)';else dueEl.style.color='';}
+        // Days left cell
+        const daysCell=document.getElementById('cardDetailDaysCell');
+        const daysEl=document.getElementById('cardDetailDaysLeft');
+        if(daysCell&&dueDay>0&&ccDebt>0){
+          daysCell.style.display='block';
+          if(daysEl)daysEl.textContent=daysUntilDue===0?'Bugün!':(daysUntilDue+' gün');
+          daysCell.classList.toggle('alert-day',isDueUrgent);
+        }else if(daysCell){daysCell.style.display='none';}
+        // Due cell highlight
+        const dueCell=document.getElementById('cardDetailDueCell');
+        if(dueCell)dueCell.classList.toggle('alert-day',isDueUrgent&&ccDebt>0);
+        // Transactions
+        const txs=Core.state.transactions
+          .filter(tx=>tx.wallet===cardId)
+          .sort((a,b)=>new Date(b.date)-new Date(a.date))
+          .slice(0,15);
+        const tbody=document.getElementById('cardDetailTxBody');
+        if(txs.length===0){
+          tbody.innerHTML=`<tr><td colspan="3" class="text-center color-muted" style="padding:20px">${t('noTx')}</td></tr>`;
+        }else{
+          tbody.innerHTML=txs.map(tx=>{
+            const color=tx.type==='income'?'var(--status-success)':'var(--status-danger)';
+            const sign=tx.type==='income'?'+':'-';
+            const isPayment=tx.cat==='Transfer';
+            return`<tr style="border-left:3px solid ${color}">
+              <td style="font-size:12px;padding-left:14px">${Core.Utils.formatDate(tx.date)}</td>
+              <td style="font-size:13px;font-weight:${isPayment?'700':'500'}">${tx.desc||tx.cat}${isPayment?'<span style="font-size:10px;margin-left:6px;opacity:.6;background:var(--bg-body);padding:2px 6px;border-radius:99px">Transfer</span>':''}</td>
+              <td class="text-right font-bold" style="color:${color};font-size:14px;padding-right:14px">${sign}${Core.Utils.formatMoney(tx.amount,cc.currency)}</td>
+            </tr>`;
+          }).join('');
+        }
+        const payBtn=document.getElementById('cardDetailPayBtn');
+        if(ccDebt>0){
+          payBtn.style.display='inline-flex';
+          payBtn.onclick=()=>{
+            UI.Modals.close('modalCardDetail');
+            App.Controllers.Wallets.openCardPayment(cardId);
+          };
+        }else{
+          payBtn.style.display='none';
+        }
+        UI.Modals.open('modalCardDetail');
       },
       openCardPayment(cardWalletId){
         const cc=Core.state.wallets.find(x=>x.id===cardWalletId);
@@ -2643,7 +2922,6 @@ const App = {
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
           const payBtn=!isPaid?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:'';
           const dayLabel=t('onDayOfMonth',{day:s.day});
-          // ★ DÜZELTME 2: Alt satırda her zaman günü göster, ödendi ibaresi sadece üstte
           const dayDisplay=dayLabel;
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
@@ -2701,7 +2979,6 @@ const App = {
         const related=Core.state.transactions.filter(t=>t.desc===desc&&t.wallet===s.wallet);
         if(related.length>0){
           UI.Confirm.show(t('confDelRec',{name:s.name,n:related.length}),()=>{
-            // ★ DÜZELTME 3: İlişkili işlemler silinirken paid rozetini de kaldır
             related.forEach(tx=>{
               App.Money.revertTx(tx);
               App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
