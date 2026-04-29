@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#4f46e5">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- ÇEVİRİ SİSTEMİ — tüm UI metinleri ayrı modülde -->
 <script src="./languages.js"></script>
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
@@ -18,7 +17,6 @@ if ('serviceWorker' in navigator) {
     .then(reg => {
       window._swReg = reg;
       console.log('[SAGI] SW aktif, scope:', reg.scope);
-      // Yeni bir SW beklemede ise hemen aktif et
       if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
@@ -522,7 +520,6 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
         <button type="button" class="tx-type-btn" id="ob_lang_tr" onclick="App.Controllers.Onboarding.setLang('tr',this)">Türkçe</button>
         <button type="button" class="tx-type-btn" id="ob_lang_en" onclick="App.Controllers.Onboarding.setLang('en',this)">English</button>
       </div>
-
     </div>
     <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()">SAGI'yı Aç</button>
   </div>
@@ -1430,7 +1427,6 @@ const Core = {
   Utils:{
     generateId:()=>Date.now().toString(36)+Math.random().toString(36).substr(2),
     formatMoney:(a,cur)=>{
-      // Tüm uygulama bu noktadan geçiyor → App.Money.format'a yönlendir (App yüklenmeden önce çağrılırsa fallback)
       if(typeof App!=='undefined'&&App.Money&&App.Money.format)return App.Money.format(a,cur);
       if(Core.state.settings.privacy==='on')return'***';
       const c=cur||Core.state.settings.currency||'TRY';
@@ -1470,11 +1466,10 @@ const UI = {
   },
   Modals:{
     open(id){document.getElementById(id)?.classList.add('active')},
-    close(id){const m=document.getElementById(id);if(m){m.classList.remove('active');const f=m.querySelector('form');if(f)f.reset();// reset custom toggles in modal
+    close(id){const m=document.getElementById(id);if(m){m.classList.remove('active');const f=m.querySelector('form');if(f)f.reset();
       m.querySelectorAll('.toggle-track.on').forEach(t=>t.classList.remove('on'));
       m.querySelectorAll('[value="0"]').forEach(i=>{if(i.type==='hidden')i.value='0';});
-      // reset custom select labels
-      }}
+    }}
   },
   Confirm:{cb:null,show(msg,cb){document.getElementById('confirmMsg').textContent=msg;this.cb=cb;UI.Modals.open('modalConfirm');},execute(){if(this.cb)this.cb();UI.Modals.close('modalConfirm');}},
   Toasts:{
@@ -1495,12 +1490,10 @@ const UI = {
       entries.forEach(item=>{
         const p=item[1]/total,sA=cum*2*Math.PI;cum+=p;const eA=cum*2*Math.PI,color=Core.Utils.getCatColor(item[0]);
         const sX=100+80*Math.cos(sA),sY=100+80*Math.sin(sA),eX=100+80*Math.cos(eA),eY=100+80*Math.sin(eA);
-        // pointer-events:visibleStroke → fill=none olan path/circle'larda stroke alanı tıklanabilir olur
         if(p===1)svg+=`<circle cx="100" cy="100" r="80" fill="none" stroke="${color}" stroke-width="28" data-cat="${item[0]}" style="cursor:pointer;pointer-events:visibleStroke"><title>${item[0]}: ${Core.Utils.formatMoney(item[1])}</title></circle>`;
         else svg+=`<path d="M ${sX} ${sY} A 80 80 0 ${p>.5?1:0} 1 ${eX} ${eY}" fill="none" stroke="${color}" stroke-width="28" data-cat="${item[0]}" style="cursor:pointer;pointer-events:visibleStroke"><title>${item[0]}: ${Core.Utils.formatMoney(item[1])}</title></path>`;
       });
       c.innerHTML=svg+`</svg><div class="chart-center-content" style="inset:0"><div class="text-caption mb-1">${t('total')}</div><div class="font-display font-bold" style="font-size:17px">${Core.Utils.formatMoney(total)}</div></div>`;
-      // Event delegation — hem click hem touchend yakala (mobil iOS için touchend gerekli)
       const svgEl=c.querySelector('svg');
       if(svgEl){
         const handler=(e)=>{
@@ -1517,7 +1510,6 @@ const UI = {
     drawBarChart(id,data){
       const c=document.getElementById(id);if(!c)return;
       const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)))||1;
-      // Sabit viewBox, preserveAspectRatio ile stretch yok
       let svg=`<svg viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
       const gap=360/data.length,barW=10;
       data.forEach((d,i)=>{
@@ -1529,7 +1521,6 @@ const UI = {
       svg+=`</svg>`;c.innerHTML=svg;
     }
   },
-  // Custom select toggle
   toggleSelect(dropId,btnId){
     document.querySelectorAll('.custom-select-dropdown.open').forEach(d=>{if(d.id!==dropId){d.classList.remove('open');document.getElementById(d.id.replace('Drop','Btn'))?.classList.remove('open');}});
     const drop=document.getElementById(dropId),btn=document.getElementById(btnId);
@@ -1543,13 +1534,11 @@ const UI = {
     document.getElementById(hiddenId).value=el.dataset.value;
     drop.classList.remove('open');btn.classList.remove('open');
   },
-  // Radio group
   selectRadio(groupId,el,hiddenId){
     document.querySelectorAll(`#${groupId} .radio-item`).forEach(r=>r.classList.remove('selected'));
     el.classList.add('selected');
     document.getElementById(hiddenId).value=el.dataset.value;
   },
-  // Custom toggle/checkbox
   toggleCustomCheck(rowId,hiddenId,callback){
     const row=document.getElementById(rowId);
     const track=row.querySelector('.toggle-track');
@@ -1579,7 +1568,6 @@ const UI = {
   }
 };
 
-// Close selects on outside click
 document.addEventListener('click',e=>{
   if(!e.target.closest('.custom-select-wrap')){
     document.querySelectorAll('.custom-select-dropdown.open').forEach(d=>{
@@ -1606,13 +1594,10 @@ const Notifications = {
   },
   sendNotif(title,body){
     if(!this.granted)return;
-    // SW üzerinden showNotification dene — Android Chrome dahil tüm mobil platformlarda çalışır
-    // window._swReg: SW kayıt referansı (SW register bloğunda set edilir)
     const swReg = window._swReg || (navigator.serviceWorker && navigator.serviceWorker.controller && {
       showNotification: (t,o) => navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF',title:t,...o})
     });
     if(swReg && swReg.showNotification){
-      // SW üzerinden — mobilde de çalışır
       try{
         swReg.showNotification(title,{
           body,
@@ -1625,9 +1610,7 @@ const Notifications = {
         return;
       }catch(e){}
     }
-    // Fallback: klasik Web Notification API (desktop, bazı tarayıcılar)
     try{ new Notification(title,{body,icon:'./icon-192.png'}); }catch(e){}
-    // SW controller'a mesaj ile de dene (SW'nin message handler'ı varsa çalışır)
     if(navigator.serviceWorker && navigator.serviceWorker.controller){
       try{ navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF',title,body}); }catch(e){}
     }
@@ -1635,18 +1618,15 @@ const Notifications = {
   updateUI(){
     if(!this.supported)return;
     const granted=this.granted;
-    const masterOn=granted&&Core.state.settings.notifMaster!==false; // varsayılan: açık
-    // Master toggle
+    const masterOn=granted&&Core.state.settings.notifMaster!==false;
     const masterTrack=document.getElementById('notifMasterTrack');
     const masterRow=document.getElementById('notifMasterRow');
     const masterDesc=document.getElementById('notifMasterDesc');
     if(masterTrack){masterOn?masterTrack.classList.add('on'):masterTrack.classList.remove('on');}
     if(masterRow){masterOn?masterRow.classList.add('active'):masterRow.classList.remove('active');}
     if(masterDesc){masterDesc.textContent=masterOn?t('notifMasterOn'):t('notifMasterOff');}
-    // İzin kutusu
     const permBox=document.getElementById('notifPermBox');
     if(permBox)permBox.style.display=(!granted&&masterOn)?'block':'none';
-    // Alt toggle'lar — master kapalıysa soluk + devre dışı
     const sub=document.getElementById('notifSubToggles');
     if(sub){sub.style.opacity=masterOn?'1':'0.35';sub.style.pointerEvents=masterOn?'':'none';}
     const notifs=Core.state.settings.notifications||{};
@@ -1662,17 +1642,14 @@ const Notifications = {
   toggleMaster(){
     if(!this.supported){UI.Toasts.show(t('msgNotifUnsup'),'error');return;}
     if(!this.granted){
-      // İzin yok — açmaya çalışıyor, izin iste
       this.requestPermission().then(()=>{
         if(this.granted){Core.state.settings.notifMaster=true;Core.DB.save();this.updateUI();}
       });
       return;
     }
-    // İzin var — toggle et
     const current=Core.state.settings.notifMaster!==false;
     Core.state.settings.notifMaster=!current;
     if(!current){
-      // Açılıyor — tüm sub-toggle'ları varsayılan aç
       if(!Core.state.settings.notifications)Core.state.settings.notifications={};
       Core.state.settings.notifications={abonelik:true,borc:true,butce:true,haftalik:true};
     }
@@ -1689,7 +1666,7 @@ const Notifications = {
   },
   check(){
     if(!this.granted)return;
-    if(Core.state.settings.notifMaster===false)return; // master kapalı
+    if(Core.state.settings.notifMaster===false)return;
     const notifs=Core.state.settings.notifications||{};
     if(notifs.abonelik){
       const today=new Date().getDate();
@@ -1713,21 +1690,17 @@ const Notifications = {
 const App = {
   Notifications,
   ExchangeRate:{
-    // USD bazlı kurlar: rates[X] = 1 USD kaç X eder
-    // Gerçekçi bootstrap (API ulaşılmazsa geçici). İlk açılışta her zaman fetch edilir.
     rates:{USD:1,EUR:0.92,GBP:0.78,TRY:38.5},
-    _fetching:null, // aynı anda birden fazla fetch'i engelle
-    CACHE_MINUTES:5, // 5 dakikadan eski ise otomatik tazele
+    _fetching:null,
+    CACHE_MINUTES:5,
     _loadCache(){
       if(Core.state.settings.cachedRates&&typeof Core.state.settings.cachedRates==='object'){
-        // Cache'de USD yoksa veya rates sayı değilse yoksay
         const r=Core.state.settings.cachedRates;
         if(r.USD&&r.TRY&&r.EUR){this.rates={...this.rates,...r};return true;}
       }
       return false;
     },
     async fetch(force){
-      // Zaten devam eden bir istek varsa onu döndür
       if(this._fetching)return this._fetching;
       this._fetching=(async()=>{
         const tryFetch=async(url)=>{
@@ -1739,7 +1712,6 @@ const App = {
             return await r.json();
           }catch(e){clearTimeout(tid);return null;}
         };
-        // Birden fazla kaynak dene — ücretsiz, anahtarsız endpoint'ler
         const sources=[
           {url:'https://api.exchangerate-api.com/v4/latest/USD',parse:d=>d&&d.rates&&d.rates.TRY?d.rates:null},
           {url:'https://open.er-api.com/v6/latest/USD',parse:d=>d&&d.result==='success'&&d.rates&&d.rates.TRY?d.rates:null},
@@ -1752,11 +1724,9 @@ const App = {
           if(parsed){rates=parsed;break;}
         }
         if(!rates){
-          // Hiçbir kaynak ulaşılamadı → varsa cache'i kullan, yoksa bootstrap'te kal
           if(!Core.state.settings.cachedRates)this.showKurToast();
           return false;
         }
-        // En az USD/EUR/GBP/TRY olmalı
         this.rates={...this.rates,...rates};
         Core.state.settings.lastRateUpdate=Date.now();
         Core.state.settings.cachedRates={...this.rates};
@@ -1772,24 +1742,20 @@ const App = {
       if(fromCur===toCur)return amount;
       const fromRate=this.rates[fromCur];
       const toRate=this.rates[toCur];
-      if(!fromRate||!toRate)return amount; // kur bilinmiyorsa dokunma
+      if(!fromRate||!toRate)return amount;
       const usd=amount/fromRate;
       return usd*toRate;
     },
     showKurToast(){const t=document.getElementById('kurToast');if(t)t.style.display='flex';},
     hideKurToast(){const t=document.getElementById('kurToast');if(t)t.style.display='none';},
-    // Artık cüzdanda FX olmasa bile kur lazım (bir kullanıcı EUR hesabı yokken dashboard'da kur tablosu görmek isteyebilir ve yeni bir FX hesap açtığında hazır olsun)
     needsFetch(){
       const last=Core.state.settings.lastRateUpdate||0;
       return !Core.state.settings.cachedRates||(Date.now()-last)>(this.CACHE_MINUTES*60*1000);
     },
-    // Sayfa her açılışında/geçişinde çağrılır. Gerekli ise arka planda tazeler.
     async ensureFresh(){
-      // Cache varsa önce onu yükle (rates hemen güncel olur)
       this._loadCache();
       if(this.needsFetch()){
         const ok=await this.fetch();
-        // Kur değiştiyse view'ı tazele
         if(ok)Core.emit('ratesUpdated');
         return ok;
       }
@@ -1799,14 +1765,8 @@ const App = {
 
   // ═══════════════════════════════════════
   // Money — tek gerçek kaynak para matematiği
-  // Temel prensipler:
-  //  • Her cüzdan kendi para biriminde bakiye tutar (w.balance w.currency cinsinden)
-  //  • Her işlem kendi "amountCurrency"sinde saklanır; yoksa cüzdan para biriminde varsayılır (geriye uyumluluk)
-  //  • Ana para birimi (settings.currency) SADECE gösterim içindir; cüzdan bakiyelerini/işlem değerlerini asla değiştirmez
-  //  • Cüzdan bakiyesine her dokunuş applyToWallet ile yapılır; böylece silme/düzenleme tersi her zaman mümkün
   // ═══════════════════════════════════════
   Money:{
-    // İşlemin para birimini getir (eski kayıtlarda yok → cüzdanın para birimi)
     txCurrency(tx){
       if(tx&&tx.amountCurrency)return tx.amountCurrency;
       const w=Core.state.wallets.find(x=>x.id===tx.wallet);
@@ -1817,21 +1777,16 @@ const App = {
       return (w&&w.currency)||Core.state.settings.currency||'TRY';
     },
     mainCur(){return Core.state.settings.currency||'TRY';},
-    // İşlem tutarını ana (ya da verilen) para birimine çevir — raporlama için
-    // tx.rateSnapshot varsa işlem anındaki kuru kullan (kritik: güncel kur kullanma!)
     toMain(tx,target){
       const tgt=target||this.mainCur();
       const fromCur=this.txCurrency(tx);
       if(fromCur===tgt)return tx.amount;
-      // rateSnapshot: işlem kaydedildiğindeki kur
       if(tx.rateSnapshot&&tx.rateSnapshot[fromCur]&&tx.rateSnapshot[tgt]){
         const usd=tx.amount/tx.rateSnapshot[fromCur];
         return usd*tx.rateSnapshot[tgt];
       }
       return App.ExchangeRate.convert(tx.amount,fromCur,tgt);
     },
-    // Cüzdana tutar uygula. Sign: +1 (para yatır) / -1 (para çek).
-    // amount herhangi bir para biriminde olabilir; cüzdan biriminde çevrilerek eklenir.
     applyToWallet(walletId,amount,amountCur,sign){
       const w=Core.state.wallets.find(x=>x.id===walletId);
       if(!w)return false;
@@ -1840,17 +1795,14 @@ const App = {
       w.balance=(w.balance||0)+delta;
       return true;
     },
-    // Bir işlemin cüzdana etkisini uygula. İşlem ekleme.
     applyTx(tx){
       const sign=tx.type==='income'?1:-1;
       return this.applyToWallet(tx.wallet,tx.amount,this.txCurrency(tx),sign);
     },
-    // Bir işlemin cüzdana etkisini GERİ al. İşlem silme/düzenleme öncesi.
     revertTx(tx){
-      const sign=tx.type==='income'?-1:1; // gelirse düş, giderse ekle
+      const sign=tx.type==='income'?-1:1;
       return this.applyToWallet(tx.wallet,tx.amount,this.txCurrency(tx),sign);
     },
-    // Format helper — para birimi override edilebilir
     format(amount,cur){
       if(Core.state.settings.privacy==='on')return'***';
       const c=cur||this.mainCur();
@@ -1863,7 +1815,6 @@ const App = {
     const loader=document.getElementById('appLoader'),lBar=document.getElementById('loaderBar');
     if(lBar)lBar.style.width='30%';
     Core.DB.load();
-    // DB yüklendikten sonra dil tercihini senkronize et (localStorage'dan okuduğumuzla aynı değerde kalacaktır ama güvenlik için)
     if(Core.state.settings&&Core.state.settings.lang)window.LANG=Core.state.settings.lang;
     if(Core.state.settings.theme)App.Controllers.Settings.applyTheme();
     setTimeout(()=>{
@@ -1878,10 +1829,8 @@ const App = {
       }
       ['filterTxSearch','filterTxType','filterTxWallet'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>App.Controllers.Transactions.renderTable());});
       document.getElementById('filterTxDate')?.addEventListener('change',()=>App.Controllers.Transactions.onDateFilterChange());
-      // Tutar input'u değiştiğinde dönüşüm hint'ini tazele
       document.getElementById('tx_amount')?.addEventListener('input',()=>App.Controllers.Transactions._updateAmountHint());
       Core.on('routeChanged',r=>{
-        // Her sayfa geçişinde kurları taze tut (30dk cache ile — ağa yük bindirmez)
         App.ExchangeRate.ensureFresh();
         if(r==='/dashboard')App.Controllers.Dashboard.render();
         if(r==='/wallets')App.Controllers.Wallets.render();
@@ -1892,7 +1841,6 @@ const App = {
         if(r==='/debts')App.Controllers.Debts.render();
         if(r==='/settings'){App.Controllers.Settings.renderForm();if(Notifications.supported)Notifications.updateUI();else{const pb=document.getElementById('notifPermBox');const sb=document.getElementById('notifStatusBox');if(pb)pb.innerHTML='<p style="font-size:14px;color:var(--text-muted)">'+t('msgNotifUnsup')+'</p>';if(sb)sb.style.display='none';}}
       });
-      // Kurlar güncellendiğinde aktif sayfayı yeniden çiz (rakamlar tazelensin)
       Core.on('ratesUpdated',()=>{
         const hash=window.location.hash.replace('#','')||'/dashboard';
         if(hash==='/dashboard'&&App.Controllers.Dashboard.render)App.Controllers.Dashboard.render();
@@ -1900,36 +1848,30 @@ const App = {
         else if(hash==='/wallets'&&App.Controllers.Wallets.render)App.Controllers.Wallets.render();
         else if(hash==='/settings'&&App.Controllers.Settings.renderForm)App.Controllers.Settings.renderForm();
       });
-      // Sekme tekrar görünür olduğunda da kontrol et (afk → geri dönüş)
       document.addEventListener('visibilitychange',()=>{
         if(document.visibilityState==='visible')App.ExchangeRate.ensureFresh();
       });
       window.addEventListener('focus',()=>App.ExchangeRate.ensureFresh());
       setTimeout(()=>{
         if(lBar)lBar.style.width='100%';
-        // Her durumda router'ı başlat, sadece hesap yoksa modal aç
         UI.Router.init();
         applyLang();
         App.processRecurring();
         Notifications.check();
-        // Bildirim izni: daha önce sorulmamışsa ilk açılışta sor
         if(Notifications.supported && Notification.permission==='default' && Core.state.settings.onboarded){
           setTimeout(()=>{
             UI.Confirm.show(t('confNotifPerm'),()=>Notifications.requestPermission());
           }, 2000);
         }
-        // Exchange rate: önbelleği yükle ve gerekirse tazele, sonra yeniden çiz
         App.ExchangeRate._loadCache();
         App.ExchangeRate.ensureFresh().then(()=>{
           App.Controllers.Dashboard.render();
           App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
         });
         if(loader){loader.style.opacity='0';setTimeout(()=>loader.remove(),500);}
-        // Onboarding henüz yapılmamışsa göster
         if(!Core.state.settings.onboarded){
           setTimeout(()=>{document.getElementById('onboardingScreen').classList.remove('hidden');},100);
         } else if(!Core.state.wallets.length){
-          // Onboarded ama hesap yoksa (ilk hesap modalı)
           setTimeout(()=>App.Controllers.Wallets.openModal(),600);
         }
       },400);
@@ -1944,15 +1886,27 @@ const App = {
       if(cD===s.day){
         const wc=App.Money.walletCur(s.wallet);
         const mc=App.Money.mainCur();
-        // Abonelik tutarı ana para biriminde saklanır; cüzdana yansıtılırken cüzdan birimine çevrilir
         const txAmount=App.ExchangeRate.convert(s.amount,mc,wc);
-        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc:t('subscriptionLabel',{name:s.name}),cat:s.cat,wallet:s.wallet,date:t.toISOString()};
+        // t() fonksiyonunun varlığını kontrol et
+        const desc = (typeof t === 'function') 
+          ? t('subscriptionLabel',{name:s.name}) 
+          : (s.name + ' (Abonelik)');
+        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:t.toISOString()};
         Core.state.transactions.push(tx);
         App.Money.applyTx(tx);
         add++;
       }
     });
-    if(add>0){Core.state.settings.lastProcessedDate=tStr;Core.DB.save();UI.Toasts.show(t('msgRecProcessed',{n:add}));}
+    if(add>0){
+      Core.state.settings.lastProcessedDate=tStr;
+      Core.DB.save();
+      // t() varlığını kontrol et
+      if (typeof t === 'function') {
+        UI.Toasts.show(t('msgRecProcessed',{n:add}));
+      } else {
+        UI.Toasts.show(add + ' abonelik işlendi.');
+      }
+    }
   },
   Controllers:{
     Onboarding:{
@@ -1963,7 +1917,6 @@ const App = {
         document.getElementById('ob_step_'+this.currentStep).classList.add('active');
         if(step===2)setTimeout(()=>document.getElementById('ob_name').focus(),100);
         if(step===3){
-          // Init lang buttons based on current LANG
           document.querySelectorAll('#ob_step_3 .tx-type-btn').forEach(b=>b.classList.remove('active'));
           const lb=document.getElementById('ob_lang_'+LANG);if(lb)lb.classList.add('active');
         }
@@ -2001,7 +1954,6 @@ const App = {
         document.getElementById('dashGreeting').textContent=`${h<12?t('goodMorning'):h<18?t('goodDay'):t('goodEvening')}${Core.state.settings.name?', '+Core.state.settings.name:''}`;
         const now=new Date(),mTx=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()&&new Date(t.date).getFullYear()===now.getFullYear());
         const mainCur=Core.state.settings.currency||'TRY';
-        // Convert each tx amount to mainCur based on its wallet's currency
         const toMain=(amount,walletId)=>{
           const w=Core.state.wallets.find(x=>x.id===walletId);
           const wCur=(w&&w.currency)||mainCur;
@@ -2033,14 +1985,11 @@ const App = {
             const today=new Date().getDate(),now2=new Date();
             const paidKey='sagi_paid_'+now2.getFullYear()+'_'+now2.getMonth();
             const paidSet=new Set(JSON.parse(localStorage.getItem(paidKey)||'[]'));
-            // Önce ödenmemiş olanları al; ödendikten sonra listeden çıkarılsın
             const unpaid=Core.state.recurring.filter(s=>!paidSet.has(s.id));
-            // Sadece 7 gün içindeki VEYA 7 güne kadar geciken ödemeleri "yakın" say (ana liste)
             const near=unpaid.filter(s=>{
               const diff=s.day-today;
               return (diff>=0&&diff<=7) || (diff<0&&diff>=-7);
             });
-            // showAll açıksa tüm ödenmemişleri göster, değilse sadece "yakın"ları
             const showAll=this._upcomingShowAll===true;
             const list=showAll?unpaid:near;
 
@@ -2060,14 +2009,12 @@ const App = {
                 return`<div class="upcoming-item" style="${urgency}"><div style="flex:1;min-width:0"><div class="font-bold" style="font-size:14px">${s.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="upcoming-item-actions"><div class="font-display font-bold color-danger" style="font-size:15px;text-align:right">-${dispAmt}${origInfo}</div>${payBtn}</div></div>`;
               };
               let html=list.map(renderItem).join('');
-              // Tümünü göster / Daha az göster butonu — sadece yakın listeden farklı sayıda öğe varsa görünür
               if(unpaid.length>near.length){
                 const toggleLabel=showAll?t('showLess'):`${t('showAll')} (${unpaid.length-near.length}+)`;
                 html+=`<button class="upcoming-show-more" onclick="App.Controllers.Dashboard.toggleUpcomingShowAll()">${toggleLabel}</button>`;
               }
               du.innerHTML=html;
             }
-            // Bildirimler: 3 gün önce, 1 gün önce, gün içinde, geciken
             if(Notifications.granted&&(Core.state.settings.notifications?.abonelik)){
               unpaid.forEach(s=>{
                 const diff=s.day-today;
@@ -2087,19 +2034,16 @@ const App = {
         const s=Core.state.recurring.find(x=>x.id===recId);if(!s)return;
         const mc=Core.state.settings.currency||'TRY';
         const dispAmt=Core.Utils.formatMoney(s.amount);
-        // Onay modalı — hangi hesaptan ödenecek?
         const m=document.getElementById('modalPayConfirm');
         if(m){
           document.getElementById('payConfirmName').textContent=s.name;
           document.getElementById('payConfirmAmt').textContent=dispAmt;
           const wSel=document.getElementById('payConfirmWallet');
           wSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
-          // aboneliğe bağlı cüzdanı seçili getir
           if(s.wallet)wSel.value=s.wallet;
           document.getElementById('payConfirmBtn').onclick=()=>App.Controllers.Dashboard.executePay(recId);
           UI.Modals.open('modalPayConfirm');
         }else{
-          // modal yoksa direkt işaretle
           this.markPaid(recId);
         }
       },
@@ -2107,7 +2051,6 @@ const App = {
         const s=Core.state.recurring.find(x=>x.id===recId);if(!s)return;
         const wId=document.getElementById('payConfirmWallet')?.value;
         const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
-        // Hesaptan düş + işlem kaydet
         if(w){
           const wc=App.Money.walletCur(w.id);
           const mc=Core.state.settings.currency||'TRY';
@@ -2119,23 +2062,22 @@ const App = {
         this.markPaid(recId);
         UI.Modals.close('modalPayConfirm');
         UI.Toasts.show(t('msgPayConfirmDone'));
-        // Tx silinmesi durumunda paidSet'ten temizleme — Transactions controller'dan tetiklenir
         if(App.Controllers.Recurring.render)App.Controllers.Recurring.render();
       },
-      // Bir abonelik işlemi silinince, o abonelik için "bu ay ödendi" işaretini kaldır
-      // (kullanıcı silmek istediğine göre tekrar listede görünmeli)
+      // ★ DÜZELTME 1: Daha sağlam eşleştirme
       unmarkPaidIfNeeded(txDesc){
         if(!txDesc)return;
-        // Tüm aboneliklerin labelları içinde eşleşeni bul
-        const rec=Core.state.recurring.find(s=>{
-          const lbl=t('subscriptionLabel',{name:s.name});
-          return txDesc===lbl || txDesc===(s.name+' (Abonelik)');
-        });
-        if(!rec)return;
-        const now=new Date();
-        const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
-        const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]').filter(id=>id!==rec.id);
-        localStorage.setItem(paidKey,JSON.stringify(paidArr));
+        for(const s of Core.state.recurring){
+          const label1 = t('subscriptionLabel',{name:s.name});
+          const label2 = s.name + ' (Abonelik)';
+          if(txDesc === label1 || txDesc === label2 || txDesc.includes(s.name)){
+            const now=new Date();
+            const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
+            const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]').filter(id=>id!==s.id);
+            localStorage.setItem(paidKey,JSON.stringify(paidArr));
+            return;
+          }
+        }
       },
       markPaid(recId){
         const now=new Date();
@@ -2152,9 +2094,8 @@ const App = {
         if(!Core.state.wallets.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-wallet"/></svg></div><h3>${t('emptyWalletTitle')}</h3><p>${t('emptyWalletDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Wallets.openModal()">${t('addWallet')}</button></div>`;this.upd();return;}
         g.innerHTML=Core.state.wallets.map(w=>{
           const isCC=w.type==='Kredi Kartı';
-          // Kredi kartı için: balance = -borç (negatif). Görsel olarak kullanılabilir limit ve borç ayrı gösterilsin.
           const ccLimit=parseFloat(w.ccLimit)||0;
-          const ccDebt=Math.max(0,-(w.balance||0)); // balance negatifse borç pozitif
+          const ccDebt=Math.max(0,-(w.balance||0));
           const ccAvail=Math.max(0,ccLimit-ccDebt);
           const ccUsedPerc=ccLimit>0?Math.min(100,(ccDebt/ccLimit)*100):0;
           const mainAmount=isCC
@@ -2226,14 +2167,12 @@ const App = {
         document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
       },
       setCur(cur,btn){document.getElementById('wal_currency').value=cur;document.querySelectorAll('#walCurSeg .tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');},
-      // Hesap türü değişince kredi kartı alanlarını aç/kapa + bakiye etiketini değiştir
       onTypeChange(typeVal,el){
         UI.pickOption('walTypeDrop','walTypeBtn','walTypeLabel','wal_type',el);
         const ccBlock=document.getElementById('walCcFields');
         const balLbl=document.getElementById('walBalanceLabel');
         if(typeVal==='Kredi Kartı'){
           if(ccBlock)ccBlock.style.display='block';
-          // Kredi kartında "balance" alanı kullanıcıya gösterilmiyor; CC borcuna göre balance hesaplanacak
           if(balLbl)balLbl.style.display='none';
           const bin=document.getElementById('wal_balance');if(bin)bin.parentElement.style.display='none';
         }else{
@@ -2251,7 +2190,6 @@ const App = {
         document.getElementById('wal_currency').value='TRY';
         document.querySelectorAll('#walCurSeg .tx-type-btn').forEach(b=>b.classList.remove('active'));
         const trybtn=document.querySelector('#walCurSeg [data-cur="TRY"]');if(trybtn)trybtn.classList.add('active');
-        // Kredi kartı alanlarını sıfırla + gizle
         document.getElementById('wal_cc_limit').value=0;
         document.getElementById('wal_cc_debt').value=0;
         document.getElementById('wal_cc_cutoff').value=1;
@@ -2276,10 +2214,8 @@ const App = {
         const cur=w.currency||'TRY';
         document.getElementById('wal_currency').value=cur;
         document.querySelectorAll('#walCurSeg .tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.cur===cur));
-        // Kredi kartı alanları
         const isCC=w.type==='Kredi Kartı';
         document.getElementById('wal_cc_limit').value=w.ccLimit||0;
-        // Düzenlemede mevcut borç = -balance (negatif → pozitif)
         document.getElementById('wal_cc_debt').value=isCC?Math.max(0,-(w.balance||0)):0;
         document.getElementById('wal_cc_cutoff').value=w.ccCutoffDay||1;
         document.getElementById('wal_cc_due').value=w.ccDueDay||10;
@@ -2294,7 +2230,6 @@ const App = {
         const id=document.getElementById('wal_id').value;
         const type=document.getElementById('wal_type').value;
         const isCC=type==='Kredi Kartı';
-        // Kredi kartı için bakiye = -borç (kart borcu negatif balance olarak tutulur, böylece net varlık doğru hesaplanır)
         let balance;
         if(isCC){
           const ccDebt=parseFloat(document.getElementById('wal_cc_debt').value)||0;
@@ -2328,7 +2263,6 @@ const App = {
         if(related.length>0){
           UI.Confirm.show(t('confDelWallet',{name:w.name,n:related.length}),()=>{
             Core.state.transactions=Core.state.transactions.filter(tx=>tx.wallet!==id);
-            // Ayrıca bu cüzdana bağlı aboneliklerin cüzdan bağlantısı koparılır (silinmez)
             Core.state.recurring=Core.state.recurring.filter(r=>r.wallet!==id);
             Core.state.wallets=Core.state.wallets.filter(x=>x.id!==id);
             Core.DB.save();this.render();App.Controllers.Dashboard.render();
@@ -2341,7 +2275,6 @@ const App = {
           });
         }
       },
-      // ─── Kredi Kartı Ödeme Modalı ────────────────────────────────
       openCardPayment(cardWalletId){
         const cc=Core.state.wallets.find(x=>x.id===cardWalletId);
         if(!cc)return;
@@ -2350,7 +2283,6 @@ const App = {
         const ccDebt=Math.max(0,-(cc.balance||0));
         document.getElementById('payCardDebt').textContent=Core.Utils.formatMoney(ccDebt,cc.currency);
         document.getElementById('payCardAmount').value=ccDebt.toFixed(2);
-        // Kart dışı tüm hesapları kaynak listesine ekle
         const fromSel=document.getElementById('payCardFromWallet');
         const sources=Core.state.wallets.filter(w=>w.id!==cardWalletId);
         if(!sources.length){UI.Toasts.show(t('msgAccFirst'),'error');return;}
@@ -2366,15 +2298,12 @@ const App = {
         const fromW=Core.state.wallets.find(x=>x.id===fromId);
         if(!cc||!fromW){UI.Toasts.show(t('msgAccReq'),'error');return;}
         const ccDebt=Math.max(0,-(cc.balance||0));
-        // Ödenebilecek max = mevcut borç (fazlası girilirse otomatik kısıtla)
         const payAmt=Math.min(amt,ccDebt||amt);
         const ccCur=App.Money.walletCur(cardId);
         const fromCur=App.Money.walletCur(fromId);
-        // Kaynak hesaptan çekim işlemi (kaynak para biriminde)
         const fromAmount=App.ExchangeRate.convert(payAmt,ccCur,fromCur);
         const outTx={id:Core.Utils.generateId(),type:'expense',amount:fromAmount,amountCurrency:fromCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'Transfer',wallet:fromId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
         Core.state.transactions.push(outTx);App.Money.applyTx(outTx);
-        // Kart borcu azalsın → balance = balance + payAmt (negatif balance pozitife yaklaşır)
         const inTx={id:Core.Utils.generateId(),type:'income',amount:payAmt,amountCurrency:ccCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'Transfer',wallet:cardId,date:outTx.date,rateSnapshot:{...App.ExchangeRate.rates}};
         Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
         Core.DB.save();UI.Modals.close('modalPayCard');
@@ -2393,7 +2322,6 @@ const App = {
         if(!hint||!wId){if(hint)hint.textContent='';if(conv)conv.style.display='none';return;}
         const wc=App.Money.walletCur(wId);
         hint.textContent='('+wc+' '+t('txAmountHint')+')';
-        // Eğer cüzdan para birimi ana para biriminden farklıysa — girilen tutarın ana birimde karşılığını göster
         const mc=App.Money.mainCur();
         if(wc!==mc){
           const amt=parseFloat(document.getElementById('tx_amount').value);
@@ -2421,23 +2349,19 @@ const App = {
         this._selected.clear();
         const btn=document.getElementById('txSelectModeBtn');
         const lbl=document.getElementById('txSelectModeLabel');
-        // Yeni stillemede 'active' sınıfı CSS'te gerekli renkleri verir; renk override etme!
         if(btn)btn.classList.toggle('active',this._selectMode);
         if(lbl)lbl.textContent=this._selectMode?t('cancelSelect'):t('selectMode');
-        // Üst butondaki Seçilenleri Sil — gizle
         const delBtnTop=document.getElementById('txDeleteSelectedBtnTop');
         if(delBtnTop)delBtnTop.style.display='none';
         this.renderTable();
       },
       toggleSelect(id){
         if(this._selected.has(id))this._selected.delete(id);else this._selected.add(id);
-        // Üstteki yeni buton (Seç'in altında) güncellensin
         const delTop=document.getElementById('txDeleteSelectedBtnTop');
         const cntTop=document.getElementById('txSelectedCountTop');
         if(cntTop)cntTop.textContent=this._selected.size;
         if(delTop)delTop.style.display=(this._selectMode&&this._selected.size>0)?'inline-flex':'none';
         document.querySelectorAll('.tx-select-cb').forEach(cb=>{cb.checked=this._selected.has(cb.dataset.id);});
-        // Satır vurgusu
         document.querySelectorAll('#txTableBody tr[data-tx-id]').forEach(tr=>{
           tr.classList.toggle('tx-row-selected',this._selected.has(tr.dataset.txId));
         });
@@ -2448,7 +2372,6 @@ const App = {
           const toDelete=Core.state.transactions.filter(tx=>this._selected.has(tx.id));
           toDelete.forEach(tx=>{
             App.Money.revertTx(tx);
-            // Abonelik ödemeleri silinince paid işaretini kaldır
             App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
           });
           Core.state.transactions=Core.state.transactions.filter(tx=>!this._selected.has(tx.id));
@@ -2514,7 +2437,6 @@ const App = {
       },
       openModal(){
         this._renderWalletPills('txWalletPills','tx_wallet');
-        // reset cat picker button
         document.getElementById('tx_cat_val').value='';const cb=document.getElementById('txCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');};
         document.getElementById('tx_id').value='';
         document.getElementById('txModalTitle').textContent=t('newTx');
@@ -2522,7 +2444,6 @@ const App = {
         document.getElementById('tx_type_val').value='expense';
         document.getElementById('tx_cat_val').value='';
         document.getElementById('tx_wallet').value='';
-        
         document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.remove('active'));
         document.querySelector('.tx-type-btn[data-val="expense"]').classList.add('active');
         document.getElementById('tx_keep_open').value='0';
@@ -2530,8 +2451,7 @@ const App = {
         const kr=document.getElementById('keepOpenRow');if(kr)kr.classList.remove('active');
         UI.Modals.open('modalTx');
       },
-      edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));// set cat picker
-const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat||t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));UI.Modals.open('modalTx');},
+      edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat||t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));UI.Modals.open('modalTx');},
       duplicate(id){const tx=Core.state.transactions.find(x=>x.id===id);if(tx){const n={...tx,id:Core.Utils.generateId(),date:new Date().toISOString().split('T')[0]};Core.state.transactions.push(n);App.Money.applyTx(n);Core.DB.save();this.renderTable();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgTxDuped'));}},
       save(){
         const id=document.getElementById('tx_id').value;
@@ -2543,28 +2463,21 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         const date=document.getElementById('tx_date').value;
         if(!amount||isNaN(amount)||amount<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
         if(!wId){UI.Toasts.show(t('msgAccReq'),'error');return;}
-
-        // Tutar HER ZAMAN seçili cüzdanın para biriminde yorumlanır (kullanıcı cüzdan bazlı düşünür)
-        // Böylece ana para birimi değişse bile işlem bozulmaz.
         const walletCur=App.Money.walletCur(wId);
         const p={id:id||Core.Utils.generateId(),type,amount,amountCurrency:walletCur,desc,cat,wallet:wId,date:date+'T'+(new Date().toTimeString().slice(0,5))+':'+String(new Date().getSeconds()).padStart(2,'0'),rateSnapshot:{...App.ExchangeRate.rates}};
-
         if(id){
-          // DÜZENLEME: önce eski işlemin cüzdan etkisini GERİ AL, sonra yeni işlemi uygula
           const ix=Core.state.transactions.findIndex(x=>x.id===id);
           if(ix!==-1){
             const old=Core.state.transactions[ix];
-            App.Money.revertTx(old); // eski cüzdana yansıyan etkiyi sil
+            App.Money.revertTx(old);
             Core.state.transactions[ix]=p;
-            App.Money.applyTx(p); // yeni işlemi uygula (cüzdan değişmiş de olabilir)
+            App.Money.applyTx(p);
           }
         }else{
-          // YENİ: işlemi ekle ve cüzdana yansıt
           Core.state.transactions.push(p);
           App.Money.applyTx(p);
         }
         Core.DB.save();
-        // Bütçe kontrol bildirimi
         if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif('SAGI Finance — Bütçe Uyarısı',`${b.cat} kategorisinde bütçenizin %${Math.round(perc)}'ini kullandınız.`);});}
         App.Controllers.Dashboard.render();
         const keepOpen=document.getElementById('tx_keep_open').value==='1';
@@ -2577,8 +2490,7 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         UI.Confirm.show(t('confDelTx'),()=>{
           const tx=Core.state.transactions.find(t=>t.id===id);
           if(tx){
-            App.Money.revertTx(tx); // cüzdan bakiyesini geri al
-            // Eğer bu tx bir abonelik ödemesiyse, "bu ay ödendi" işaretini kaldır
+            App.Money.revertTx(tx);
             App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
           }
           Core.state.transactions=Core.state.transactions.filter(t=>t.id!==id);
@@ -2593,7 +2505,6 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       bulkDelete(){
         const f=this.getFiltered();if(!f.length)return;
         UI.Confirm.show(t('confDelTxBulk',{n:f.length}),()=>{
-          // Önce her birinin cüzdan etkisini geri al + abonelik ödemesi ise paid işaretini kaldır
           f.forEach(tx=>{
             App.Money.revertTx(tx);
             App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
@@ -2621,7 +2532,6 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         if(aS)aS.innerHTML=`<div class="card"><div class="text-caption mb-2">${t('thisMonthIncome')}</div><div class="kpi-value color-success">${Core.Utils.formatMoney(mInc)}</div></div><div class="card"><div class="text-caption mb-2">${t('thisMonthExpense')}</div><div class="kpi-value color-danger">${Core.Utils.formatMoney(mExp)}</div></div><div class="card"><div class="text-caption mb-2">${t('netSavings')}</div><div class="kpi-value color-warn">${Core.Utils.formatMoney(net)}</div></div>`;
         const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),ml=d.toLocaleDateString('tr-TR',{month:'short'}),mTxs=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===d.getMonth()&&new Date(t.date).getFullYear()===d.getFullYear());months.push({label:ml,inc:mTxs.filter(t=>t.type==='income').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0),exp:mTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0)});}
         UI.ChartEngine.drawBarChart('trendBarChart',months);
-        // Kategori breakdown — mainCur'a çevrilmiş tutarlar (App.Money.toMain kullanır)
         const cat={};mTx.filter(t=>t.type==='expense').forEach(t=>cat[t.cat]=(cat[t.cat]||0)+App.Money.toMain(t));
         UI.ChartEngine.drawDonut('mainDonutChart',cat);
         const tot=Object.values(cat).reduce((s,v)=>s+v,0)||1;
@@ -2632,7 +2542,6 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
             const sorted=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
             const renderCatList=(showAll)=>{
               const visible=showAll?sorted:sorted.slice(0,5);
-              // Orijinal para birimi bilgisi için tx verisinden bul
               const now2=new Date();
               const mTxCat=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now2.getMonth()&&new Date(tx.date).getFullYear()===now2.getFullYear());
               const catOrigCur={};
@@ -2641,12 +2550,10 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
               let html2=visible.map(i=>{
                 const cc=Core.Utils.getCatColor(i[0]);
                 const catEsc=i[0].replace(/'/g,"\'");
-                // Orijinal döviz bilgisi
                 let origInfo='';
                 const curs=catOrigCur[i[0]]||[];
                 const foreignCurs=curs.filter(c=>c!==mainCurDisp);
                 if(foreignCurs.length>0){
-                  // Bu kategorideki işlemleri bul ve orijinal tutarı hesapla
                   const catTxs=mTxCat.filter(tx=>tx.cat===i[0]);
                   const origSums={};
                   catTxs.forEach(tx=>{const c=tx.amountCurrency||App.Money.walletCur(tx.wallet);origSums[c]=(origSums[c]||0)+tx.amount;});
@@ -2671,7 +2578,6 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
       _catData:{},_catSorted:[],_renderCatList:null,
       _showAllCats(){if(this._renderCatList)this._renderCatList(true);},
       openCatModal(catName){
-        // Bu kategoriye ait işlemleri bul (bu ay)
         const now=new Date();
         const txs=Core.state.transactions.filter(tx=>tx.cat===catName&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
         const mainCur=Core.state.settings.currency||'TRY';
@@ -2708,7 +2614,6 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         const mc=Core.state.settings.currency||'TRY';
         c.innerHTML=Core.state.budgets.map(b=>{
           const budCur=b.currency||mc;
-          // spentCats mainCur'da; bütçe kendi currency'sinde ise convert
           const spentInBudCur=budCur===mc?(spentCats[b.cat]||0):App.ExchangeRate.convert(spentCats[b.cat]||0,mc,budCur);
           const spent=spentInBudCur,perc=Math.min((spent/b.amount)*100,100),isOver=spent>b.amount;
           const barC=isOver?'var(--status-danger)':(perc>80?'var(--status-warn)':'var(--brand-accent)');
@@ -2717,8 +2622,7 @@ const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySele
         }).join('');
       },
       openModal(){document.getElementById('bud_id').value='';document.getElementById('bud_cat').value='';document.getElementById('bud_amount').value='';const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');}UI.Modals.open('modalBudget');},
-      edit(id){const b=Core.state.budgets.find(x=>x.id===id);if(b){document.getElementById('bud_id').value=b.id;document.getElementById('bud_cat').value=b.cat;document.getElementById('bud_amount').value=b.amount;const budCurEl=document.getElementById('bud_currency');if(budCurEl)budCurEl.value=b.currency||(Core.state.settings.currency||'TRY');// currency buton seçimi güncelle
-document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===(b.currency||(Core.state.settings.currency||'TRY'))));const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=b.cat;cb.classList.add('has-value');}UI.Modals.open('modalBudget');}},
+      edit(id){const b=Core.state.budgets.find(x=>x.id===id);if(b){document.getElementById('bud_id').value=b.id;document.getElementById('bud_cat').value=b.cat;document.getElementById('bud_amount').value=b.amount;const budCurEl=document.getElementById('bud_currency');if(budCurEl)budCurEl.value=b.currency||(Core.state.settings.currency||'TRY');document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===(b.currency||(Core.state.settings.currency||'TRY'))));const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=b.cat;cb.classList.add('has-value');}UI.Modals.open('modalBudget');}},
       save(){const id=document.getElementById('bud_id').value;const budCurEl=document.getElementById('bud_currency');const cat=document.getElementById('bud_cat').value.trim();if(!id){const existing=Core.state.budgets.find(b=>b.cat===cat);if(existing){UI.Toasts.show(t('msgLimitExists'),'error');return;}}const p={id:id||Core.Utils.generateId(),cat,amount:parseFloat(document.getElementById('bud_amount').value),currency:budCurEl?budCurEl.value:(Core.state.settings.currency||'TRY')};if(id){const ix=Core.state.budgets.findIndex(x=>x.id===id);if(ix!==-1)Core.state.budgets[ix]=p;}else Core.state.budgets.push(p);Core.DB.save();UI.Modals.close('modalBudget');UI.Toasts.show(t('msgLimitSaved'));App.Controllers.Analytics.render();},
       delete(id){UI.Confirm.show(t('confDelLimit'),()=>{Core.state.budgets=Core.state.budgets.filter(b=>b.id!==id);Core.DB.save();App.Controllers.Analytics.render();UI.Toasts.show(t('msgLimitRemoved'));});}
     },
@@ -2739,8 +2643,8 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
           const payBtn=!isPaid?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:'';
           const dayLabel=t('onDayOfMonth',{day:s.day});
-          // Eğer ödendiyse "Ayın X. günü" yerine "Bu ay ödendi" göster
-          const dayDisplay=isPaid?`<span style="color:var(--status-success);font-weight:600">${t('paidThisMonth')}</span>`:dayLabel;
+          // ★ DÜZELTME 2: Alt satırda her zaman günü göster, ödendi ibaresi sadece üstte
+          const dayDisplay=dayLabel;
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
               <div style="min-width:0;flex:1">
@@ -2775,7 +2679,6 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         document.getElementById('rec_wallet').value=s.wallet;
         const cb=document.getElementById('recCatBtn');
         if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=s.cat;cb.classList.add('has-value');}
-        // wallet pill seç
         setTimeout(()=>document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${s.wallet}'`))),50);
         const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent=t('editRecurring')||t('addRecurring');
         UI.Modals.open('modalRecurring');
@@ -2798,8 +2701,11 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         const related=Core.state.transactions.filter(t=>t.desc===desc&&t.wallet===s.wallet);
         if(related.length>0){
           UI.Confirm.show(t('confDelRec',{name:s.name,n:related.length}),()=>{
-            // İşlemleri geri al
-            related.forEach(tx=>App.Money.revertTx(tx));
+            // ★ DÜZELTME 3: İlişkili işlemler silinirken paid rozetini de kaldır
+            related.forEach(tx=>{
+              App.Money.revertTx(tx);
+              App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
+            });
             const ids=new Set(related.map(x=>x.id));
             Core.state.transactions=Core.state.transactions.filter(t=>!ids.has(t.id));
             Core.state.recurring=Core.state.recurring.filter(r=>r.id!==id);
@@ -2837,18 +2743,14 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         if(!w||!g)return;
         const wc=App.Money.walletCur(wId);
         const mc=App.Money.mainCur();
-        // Girilen tutar CÜZDAN para biriminde yorumlanır (kullanıcı cüzdanını görerek düşünür).
-        // Hedef her zaman ana para biriminde tutulur.
         const amountInMain=App.ExchangeRate.convert(a,wc,mc);
         if(Core.temp.goalType==='add'){
           g.current+=amountInMain;
           const tx={id:Core.Utils.generateId(),type:'expense',amount:a,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }else{
-          // Hedeften ne kadar çekileceğini ana para biriminde sınırla
           const remMain=Math.min(g.current,amountInMain);
           g.current-=remMain;
-          // Cüzdana geri eklenecek miktarı cüzdan birimine çevir
           const backInWalletCur=App.ExchangeRate.convert(remMain,mc,wc);
           const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
@@ -2864,22 +2766,16 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         const fS=document.getElementById('trn_from').value,tS=document.getElementById('trn_to').value;
         const a=parseFloat(document.getElementById('trn_amount').value);
         if(isNaN(a)||a<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
-        // Aynı hesaba transfer kontrolü
         if(fS===tS){UI.Toasts.show(t('msgSameWallet'),'error');return;}
         const fW=Core.state.wallets.find(w=>w.id===fS.split('_')[1]);if(!fW)return;
         const fCur=App.Money.walletCur(fW.id);
         const mc=App.Money.mainCur();
-        // Girilen tutar, kaynak cüzdanın para biriminde yorumlanır.
         const tType=tS.split('_')[0],tId=tS.split('_')[1];let tName='';
-
-        // Kaynaktan çekim işlemi
         const outTx={id:Core.Utils.generateId(),type:'expense',amount:a,amountCurrency:fCur,desc:'',cat:'Transfer',wallet:fW.id,date:new Date().toISOString()};
-
         if(tType==='w'){
           const tW=Core.state.wallets.find(w=>w.id===tId);
           if(tW){
             const tCur=App.Money.walletCur(tW.id);
-            // Hedef cüzdanın para birimine çevrilmiş tutar
             const receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
             outTx.desc=t('transferSent',{name:tW.name});
             tName=tW.name;
@@ -2889,7 +2785,6 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         }else if(tType==='g'){
           const g=Core.state.goals.find(x=>x.id===tId);
           if(g){
-            // Hedef ana para biriminde tutulur
             g.current+=App.ExchangeRate.convert(a,fCur,mc);
             tName=g.name;
             outTx.desc=t('transferToGoal',{name:g.name});
@@ -2921,17 +2816,13 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
           const ix=Core.state.debts.findIndex(x=>x.id===id);
           if(ix!==-1)Core.state.debts[ix]=p;
         }else Core.state.debts.push(p);
-        // Hesap bakiyesine yansıt (yalnızca yeni kayıt için — düzenlemede geçmiş işlemi değiştirmeyiz)
         if(document.getElementById('debt_link_val').value==='1'&&!id){
           const wId=document.getElementById('debt_wallet').value;
           const w=Core.state.wallets.find(x=>x.id===wId);
           if(w){
-            // Borç ve alacak ana para biriminde tutulur; cüzdana yansıtırken cüzdan birimine çevrilir
             const wc=App.Money.walletCur(w.id);
             const tType=dir==='borç'?'income':'expense';
             const tDesc=dir==='borç'?t('debtTaken',{name}):t('debtGiven',{name});
-            // Kullanıcı girmiş olduğu tutarı cüzdan para biriminde mi düşünüyor? Tutar ana para birimindedir (borç/alacak her zaman ana birim).
-            // Cüzdana yansıtacaksak cüzdan birimine çeviriyoruz
             const mc=App.Money.mainCur();
             const tx={id:Core.Utils.generateId(),type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString()};
             Core.state.transactions.push(tx);App.Money.applyTx(tx);
@@ -2947,7 +2838,6 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         const d=Core.state.debts.find(x=>x.id===Core.temp.debtId);
         if(!d)return;
         const mc=App.Money.mainCur();
-        // a, kullanıcı cüzdan seçtiyse cüzdan para biriminde; seçmediyse ana para biriminde yorumlanır
         let amtInMain;
         if(wId!=='none'){
           const wc=App.Money.walletCur(wId);
@@ -2956,9 +2846,7 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
           amtInMain=a;
         }
         const overpayMain=Math.round((amtInMain-d.amount)*100)/100;
-        // Borç miktarını düşür (ana para biriminde)
         d.amount=Math.max(0,d.amount-amtInMain);
-        // Wallet bakiyesini güncelle
         if(wId!=='none'){
           const w=Core.state.wallets.find(x=>x.id===wId);
           if(w){
@@ -2969,7 +2857,6 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
             Core.state.transactions.push(tx);App.Money.applyTx(tx);
           }
         }
-        // Fazla ödeme → karşı tarafta alacak/borç yarat
         if(overpayMain>0.01){
           const counterDir=d.dir==='borç'?'alacak':'borç';
           Core.state.debts.push({id:Core.Utils.generateId(),dir:counterDir,name:d.name,amount:overpayMain,date:null});
@@ -2995,7 +2882,6 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         ['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});
         const lb=document.getElementById('set_lang_'+curLang);if(lb)lb.classList.add('active');
         this.applyTheme();
-        // Kur bilgisi — bayraksız, sadece para birimi rozeti
         const kurInfo=document.getElementById('kurBilgiBox');
         if(kurInfo){
           const loc=LANG==='tr'?'tr-TR':(LANG==='en'?'en-US':'tr-TR');
@@ -3028,22 +2914,16 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
         a.click();
         UI.Toasts.show(t('msgBackupDone'));
       },
-
       exportCSV(){
-        // UTF-8 BOM — Excel Türkçe karakterleri doğru okusun
         const BOM = '\uFEFF';
         const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
         const date = new Date().toISOString().split('T')[0];
         let csv = BOM;
-
-        // ── HESAPLAR ──
         csv += '## HESAPLAR\r\n';
         csv += 'Ad,Tür,Para Birimi,Bakiye\r\n';
         Core.state.wallets.forEach(w=>{
           csv += [esc(w.name), esc(w.type), esc(w.currency||'TRY'), w.balance].join(',') + '\r\n';
         });
-
-        // ── İŞLEMLER ──
         csv += '\r\n## İŞLEMLER\r\n';
         csv += 'Tarih,Tür,Kategori,Hesap,Para Birimi,Tutar,Açıklama\r\n';
         const sorted = [...Core.state.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date));
@@ -3054,16 +2934,12 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
           const type  = tx.type==='income' ? 'Gelir' : 'Gider';
           csv += [tx.date, esc(type), esc(tx.cat), esc(wName), esc(wCur), tx.amount, esc(tx.desc||'')].join(',') + '\r\n';
         });
-
-        // ── ABONELİKLER ──
         csv += '\r\n## ABONELİKLER\r\n';
         csv += 'Ad,Kategori,Hesap,Tutar,Ayın Günü\r\n';
         Core.state.recurring.forEach(s=>{
           const w = Core.state.wallets.find(x=>x.id===s.wallet);
           csv += [esc(s.name), esc(s.cat), esc(w?w.name:'Silinmiş'), s.amount, s.day].join(',') + '\r\n';
         });
-
-        // ── HEDEFLER ──
         if(Core.state.goals.length){
           csv += '\r\n## HEDEFLER\r\n';
           csv += 'Ad,Hedef Tutar,Mevcut,Son Tarih\r\n';
@@ -3071,18 +2947,15 @@ document.querySelectorAll('#budCurSeg .tx-type-btn').forEach(btn=>btn.classList.
             csv += [esc(g.name), g.target, g.current, esc(g.date||'')].join(',') + '\r\n';
           });
         }
-
         const a=document.createElement('a');
         a.href='data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
         a.download=`sagi_islemler_${date}.csv`;
         a.click();
         UI.Toasts.show(t('msgCsvDone'));
       },
-
       importData(e){
         const f=e.target.files[0];
         if(!f)return;
-        // Sadece JSON kabul et
         if(!f.name.endsWith('.json')&&!f.type.includes('json')){
           UI.Toasts.show(t('msgImportInvalidExt'),'error');
           e.target.value='';
