@@ -2898,7 +2898,7 @@ const App = {
                   const origParts=Object.entries(origSums).filter(([c])=>c!==mainCurDisp).map(([c,v])=>`${Core.Utils.formatMoney(v,c)}`);
                   if(origParts.length>0)origInfo=` <span style="font-size:11px;color:var(--text-muted);font-weight:400">(${origParts.join(', ')})</span>`;
                 }
-                return`<div class="mb-4" style="cursor:pointer" onclick="App.Controllers.Analytics.openCatModal('${catEsc}')"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:11px;height:11px;border-radius:50%;background:${cc}"></div>${i[0]}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(i[1])}${origInfo} <span class="color-muted" style="font-size:12px;font-weight:500">%${((i[1]/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(i[1]/tot)*100}%;background:${cc}"></div></div></div>`;
+                return`<div class="mb-4" style="cursor:pointer" onclick="App.Controllers.Analytics.openCatModal('${catEsc}')"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:11px;height:11px;border-radius:50%;background:${cc}"></div>${i[0]}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(i[1],mainCurDisp)}${origInfo} <span class="color-muted" style="font-size:12px;font-weight:500">%${((i[1]/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(i[1]/tot)*100}%;background:${cc}"></div></div></div>`;
               }).join('');
               if(!showAll&&sorted.length>5){
                 html2+=`<button class="btn btn-outline btn-sm w-full mt-2" onclick="App.Controllers.Analytics._showAllCats()" style="font-size:13px">${t('showAll')} (${sorted.length-5} ${t('moreCategories')})</button>`;
@@ -2927,12 +2927,12 @@ const App = {
           const amtMain=App.Money.toMain(tx);
           const origStr=txCur!==mainCur?` <span style="font-size:11px;color:var(--text-muted)">(${Core.Utils.formatMoney(tx.amount,txCur)})</span>`:'';
           const rateSnap=tx.rateSnapshot?`<span style="font-size:10px;color:var(--text-muted)" title="Kur: 1 USD = ${tx.rateSnapshot['TRY']?.toFixed(2)||'?'} TRY"> 📌</span>`:'';
-          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-danger)">${Core.Utils.formatMoney(amtMain)}${rateSnap}</div>${origStr}</div></div>`;
+          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-danger)">${Core.Utils.formatMoney(amtMain,mainCur)}${rateSnap}</div>${origStr}</div></div>`;
         }).join('');
         const modal=document.getElementById('modalCatDetail');
         if(!modal){
           const m=document.createElement('div');m.id='modalCatDetail';m.className='modal-overlay';
-          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">${t('thisMonthTotal')}</span><span class="font-display font-bold color-danger" style="font-size:20px">${Core.Utils.formatMoney(total)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||('<div style="text-align:center;color:var(--text-muted);padding:20px">'+t('noTxThisMonth')+'</div>')}</div></div></div>`;
+          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">${t('thisMonthTotal')}</span><span class="font-display font-bold color-danger" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||('<div style="text-align:center;color:var(--text-muted);padding:20px">'+t('noTxThisMonth')+'</div>')}</div></div></div>`;
           document.body.appendChild(m);
           m.addEventListener('click',e=>{if(e.target===m)UI.Modals.close('modalCatDetail');});
         }else{
@@ -2940,7 +2940,7 @@ const App = {
           modal.querySelector('.modal-header div div').style.background=color;
           modal.querySelector('#catDetailRows').innerHTML=rows||('<div style="text-align:center;color:var(--text-muted);padding:20px">'+t('noTxThisMonth')+'</div>');
           const totalEl=modal.querySelector('.font-display.font-bold.color-danger');
-          if(totalEl)totalEl.textContent=Core.Utils.formatMoney(total);
+          if(totalEl)totalEl.textContent=Core.Utils.formatMoney(total,mainCur);
         }
         UI.Modals.open('modalCatDetail');
       }
@@ -2998,7 +2998,7 @@ const App = {
             <div class="flex items-center gap-2 mb-4 text-subtitle font-medium"><svg class="nav-icon" style="width:13px"><use href="#icon-wallet"/></svg>${Core.state.wallets.find(w=>w.id===s.wallet)?.name||t('deleted')}</div>
             <div class="flex justify-between items-end pt-4" style="border-top:1px solid var(--border-light)">
               <div class="text-subtitle">${dayDisplay}</div>
-              <div class="font-display font-bold color-danger" style="font-size:21px;letter-spacing:-.5px">-${Core.Utils.formatMoney(s.amount)}</div>
+              <div class="font-display font-bold color-danger" style="font-size:21px;letter-spacing:-.5px">-${Core.Utils.formatMoney(s.amount,Core.state.settings.currency||'TRY')}</div>
             </div>
           </div>`;
         }).join('');
@@ -3067,7 +3067,7 @@ const App = {
           else if(diffDays<=30)timeLabel=`(${Math.ceil(diffDays/7)} ${t('weeksLeft')})`;
           else timeLabel=`(${Math.floor(diffDays/30)} ${t('monthsLeft')})`;
           dH=`<div class="text-caption mb-3 color-warn">${t('endDateLabel')} ${Core.Utils.formatDate(x.date)} ${timeLabel}</div>`;
-        }const mc3=Core.state.settings.currency||'TRY';const goalCurStr=x.currency&&x.currency!==mc3&&x.originalTarget?` (${Core.Utils.formatMoney(x.originalTarget,x.currency)})`:'';return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current)} / ${Core.Utils.formatMoney(x.target)}${goalCurStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
+        }const mc3=Core.state.settings.currency||'TRY';const goalCurStr=x.currency&&x.currency!==mc3&&x.originalTarget?` (${Core.Utils.formatMoney(x.originalTarget,x.currency)})`:'';return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,mc3)} / ${Core.Utils.formatMoney(x.target,mc3)}${goalCurStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.originalTarget||g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');const gcEl=document.getElementById('goal_currency');if(gcEl)gcEl.value=g.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
@@ -3205,7 +3205,7 @@ const App = {
     },
     Debts:{
       render(){
-        const mc4=Core.state.settings.currency||'TRY';const rC=i=>{const c=i.dir==='borç'?'color-danger':'color-success';const origStr=i.currency&&i.currency!==mc4&&i.originalAmount?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">(${Core.Utils.formatMoney(i.originalAmount,i.currency)})</div>`:'';return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
+        const mc4=Core.state.settings.currency||'TRY';const rC=i=>{const c=i.dir==='borç'?'color-danger':'color-success';const origStr=i.currency&&i.currency!==mc4&&i.originalAmount?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">(${Core.Utils.formatMoney(i.originalAmount,i.currency)})</div>`:'';return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
         const d=Core.state.debts.filter(x=>x.dir==='borç'),rec=Core.state.debts.filter(x=>x.dir==='alacak');
         document.getElementById('debtsContainer').innerHTML=d.length?d.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noDebtRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('borç')">${t('addDebt')}</button></div>`;
         document.getElementById('receivablesContainer').innerHTML=rec.length?rec.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noReceivableRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('alacak')">${t('addReceivable')}</button></div>`;
@@ -3319,7 +3319,44 @@ const App = {
       setTheme(mode){Core.state.settings.theme=mode;Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
       applyTheme(){document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');if(Core.state.settings.anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active');});},
       setLang(lang){window.LANG=lang;Core.state.settings.lang=lang;Core.DB.save();applyLang();['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const btn=document.getElementById('set_lang_'+lang);if(btn)btn.classList.add('active');UI.Toasts.show(lang==='tr'?t('msgTrSelected'):t('msgEnSelected'));},
-      savePreferences(){const oC=Core.state.settings.currency,nC=document.getElementById('set_currency').value;Core.state.settings.name=document.getElementById('set_name').value;Core.state.settings.currency=nC;Core.state.settings.anim=document.getElementById('set_anim').value;Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));if(oC!==nC)setTimeout(()=>location.reload(),800);},
+      savePreferences(){
+        const oC=Core.state.settings.currency||'TRY';
+        const nC=document.getElementById('set_currency').value;
+        Core.state.settings.name=document.getElementById('set_name').value;
+        Core.state.settings.currency=nC;
+        Core.state.settings.anim=document.getElementById('set_anim').value;
+        // Para birimi değiştiyse tüm ana-para-biriminde saklanan değerleri dönüştür
+        if(oC!==nC){
+          const conv=(amt)=>App.ExchangeRate.convert(amt,oC,nC);
+          // Hedefler: target ve current ana para biriminde saklanır
+          Core.state.goals.forEach(g=>{
+            g.target=conv(g.target);
+            g.current=conv(g.current);
+            // originalTarget ve currency kendi para biriminde kalır, dokunma
+          });
+          // Borçlar: amount ana para biriminde saklanır
+          Core.state.debts.forEach(d=>{
+            d.amount=conv(d.amount);
+            // originalAmount ve currency kendi para biriminde kalır, dokunma
+          });
+          // Abonelikler: amount ana para biriminde saklanır
+          Core.state.recurring.forEach(s=>{
+            s.amount=conv(s.amount);
+            // originalAmount ve currency kendi para biriminde kalır, dokunma
+          });
+          // Limitler (Budgets): kendi currency'leri var, ana para birimindeyse dönüştür
+          if(Core.state.budgets){
+            Core.state.budgets.forEach(b=>{
+              if(!b.currency||b.currency===oC){
+                b.amount=conv(b.amount);
+                b.currency=nC;
+              }
+            });
+          }
+        }
+        Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));
+        if(oC!==nC)setTimeout(()=>location.reload(),800);
+      },
       exportJSON(){
         Core.state.settings.lastExport=Date.now();
         Core.DB.save();
