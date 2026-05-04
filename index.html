@@ -580,6 +580,103 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 /* INSIGHT LEFT BAR */
 .insight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--brand-accent),rgba(79,70,229,.4))}
 
+/* ─── MOBİL İŞLEM KART LİSTESİ ─── */
+#txMobileList{display:none}
+.tx-mobile-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .16s;position:relative;background:var(--bg-surface);-webkit-tap-highlight-color:transparent}
+.tx-mobile-card:last-child{border-bottom:none}
+.tx-mobile-card:active{background:var(--bg-surface-hover)}
+.tx-mobile-card.selected{background:rgba(79,70,229,.07);border-left:3px solid var(--brand-accent)}
+[data-theme="dark"] .tx-mobile-card.selected{background:rgba(99,102,241,.12)}
+.tx-mobile-card-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.tx-mobile-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;transition:all .2s}
+.tx-mobile-info{flex:1;min-width:0}
+.tx-mobile-title{font-size:14px;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-mobile-meta{font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-mobile-right{text-align:right;flex-shrink:0}
+.tx-mobile-amount{font-family:var(--font-display);font-size:15px;font-weight:800;letter-spacing:-.4px}
+.tx-mobile-date{font-size:11px;color:var(--text-muted);margin-top:2px}
+.tx-mobile-chevron{color:var(--text-muted);margin-left:6px;flex-shrink:0;transition:opacity .2s}
+/* Seç modu checkbox */
+.tx-mobile-cb-wrap{width:24px;height:24px;flex-shrink:0;display:none;align-items:center;justify-content:center}
+.tx-mobile-cb{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-light);background:var(--bg-body);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.tx-mobile-cb svg{display:none;width:12px;height:12px;stroke:#fff;stroke-width:3}
+.tx-mobile-card.selected .tx-mobile-cb{background:var(--brand-accent);border-color:var(--brand-accent)}
+.tx-mobile-card.selected .tx-mobile-cb svg{display:block}
+/* Seç modu aktifken göster/gizle */
+.tx-select-mode .tx-mobile-cb-wrap{display:flex}
+.tx-select-mode .tx-mobile-chevron{display:none}
+.tx-select-mode .tx-mobile-dot{opacity:0;width:0;margin:0}
+/* Mobil seç modu silme bar */
+#txMobileSelectBar{
+  display:none;
+  position:fixed;
+  bottom:calc(var(--nav-h) + 20px);
+  left:16px;right:16px;
+  z-index:200;
+  padding:14px 18px;
+  background:var(--brand-accent);
+  border-radius:var(--radius-lg);
+  box-shadow:0 8px 28px rgba(79,70,229,.40);
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  animation:fadeScaleUp .22s cubic-bezier(.16,1,.3,1);
+}
+#txMobileSelectBar.visible{display:flex}
+.tx-mobile-select-info{color:#fff;font-weight:700;font-size:14px}
+.tx-mobile-select-del{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:var(--radius-md);padding:9px 18px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .18s}
+.tx-mobile-select-del:active{background:rgba(255,255,255,.28)}
+
+/* ─── İŞLEM DETAY MODAL ─── */
+#txDetailModal{
+  position:fixed;inset:0;z-index:1500;
+  display:flex;align-items:flex-end;justify-content:center;
+  pointer-events:none;opacity:0;
+  transition:opacity .28s ease;
+}
+#txDetailModal.open{opacity:1;pointer-events:auto}
+#txDetailModalBackdrop{position:absolute;inset:0;background:rgba(17,24,39,.50);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#txDetailSheet{
+  position:relative;width:100%;max-width:520px;
+  background:var(--bg-surface);
+  border-radius:24px 24px 0 0;
+  padding-bottom:max(env(safe-area-inset-bottom,0px),16px);
+  box-shadow:0 -8px 40px rgba(0,0,0,.18);
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.16,1,.3,1);
+  max-height:85vh;
+  display:flex;flex-direction:column;
+  touch-action:none;
+}
+#txDetailModal.open #txDetailSheet{transform:translateY(0)}
+#txDetailSheetScroll{overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.tx-detail-handle{width:40px;height:4px;border-radius:2px;background:var(--border-light);margin:14px auto 4px;flex-shrink:0;cursor:grab}
+.tx-detail-header{padding:12px 20px 14px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tx-detail-title{font-size:17px;font-weight:800;font-family:var(--font-display);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:10px}
+.tx-detail-close{width:34px;height:34px;border-radius:50%;background:var(--bg-body);border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;transition:all .18s}
+.tx-detail-close:active{transform:scale(.92)}
+.tx-detail-body{padding:20px 20px 8px}
+.tx-detail-amount-hero{text-align:center;padding:18px 0 16px;border-bottom:1px solid var(--border-light);margin-bottom:16px}
+.tx-detail-amount-val{font-family:var(--font-display);font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.tx-detail-amount-sub{font-size:13px;color:var(--text-muted);margin-top:8px;font-weight:500}
+.tx-detail-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border-light)}
+.tx-detail-row:last-child{border-bottom:none}
+.tx-detail-label{font-size:13px;color:var(--text-muted);font-weight:600}
+.tx-detail-value{font-size:14px;font-weight:700;color:var(--text-main);text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-detail-actions{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border-light);flex-shrink:0;background:var(--bg-surface)}
+.tx-detail-actions .btn{flex:1;min-height:48px}
+
+/* Masaüstünde tablo normal, mobilde kart listesi */
+@media(max-width:768px){
+  #txCardContainer .table-container{display:none}
+  #txMobileList{display:block}
+  #txCardContainer{padding:0;overflow:hidden}
+}
+/* Modal SADECE masaüstünde gizli */
+@media(min-width:769px){
+  #txDetailModal{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -685,8 +782,43 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
 <symbol id="icon-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21h6"/><path d="M12 21v-4"/><path d="M12 17c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/></symbol>
 <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></symbol>
 <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></symbol>
 </defs></svg>
+
+<!-- İŞLEM DETAY MODALİ (MOBİL) -->
+<div id="txDetailModal">
+  <div id="txDetailModalBackdrop" onclick="App.Controllers.Transactions.closeDetailModal()"></div>
+  <div id="txDetailSheet">
+    <div class="tx-detail-handle" id="txDetailHandle"></div>
+    <div class="tx-detail-header">
+      <div class="tx-detail-title" id="txDetailTitle">İşlem Detayı</div>
+      <button class="tx-detail-close" onclick="App.Controllers.Transactions.closeDetailModal()">
+        <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-x"/></svg>
+      </button>
+    </div>
+    <div id="txDetailSheetScroll">
+      <div class="tx-detail-body">
+        <div class="tx-detail-amount-hero">
+          <div class="tx-detail-amount-val" id="txDetailAmount">-</div>
+          <div class="tx-detail-amount-sub" id="txDetailAmountSub">-</div>
+        </div>
+        <div id="txDetailRows"></div>
+      </div>
+    </div>
+    <div class="tx-detail-actions">
+      <button class="btn btn-outline" onclick="App.Controllers.Transactions._detailAction('dup')">
+        <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-copy"/></svg> Kopyala
+      </button>
+      <button class="btn btn-primary" onclick="App.Controllers.Transactions._detailAction('edit')">
+        <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg> Düzenle
+      </button>
+      <button class="btn btn-danger" style="flex:0;padding:0 16px" onclick="App.Controllers.Transactions._detailAction('del')">
+        <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-trash"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -876,6 +1008,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <tbody id="txTableBody"></tbody>
           </table>
         </div>
+        <!-- MOBİL KART LİSTESİ -->
+        <div id="txMobileList"></div>
         <div class="flex justify-between items-center p-5" style="border-top:1px solid var(--border-light);background:var(--bg-surface-hover)" id="txFooter">
           <div class="flex items-center gap-3">
             <div class="text-subtitle font-medium" id="txPageInfo"></div>
@@ -884,6 +1018,14 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <button class="btn btn-outline btn-sm color-danger" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
         </div>
         </div>
+      </div>
+      <!-- MOBİL SEÇ MODU SİLME BARI (card dışında, fixed) -->
+      <div id="txMobileSelectBar">
+        <div class="tx-mobile-select-info"><span id="txMobileSelCount">0</span> seçildi</div>
+        <button class="tx-mobile-select-del" onclick="App.Controllers.Transactions.deleteSelected()">
+          <svg class="nav-icon" style="width:16px;height:16px;stroke:#fff"><use href="#icon-trash"/></svg>
+          Seçilenleri Sil
+        </button>
       </div>
     </div>
 
@@ -2676,6 +2818,7 @@ const App = {
       clearFilters(){document.getElementById('filterTxSearch').value='';document.getElementById('filterTxType').value='all';document.getElementById('filterTxWallet').value='all';document.getElementById('filterTxDate').value='all';this.renderTable();},
       _selectMode:false,
       _selected:new Set(),
+      _detailTxId:null,
       onDateFilterChange(){
         const v=document.getElementById('filterTxDate')?.value;
         const dr=document.getElementById('customDateRange');
@@ -2691,10 +2834,18 @@ const App = {
         if(lbl)lbl.textContent=this._selectMode?t('cancelSelect'):t('selectMode');
         const delBtnTop=document.getElementById('txDeleteSelectedBtnTop');
         if(delBtnTop)delBtnTop.style.display='none';
+        // Mobil container'a seç modu class'ı
+        const cont=document.getElementById('txCardContainer');
+        if(cont){
+          if(this._selectMode)cont.classList.add('tx-select-mode');
+          else cont.classList.remove('tx-select-mode');
+        }
+        this._syncMobileSelectBar();
         this.renderTable();
       },
       toggleSelect(id){
         if(this._selected.has(id))this._selected.delete(id);else this._selected.add(id);
+        // Masaüstü checkbox sync
         const delTop=document.getElementById('txDeleteSelectedBtnTop');
         const cntTop=document.getElementById('txSelectedCountTop');
         if(cntTop)cntTop.textContent=this._selected.size;
@@ -2703,6 +2854,19 @@ const App = {
         document.querySelectorAll('#txTableBody tr[data-tx-id]').forEach(tr=>{
           tr.classList.toggle('tx-row-selected',this._selected.has(tr.dataset.txId));
         });
+        // Mobil kart görsel sync (re-render olmadan)
+        document.querySelectorAll('#txMobileList .tx-mobile-card[data-tx-id]').forEach(card=>{
+          card.classList.toggle('selected',this._selected.has(card.dataset.txId));
+        });
+        this._syncMobileSelectBar();
+      },
+      _syncMobileSelectBar(){
+        const bar=document.getElementById('txMobileSelectBar');
+        const cnt=document.getElementById('txMobileSelCount');
+        if(!bar)return;
+        const show=this._selectMode&&this._selected.size>0;
+        bar.classList.toggle('visible',show);
+        if(cnt)cnt.textContent=this._selected.size;
       },
       deleteSelected(){
         if(!this._selected.size)return;
@@ -2715,6 +2879,10 @@ const App = {
           Core.state.transactions=Core.state.transactions.filter(tx=>!this._selected.has(tx.id));
           this._selected.clear();this._selectMode=false;
           Core.DB.save();
+          // Mobil temizlik
+          const cont=document.getElementById('txCardContainer');
+          if(cont)cont.classList.remove('tx-select-mode');
+          this._syncMobileSelectBar();
           this.renderTable();
           App.Controllers.Dashboard.render();
           App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
@@ -2755,13 +2923,13 @@ const App = {
         const f=this.getFiltered(),cont=document.getElementById('txCardContainer');
         if(!Core.state.transactions.length){cont.innerHTML=`<div class="empty-state" style="border:none;margin:0"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-list"/></svg></div><h3>${t('emptyTxTitle')}</h3><p>${t('emptyTxDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()">${t('addFirstTx')}</button></div>`;return;}
         if(cont.querySelector('table')===null){
-          cont.innerHTML=`<div class="table-container" style="margin:0;padding:0"><table class="data-table"><thead style="background:var(--bg-surface-hover)"><tr><th style="padding-left:22px">${t('th_date')}</th><th>${t('th_desc')}</th><th>${t('th_cat')}</th><th>${t('th_wallet')}</th><th class="text-right">${t('th_amount')}</th><th class="text-center" style="padding-right:22px">${t('th_action')}</th></tr></thead><tbody id="txTableBody"></tbody></table></div><div class="flex justify-between items-center p-5" style="border-top:1px solid var(--border-light);background:var(--bg-surface-hover)" id="txFooter"><div class="flex items-center gap-3"><div class="text-subtitle font-medium" id="txPageInfo"></div></div><button class="btn btn-outline btn-sm color-danger" style="border-color:var(--status-danger-bg)" onclick="App.Controllers.Transactions.bulkDelete()">${t('deleteFiltered')}</button></div>`;
+          cont.innerHTML=`<div class="table-container" style="margin:0;padding:0"><table class="data-table"><thead style="background:var(--bg-surface-hover)"><tr><th style="padding-left:22px">${t('th_date')}</th><th>${t('th_desc')}</th><th>${t('th_cat')}</th><th>${t('th_wallet')}</th><th class="text-right">${t('th_amount')}</th><th class="text-center" style="padding-right:22px">${t('th_action')}</th></tr></thead><tbody id="txTableBody"></tbody></table></div><div id="txMobileList"></div><div class="flex justify-between items-center p-5" style="border-top:1px solid var(--border-light);background:var(--bg-surface-hover)" id="txFooter"><div class="flex items-center gap-3"><div class="text-subtitle font-medium" id="txPageInfo"></div></div><button class="btn btn-outline btn-sm color-danger" style="border-color:var(--status-danger-bg)" onclick="App.Controllers.Transactions.bulkDelete()">${t('deleteFiltered')}</button></div>`;
         }
         const tb=document.getElementById('txTableBody');
         if(document.getElementById('txPageInfo'))document.getElementById('txPageInfo').textContent=f.length+' '+t('records');
-        if(!f.length){tb.innerHTML=`<tr><td colspan="6" class="text-center color-muted" style="padding:48px">${t('noMatch')}</td></tr>`;return;}
+        if(!f.length){if(tb)tb.innerHTML=`<tr><td colspan="6" class="text-center color-muted" style="padding:48px">${t('noMatch')}</td></tr>`;const ml=document.getElementById('txMobileList');if(ml)ml.innerHTML=`<div class="text-center color-muted" style="padding:48px 20px">${t('noMatch')}</div>`;return;}
         const sm=this._selectMode;
-        tb.innerHTML=f.map(tx=>{
+        if(tb)tb.innerHTML=f.map(tx=>{
           const txWal=Core.state.wallets.find(x=>x.id===tx.wallet);
           const wN=txWal?.name||`<span class="color-muted">${t('deleted')}</span>`;
           const txCurD=(txWal?.currency)||'TRY';
@@ -2772,6 +2940,141 @@ const App = {
           const rowClass=isSel?' class="tx-row-selected"':'';
           return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.duplicate('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-copy"/></svg></button><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
         }).join('');
+        // ── MOBİL KART LİSTESİ ──
+        const ml=document.getElementById('txMobileList');
+        if(ml){
+          // Seç modu aktifse liste container'ına class ekle
+          const cont=document.getElementById('txCardContainer');
+          if(cont){
+            if(sm)cont.classList.add('tx-select-mode');
+            else cont.classList.remove('tx-select-mode');
+          }
+          ml.innerHTML=f.map(tx=>{
+            const txWal=Core.state.wallets.find(x=>x.id===tx.wallet);
+            const txCurD=(txWal?.currency)||'TRY';
+            const color=tx.cat==='Transfer'?'var(--status-neutral)':(tx.type==='income'?'var(--status-success)':'var(--status-danger)');
+            const sign=tx.type==='income'?'+':'-';
+            const walletName=txWal?.name||(t?t('deleted'):'Silinmiş');
+            const catColor=Core.Utils.getCatColor(tx.cat);
+            const dateStr=Core.Utils.formatDate(tx.date);
+            const timeStr=tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):'';
+            const isSel=this._selected.has(tx.id);
+            const selClass=isSel?' selected':'';
+            // Seç modunda tıklama → toggle, normal modda → detay aç
+            const clickFn=sm
+              ?`App.Controllers.Transactions.toggleSelect('${tx.id}')`
+              :`App.Controllers.Transactions.openDetailModal('${tx.id}')`;
+            return`<div class="tx-mobile-card${selClass}" data-tx-id="${tx.id}" onclick="${clickFn}">
+              <div class="tx-mobile-cb-wrap">
+                <div class="tx-mobile-cb">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </div>
+              <div class="tx-mobile-card-left">
+                <div class="tx-mobile-dot" style="background:${color}"></div>
+                <div class="tx-mobile-info">
+                  <div class="tx-mobile-title">${tx.desc||tx.cat}</div>
+                  <div class="tx-mobile-meta"><span style="display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;background:${catColor}18;color:${catColor}">${tx.cat}</span> · ${walletName}</div>
+                </div>
+              </div>
+              <div class="tx-mobile-right">
+                <div class="tx-mobile-amount" style="color:${color}">${sign}${Core.Utils.formatMoney(tx.amount,txCurD)}</div>
+                <div class="tx-mobile-date">${dateStr}${timeStr?' · '+timeStr:''}</div>
+              </div>
+              <svg class="tx-mobile-chevron nav-icon" style="width:14px;height:14px;stroke-width:2.5;flex-shrink:0"><use href="#icon-chevron-right"/></svg>
+            </div>`;
+          }).join('');
+          this._syncMobileSelectBar();
+        }
+      },
+      openDetailModal(id){
+        const tx=Core.state.transactions.find(x=>x.id===id);
+        if(!tx)return;
+        this._detailTxId=id;
+        const txWal=Core.state.wallets.find(x=>x.id===tx.wallet);
+        const txCurD=(txWal?.currency)||'TRY';
+        const color=tx.cat==='Transfer'?'var(--status-neutral)':(tx.type==='income'?'var(--status-success)':'var(--status-danger)');
+        const sign=tx.type==='income'?'+':'-';
+        const typeLabel=tx.type==='income'?(t?t('filterIncome'):'Gelir'):(tx.cat==='Transfer'?'Transfer':(t?t('filterExpense'):'Gider'));
+        const walletName=txWal?.name||(t?t('deleted'):'Silinmiş');
+        const dateStr=Core.Utils.formatDate(tx.date);
+        const timeStr=tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):'';
+        const modal=document.getElementById('txDetailModal');
+        const amtEl=document.getElementById('txDetailAmount');
+        const subEl=document.getElementById('txDetailAmountSub');
+        const rowsEl=document.getElementById('txDetailRows');
+        const titleEl=document.getElementById('txDetailTitle');
+        if(titleEl)titleEl.textContent=tx.desc||tx.cat;
+        if(amtEl){amtEl.textContent=sign+Core.Utils.formatMoney(tx.amount,txCurD);amtEl.style.color=color;}
+        if(subEl)subEl.textContent=typeLabel+' · '+tx.cat;
+        if(rowsEl){
+          const catColor=Core.Utils.getCatColor(tx.cat);
+          rowsEl.innerHTML=`
+            <div class="tx-detail-row"><span class="tx-detail-label">📅 Tarih</span><span class="tx-detail-value">${dateStr}${timeStr?' · '+timeStr:''}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">🏷️ Kategori</span><span class="tx-detail-value" style="color:${catColor}">${tx.cat}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">🏦 Hesap</span><span class="tx-detail-value">${walletName}</span></div>
+            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">📝 Açıklama</span><span class="tx-detail-value">${tx.desc}</span></div>`:''}
+          `;
+        }
+        if(modal){
+          modal.classList.add('open');
+          // Scroll kilidi: sadece body kaymayı engelle
+          document.body.style.position='fixed';
+          document.body.style.width='100%';
+          // Swipe-to-close
+          this._initSheetSwipe();
+        }
+      },
+      closeDetailModal(){
+        const modal=document.getElementById('txDetailModal');
+        if(modal)modal.classList.remove('open');
+        document.body.style.position='';
+        document.body.style.width='';
+        this._detailTxId=null;
+      },
+      _initSheetSwipe(){
+        const sheet=document.getElementById('txDetailSheet');
+        const scroll=document.getElementById('txDetailSheetScroll');
+        if(!sheet)return;
+        let startY=0,currentY=0,dragging=false;
+        const onStart=e=>{
+          if(scroll&&scroll.scrollTop>0)return; // scroll içindeyse kaydırmayı engelleme
+          startY=e.touches?e.touches[0].clientY:e.clientY;
+          dragging=true;
+          sheet.style.transition='none';
+        };
+        const onMove=e=>{
+          if(!dragging)return;
+          currentY=(e.touches?e.touches[0].clientY:e.clientY)-startY;
+          if(currentY<0)currentY=0;
+          sheet.style.transform=`translateY(${currentY}px)`;
+        };
+        const onEnd=()=>{
+          if(!dragging)return;
+          dragging=false;
+          sheet.style.transition='';
+          sheet.style.transform='';
+          if(currentY>100)this.closeDetailModal();
+          currentY=0;
+        };
+        // Önceki listener'ları temizle
+        sheet.removeEventListener('touchstart',sheet._swipeStart);
+        sheet.removeEventListener('touchmove',sheet._swipeMove);
+        sheet.removeEventListener('touchend',sheet._swipeEnd);
+        sheet._swipeStart=onStart;sheet._swipeMove=onMove;sheet._swipeEnd=onEnd;
+        sheet.addEventListener('touchstart',onStart,{passive:true});
+        sheet.addEventListener('touchmove',onMove,{passive:true});
+        sheet.addEventListener('touchend',onEnd);
+      },
+      _detailAction(action){
+        const id=this._detailTxId;
+        if(!id)return;
+        this.closeDetailModal();
+        setTimeout(()=>{
+          if(action==='edit')this.edit(id);
+          else if(action==='dup')this.duplicate(id);
+          else if(action==='del')this.delete(id);
+        },220);
       },
       openModal(){
         this._renderWalletPills('txWalletPills','tx_wallet');
