@@ -328,13 +328,22 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .cat-list-item.selected .cat-check svg{display:block}
 
 /* SETTINGS CELL */
-.settings-cell{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:10px;border:1px solid transparent;transition:all .2s;gap:12px}
+.settings-cell{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:10px;border:1px solid transparent;transition:all .2s;gap:12px;min-width:0}
 .settings-cell:hover{border-color:var(--border-light)}
-.settings-cell > .form-control,.settings-cell > select,.settings-cell > input{flex-shrink:0}
-@media(max-width:480px){
-  .settings-cell{flex-direction:column;align-items:flex-start}
-  .settings-cell > .form-control,.settings-cell > select,.settings-cell > input,.settings-cell > .theme-toggle-group{width:100% !important}
+.settings-cell > div:first-child{flex:1;min-width:0}
+.settings-cell > .form-control,.settings-cell > select,.settings-cell > input,.settings-cell > .theme-toggle-group,.settings-cell > div:last-child{flex-shrink:0}
+/* Kolona düş: kart içi genişlik < ~260px olduğunda (tablet portrait dahil) */
+@media(max-width:600px){
+  .settings-cell{flex-direction:column;align-items:flex-start;gap:10px}
+  .settings-cell > .form-control,.settings-cell > select,.settings-cell > input,.settings-cell > .theme-toggle-group{width:100% !important;max-width:none !important}
 }
+/* settings grid: ≥1024px 2 kolon, <1024px tek kolon */
+.settings-layout{display:grid;gap:14px;grid-template-columns:repeat(2,1fr);align-items:start}
+@media(min-width:1024px){.settings-layout{gap:22px}}
+@media(max-width:1023px){.settings-layout{grid-template-columns:1fr}}
+/* settings satırları arasındaki boşluk */
+.settings-layout+.settings-layout{margin-top:14px}
+@media(min-width:1024px){.settings-layout+.settings-layout{margin-top:22px}}
 
 /* TABLES */
 .table-container{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -1119,32 +1128,57 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <!-- AYARLAR -->
     <div id="view-settings" class="view">
       <div class="mb-5"><h1 class="text-h1" data-i18n="settings">Ayarlar</h1><p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p></div>
-      <div class="css-grid grid-cols-2 stagger-1" style="align-items:start">
+
+      <!-- Satır 1: Kişiselleştirme + Bildirimler -->
+      <div class="settings-layout stagger-1">
+
         <div class="card">
           <h2 class="card-title mb-5" data-i18n="personalization">Kişiselleştirme</h2>
           <div class="settings-cell">
-            <div><div class="font-bold" data-i18n="yourName">İsminiz</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="yourNameHint">Karşılama mesajı için.</div></div>
-            <input type="text" class="form-control" id="set_name" placeholder="Örn: Ahmet" style="width:130px;padding:10px">
+            <div>
+              <div class="font-bold" data-i18n="yourName">İsminiz</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="yourNameHint">Karşılama mesajı için.</div>
+            </div>
+            <input type="text" class="form-control" id="set_name" placeholder="Örn: Ahmet" style="width:140px;padding:10px">
           </div>
           <div class="settings-cell">
-            <div><div class="font-bold" data-i18n="currency">Para Birimi</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="currencyHint">Tüm ekranlarda geçerli.</div></div>
-            <select class="form-control" id="set_currency" style="width:130px;padding:10px">
+            <div>
+              <div class="font-bold" data-i18n="currency">Para Birimi</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="currencyHint">Tüm ekranlarda geçerli.</div>
+            </div>
+            <select class="form-control" id="set_currency" style="width:140px;padding:10px">
               <option value="TRY">₺ (TRY)</option><option value="USD">$ (USD)</option><option value="EUR">€ (EUR)</option><option value="GBP">£ (GBP)</option>
             </select>
           </div>
           <div class="settings-cell">
-            <div><div class="font-bold" data-i18n="theme">Ekran Teması</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="themeHint">Açık veya koyu mod.</div></div>
-            <div class="theme-toggle-group" style="width:130px">
-              <button class="theme-btn" id="tb_light2" onclick="App.Controllers.Settings.setTheme('light')"><svg class="nav-icon" style="width:13px"><use href="#icon-sun"/></svg></button>
-              <button class="theme-btn" id="tb_dark2" onclick="App.Controllers.Settings.setTheme('dark')"><svg class="nav-icon" style="width:13px"><use href="#icon-moon"/></svg></button>
+            <div>
+              <div class="font-bold" data-i18n="theme">Ekran Teması</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="themeHint">Açık veya koyu mod.</div>
+            </div>
+            <div class="theme-toggle-group" style="width:140px">
+              <button class="theme-btn" id="tb_light2" onclick="App.Controllers.Settings.setTheme('light')">
+                <svg class="nav-icon" style="width:13px"><use href="#icon-sun"/></svg><span data-i18n="themeLight">Açık</span>
+              </button>
+              <button class="theme-btn" id="tb_dark2" onclick="App.Controllers.Settings.setTheme('dark')">
+                <svg class="nav-icon" style="width:13px"><use href="#icon-moon"/></svg><span data-i18n="themeDark">Koyu</span>
+              </button>
             </div>
           </div>
           <div class="settings-cell">
-            <div><div class="font-bold" data-i18n="animations">Animasyonlar</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="animHint">Geçiş efektleri.</div></div>
-            <select class="form-control" id="set_anim" style="width:130px;padding:10px"><option value="on" data-i18n="animOn">Açık</option><option value="off" data-i18n="animOff">Kapalı</option></select>
+            <div>
+              <div class="font-bold" data-i18n="animations">Animasyonlar</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="animHint">Geçiş efektleri.</div>
+            </div>
+            <select class="form-control" id="set_anim" style="width:140px;padding:10px">
+              <option value="on" data-i18n="animOn">Açık</option>
+              <option value="off" data-i18n="animOff">Kapalı</option>
+            </select>
           </div>
           <div class="settings-cell">
-            <div><div class="font-bold" data-i18n="langSelect">Dil / Language</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="langHint">Uygulama dili.</div></div>
+            <div>
+              <div class="font-bold" data-i18n="langSelect">Dil / Language</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="langHint">Uygulama dili.</div>
+            </div>
             <div class="theme-toggle-group" style="width:160px">
               <button class="theme-btn" id="set_lang_tr" onclick="App.Controllers.Settings.setLang('tr')">Türkçe</button>
               <button class="theme-btn" id="set_lang_en" onclick="App.Controllers.Settings.setLang('en')">English</button>
@@ -1155,7 +1189,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
         <!-- BİLDİRİMLER -->
         <div class="card">
-          <h2 class="card-title mb-5"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="notifTitle">Bildirimler</span></h2>
+          <h2 class="card-title mb-4"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="notifTitle">Bildirimler</span></h2>
           <p class="text-subtitle mb-5" data-i18n="notifDesc">Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.</p>
           <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
             <div>
@@ -1188,8 +1222,13 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </div>
         </div>
 
+      </div><!-- /Satır 1 -->
+
+      <!-- Satır 2: Döviz Kurları + Alt Menü Düzeni -->
+      <div class="settings-layout stagger-2">
+
         <div class="card">
-          <h2 class="card-title mb-4" style="gap:8px"><svg class="nav-icon" style="color:var(--status-warn)"><use href="#icon-transfer"/></svg><span data-i18n="ratesTitle">Döviz Kurları</span></h2>
+          <h2 class="card-title mb-4"><svg class="nav-icon" style="color:var(--status-warn)"><use href="#icon-transfer"/></svg><span data-i18n="ratesTitle">Döviz Kurları</span></h2>
           <p class="text-subtitle mb-4" data-i18n="ratesDesc">Ana para biriminize göre güncel kur değerleri.</p>
           <div id="kurBilgiBox" style="min-height:60px">
             <div style="color:var(--text-muted);font-size:14px" data-i18n="ratesLoading">Yükleniyor...</div>
@@ -1197,61 +1236,64 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
 
         <!-- ALT BAR ÖZELLEŞTİRME -->
-        <div class="card" style="grid-column:1/-1">
+        <div class="card">
           <div class="flex justify-between items-center mb-2">
-            <h2 class="card-title" style="gap:8px">
-              <svg class="nav-icon" style="color:var(--brand-accent)"><use href="#icon-menu"/></svg>
-              <span>Alt Menü Düzeni</span>
-            </h2>
+            <h2 class="card-title"><svg class="nav-icon" style="color:var(--brand-accent)"><use href="#icon-menu"/></svg><span>Alt Menü Düzeni</span></h2>
             <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()">Sıfırla</button>
           </div>
-          <p class="text-subtitle mb-5">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</p>
-
-          <!-- AKTİF ÖĞELER (sürüklenebilir) -->
-          <div style="margin-bottom:16px">
-            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Aktif Öğeler (sürükle & bırak)</div>
+          <p class="text-subtitle mb-4">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</p>
+          <div style="margin-bottom:14px">
+            <div class="text-caption mb-2">Aktif Öğeler (sürükle & bırak)</div>
             <div id="bnavActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
           </div>
-
-          <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
-
-          <!-- KULLANILMAYAN ÖĞELER -->
+          <div style="height:1px;background:var(--border-light);margin:14px 0"></div>
           <div>
-            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Eklenebilecek Öğeler</div>
+            <div class="text-caption mb-2">Eklenebilecek Öğeler</div>
             <div id="bnavAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
         </div>
 
-        <div class="card" style="border-color:rgba(229,83,75,.18)">
+      </div><!-- /Satır 2 -->
+
+      <!-- Satır 3: Veri Yönetimi (tam genişlik, tek kart) -->
+      <div class="settings-layout stagger-3">
+
+        <div class="card" style="border-color:rgba(229,83,75,.18);grid-column:1/-1">
           <h2 class="card-title color-danger mb-4" data-i18n="dataManagement">Veri Yönetimi</h2>
           <p class="text-subtitle mb-5" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</p>
-          <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px">
-            <div class="font-bold" data-i18n="backup">Yedek Al</div>
-            <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
-            <div class="flex gap-2">
-              <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">
-                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportCSV()">
-                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
-              </button>
+          <div class="css-grid grid-cols-2" style="gap:10px;margin-bottom:0">
+            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
+              <div class="font-bold" data-i18n="backup">Yedek Al</div>
+              <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
+              <div class="flex gap-2">
+                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportCSV()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-top:8px">
-            <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
-            <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
-            <div class="flex gap-2 w-full">
-              <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
-              <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
-                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
-                Dosya Seç (.json)
-              </label>
+            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
+              <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
+              <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
+              <div class="flex gap-2 w-full">
+                <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
+                <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
+                  Dosya Seç (.json)
+                </label>
+              </div>
             </div>
           </div>
           <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
           <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
         </div>
-      </div>
+
+      </div><!-- /Satır 3 -->
+
+    </div>
+
     </div>
 
   </main>
@@ -3873,6 +3915,7 @@ const ALL_BNAV_ITEMS = [
   {id:'goals',     icon:'icon-target',label:'Hedefler',    labelEn:'Goals',        route:'/goals'},
   {id:'debts',     icon:'icon-briefcase',label:'Borç/Alacak',labelEn:'Debts',     route:'/debts'},
   {id:'settings',  icon:'icon-settings',label:'Ayarlar',  labelEn:'Settings',     route:'/settings'},
+  {id:'sidebar',   icon:'icon-menu',   label:'Menü',       labelEn:'Menu',         route:'#'},
 ];
 
 App.Controllers.BottomBar = {
@@ -3909,21 +3952,35 @@ App.Controllers.BottomBar = {
 
   renderNav(){
     const nav = document.getElementById('appBottomNav');
-    if(!nav)return;
+    if(!nav) return;
     const activeIds = this.getActive();
     const currentRoute = window.location.hash.replace('#','') || '/dashboard';
-    nav.innerHTML = activeIds.map((id,i)=>{
-      const item = ALL_BNAV_ITEMS.find(x=>x.id===id);
-      if(!item)return '';
-      const isActive = currentRoute===item.route;
-      return `<a href="#${item.route}" class="bnav-link${isActive?' active':''}" data-route="${item.route}" style="animation-delay:${i*0.04}s">
+    nav.innerHTML = activeIds.map((id, i) => {
+      const item = ALL_BNAV_ITEMS.find(x => x.id === id);
+      if(!item) return '';
+
+      // ── Sidebar butonu özel durumu ──
+      if(item.id === 'sidebar'){
+        return `<div class="bnav-link" style="animation-delay:${i*0.04}s; cursor:pointer;"
+            onclick="event.preventDefault();
+                    const sb = document.getElementById('sidebar');
+                    const ov = document.getElementById('mobileOverlay');
+                    if(sb && ov) { sb.classList.toggle('active'); ov.classList.toggle('active'); }">
+          <svg class="nav-icon"><use href="#${item.icon}"/></svg>
+          <span class="bnav-text">${this.getLabel(item)}</span>
+        </div>`;
+      }
+
+      const isActive = currentRoute === item.route;
+      return `<a href="#${item.route}" class="bnav-link${isActive ? ' active' : ''}" data-route="${item.route}" style="animation-delay:${i * 0.04}s">
         <svg class="nav-icon"><use href="#${item.icon}"/></svg>
         <span class="bnav-text">${this.getLabel(item)}</span>
       </a>`;
     }).join('');
-    // Re-apply active class after route
-    document.querySelectorAll('.nav-link,.bnav-link').forEach(n=>n.classList.remove('active'));
-    document.querySelectorAll(`[data-route="${currentRoute}"]`).forEach(n=>n.classList.add('active'));
+
+    // Aktif rotayı işaretle
+    document.querySelectorAll('.nav-link,.bnav-link').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll(`[data-route="${currentRoute}"]`).forEach(n => n.classList.add('active'));
   },
 
   renderEditor(){
