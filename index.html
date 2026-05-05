@@ -78,23 +78,22 @@ if ('serviceWorker' in navigator) {
 </script>
 <style>
 /* ══════════════════════════════════
-   SAGI FINANCE v17 — Enhanced UI
+   SAGI FINANCE v18 — Mobile-first
    ══════════════════════════════════ */
 :root {
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
-  --border-light:rgba(0,0,0,0.07); --border-focus:rgba(79,70,229,0.30);
+  --border-light:rgba(0,0,0,0.07); --border-focus:rgba(79,70,229,0.28);
   --brand-primary:#111827; --brand-accent:#4f46e5;
   --text-main:#111827; --text-secondary:#4b5563; --text-muted:#9ca3af;
   --status-success:#22a06b; --status-success-bg:rgba(34,160,107,0.09);
   --status-danger:#e5534b; --status-danger-bg:rgba(229,83,75,0.09);
   --status-warn:#d97706; --status-warn-bg:rgba(217,119,6,0.09);
-  --status-neutral:#6b7280; --status-white:#f8fafc;
+  --status-neutral:#6b7280;
   --font-sans:'Inter',sans-serif; --font-display:'Outfit',sans-serif;
   --radius-sm:10px; --radius-md:16px; --radius-lg:22px; --radius-xl:30px; --radius-full:9999px;
   --nav-h:72px; --side-w:270px;
   --shadow-sm:0 2px 10px rgba(0,0,0,0.04); --shadow-md:0 10px 28px -6px rgba(0,0,0,0.08);
   --shadow-lg:0 24px 48px -12px rgba(0,0,0,0.13); --shadow-floating:0 12px 32px -8px rgba(0,0,0,0.16);
-  --wave-color:rgba(79,70,229,0.07);
 }
 [data-theme="dark"] {
   --bg-body:#09090b; --bg-surface:#141416; --bg-surface-hover:#1c1c1f;
@@ -103,7 +102,6 @@ if ('serviceWorker' in navigator) {
   --text-main:#f9fafb; --text-secondary:#a1a1aa; --text-muted:#71717a;
   --status-danger-bg:rgba(229,83,75,0.14); --status-success-bg:rgba(34,160,107,0.13);
   --status-warn-bg:rgba(217,119,6,0.13);
-  --wave-color:rgba(99,102,241,0.09);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -169,8 +167,8 @@ table{width:100%;border-collapse:collapse}
 .bnav-text{font-size:9.5px;font-weight:700;letter-spacing:.02em;transition:all .2s}
 
 /* MAIN */
-.app-main{flex:1;padding:16px 14px calc(var(--nav-h) + 24px);min-width:0;position:relative;z-index:10;max-width:1440px;margin:0 auto;width:100%}
-@media(min-width:1024px){.app-main{padding:44px 52px}}
+.app-main{flex:1;padding:16px 14px calc(var(--nav-h) + 28px);min-width:0;position:relative;z-index:10;max-width:1440px;margin:0 auto;width:100%}
+@media(min-width:1024px){.app-main{padding:36px 48px 48px;margin:0}}
 .mobile-overlay{position:fixed;inset:0;background:rgba(17,24,39,.4);backdrop-filter:blur(4px);z-index:70;display:none;opacity:0;transition:opacity .3s}
 .mobile-overlay.active{display:block;opacity:1}
 
@@ -189,17 +187,18 @@ table{width:100%;border-collapse:collapse}
 body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !important;transition:none !important}
 
 /* GRID */
-.css-grid{display:grid;gap:16px}
+.css-grid{display:grid;gap:14px}
 .grid-cols-2{grid-template-columns:repeat(2,1fr)}
 .grid-cols-3{grid-template-columns:repeat(3,1fr)}
 .grid-cols-4{grid-template-columns:repeat(4,1fr)}
 @media(max-width:1200px){.grid-cols-4{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:992px){.grid-cols-3{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:768px){.grid-cols-2,.grid-cols-3,.grid-cols-4{grid-template-columns:1fr}}
-@media(min-width:1024px){.css-grid{gap:24px}}
+@media(max-width:1023px){.grid-cols-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.grid-cols-2,.grid-cols-3,.grid-cols-4{grid-template-columns:1fr}}
+@media(min-width:1024px){.css-grid{gap:22px}}
 
 /* CARDS */
-.card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:clamp(16px,3.5vw,26px);box-shadow:var(--shadow-sm);transition:box-shadow .25s,transform .25s;position:relative;overflow:hidden}
+.card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:18px 16px;box-shadow:var(--shadow-sm);transition:box-shadow .25s,transform .25s;position:relative;overflow:hidden}
+@media(min-width:768px){.card{padding:clamp(18px,3vw,26px)}}
 .card:hover{box-shadow:var(--shadow-md)}
 @media(min-width:1024px){.card:hover{transform:translateY(-1px)}}
 .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
@@ -329,8 +328,13 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .cat-list-item.selected .cat-check svg{display:block}
 
 /* SETTINGS CELL */
-.settings-cell{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:10px;border:1px solid transparent;transition:all .2s}
+.settings-cell{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:10px;border:1px solid transparent;transition:all .2s;gap:12px}
 .settings-cell:hover{border-color:var(--border-light)}
+.settings-cell > .form-control,.settings-cell > select,.settings-cell > input{flex-shrink:0}
+@media(max-width:480px){
+  .settings-cell{flex-direction:column;align-items:flex-start}
+  .settings-cell > .form-control,.settings-cell > select,.settings-cell > input,.settings-cell > .theme-toggle-group{width:100% !important}
+}
 
 /* TABLES */
 .table-container{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -389,6 +393,34 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* PAID BADGE */
 .paid-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius-full);background:var(--status-success-bg);color:var(--status-success);font-size:11px;font-weight:700;letter-spacing:.01em;border:1px solid rgba(34,160,107,.18);white-space:nowrap}
 .paid-badge svg{width:11px;height:11px;stroke-width:3}
+
+/* BOTTOM BAR CUSTOMIZER */
+.bnav-sort-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--bg-body);border:1.5px solid var(--border-light);border-radius:var(--radius-md);cursor:grab;transition:all .22s cubic-bezier(.16,1,.3,1);user-select:none;position:relative}
+.bnav-sort-item:active{cursor:grabbing}
+.bnav-sort-item.drag-over{border-color:var(--brand-accent);background:rgba(79,70,229,.07);transform:scale(1.01)}
+.bnav-sort-item.dragging{opacity:.45;transform:scale(.97)}
+.bnav-sort-drag-handle{color:var(--text-muted);display:flex;align-items:center;flex-shrink:0;touch-action:none}
+.bnav-sort-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand-accent)}
+.bnav-sort-label{flex:1;font-size:15px;font-weight:600;color:var(--text-main)}
+.bnav-sort-remove{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:8px;display:flex;align-items:center;transition:all .18s}
+.bnav-sort-remove:hover{color:var(--status-danger);background:var(--status-danger-bg)}
+.bnav-avail-chip{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius-md);background:var(--bg-body);border:1.5px dashed var(--border-light);cursor:pointer;transition:all .2s;font-size:14px;font-weight:600;color:var(--text-secondary)}
+.bnav-avail-chip:hover{border-color:var(--brand-accent);color:var(--brand-accent);background:rgba(79,70,229,.07)}
+.bnav-avail-chip .nav-icon{width:16px;height:16px;stroke-width:2.5}
+.bnav-add-icon{width:18px;height:18px;border-radius:50%;background:var(--brand-accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bnav-add-icon .nav-icon{width:10px;height:10px;stroke-width:3}
+.bnav-max-warn{font-size:12px;color:var(--status-warn);font-weight:600;background:var(--status-warn-bg);border-radius:var(--radius-sm);padding:8px 12px;text-align:center;border:1px solid rgba(217,119,6,.2)}
+/* Bnav animated entrance */
+@keyframes bnavItemIn{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.bnav-link{animation:bnavItemIn .28s cubic-bezier(.16,1,.3,1) both}
+.bnav-link:nth-child(1){animation-delay:.02s}.bnav-link:nth-child(2){animation-delay:.06s}
+.bnav-link:nth-child(3){animation-delay:.10s}.bnav-link:nth-child(4){animation-delay:.14s}
+.bnav-link:nth-child(5){animation-delay:.18s}
+/* Auto-pay UI */
+.autopay-info-box{padding:14px;background:rgba(79,70,229,.06);border-radius:var(--radius-md);border:1px solid rgba(79,70,229,.15);margin-top:12px}
+.autopay-warn-box{margin-top:10px;padding:10px 12px;background:var(--status-warn-bg);border-radius:var(--radius-sm);border:1px solid rgba(217,119,6,.2);font-size:12px;color:var(--status-warn);font-weight:600;line-height:1.5}
+.autopay-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-full);background:rgba(79,70,229,.1);color:var(--brand-accent);font-size:11px;font-weight:700;border:1px solid rgba(79,70,229,.18)}
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:var(--radius-full);font-size:12px;font-weight:600;background:var(--bg-body);color:var(--text-secondary)}
 
 /* SELECT MODE */
 .btn-select-mode{background:var(--bg-surface);border:1px solid var(--border-light);color:var(--text-main);font-weight:600;transition:all .2s}
@@ -457,12 +489,35 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 
 /* TOASTS */
 .toast-container{position:fixed;top:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-@media(max-width:768px){.toast-container{top:auto;bottom:calc(var(--nav-h) + 24px);right:14px;left:14px;align-items:center}}
-.toast{background:var(--bg-surface);color:var(--text-main);padding:12px 16px;border-radius:var(--radius-md);box-shadow:var(--shadow-floating);font-weight:600;display:flex;align-items:center;gap:9px;border:1px solid var(--border-light);transform:translateY(-12px) scale(.93);opacity:0;transition:all .28s cubic-bezier(.16,1,.3,1);font-size:14px}
+@media(max-width:768px){.toast-container{top:auto;bottom:calc(var(--nav-h) + 18px);right:12px;left:12px;align-items:stretch}}
+.toast{background:var(--bg-surface);color:var(--text-main);padding:12px 16px;border-radius:var(--radius-md);box-shadow:var(--shadow-floating);font-weight:600;display:flex;align-items:center;gap:9px;border:1px solid var(--border-light);transform:translateY(-10px) scale(.94);opacity:0;transition:all .26s cubic-bezier(.16,1,.3,1);font-size:14px}
 .toast.show{transform:translateY(0) scale(1);opacity:1}
-.toast .nav-icon{width:17px;height:17px}
+.toast .nav-icon{width:17px;height:17px;flex-shrink:0}
 .toast.success .nav-icon{color:var(--status-success)}
 .toast.error .nav-icon{color:var(--status-danger)}
+
+/* PAGE TITLE ROW */
+.page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+@media(min-width:640px){.page-title-row{margin-bottom:22px}}
+
+/* MOBILE FILTER STACK */
+@media(max-width:768px){
+  .css-grid.grid-cols-4.items-end{grid-template-columns:1fr 1fr}
+  .css-grid.grid-cols-4.items-end .form-group:last-child{grid-column:1/-1}
+}
+
+/* HEADING ROW ON MOBILE */
+@media(max-width:640px){
+  .transfer-actions-row{width:100%}
+  .transfer-actions-row .btn{flex:1}
+}
+
+/* TRANSACTIONS PAGE — mobile card layout */
+@media(max-width:768px){
+  .data-table{min-width:0}
+  .data-table th{padding:10px 12px;font-size:11px}
+  .data-table td{padding:14px 12px;font-size:14px}
+}
 
 /* THEME TOGGLE */
 .theme-toggle-group{display:flex;background:var(--bg-body);border-radius:var(--radius-full);padding:4px;border:1px solid var(--border-light)}
@@ -472,8 +527,13 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .theme-btn:not(.active):hover{background:var(--bg-surface-hover);color:var(--text-main)}
 
 /* KPI */
-.kpi-value{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:6px}
-@media(max-width:768px){.kpi-value{font-size:22px}}
+.kpi-value{font-family:var(--font-display);font-size:clamp(20px,5vw,28px);font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:6px}
+
+/* PAGE TITLE ROW */
+.page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+@media(min-width:640px){.page-title-row{margin-bottom:22px}}
+.page-title-row > div:first-child{flex:1 1 auto;min-width:0}
+.page-title-row > div:last-child,.page-title-row > button:last-child{flex-shrink:0}
 
 /* WALLET CARD */
 .wallet-card-premium{color:#fff;padding:26px;border-radius:var(--radius-xl);position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;box-shadow:var(--shadow-md),0 0 0 1px rgba(255,255,255,.08) inset;border:1px solid rgba(255,255,255,.08);transition:transform .3s,box-shadow .3s}
@@ -543,31 +603,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 [data-theme="dark"] .brand-icon-light { display: none;  }
 [data-theme="dark"] .brand-icon-dark  { display: block; }
 
-/* MOBILE FILTER STACK */
-@media(max-width:768px){
-  .css-grid.grid-cols-4.items-end{grid-template-columns:1fr 1fr}
-  .css-grid.grid-cols-4.items-end .form-group:last-child{grid-column:1/-1}
-}
 
-/* TRANSACTIONS PAGE — mobile card layout */
-@media(max-width:768px){
-  .data-table{min-width:0}
-  .data-table th{padding:10px 12px;font-size:11px}
-  .data-table td{padding:14px 12px;font-size:14px}
-}
 
-/* SMOOTH BADGE */
-.badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:var(--radius-full);font-size:12px;font-weight:600;background:var(--bg-body);color:var(--text-secondary)}
-
-/* HEADING ROW ON MOBILE */
-@media(max-width:640px){
-  .flex.justify-between.items-center.mb-6,
-  .flex.justify-between.items-end.mb-5{flex-wrap:wrap;gap:12px}
-  .flex.justify-between.items-center.mb-6 > div:first-child,
-  .flex.justify-between.items-end.mb-5 > div:first-child{flex:1 1 100%}
-  .transfer-actions-row{width:100%}
-  .transfer-actions-row .btn{flex:1}
-}
 
 /* PROGRESS */
 .progress-track{height:7px;background:var(--bg-body);border-radius:var(--radius-full);overflow:hidden}
@@ -904,7 +941,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- DASHBOARD -->
     <div id="view-dashboard" class="view">
-      <div class="flex justify-between items-end mb-5">
+      <div class="page-title-row">
         <div>
           <h1 class="text-h1" id="dashGreeting">Ana Sayfa</h1>
           <p class="text-subtitle" data-i18n="dashSubtitle">Finansal durumunuzun özeti</p>
@@ -941,7 +978,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- HESAPLAR -->
     <div id="view-wallets" class="view">
-      <div class="flex justify-between items-center mb-6">
+      <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="wallets">Hesaplarım</h1><p class="text-subtitle" data-i18n="walletsSubtitle">Tüm hesaplarınız ve bakiyeleri</p></div>
         <div class="transfer-actions-row">
           <button class="btn btn-outline" onclick="App.Controllers.Transfer.openModal()" title="Para Aktar"><svg class="nav-icon"><use href="#icon-transfer"/></svg><span data-i18n="transferBtn">Para Aktar</span></button>
@@ -953,24 +990,23 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- İŞLEMLER -->
     <div id="view-transactions" class="view">
-      <div class="flex flex-col mb-5 gap-5">
-        <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
-          <div><h1 class="text-h1" data-i18n="transactions">İşlemler</h1><p class="text-subtitle" data-i18n="txSubtitle">Tüm gelir ve giderleriniz</p></div>
-          <div class="flex flex-col gap-2 items-end" style="flex-shrink:0">
-            <div class="flex gap-2">
-              <button class="btn btn-select-mode" id="txSelectModeBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" data-i18n-title="select" title="Seç">
-                <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-check"/></svg>
-                <span class="select-mode-label" id="txSelectModeLabel" data-i18n="selectMode">Seç</span>
-              </button>
-              <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
-            </div>
-            <button class="btn btn-outline btn-sm color-danger" id="txDeleteSelectedBtnTop" onclick="App.Controllers.Transactions.deleteSelected()" style="display:none;border-color:var(--status-danger-bg);color:var(--status-danger);font-size:12px;padding:6px 14px">
-              <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg>
-              <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
+      <div class="page-title-row">
+        <div><h1 class="text-h1" data-i18n="transactions">İşlemler</h1><p class="text-subtitle" data-i18n="txSubtitle">Tüm gelir ve giderleriniz</p></div>
+        <div class="flex flex-col gap-2 items-end" style="flex-shrink:0">
+          <div class="flex gap-2">
+            <button class="btn btn-select-mode" id="txSelectModeBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" data-i18n-title="select" title="Seç">
+              <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-check"/></svg>
+              <span class="select-mode-label" id="txSelectModeLabel" data-i18n="selectMode">Seç</span>
             </button>
+            <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
           </div>
+          <button class="btn btn-outline btn-sm color-danger" id="txDeleteSelectedBtnTop" onclick="App.Controllers.Transactions.deleteSelected()" style="display:none;border-color:var(--status-danger-bg);color:var(--status-danger);font-size:12px;padding:6px 14px">
+            <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg>
+            <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
+          </button>
         </div>
-        <div class="card p-4 stagger-1">
+      </div>
+      <div class="card p-4 stagger-1" style="margin-bottom:14px">
           <div class="css-grid grid-cols-4 items-end">
             <div class="form-group mb-0">
               <label class="form-label" data-i18n="filterDate">Tarih</label>
@@ -999,7 +1035,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
         </div>
-      </div>
       <div class="card stagger-2" style="padding:0;overflow:hidden" id="txCardContainer">
         <div class="table-container" style="margin:0;padding:0">
           <table class="data-table">
@@ -1030,7 +1065,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- ABONELİKLER -->
     <div id="view-recurring" class="view">
-      <div class="flex justify-between items-center mb-6">
+      <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="recurring">Abonelikler</h1><p class="text-subtitle" data-i18n="recSubtitle">Düzenli sabit ödemeleriniz</p></div>
         <button class="btn btn-primary" onclick="App.Controllers.Recurring.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addRecurring">Abonelik Ekle</span></button>
       </div>
@@ -1039,7 +1074,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- ANALİZ -->
     <div id="view-analytics" class="view">
-      <div class="flex justify-between items-center mb-6">
+      <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="analytics">Analiz</h1><p class="text-subtitle" data-i18n="analyticsSubtitle">Harcama istatistikleri ve limitler</p></div>
       </div>
       <div class="css-grid grid-cols-3 mb-5 stagger-1" id="analyticsSummary"></div>
@@ -1048,7 +1083,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="bar-chart-wrap"><div id="trendBarChart"></div></div>
       </div>
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
-        <div class="card"><h2 class="card-title mb-5" data-i18n="thisMonthCat">Bu Ay Gider Dağılımı</h2><p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Kategoriye tıklayın → işlemler</p><div class="chart-container" id="mainDonutChart" style="cursor:pointer"></div></div>
+        <div class="card"><h2 class="card-title mb-5" data-i18n="thisMonthCat">Bu Ay Gider Dağılımı</h2><p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Kategoriye tıklayın, işlemleri görün</p><div class="chart-container" id="mainDonutChart" style="cursor:pointer"></div></div>
         <div class="card"><h2 class="card-title mb-5" data-i18n="categories">Kategoriler</h2><div id="categoryBreakdownList" class="flex flex-col gap-4"></div></div>
       </div>
       <div class="card stagger-3">
@@ -1062,7 +1097,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- HEDEFLER -->
     <div id="view-goals" class="view">
-      <div class="flex justify-between items-center mb-6">
+      <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="goals">Hedeflerim</h1><p class="text-subtitle" data-i18n="goalsSubtitle">Birikim planlarınız ve ilerlemeniz</p></div>
         <button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addGoal">Hedef Ekle</span></button>
       </div>
@@ -1071,11 +1106,9 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- BORÇ & ALACAK -->
     <div id="view-debts" class="view">
-      <div class="flex justify-between items-center mb-6">
+      <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="debts">Borç & Alacak</h1><p class="text-subtitle" data-i18n="debtsSubtitle">Finansal yükümlülükleriniz</p></div>
-        <div class="flex gap-3">
-          <button class="btn btn-primary" onclick="App.Controllers.Debts.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg>İşlem Ekle</button>
-        </div>
+        <button class="btn btn-primary" onclick="App.Controllers.Debts.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addDebt">İşlem Ekle</span></button>
       </div>
       <div class="css-grid grid-cols-2 stagger-1">
         <div class="card"><h2 class="card-title color-danger mb-5" data-i18n="myDebts">Borçlarım</h2><div id="debtsContainer" class="flex flex-col gap-4"></div></div>
@@ -1085,8 +1118,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- AYARLAR -->
     <div id="view-settings" class="view">
-      <div class="mb-6"><h1 class="text-h1" data-i18n="settings">Ayarlar</h1><p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p></div>
-      <div class="css-grid grid-cols-2 stagger-1">
+      <div class="mb-5"><h1 class="text-h1" data-i18n="settings">Ayarlar</h1><p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p></div>
+      <div class="css-grid grid-cols-2 stagger-1" style="align-items:start">
         <div class="card">
           <h2 class="card-title mb-5" data-i18n="personalization">Kişiselleştirme</h2>
           <div class="settings-cell">
@@ -1163,6 +1196,32 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </div>
         </div>
 
+        <!-- ALT BAR ÖZELLEŞTİRME -->
+        <div class="card" style="grid-column:1/-1">
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="card-title" style="gap:8px">
+              <svg class="nav-icon" style="color:var(--brand-accent)"><use href="#icon-menu"/></svg>
+              <span>Alt Menü Düzeni</span>
+            </h2>
+            <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()">Sıfırla</button>
+          </div>
+          <p class="text-subtitle mb-5">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</p>
+
+          <!-- AKTİF ÖĞELER (sürüklenebilir) -->
+          <div style="margin-bottom:16px">
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Aktif Öğeler (sürükle & bırak)</div>
+            <div id="bnavActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
+          </div>
+
+          <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
+
+          <!-- KULLANILMAYAN ÖĞELER -->
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Eklenebilecek Öğeler</div>
+            <div id="bnavAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+          </div>
+        </div>
+
         <div class="card" style="border-color:rgba(229,83,75,.18)">
           <h2 class="card-title color-danger mb-4" data-i18n="dataManagement">Veri Yönetimi</h2>
           <p class="text-subtitle mb-5" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</p>
@@ -1198,12 +1257,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   </main>
 
   <!-- BOTTOM NAV -->
-  <nav class="app-bottom-nav">
-    <a href="#/dashboard" class="bnav-link" data-route="/dashboard"><svg class="nav-icon"><use href="#icon-home"/></svg><span class="bnav-text" data-i18n="dashboard">Ana Sayfa</span></a>
-    <a href="#/wallets" class="bnav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg><span class="bnav-text" data-i18n="wallets">Hesaplar</span></a>
-    <a href="#/transactions" class="bnav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg><span class="bnav-text" data-i18n="transactions">İşlemler</span></a>
-    <a href="#/analytics" class="bnav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg><span class="bnav-text" data-i18n="analytics">Analiz</span></a>
-    <a href="#/settings" class="bnav-link" data-route="/settings"><svg class="nav-icon"><use href="#icon-settings"/></svg><span class="bnav-text" data-i18n="settings">Ayarlar</span></a>
+  <nav class="app-bottom-nav" id="appBottomNav">
   </nav>
 </div>
 
@@ -1405,6 +1459,30 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="form-group mb-0">
           <label class="form-label" data-i18n="payFromAccount">Ödenecek Hesap</label>
           <div id="recWalletPills" class="wallet-pill-wrap"></div>
+        </div>
+
+        <!-- OTOMATİK ÖDEME TALİMATI -->
+        <div style="margin-top:18px;padding-top:18px;border-top:1px dashed var(--border-light)">
+          <div class="toggle-row" id="recAutoPayRow" onclick="App.Controllers.Recurring.toggleAutoPay()">
+            <div>
+              <div class="font-bold" style="font-size:15px">Otomatik Ödeme Talimatı</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px">Ödeme günü geldiğinde hesaptan otomatik çekilsin</div>
+            </div>
+            <div class="toggle-track" id="recAutoPayTrack"><div class="toggle-thumb"></div></div>
+          </div>
+          <input type="hidden" id="rec_autopay" value="0">
+          <div id="recAutoPayDetails" class="autopay-info-box" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <svg class="nav-icon" style="width:15px;height:15px;color:var(--brand-accent)"><use href="#icon-check"/></svg>
+              <span style="font-size:13px;font-weight:700;color:var(--brand-accent)">Otomatik ödeme etkin</span>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">
+              Ödeme günü (<strong id="recAutoPayDayPreview">—</strong>), seçilen hesaptan otomatik işlem kaydedilecek.
+            </div>
+            <div class="autopay-warn-box">
+              Uygulama arka planda çalışmadan veya açılmadan otomatik ödeme gerçekleşmez. Her gün uygulamayı açtığınızda bekleyen ödemeler işlenir.
+            </div>
+          </div>
         </div>
       </form>
     </div>
@@ -1826,6 +1904,12 @@ const UI = {
       Core.emit('routeChanged',hash);
       setTimeout(applyLang,50);
       window.scrollTo(0,0);
+      // Ayarlar sayfasında bottom bar editor'ı güncelle
+      if(hash==='/settings'){
+        setTimeout(()=>{
+          if(typeof App.Controllers.BottomBar!=='undefined')App.Controllers.BottomBar.renderEditor();
+        },100);
+      }
     }
   },
   Modals:{
@@ -2242,6 +2326,8 @@ const App = {
       window.addEventListener('focus',()=>App.ExchangeRate.ensureFresh());
       setTimeout(()=>{
         if(lBar)lBar.style.width='100%';
+        // Bottom bar — kullanıcı tercihine göre render et
+        App.Controllers.BottomBar.renderNav();
         UI.Router.init();
         applyLang();
         App.processRecurring();
@@ -2272,13 +2358,15 @@ const App = {
     const t=new Date(),cD=t.getDate();let add=0;
     Core.state.recurring.forEach(s=>{
       if(cD===s.day){
+        // Otomatik ödeme talimatı yoksa otomatik işlem oluşturma
+        if(!s.autoPay)return;
         const wc=App.Money.walletCur(s.wallet);
         const mc=App.Money.mainCur();
         const txAmount=App.ExchangeRate.convert(s.amount,mc,wc);
         const desc = (typeof window.t === 'function')
           ? t('subscriptionLabel',{name:s.name})
           : (s.name + ' (Abonelik)');
-        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:t.toISOString()};
+        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:t.toISOString(),autoProcessed:true};
         Core.state.transactions.push(tx);
         App.Money.applyTx(tx);
         add++;
@@ -2287,11 +2375,11 @@ const App = {
     if(add>0){
       Core.state.settings.lastProcessedDate=tStr;
       Core.DB.save();
-      if (typeof window.t === 'function') {
-        UI.Toasts.show(t('msgRecProcessed',{n:add}));
-      } else {
-        UI.Toasts.show(add + ' abonelik işlendi.');
-      }
+      UI.Toasts.show(`${add} otomatik ödeme talimatı işlendi.`,'success');
+    } else {
+      // Tarih güncellemesi (manuel ödeme olmasa da)
+      Core.state.settings.lastProcessedDate=tStr;
+      Core.DB.save();
     }
   },
   Controllers:{
@@ -2490,7 +2578,7 @@ const App = {
           const dueLabel=daysUntilDue===null?'':(daysUntilDue===0?'<span style="color:var(--status-danger);font-weight:700;font-size:11px">Bugün son ödeme!</span>':`<span style="color:var(--status-warn);font-size:11px;font-weight:600">${daysUntilDue} gün sonra son ödeme</span>`);
           return`<div class="upcoming-item" style="${urgStyle}margin-bottom:8px">
             <div style="flex:1;min-width:0">
-              <div class="font-bold" style="font-size:14px">💳 ${cc.name}</div>
+              <div class="font-bold" style="font-size:14px">${cc.name}</div>
               <div class="text-caption" style="text-transform:none;margin-top:2px">${dueLabel||'Kredi Kartı Borcu'}</div>
             </div>
             <div class="upcoming-item-actions">
@@ -2522,7 +2610,7 @@ const App = {
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent?`<div class="cc-status-badge overdue">⚠ ${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}`
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent?`<div class="cc-status-badge overdue">${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}`
             : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px">${Core.Utils.formatMoney(w.balance,w.currency)}</div>`;
           const standardBtns=isCC
             ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>`
@@ -3009,10 +3097,10 @@ const App = {
         if(rowsEl){
           const catColor=Core.Utils.getCatColor(tx.cat);
           rowsEl.innerHTML=`
-            <div class="tx-detail-row"><span class="tx-detail-label">📅 Tarih</span><span class="tx-detail-value">${dateStr}${timeStr?' · '+timeStr:''}</span></div>
-            <div class="tx-detail-row"><span class="tx-detail-label">🏷️ Kategori</span><span class="tx-detail-value" style="color:${catColor}">${tx.cat}</span></div>
-            <div class="tx-detail-row"><span class="tx-detail-label">🏦 Hesap</span><span class="tx-detail-value">${walletName}</span></div>
-            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">📝 Açıklama</span><span class="tx-detail-value">${tx.desc}</span></div>`:''}
+            <div class="tx-detail-row"><span class="tx-detail-label">Tarih</span><span class="tx-detail-value">${dateStr}${timeStr?' · '+timeStr:''}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">Kategori</span><span class="tx-detail-value" style="color:${catColor}">${tx.cat}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">Hesap</span><span class="tx-detail-value">${walletName}</span></div>
+            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">Açıklama</span><span class="tx-detail-value">${tx.desc}</span></div>`:''}
           `;
         }
         if(modal){
@@ -3228,7 +3316,7 @@ const App = {
           const txCur=tx.amountCurrency||(w&&w.currency)||mainCur;
           const amtMain=App.Money.toMain(tx);
           const origStr=txCur!==mainCur?` <span style="font-size:11px;color:var(--text-muted)">(${Core.Utils.formatMoney(tx.amount,txCur)})</span>`:'';
-          const rateSnap=tx.rateSnapshot?`<span style="font-size:10px;color:var(--text-muted)" title="Kur: 1 USD = ${tx.rateSnapshot['TRY']?.toFixed(2)||'?'} TRY"> 📌</span>`:'';
+          const rateSnap=tx.rateSnapshot?`<span style="font-size:10px;color:var(--text-muted)" title="Kur: 1 USD = ${tx.rateSnapshot['TRY']?.toFixed(2)||'?'} TRY"> #</span>`:'';
           return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-danger)">${Core.Utils.formatMoney(amtMain,mainCur)}${rateSnap}</div>${origStr}</div></div>`;
         }).join('');
         const modal=document.getElementById('modalCatDetail');
@@ -3281,10 +3369,10 @@ const App = {
         g.innerHTML=Core.state.recurring.map(s=>{
           const isPaid=paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
-          const payBtn=!isPaid?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:'';
+          const autoPayBadge=s.autoPay?`<span class="autopay-badge">Oto. Ödeme</span>`:'';
+          const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:(!isPaid&&s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;opacity:.55;cursor:default" disabled title="Otomatik ödeme aktif">Oto</button>`:'');
           const dayLabel=t('onDayOfMonth',{day:s.day});
-          const dayDisplay=dayLabel;
-          return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}>
+          return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:rgba(79,70,229,.22)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
               <div style="min-width:0;flex:1">
                 <div class="font-bold" style="font-size:17px">${s.name}</div>
@@ -3292,20 +3380,27 @@ const App = {
               </div>
               <div class="flex gap-1" style="flex-shrink:0">
                 ${payBtn}
-                <button class="act-btn" onclick="App.Controllers.Recurring.edit('${s.id}')" data-i18n-title="edit" title="Düzenle"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button>
-                <button class="act-btn danger" onclick="App.Controllers.Recurring.delete('${s.id}')" data-i18n-title="delete" title="Sil"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button>
+                <button class="act-btn" onclick="App.Controllers.Recurring.edit('${s.id}')" title="Düzenle"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button>
+                <button class="act-btn danger" onclick="App.Controllers.Recurring.delete('${s.id}')" title="Sil"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button>
               </div>
             </div>
-            ${isPaid?`<div class="mb-3">${paidBadge}</div>`:''}
+            <div class="flex gap-2 flex-wrap mb-3">${isPaid?paidBadge:''} ${autoPayBadge}</div>
             <div class="flex items-center gap-2 mb-4 text-subtitle font-medium"><svg class="nav-icon" style="width:13px"><use href="#icon-wallet"/></svg>${Core.state.wallets.find(w=>w.id===s.wallet)?.name||t('deleted')}</div>
             <div class="flex justify-between items-end pt-4" style="border-top:1px solid var(--border-light)">
-              <div class="text-subtitle">${dayDisplay}</div>
+              <div class="text-subtitle">${dayLabel}</div>
               <div class="font-display font-bold color-danger" style="font-size:21px;letter-spacing:-.5px">-${Core.Utils.formatMoney(s.amount,Core.state.settings.currency||'TRY')}</div>
             </div>
           </div>`;
         }).join('');
       },
-      openModal(editId){this._renderWalletPills();document.getElementById('rec_id').value=editId||'';document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');}const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent=t('addRecurring');UI.Modals.open('modalRecurring');},
+      openModal(editId){this._renderWalletPills();document.getElementById('rec_id').value=editId||'';document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');}const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent=t('addRecurring');
+        // Reset auto-pay UI
+        const apHidden=document.getElementById('rec_autopay');const apTrack=document.getElementById('recAutoPayTrack');const apRow=document.getElementById('recAutoPayRow');const apDetails=document.getElementById('recAutoPayDetails');
+        if(apHidden)apHidden.value='0';if(apTrack)apTrack.classList.remove('on');if(apRow)apRow.classList.remove('active');if(apDetails)apDetails.style.display='none';
+        // Listen for day changes
+        const dayInput=document.getElementById('rec_day');if(dayInput){dayInput.oninput=()=>this._updateAutoPayPreview();}
+        this._updateAutoPayPreview();
+        UI.Modals.open('modalRecurring');},
       edit(id){
         const s=Core.state.recurring.find(x=>x.id===id);if(!s)return;
         this._renderWalletPills();
@@ -3320,11 +3415,38 @@ const App = {
         if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=s.cat;cb.classList.add('has-value');}
         setTimeout(()=>document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${s.wallet}'`))),50);
         const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent=t('editRecurring')||t('addRecurring');
+        // Restore auto-pay
+        const apHidden=document.getElementById('rec_autopay');const apTrack=document.getElementById('recAutoPayTrack');const apRow=document.getElementById('recAutoPayRow');const apDetails=document.getElementById('recAutoPayDetails');
+        const apOn=!!s.autoPay;
+        if(apHidden)apHidden.value=apOn?'1':'0';
+        if(apTrack)apOn?apTrack.classList.add('on'):apTrack.classList.remove('on');
+        if(apRow)apOn?apRow.classList.add('active'):apRow.classList.remove('active');
+        if(apDetails)apDetails.style.display=apOn?'block':'none';
+        const dayInput=document.getElementById('rec_day');if(dayInput)dayInput.oninput=()=>this._updateAutoPayPreview();
+        this._updateAutoPayPreview();
         UI.Modals.open('modalRecurring');
+      },
+      toggleAutoPay(){
+        const hidden=document.getElementById('rec_autopay');
+        const track=document.getElementById('recAutoPayTrack');
+        const row=document.getElementById('recAutoPayRow');
+        const details=document.getElementById('recAutoPayDetails');
+        const isOn=hidden.value==='1';
+        hidden.value=isOn?'0':'1';
+        isOn?track.classList.remove('on'):track.classList.add('on');
+        isOn?row.classList.remove('active'):row.classList.add('active');
+        if(details)details.style.display=isOn?'none':'block';
+        this._updateAutoPayPreview();
+      },
+      _updateAutoPayPreview(){
+        const dayVal=document.getElementById('rec_day')?.value||'1';
+        const preview=document.getElementById('recAutoPayDayPreview');
+        if(preview)preview.textContent='her ayın '+dayVal+'. günü';
       },
       save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const rawAmount=parseFloat(document.getElementById('rec_amount').value);if(!rawAmount)return UI.Toasts.show(t('msgAmountReq'),'error');const recCurEl=document.getElementById('rec_currency');const recCur=recCurEl?recCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amount=App.ExchangeRate.convert(rawAmount,recCur,mc);const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';
         const recId=document.getElementById('rec_id').value;
-        const recObj={name,amount,originalAmount:rawAmount,currency:recCur,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1};
+        const autoPay=document.getElementById('rec_autopay')?.value==='1';
+        const recObj={name,amount,originalAmount:rawAmount,currency:recCur,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1,autoPay};
         if(recId){
           const ix=Core.state.recurring.findIndex(x=>x.id===recId);
           if(ix!==-1)Core.state.recurring[ix]={...Core.state.recurring[ix],...recObj};
@@ -3736,6 +3858,215 @@ const App = {
       },
       factoryReset(){UI.Confirm.show(t('confFactory'),()=>{localStorage.removeItem(Core.DB.key);location.reload();});}
     }
+  }
+};
+
+// ═══════════════════════════════════════
+// BOTTOM BAR — Özelleştirilebilir Dinamik Nav
+// ═══════════════════════════════════════
+const ALL_BNAV_ITEMS = [
+  {id:'dashboard', icon:'icon-home',  label:'Ana Sayfa',   labelEn:'Home',         route:'/dashboard'},
+  {id:'wallets',   icon:'icon-wallet',label:'Hesaplar',    labelEn:'Accounts',     route:'/wallets'},
+  {id:'transactions',icon:'icon-list',label:'İşlemler',   labelEn:'Transactions', route:'/transactions'},
+  {id:'analytics', icon:'icon-chart', label:'Analiz',      labelEn:'Analytics',    route:'/analytics'},
+  {id:'recurring', icon:'icon-repeat',label:'Abonelikler', labelEn:'Subscriptions',route:'/recurring'},
+  {id:'goals',     icon:'icon-target',label:'Hedefler',    labelEn:'Goals',        route:'/goals'},
+  {id:'debts',     icon:'icon-briefcase',label:'Borç/Alacak',labelEn:'Debts',     route:'/debts'},
+  {id:'settings',  icon:'icon-settings',label:'Ayarlar',  labelEn:'Settings',     route:'/settings'},
+];
+
+App.Controllers.BottomBar = {
+  STORAGE_KEY: 'sagi_bnav_order',
+  DEFAULT_IDS: ['dashboard','wallets','transactions','analytics','settings'],
+  _dragSrcIdx: null,
+  _touchSrcIdx: null,
+  _touchGhost: null,
+
+  getActive(){
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if(saved){const arr=JSON.parse(saved);if(Array.isArray(arr)&&arr.length>0)return arr.slice(0,5);}
+    }catch(e){}
+    return [...this.DEFAULT_IDS];
+  },
+
+  setActive(ids){
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ids.slice(0,5)));
+    this.renderNav();
+    this.renderEditor();
+  },
+
+  reset(){
+    localStorage.removeItem(this.STORAGE_KEY);
+    this.renderNav();
+    this.renderEditor();
+    UI.Toasts.show('Alt menü sıfırlandı.');
+  },
+
+  getLabel(item){
+    return (window.LANG==='en'&&item.labelEn)?item.labelEn:item.label;
+  },
+
+  renderNav(){
+    const nav = document.getElementById('appBottomNav');
+    if(!nav)return;
+    const activeIds = this.getActive();
+    const currentRoute = window.location.hash.replace('#','') || '/dashboard';
+    nav.innerHTML = activeIds.map((id,i)=>{
+      const item = ALL_BNAV_ITEMS.find(x=>x.id===id);
+      if(!item)return '';
+      const isActive = currentRoute===item.route;
+      return `<a href="#${item.route}" class="bnav-link${isActive?' active':''}" data-route="${item.route}" style="animation-delay:${i*0.04}s">
+        <svg class="nav-icon"><use href="#${item.icon}"/></svg>
+        <span class="bnav-text">${this.getLabel(item)}</span>
+      </a>`;
+    }).join('');
+    // Re-apply active class after route
+    document.querySelectorAll('.nav-link,.bnav-link').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll(`[data-route="${currentRoute}"]`).forEach(n=>n.classList.add('active'));
+  },
+
+  renderEditor(){
+    const activeList = document.getElementById('bnavActiveList');
+    const availList  = document.getElementById('bnavAvailableList');
+    if(!activeList||!availList)return;
+
+    const activeIds = this.getActive();
+    const availIds  = ALL_BNAV_ITEMS.map(x=>x.id).filter(id=>!activeIds.includes(id));
+
+    // --- Aktif liste ---
+    activeList.innerHTML = activeIds.map((id,i)=>{
+      const item = ALL_BNAV_ITEMS.find(x=>x.id===id);
+      if(!item)return '';
+      const isLocked = item.id==='settings'; // settings her zaman kalır (isteğe bağlı)
+      return `<div class="bnav-sort-item" draggable="true" data-idx="${i}" data-id="${id}"
+          ondragstart="App.Controllers.BottomBar._onDragStart(event,${i})"
+          ondragover="App.Controllers.BottomBar._onDragOver(event,${i})"
+          ondragend="App.Controllers.BottomBar._onDragEnd(event)"
+          ondrop="App.Controllers.BottomBar._onDrop(event,${i})">
+        <div class="bnav-sort-drag-handle">
+          <svg style="width:18px;height:18px;stroke:currentColor;fill:none" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="6" r="1.5" fill="currentColor"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="9" cy="18" r="1.5" fill="currentColor"/><circle cx="15" cy="18" r="1.5" fill="currentColor"/></svg>
+        </div>
+        <div class="bnav-sort-icon"><svg class="nav-icon" style="width:18px;height:18px"><use href="#${item.icon}"/></svg></div>
+        <span class="bnav-sort-label">${this.getLabel(item)}</span>
+        <button class="bnav-sort-remove" onclick="App.Controllers.BottomBar.removeItem('${id}')" title="Kaldır">
+          <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+
+    // Touch sürükleme desteği (mobil)
+    activeList.querySelectorAll('.bnav-sort-item').forEach(el=>{
+      el.addEventListener('touchstart', e=>this._onTouchStart(e), {passive:false});
+      el.addEventListener('touchmove',  e=>this._onTouchMove(e),  {passive:false});
+      el.addEventListener('touchend',   e=>this._onTouchEnd(e));
+    });
+
+    // --- Eklenebilecek liste ---
+    if(activeIds.length>=5){
+      availList.innerHTML = `<div class="bnav-max-warn" style="width:100%">Maksimum 5 öğeye ulaşıldı. Eklemek için önce bir öğeyi kaldırın.</div>`;
+    } else if(availIds.length===0){
+      availList.innerHTML = `<span style="font-size:13px;color:var(--text-muted)">Tüm öğeler aktif.</span>`;
+    } else {
+      availList.innerHTML = availIds.map(id=>{
+        const item = ALL_BNAV_ITEMS.find(x=>x.id===id);
+        if(!item)return '';
+        return `<div class="bnav-avail-chip" onclick="App.Controllers.BottomBar.addItem('${id}')">
+          <div class="bnav-add-icon"><svg class="nav-icon"><use href="#icon-plus"/></svg></div>
+          <svg class="nav-icon" style="color:var(--text-secondary)"><use href="#${item.icon}"/></svg>
+          ${this.getLabel(item)}
+        </div>`;
+      }).join('');
+    }
+  },
+
+  addItem(id){
+    const ids = this.getActive();
+    if(ids.length>=5){UI.Toasts.show('Maksimum 5 öğe eklenebilir.','error');return;}
+    if(ids.includes(id))return;
+    ids.push(id);
+    this.setActive(ids);
+    UI.Toasts.show('Öğe eklendi.');
+  },
+
+  removeItem(id){
+    let ids = this.getActive().filter(x=>x!==id);
+    if(ids.length===0)ids=['dashboard'];
+    this.setActive(ids);
+    UI.Toasts.show('Öğe kaldırıldı.');
+  },
+
+  // ─── Desktop Drag & Drop ───
+  _onDragStart(e,idx){
+    this._dragSrcIdx=idx;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+  },
+  _onDragOver(e,idx){
+    e.preventDefault();
+    document.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('drag-over'));
+    if(idx!==this._dragSrcIdx)e.currentTarget.classList.add('drag-over');
+    e.dataTransfer.dropEffect='move';
+  },
+  _onDrop(e,targetIdx){
+    e.preventDefault();
+    if(this._dragSrcIdx===null||this._dragSrcIdx===targetIdx)return;
+    const ids=[...this.getActive()];
+    const [moved]=ids.splice(this._dragSrcIdx,1);
+    ids.splice(targetIdx,0,moved);
+    this.setActive(ids);
+  },
+  _onDragEnd(e){
+    document.querySelectorAll('.bnav-sort-item').forEach(el=>{
+      el.classList.remove('dragging','drag-over');
+    });
+    this._dragSrcIdx=null;
+  },
+
+  // ─── Mobile Touch Drag ───
+  _onTouchStart(e){
+    const el=e.currentTarget;
+    this._touchSrcIdx=parseInt(el.dataset.idx);
+    // Create ghost
+    const rect=el.getBoundingClientRect();
+    const ghost=el.cloneNode(true);
+    ghost.style.cssText=`position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;opacity:.85;pointer-events:none;z-index:9999;border-color:var(--brand-accent);transform:scale(1.03);box-shadow:0 12px 32px rgba(0,0,0,.18);border-radius:var(--radius-md)`;
+    document.body.appendChild(ghost);
+    this._touchGhost=ghost;
+    this._touchOffsetY=e.touches[0].clientY-rect.top;
+    el.classList.add('dragging');
+  },
+  _onTouchMove(e){
+    e.preventDefault();
+    if(!this._touchGhost)return;
+    const y=e.touches[0].clientY;
+    this._touchGhost.style.top=(y-this._touchOffsetY)+'px';
+    // Find target
+    const list=document.getElementById('bnavActiveList');
+    if(!list)return;
+    const items=[...list.querySelectorAll('.bnav-sort-item:not(.dragging)')];
+    let targetIdx=null;
+    items.forEach((item,i)=>{
+      const rect=item.getBoundingClientRect();
+      const mid=rect.top+rect.height/2;
+      item.classList.remove('drag-over');
+      if(y>rect.top&&y<rect.bottom){targetIdx=parseInt(item.dataset.idx);}
+    });
+    if(targetIdx!==null){
+      items.forEach(item=>{if(parseInt(item.dataset.idx)===targetIdx)item.classList.add('drag-over');});
+      this._touchTargetIdx=targetIdx;
+    }
+  },
+  _onTouchEnd(e){
+    if(this._touchGhost){this._touchGhost.remove();this._touchGhost=null;}
+    document.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));
+    if(this._touchSrcIdx!==null&&this._touchTargetIdx!==null&&this._touchSrcIdx!==this._touchTargetIdx){
+      const ids=[...this.getActive()];
+      const [moved]=ids.splice(this._touchSrcIdx,1);
+      ids.splice(this._touchTargetIdx,0,moved);
+      this.setActive(ids);
+    }
+    this._touchSrcIdx=null;this._touchTargetIdx=null;
   }
 };
 
