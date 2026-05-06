@@ -3922,8 +3922,13 @@ App.Controllers.BottomBar = {
   STORAGE_KEY: 'sagi_bnav_order',
   DEFAULT_IDS: ['dashboard','wallets','transactions','analytics','settings'],
   _dragSrcIdx: null,
+  _dragOverIdx: null,
   _touchSrcIdx: null,
+  _touchTargetIdx: null,
   _touchGhost: null,
+  _touchOffsetY: 0,
+  _touchRaf: null,          // requestAnimationFrame handle — ghost hareketini throttle eder
+  _touchCachedRects: null,  // touch sürükleme başında hesaplanır, move sırasında tekrar okumaz
 
   getActive(){
     try {
@@ -3995,7 +4000,6 @@ App.Controllers.BottomBar = {
     activeList.innerHTML = activeIds.map((id,i)=>{
       const item = ALL_BNAV_ITEMS.find(x=>x.id===id);
       if(!item)return '';
-      const isLocked = item.id==='settings'; // settings her zaman kalır (isteğe bağlı)
       return `<div class="bnav-sort-item" draggable="true" data-idx="${i}" data-id="${id}"
           ondragstart="App.Controllers.BottomBar._onDragStart(event,${i})"
           ondragover="App.Controllers.BottomBar._onDragOver(event,${i})"
@@ -4012,12 +4016,19 @@ App.Controllers.BottomBar = {
       </div>`;
     }).join('');
 
-    // Touch sürükleme desteği (mobil)
-    activeList.querySelectorAll('.bnav-sort-item').forEach(el=>{
-      el.addEventListener('touchstart', e=>this._onTouchStart(e), {passive:false});
-      el.addEventListener('touchmove',  e=>this._onTouchMove(e),  {passive:false});
-      el.addEventListener('touchend',   e=>this._onTouchEnd(e));
-    });
+    // Touch sürükleme desteği (mobil) — event delegation ile tek listener, sızıntı yok
+    activeList.removeEventListener('touchstart', this._boundTouchStart);
+    activeList.removeEventListener('touchmove',  this._boundTouchMove);
+    activeList.removeEventListener('touchend',   this._boundTouchEnd);
+    this._boundTouchStart = e => {
+      const item = e.target.closest('.bnav-sort-item');
+      if(item) this._onTouchStart(e, item);
+    };
+    this._boundTouchMove = e => this._onTouchMove(e);
+    this._boundTouchEnd  = e => this._onTouchEnd(e);
+    activeList.addEventListener('touchstart', this._boundTouchStart, {passive:false});
+    activeList.addEventListener('touchmove',  this._boundTouchMove,  {passive:false});
+    activeList.addEventListener('touchend',   this._boundTouchEnd,   {passive:true});
 
     // --- Eklenebilecek liste ---
     if(activeIds.length>=5){
@@ -4056,14 +4067,21 @@ App.Controllers.BottomBar = {
   // ─── Desktop Drag & Drop ───
   _onDragStart(e,idx){
     this._dragSrcIdx=idx;
+    this._dragOverIdx=null;
     e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed='move';
   },
   _onDragOver(e,idx){
     e.preventDefault();
-    document.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('drag-over'));
-    if(idx!==this._dragSrcIdx)e.currentTarget.classList.add('drag-over');
     e.dataTransfer.dropEffect='move';
+    if(idx===this._dragOverIdx)return; // değişmediyse DOM'a dokunma
+    // Eski drag-over'ı temizle — sadece tek öğeyi güncelle, tüm listeyi tarama
+    if(this._dragOverIdx!==null){
+      const old=document.querySelector(`.bnav-sort-item[data-idx="${this._dragOverIdx}"]`);
+      if(old)old.classList.remove('drag-over');
+    }
+    this._dragOverIdx=idx;
+    if(idx!==this._dragSrcIdx)e.currentTarget.classList.add('drag-over');
   },
   _onDrop(e,targetIdx){
     e.preventDefault();
@@ -4071,59 +4089,91 @@ App.Controllers.BottomBar = {
     const ids=[...this.getActive()];
     const [moved]=ids.splice(this._dragSrcIdx,1);
     ids.splice(targetIdx,0,moved);
+    this._dragSrcIdx=null;
+    this._dragOverIdx=null;
     this.setActive(ids);
   },
   _onDragEnd(e){
-    document.querySelectorAll('.bnav-sort-item').forEach(el=>{
-      el.classList.remove('dragging','drag-over');
-    });
+    // Tek geçişte temizle
+    const list=document.getElementById('bnavActiveList');
+    if(list)list.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));
     this._dragSrcIdx=null;
+    this._dragOverIdx=null;
   },
 
   // ─── Mobile Touch Drag ───
-  _onTouchStart(e){
-    const el=e.currentTarget;
+  _onTouchStart(e, el){
+    e.preventDefault(); // scroll'u engelle, ancak sadece handle'a dokunulduğunda
     this._touchSrcIdx=parseInt(el.dataset.idx);
-    // Create ghost
+    this._touchTargetIdx=null;
+
+    // Ghost oluştur — bir kez oku, sonra sadece transform ile taşı (reflow yok)
     const rect=el.getBoundingClientRect();
     const ghost=el.cloneNode(true);
-    ghost.style.cssText=`position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;opacity:.85;pointer-events:none;z-index:9999;border-color:var(--brand-accent);transform:scale(1.03);box-shadow:0 12px 32px rgba(0,0,0,.18);border-radius:var(--radius-md)`;
+    ghost.style.cssText=`position:fixed;top:0;left:${rect.left}px;width:${rect.width}px;opacity:.88;pointer-events:none;z-index:9999;border-color:var(--brand-accent);transform:translateY(${rect.top}px) scale(1.03);transform-origin:center;box-shadow:0 12px 32px rgba(0,0,0,.22);border-radius:var(--radius-md);transition:none;will-change:transform`;
     document.body.appendChild(ghost);
     this._touchGhost=ghost;
     this._touchOffsetY=e.touches[0].clientY-rect.top;
     el.classList.add('dragging');
-  },
-  _onTouchMove(e){
-    e.preventDefault();
-    if(!this._touchGhost)return;
-    const y=e.touches[0].clientY;
-    this._touchGhost.style.top=(y-this._touchOffsetY)+'px';
-    // Find target
-    const list=document.getElementById('bnavActiveList');
-    if(!list)return;
-    const items=[...list.querySelectorAll('.bnav-sort-item:not(.dragging)')];
-    let targetIdx=null;
-    items.forEach((item,i)=>{
-      const rect=item.getBoundingClientRect();
-      const mid=rect.top+rect.height/2;
-      item.classList.remove('drag-over');
-      if(y>rect.top&&y<rect.bottom){targetIdx=parseInt(item.dataset.idx);}
-    });
-    if(targetIdx!==null){
-      items.forEach(item=>{if(parseInt(item.dataset.idx)===targetIdx)item.classList.add('drag-over');});
-      this._touchTargetIdx=targetIdx;
+
+    // Rect'leri bir kez oku, move sırasında tekrar okuma — layout thrashing önlenir
+    const activeList=document.getElementById('bnavActiveList');
+    if(activeList){
+      this._touchCachedRects=[...activeList.querySelectorAll('.bnav-sort-item')].map(item=>({
+        idx: parseInt(item.dataset.idx),
+        top: item.getBoundingClientRect().top,
+        bottom: item.getBoundingClientRect().bottom,
+        el: item
+      }));
     }
   },
+  _onTouchMove(e){
+    if(!this._touchGhost)return;
+    e.preventDefault();
+    const y=e.touches[0].clientY;
+
+    // Ghost hareketi: sadece transform değiştir, reflow yok — rAF ile throttle et
+    if(this._touchRaf)cancelAnimationFrame(this._touchRaf);
+    this._touchRaf=requestAnimationFrame(()=>{
+      if(this._touchGhost)
+        this._touchGhost.style.transform=`translateY(${y-this._touchOffsetY}px) scale(1.03)`;
+    });
+
+    // Hedef öğeyi önceden hesaplanmış rect'lerle bul — getBoundingClientRect() yok
+    if(!this._touchCachedRects)return;
+    let newTargetIdx=null;
+    for(const r of this._touchCachedRects){
+      if(r.idx===this._touchSrcIdx)continue;
+      if(y>=r.top&&y<=r.bottom){newTargetIdx=r.idx;break;}
+    }
+
+    if(newTargetIdx===this._touchTargetIdx)return; // değişmediyse DOM'a dokunma
+    // Eski highlight'ı temizle, yenisini ekle — sadece 2 öğeye dokun
+    for(const r of this._touchCachedRects){
+      if(r.idx===this._touchTargetIdx)r.el.classList.remove('drag-over');
+      if(r.idx===newTargetIdx&&newTargetIdx!==null)r.el.classList.add('drag-over');
+    }
+    this._touchTargetIdx=newTargetIdx;
+  },
   _onTouchEnd(e){
+    if(this._touchRaf){cancelAnimationFrame(this._touchRaf);this._touchRaf=null;}
     if(this._touchGhost){this._touchGhost.remove();this._touchGhost=null;}
-    document.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));
+    // Temizlik
+    const activeList=document.getElementById('bnavActiveList');
+    if(activeList)activeList.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));
+    this._touchCachedRects=null;
+
     if(this._touchSrcIdx!==null&&this._touchTargetIdx!==null&&this._touchSrcIdx!==this._touchTargetIdx){
       const ids=[...this.getActive()];
       const [moved]=ids.splice(this._touchSrcIdx,1);
       ids.splice(this._touchTargetIdx,0,moved);
+      this._touchSrcIdx=null;
+      this._touchTargetIdx=null;
       this.setActive(ids);
+    } else {
+      this._touchSrcIdx=null;
+      this._touchTargetIdx=null;
     }
-    this._touchSrcIdx=null;this._touchTargetIdx=null;
   }
 };
 
