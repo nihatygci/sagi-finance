@@ -403,6 +403,70 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .paid-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius-full);background:var(--status-success-bg);color:var(--status-success);font-size:11px;font-weight:700;letter-spacing:.01em;border:1px solid rgba(34,160,107,.18);white-space:nowrap}
 .paid-badge svg{width:11px;height:11px;stroke-width:3}
 
+/* ─── ANALİZ SAYFASI GELİŞMİŞ STİLLER ─── */
+.analytics-period-bar{display:flex;gap:6px;background:var(--bg-body);border-radius:var(--radius-md);padding:4px;border:1px solid var(--border-light);width:100%}
+.analytics-period-btn{flex:1;padding:8px 10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text-muted);text-align:center;border:none;background:none}
+.analytics-period-btn.active{background:var(--bg-surface);color:var(--brand-accent);box-shadow:0 1px 6px rgba(0,0,0,.07)}
+.kpi-card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.kpi-card .kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px}
+.kpi-card .kpi-val{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.kpi-card .kpi-delta{font-size:12px;font-weight:600;margin-top:5px;display:flex;align-items:center;gap:4px}
+.kpi-card .kpi-delta.up{color:var(--status-success)}.kpi-card .kpi-delta.down{color:var(--status-danger)}.kpi-card .kpi-delta.neutral{color:var(--text-muted)}
+.kpi-card .kpi-icon{position:absolute;right:14px;top:14px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+/* AI Bot Mesajı */
+.ai-insight-card{background:linear-gradient(135deg,rgba(79,70,229,.07) 0%,rgba(99,102,241,.04) 100%);border:1.5px solid rgba(79,70,229,.18);border-radius:var(--radius-lg);padding:18px;position:relative;overflow:hidden}
+[data-theme="dark"] .ai-insight-card{background:linear-gradient(135deg,rgba(99,102,241,.13) 0%,rgba(79,70,229,.06) 100%);border-color:rgba(99,102,241,.28)}
+.ai-insight-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(79,70,229,.12) 0%,transparent 70%);pointer-events:none}
+.ai-bot-row{display:flex;align-items:flex-start;gap:12px}
+.ai-bot-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.ai-bot-avatar svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
+.ai-bot-bubble{flex:1;background:var(--bg-surface);border-radius:0 14px 14px 14px;padding:13px 15px;border:1px solid var(--border-light);font-size:14px;line-height:1.6;color:var(--text-main);position:relative}
+.ai-bot-bubble::before{content:'';position:absolute;left:-6px;top:10px;width:10px;height:10px;background:var(--bg-surface);border-left:1px solid var(--border-light);border-bottom:1px solid var(--border-light);transform:rotate(45deg);clip-path:polygon(0 0,100% 100%,0 100%)}
+.ai-bot-name{font-size:11px;font-weight:700;color:var(--brand-accent);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.ai-insight-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ai-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700;background:rgba(79,70,229,.1);color:var(--brand-accent);border:1px solid rgba(79,70,229,.2)}
+.ai-tag.warn{background:var(--status-warn-bg);color:var(--status-warn);border-color:rgba(217,119,6,.2)}
+.ai-tag.success{background:var(--status-success-bg);color:var(--status-success);border-color:rgba(34,160,107,.2)}
+.ai-tag.danger{background:var(--status-danger-bg);color:var(--status-danger);border-color:rgba(229,83,75,.2)}
+/* Tahmin Kartı */
+.forecast-card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm)}
+.forecast-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-light)}
+.forecast-row:last-child{border-bottom:none}
+.forecast-label{font-size:14px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+.forecast-val{font-family:var(--font-display);font-size:16px;font-weight:800;letter-spacing:-.02em}
+.forecast-conf{font-size:11px;color:var(--text-muted);font-weight:500;margin-top:1px;text-align:right}
+/* Tasarruf Skoru */
+.score-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.score-ring-wrap svg{width:110px;height:110px}
+.score-val{font-family:var(--font-display);font-size:28px;font-weight:800;fill:var(--text-main)}
+.score-label-txt{font-size:11px;fill:var(--text-muted);font-weight:600}
+.score-grade{font-size:13px;font-weight:700;padding:3px 12px;border-radius:var(--radius-full);margin-top:4px}
+/* Harcama Alışkanlıkları */
+.habit-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light)}
+.habit-item:last-child{border-bottom:none}
+.habit-icon-wrap{width:38px;height:38px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.habit-info{flex:1;min-width:0}
+.habit-name{font-size:14px;font-weight:600;color:var(--text-main)}
+.habit-desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+.habit-badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--radius-full);white-space:nowrap}
+/* Çizgi grafik */
+.sparkline-wrap{height:60px;width:100%;position:relative}
+/* Analiz tab seçici */
+.analytics-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-light);margin-bottom:18px}
+.analytics-tab{padding:10px 16px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s;background:none;border-top:none;border-left:none;border-right:none}
+.analytics-tab.active{color:var(--brand-accent);border-bottom-color:var(--brand-accent)}
+/* Karşılaştırma bar */
+.compare-bar-wrap{margin-bottom:10px}
+.compare-bar-label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px}
+.compare-bar-track{height:8px;background:var(--bg-body);border-radius:99px;overflow:visible;position:relative;border:1px solid var(--border-light)}
+.compare-bar-inc{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:var(--status-success);transition:width .7s cubic-bezier(.16,1,.3,1)}
+.compare-bar-exp{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:var(--status-danger);opacity:.75;transition:width .7s cubic-bezier(.16,1,.3,1)}
+/* Heatmap günler */
+.heatmap-wrap{display:flex;gap:3px;flex-wrap:wrap}
+.heatmap-day{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text-muted);cursor:pointer;transition:transform .15s}
+.heatmap-day:hover{transform:scale(1.15)}
+.heatmap-day.has-tx{color:#fff}
+
 /* BOTTOM BAR CUSTOMIZER */
 .bnav-sort-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--bg-body);border:1.5px solid var(--border-light);border-radius:var(--radius-md);cursor:grab;transition:all .22s cubic-bezier(.16,1,.3,1);user-select:none;position:relative}
 .bnav-sort-item:active{cursor:grabbing}
@@ -611,9 +675,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 .brand-icon-dark  { display: none;  }
 [data-theme="dark"] .brand-icon-light { display: none;  }
 [data-theme="dark"] .brand-icon-dark  { display: block; }
-
-
-
 
 /* PROGRESS */
 .progress-track{height:7px;background:var(--bg-body);border-radius:var(--radius-full);overflow:hidden}
@@ -1083,22 +1144,94 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- ANALİZ -->
     <div id="view-analytics" class="view">
-      <div class="page-title-row">
-        <div><h1 class="text-h1" data-i18n="analytics">Analiz</h1><p class="text-subtitle" data-i18n="analyticsSubtitle">Harcama istatistikleri ve limitler</p></div>
+      <!-- Başlık + Dönem Seçici -->
+      <div class="page-title-row mb-4">
+        <div><h1 class="text-h1">Analiz</h1><p class="text-subtitle">Finansal tablonuzu keşfedin</p></div>
       </div>
-      <div class="css-grid grid-cols-3 mb-5 stagger-1" id="analyticsSummary"></div>
-      <div class="card mb-5 stagger-1">
-        <h2 class="card-title mb-4" data-i18n="last6Months">Son 6 Aylık Trend</h2>
-        <div class="bar-chart-wrap"><div id="trendBarChart"></div></div>
+      <!-- Dönem seçici -->
+      <div class="analytics-period-bar mb-5 stagger-1" id="analyticsPeriodBar">
+        <button class="analytics-period-btn active" data-period="1" onclick="App.Controllers.Analytics.setPeriod(1,this)">Bu Ay</button>
+        <button class="analytics-period-btn" data-period="3" onclick="App.Controllers.Analytics.setPeriod(3,this)">3 Ay</button>
+        <button class="analytics-period-btn" data-period="6" onclick="App.Controllers.Analytics.setPeriod(6,this)">6 Ay</button>
+        <button class="analytics-period-btn" data-period="12" onclick="App.Controllers.Analytics.setPeriod(12,this)">1 Yıl</button>
       </div>
+      <!-- 4'lü KPI -->
+      <div class="css-grid grid-cols-4 mb-5 stagger-1" id="analyticsSummary"></div>
+      <!-- AI Yorum Botu -->
+      <div class="ai-insight-card mb-5 stagger-2" id="aiInsightCard">
+        <div class="ai-bot-row">
+          <div class="ai-bot-avatar">
+            <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1v1a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-1H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1V6a4 4 0 0 1 4-4h4zm0 2H8a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-1 3h2v2h-2V7zm-3 0h2v2H8V7zm2 4h4v1a2 2 0 0 1-2 2h-2v-3z" stroke="none" fill="white"/></svg>
+          </div>
+          <div class="ai-bot-bubble">
+            <div class="ai-bot-name">SAGI Asistan</div>
+            <div id="aiInsightText" style="line-height:1.7">Verileriniz analiz ediliyor...</div>
+            <div class="ai-insight-tags" id="aiInsightTags"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Trend Grafik + Tasarruf Skoru -->
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
-        <div class="card"><h2 class="card-title mb-5" data-i18n="thisMonthCat">Bu Ay Gider Dağılımı</h2><p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Kategoriye tıklayın, işlemleri görün</p><div class="chart-container" id="mainDonutChart" style="cursor:pointer"></div></div>
-        <div class="card"><h2 class="card-title mb-5" data-i18n="categories">Kategoriler</h2><div id="categoryBreakdownList" class="flex flex-col gap-4"></div></div>
+        <div class="card">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="card-title">Gelir / Gider Trendi</h2>
+            <div style="display:flex;gap:10px;font-size:12px;font-weight:600">
+              <span style="display:flex;align-items:center;gap:5px;color:var(--status-success)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-success);display:inline-block"></span>Gelir</span>
+              <span style="display:flex;align-items:center;gap:5px;color:var(--status-danger)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-danger);display:inline-block"></span>Gider</span>
+            </div>
+          </div>
+          <div class="bar-chart-wrap"><div id="trendBarChart"></div></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+          <h2 class="card-title mb-4" style="width:100%">Tasarruf Skoru</h2>
+          <div class="score-ring-wrap">
+            <div id="savingsScoreSvg"></div>
+            <div id="savingsScoreGrade" class="score-grade"></div>
+            <div style="font-size:12px;color:var(--text-muted);max-width:160px;margin-top:6px" id="savingsScoreDesc"></div>
+          </div>
+        </div>
       </div>
-      <div class="card stagger-3">
+      <!-- Önümüzdeki Ay Tahmini -->
+      <div class="forecast-card mb-5 stagger-3" id="forecastCard">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="card-title">
+            <svg class="nav-icon" style="width:18px;height:18px;color:var(--brand-accent)"><use href="#icon-chart"/></svg>
+            Önümüzdeki Ay Tahmini
+          </h2>
+          <span style="font-size:11px;color:var(--text-muted);font-weight:600;background:var(--bg-body);padding:4px 10px;border-radius:var(--radius-full);border:1px solid var(--border-light)">Geçmişe Dayalı</span>
+        </div>
+        <div id="forecastRows"></div>
+      </div>
+      <!-- Gider Dağılımı + Kategoriler -->
+      <div class="css-grid grid-cols-2 mb-5 stagger-3">
+        <div class="card">
+          <h2 class="card-title mb-3">Harcama Dağılımı</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Kategoriye tıklayın, işlemleri görün</p>
+          <!-- Tab: Gider / Gelir -->
+          <div class="analytics-tabs" id="donutTabs">
+            <button class="analytics-tab active" onclick="App.Controllers.Analytics.switchDonut('expense',this)">Gider</button>
+            <button class="analytics-tab" onclick="App.Controllers.Analytics.switchDonut('income',this)">Gelir</button>
+          </div>
+          <div class="chart-container" id="mainDonutChart" style="cursor:pointer"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title mb-4">Kategoriler</h2>
+          <div id="categoryBreakdownList" class="flex flex-col gap-4"></div>
+        </div>
+      </div>
+      <!-- Harcama Alışkanlıkları -->
+      <div class="card mb-5 stagger-3">
+        <h2 class="card-title mb-4">
+          <svg class="nav-icon" style="width:18px;height:18px;color:var(--brand-accent)"><use href="#icon-repeat"/></svg>
+          Alışkanlık Analizi
+        </h2>
+        <div id="habitAnalysisList"></div>
+      </div>
+      <!-- Bütçe Limitleri -->
+      <div class="card stagger-4">
         <div class="flex justify-between items-center mb-5">
-          <h2 class="card-title" data-i18n="catBudgets">Kategori Bütçeleri</h2>
-          <button class="btn btn-outline btn-sm" onclick="App.Controllers.Budgets.openModal()"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-plus"/></svg><span data-i18n="addLimit">Limit Ekle</span></button>
+          <h2 class="card-title">Kategori Bütçeleri</h2>
+          <button class="btn btn-outline btn-sm" onclick="App.Controllers.Budgets.openModal()"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-plus"/></svg>Limit Ekle</button>
         </div>
         <div id="budgetList" class="css-grid grid-cols-2"></div>
       </div>
@@ -3291,62 +3424,434 @@ const App = {
       }
     },
     Analytics:{
+      _period: 1,          // kaç ay geriye bakılacak
+      _donutType: 'expense',
+      _catData: {},
+      _catSorted: [],
+      _renderCatList: null,
+
+      setPeriod(months, btn){
+        this._period = months;
+        document.querySelectorAll('.analytics-period-btn').forEach(b=>b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        this.render();
+      },
+
+      switchDonut(type, btn){
+        this._donutType = type;
+        document.querySelectorAll('#donutTabs .analytics-tab').forEach(b=>b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        this._renderDonut();
+        this._renderCategoryList();
+      },
+
+      // ── Veri Yardımcıları ──
+      _getTxRange(monthsBack){
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth() - (monthsBack - 1), 1);
+        return Core.state.transactions.filter(tx => {
+          if(tx.cat === 'Transfer') return false;
+          const d = new Date(tx.date);
+          return d >= start;
+        });
+      },
+
+      _toMain(tx){
+        return App.Money.toMain(tx);
+      },
+
+      _monthlyData(monthsBack){
+        const now = new Date();
+        const months = [];
+        for(let i = monthsBack - 1; i >= 0; i--){
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const label = d.toLocaleDateString('tr-TR', {month:'short'});
+          const txs = Core.state.transactions.filter(tx => {
+            if(tx.cat === 'Transfer') return false;
+            const td = new Date(tx.date);
+            return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+          });
+          months.push({
+            label,
+            inc: txs.filter(t=>t.type==='income').reduce((s,t)=>s+this._toMain(t),0),
+            exp: txs.filter(t=>t.type==='expense').reduce((s,t)=>s+this._toMain(t),0),
+            month: d.getMonth(),
+            year: d.getFullYear()
+          });
+        }
+        return months;
+      },
+
+      // ── Ana Render ──
       render(){
-        const now=new Date(),mTx=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()&&new Date(t.date).getFullYear()===now.getFullYear());
-        const mainCurA=Core.state.settings.currency||'TRY';
-        const toMainA=(amt,wId)=>{const w=Core.state.wallets.find(x=>x.id===wId);const wc=(w&&w.currency)||mainCurA;return wc!==mainCurA?App.ExchangeRate.convert(amt,wc,mainCurA):amt;};
-        const mInc=mTx.filter(t=>t.type==='income').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0);
-        const mExp=mTx.filter(t=>t.type==='expense').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0);
-        const net=mInc-mExp;
-        const aS=document.getElementById('analyticsSummary');
-        if(aS)aS.innerHTML=`<div class="card"><div class="text-caption mb-2">${t('thisMonthIncome')}</div><div class="kpi-value color-success">${Core.Utils.formatMoney(mInc)}</div></div><div class="card"><div class="text-caption mb-2">${t('thisMonthExpense')}</div><div class="kpi-value color-danger">${Core.Utils.formatMoney(mExp)}</div></div><div class="card"><div class="text-caption mb-2">${t('netSavings')}</div><div class="kpi-value color-warn">${Core.Utils.formatMoney(net)}</div></div>`;
-        const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),ml=d.toLocaleDateString('tr-TR',{month:'short'}),mTxs=Core.state.transactions.filter(t=>t.cat!=='Transfer'&&new Date(t.date).getMonth()===d.getMonth()&&new Date(t.date).getFullYear()===d.getFullYear());months.push({label:ml,inc:mTxs.filter(t=>t.type==='income').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0),exp:mTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+toMainA(t.amount,t.wallet),0)});}
-        UI.ChartEngine.drawBarChart('trendBarChart',months);
-        const cat={};mTx.filter(t=>t.type==='expense').forEach(t=>cat[t.cat]=(cat[t.cat]||0)+App.Money.toMain(t));
-        UI.ChartEngine.drawDonut('mainDonutChart',cat);
-        const tot=Object.values(cat).reduce((s,v)=>s+v,0)||1;
-        const bl=document.getElementById('categoryBreakdownList');
-        if(bl){
-          if(!Object.keys(cat).length){bl.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:20px 0">${t('noExpData')}</div>`;}
-          else{
-            const sorted=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
-            const renderCatList=(showAll)=>{
-              const visible=showAll?sorted:sorted.slice(0,5);
-              const now2=new Date();
-              const mTxCat=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now2.getMonth()&&new Date(tx.date).getFullYear()===now2.getFullYear());
-              const catOrigCur={};
-              mTxCat.forEach(tx=>{const c=tx.cat;if(!catOrigCur[c])catOrigCur[c]=[];const cur=tx.amountCurrency||App.Money.walletCur(tx.wallet);if(!catOrigCur[c].includes(cur))catOrigCur[c].push(cur);});
-              const mainCurDisp=Core.state.settings.currency||'TRY';
-              let html2=visible.map(i=>{
-                const cc=Core.Utils.getCatColor(i[0]);
-                const catEsc=i[0].replace(/'/g,"\'");
-                let origInfo='';
-                const curs=catOrigCur[i[0]]||[];
-                const foreignCurs=curs.filter(c=>c!==mainCurDisp);
-                if(foreignCurs.length>0){
-                  const catTxs=mTxCat.filter(tx=>tx.cat===i[0]);
-                  const origSums={};
-                  catTxs.forEach(tx=>{const c=tx.amountCurrency||App.Money.walletCur(tx.wallet);origSums[c]=(origSums[c]||0)+tx.amount;});
-                  const origParts=Object.entries(origSums).filter(([c])=>c!==mainCurDisp).map(([c,v])=>`${Core.Utils.formatMoney(v,c)}`);
-                  if(origParts.length>0)origInfo=` <span style="font-size:11px;color:var(--text-muted);font-weight:400">(${origParts.join(', ')})</span>`;
-                }
-                return`<div class="mb-4" style="cursor:pointer" onclick="App.Controllers.Analytics.openCatModal('${catEsc}')"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:11px;height:11px;border-radius:50%;background:${cc}"></div>${i[0]}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(i[1],mainCurDisp)}${origInfo} <span class="color-muted" style="font-size:12px;font-weight:500">%${((i[1]/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(i[1]/tot)*100}%;background:${cc}"></div></div></div>`;
-              }).join('');
-              if(!showAll&&sorted.length>5){
-                html2+=`<button class="btn btn-outline btn-sm w-full mt-2" onclick="App.Controllers.Analytics._showAllCats()" style="font-size:13px">${t('showAll')} (${sorted.length-5} ${t('moreCategories')})</button>`;
-              }
-              bl.innerHTML=html2;
-            };
-            App.Controllers.Analytics._catData=cat;
-            App.Controllers.Analytics._catSorted=sorted;
-            App.Controllers.Analytics._renderCatList=renderCatList;
-            renderCatList(false);
+        const now = new Date();
+        const period = this._period;
+        const allTx = this._getTxRange(period);
+        const mc = Core.state.settings.currency || 'TRY';
+
+        const totalInc = allTx.filter(t=>t.type==='income').reduce((s,t)=>s+this._toMain(t),0);
+        const totalExp = allTx.filter(t=>t.type==='expense').reduce((s,t)=>s+this._toMain(t),0);
+        const net = totalInc - totalExp;
+        const savingsRate = totalInc > 0 ? (net / totalInc) * 100 : 0;
+
+        // Son ay verileri (KPI delta için)
+        const prevMonthTx = Core.state.transactions.filter(tx => {
+          if(tx.cat==='Transfer') return false;
+          const d = new Date(tx.date);
+          return d.getMonth() === (now.getMonth()-1+12)%12 &&
+                 d.getFullYear() === (now.getMonth()===0 ? now.getFullYear()-1 : now.getFullYear());
+        });
+        const prevExp = prevMonthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+this._toMain(t),0);
+        const prevInc = prevMonthTx.filter(t=>t.type==='income').reduce((s,t)=>s+this._toMain(t),0);
+
+        // Bu ay
+        const curMonthTx = allTx.filter(tx=>{
+          const d=new Date(tx.date);
+          return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+        });
+        const curInc = curMonthTx.filter(t=>t.type==='income').reduce((s,t)=>s+this._toMain(t),0);
+        const curExp = curMonthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+this._toMain(t),0);
+
+        // ── KPI Kartlar ──
+        const fmt = v => Core.Utils.formatMoney(v, mc);
+        const delta = (cur, prev, inverted=false) => {
+          if(!prev) return '';
+          const pct = ((cur-prev)/Math.abs(prev)*100).toFixed(0);
+          const up = cur >= prev;
+          const positive = inverted ? !up : up;
+          const arrow = up ? '↑' : '↓';
+          const cls = positive ? 'up' : 'down';
+          return `<div class="kpi-delta ${cls}">${arrow} %${Math.abs(pct)} geçen aya göre</div>`;
+        };
+
+        const periodLabel = period===1 ? 'Bu Ay' : period===3 ? '3 Aylık' : period===6 ? '6 Aylık' : 'Yıllık';
+        const aS = document.getElementById('analyticsSummary');
+        if(aS) aS.innerHTML = `
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:rgba(34,160,107,.1);color:var(--status-success)"><svg class="nav-icon"><use href="#icon-wallet"/></svg></div>
+            <div class="kpi-label">${periodLabel} Gelir</div>
+            <div class="kpi-val color-success">${fmt(totalInc)}</div>
+            ${period===1 ? delta(curInc, prevInc) : ''}
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:rgba(229,83,75,.1);color:var(--status-danger)"><svg class="nav-icon"><use href="#icon-list"/></svg></div>
+            <div class="kpi-label">${periodLabel} Gider</div>
+            <div class="kpi-val color-danger">${fmt(totalExp)}</div>
+            ${period===1 ? delta(curExp, prevExp, true) : ''}
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:rgba(217,119,6,.1);color:var(--status-warn)"><svg class="nav-icon"><use href="#icon-target"/></svg></div>
+            <div class="kpi-label">Net Birikim</div>
+            <div class="kpi-val ${net>=0?'color-success':'color-danger'}">${fmt(net)}</div>
+            <div class="kpi-delta ${net>=0?'up':'down'}" style="font-size:11px">Gelirin %${Math.abs(savingsRate).toFixed(0)}'${Math.abs(savingsRate)===1?'i':'u'}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:rgba(79,70,229,.1);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-chart"/></svg></div>
+            <div class="kpi-label">Günlük Ort. Gider</div>
+            <div class="kpi-val">${fmt(totalExp / (period * 30))}</div>
+            <div class="kpi-delta neutral">${period * 30} günlük ortalama</div>
+          </div>`;
+
+        // ── Trend Grafik ──
+        const months = this._monthlyData(period);
+        UI.ChartEngine.drawBarChart('trendBarChart', months);
+
+        // ── Donut ──
+        this._buildCatData(allTx);
+        this._renderDonut();
+        this._renderCategoryList();
+
+        // ── Tasarruf Skoru ──
+        this._renderSavingsScore(savingsRate);
+
+        // ── Tahmin ──
+        this._renderForecast(months);
+
+        // ── Alışkanlıklar ──
+        this._renderHabits(allTx);
+
+        // ── AI Yorum ──
+        this._renderAIInsight(totalInc, totalExp, net, savingsRate, allTx, months);
+
+        App.Controllers.Budgets.render(this._catData.expense || {});
+      },
+
+      _buildCatData(allTx){
+        const expCat = {}, incCat = {};
+        allTx.filter(t=>t.type==='expense').forEach(t=>{expCat[t.cat]=(expCat[t.cat]||0)+this._toMain(t);});
+        allTx.filter(t=>t.type==='income').forEach(t=>{incCat[t.cat]=(incCat[t.cat]||0)+this._toMain(t);});
+        this._catData = { expense: expCat, income: incCat };
+      },
+
+      _renderDonut(){
+        const cat = this._catData[this._donutType] || {};
+        UI.ChartEngine.drawDonut('mainDonutChart', cat, this._donutType);
+      },
+
+      _renderCategoryList(){
+        const bl = document.getElementById('categoryBreakdownList');
+        if(!bl) return;
+        const cat = this._catData[this._donutType] || {};
+        const mc = Core.state.settings.currency || 'TRY';
+        const tot = Object.values(cat).reduce((s,v)=>s+v,0) || 1;
+        if(!Object.keys(cat).length){
+          bl.innerHTML = `<div class="text-center color-muted text-subtitle" style="padding:20px 0">${t('noExpData')}</div>`;
+          return;
+        }
+        const sorted = Object.entries(cat).sort((a,b)=>b[1]-a[1]);
+        const isExp = this._donutType === 'expense';
+        const renderCatList = (showAll) => {
+          const visible = showAll ? sorted : sorted.slice(0, 5);
+          let html = visible.map(([name, val]) => {
+            const cc = Core.Utils.getCatColor(name);
+            const nameEsc = name.replace(/'/g, "\\'");
+            return `<div class="mb-4" style="cursor:${isExp?'pointer':'default'}" ${isExp?`onclick="App.Controllers.Analytics.openCatModal('${nameEsc}')"`:''}><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:10px;height:10px;border-radius:50%;background:${cc}"></div>${name}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(val,mc)} <span class="color-muted" style="font-size:12px;font-weight:500">%${((val/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(val/tot)*100}%;background:${cc}"></div></div></div>`;
+          }).join('');
+          if(!showAll && sorted.length > 5)
+            html += `<button class="btn btn-outline btn-sm w-full mt-2" onclick="App.Controllers.Analytics._showAllCats()" style="font-size:13px">Tümünü Gör (${sorted.length-5} daha)</button>`;
+          bl.innerHTML = html;
+        };
+        this._catSorted = sorted;
+        this._renderCatList = renderCatList;
+        renderCatList(false);
+      },
+
+      // ── Tasarruf Skoru (Halka Grafik) ──
+      _renderSavingsScore(savingsRate){
+        const wrap = document.getElementById('savingsScoreSvg');
+        const gradeEl = document.getElementById('savingsScoreGrade');
+        const descEl = document.getElementById('savingsScoreDesc');
+        if(!wrap) return;
+
+        const score = Math.min(100, Math.max(0, savingsRate + 50)); // -50%..+50% → 0..100
+        const pct = Math.min(100, Math.max(0, savingsRate));
+        const r = 42, cx = 55, cy = 55, circumference = 2 * Math.PI * r;
+        const dash = (score / 100) * circumference;
+        const color = score >= 70 ? 'var(--status-success)' : score >= 40 ? 'var(--brand-accent)' : score >= 20 ? 'var(--status-warn)' : 'var(--status-danger)';
+        const grade = score >= 80 ? 'Mükemmel' : score >= 60 ? 'İyi' : score >= 40 ? 'Orta' : score >= 20 ? 'Dikkat' : 'Kritik';
+        const gradeColor = score >= 70 ? 'var(--status-success)' : score >= 40 ? 'var(--brand-accent)' : score >= 20 ? 'var(--status-warn)' : 'var(--status-danger)';
+        const desc = score >= 70 ? 'Gelirinizin büyük kısmını biriktiriyorsunuz.' : score >= 40 ? 'Tasarruf oranınız makul düzeyde.' : score >= 20 ? 'Tasarruf potansiyeliniz artırılabilir.' : 'Giderleriniz gelirinizi aşıyor.';
+
+        wrap.innerHTML = `<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg-body)" stroke-width="10"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+            stroke-dasharray="${dash} ${circumference}" stroke-dashoffset="${circumference*0.25}"
+            stroke-linecap="round" style="transition:stroke-dasharray .8s cubic-bezier(.16,1,.3,1)"/>
+          <text x="${cx}" y="${cy-4}" text-anchor="middle" class="score-val" font-size="18" font-weight="800" font-family="Outfit,sans-serif" fill="var(--text-main)">${pct.toFixed(0)}%</text>
+          <text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--text-muted)" letter-spacing="0.04em">TASARRUF</text>
+        </svg>`;
+
+        if(gradeEl){ gradeEl.textContent = grade; gradeEl.style.cssText = `background:${gradeColor}22;color:${gradeColor};border:1px solid ${gradeColor}44;`; }
+        if(descEl) descEl.textContent = desc;
+      },
+
+      // ── Gelecek Ay Tahmini ──
+      _renderForecast(months){
+        const el = document.getElementById('forecastRows');
+        if(!el) return;
+        const mc = Core.state.settings.currency || 'TRY';
+        const fmt = v => Core.Utils.formatMoney(v, mc);
+
+        if(months.length < 2){ el.innerHTML = `<div style="color:var(--text-muted);font-size:14px;padding:12px 0">Tahmin için en az 2 aylık veri gerekli.</div>`; return; }
+
+        // Ağırlıklı ortalama: son ay 3x, önceki 2x, daha öncesi 1x ağırlık
+        const weights = months.map((_,i) => i+1);
+        const wSum = weights.reduce((s,w)=>s+w, 0);
+        const wAvgInc = months.reduce((s,m,i)=>s+m.inc*weights[i], 0) / wSum;
+        const wAvgExp = months.reduce((s,m,i)=>s+m.exp*weights[i], 0) / wSum;
+
+        // Trend (son 2 ayın farkından)
+        const last = months[months.length-1];
+        const prev = months[months.length-2];
+        const incTrend = last.inc - prev.inc;
+        const expTrend = last.exp - prev.exp;
+
+        // Blended forecast: %70 ağırlıklı ort. + %30 trend
+        const forecastInc = Math.max(0, wAvgInc * 0.7 + (last.inc + incTrend) * 0.3);
+        const forecastExp = Math.max(0, wAvgExp * 0.7 + (last.exp + expTrend) * 0.3);
+        const forecastNet = forecastInc - forecastExp;
+
+        // Tekrarlayan giderler (recurring)
+        const recBase = (Core.state.recurring || []).filter(r=>r.active!==false).reduce((s,r) => {
+          const cur = r.currency || mc;
+          return s + App.ExchangeRate.convert(r.amount || 0, cur, mc);
+        }, 0);
+
+        // Güven aralığı (varyans)
+        const incVars = months.map(m=>(m.inc-wAvgInc)**2);
+        const expVars = months.map(m=>(m.exp-wAvgExp)**2);
+        const incStd = Math.sqrt(incVars.reduce((s,v)=>s+v,0)/incVars.length);
+        const expStd = Math.sqrt(expVars.reduce((s,v)=>s+v,0)/expVars.length);
+        const confPct = Math.max(0, Math.min(95, 95 - (expStd/forecastExp*100)));
+
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth()+1, 1).toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
+
+        const row = (label, val, conf, icon, color, note='') => `
+          <div class="forecast-row">
+            <div class="forecast-label">
+              ${icon ? `<span style="font-size:18px">${icon}</span>` : ''}${label}
+            </div>
+            <div>
+              <div class="forecast-val" style="color:${color}">${val}</div>
+              ${conf ? `<div class="forecast-conf">%${conf.toFixed(0)} güven</div>` : ''}
+              ${note ? `<div class="forecast-conf">${note}</div>` : ''}
+            </div>
+          </div>`;
+
+        el.innerHTML = `
+          <div style="font-size:13px;font-weight:600;color:var(--brand-accent);margin-bottom:12px;padding:8px 12px;background:rgba(79,70,229,.07);border-radius:var(--radius-sm)">
+            ${nextMonth} Tahmini
+          </div>
+          ${row('Beklenen Gelir', fmt(forecastInc), confPct, '', 'var(--status-success)')}
+          ${row('Beklenen Gider', fmt(forecastExp), confPct, '', 'var(--status-danger)')}
+          ${recBase > 0 ? row('Sabit Giderler', fmt(recBase), null, '', 'var(--status-warn)', 'Abonelik & tekrarlayan') : ''}
+          ${row('Tahmini Net', fmt(forecastNet), null, '', forecastNet>=0?'var(--status-success)':'var(--status-danger)', forecastNet<0?'Giderlerinizi gözden geçirin':'')}`;
+      },
+
+      // ── Alışkanlık Analizi ──
+      _renderHabits(allTx){
+        const el = document.getElementById('habitAnalysisList');
+        if(!el) return;
+        const mc = Core.state.settings.currency || 'TRY';
+        const fmt = v => Core.Utils.formatMoney(v, mc);
+        const now = new Date();
+
+        const expTx = allTx.filter(t=>t.type==='expense');
+        if(!expTx.length){ el.innerHTML = `<div style="color:var(--text-muted);font-size:14px;padding:12px 0">Henüz yeterli veri yok.</div>`; return; }
+
+        const habits = [];
+
+        // 1. En büyük harcama kategorisi
+        const catTotals = {};
+        expTx.forEach(t=>{ catTotals[t.cat]=(catTotals[t.cat]||0)+this._toMain(t); });
+        const topCat = Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0];
+        if(topCat) habits.push({ icon:'', name:'En Büyük Kategori', desc:`${topCat[0]} — ${fmt(topCat[1])}`, badge:'Birinci', badgeColor:'var(--brand-accent)', badgeBg:'rgba(79,70,229,.12)' });
+
+        // 2. Hafta sonu vs hafta içi harcama
+        const weekendExp = expTx.filter(t=>{ const d=new Date(t.date); return d.getDay()===0||d.getDay()===6; }).reduce((s,t)=>s+this._toMain(t),0);
+        const weekdayExp = expTx.filter(t=>{ const d=new Date(t.date); return d.getDay()>0&&d.getDay()<6; }).reduce((s,t)=>s+this._toMain(t),0);
+        const weekendDays = this._period * 8, weekdayDays = this._period * 22;
+        const wkndAvg = weekendDays > 0 ? weekendExp/weekendDays : 0;
+        const wkdyAvg = weekdayDays > 0 ? weekdayExp/weekdayDays : 0;
+        if(wkndAvg > 0 && wkdyAvg > 0){
+          const ratio = (wkndAvg/wkdyAvg).toFixed(1);
+          const isHigh = wkndAvg > wkdyAvg*1.3;
+          habits.push({ icon:'', name:'Hafta Sonu Harcaması', desc:`Hafta sonu günlük ${fmt(wkndAvg)}, hafta içi ${fmt(wkdyAvg)}`, badge: isHigh?`${ratio}x daha fazla`:'Dengeli', badgeColor: isHigh?'var(--status-warn)':'var(--status-success)', badgeBg: isHigh?'var(--status-warn-bg)':'var(--status-success-bg)' });
+        }
+
+        // 3. İşlem sıklığı
+        const txCount = expTx.length;
+        const days = this._period * 30;
+        const freq = (txCount/days).toFixed(1);
+        habits.push({ icon:'', name:'Harcama Sıklığı', desc:`${days} günde ${txCount} işlem (günde ${freq} ortalama)`, badge: freq>3?'Sık':'Normal', badgeColor: freq>3?'var(--status-warn)':'var(--status-success)', badgeBg: freq>3?'var(--status-warn-bg)':'var(--status-success-bg)' });
+
+        // 4. Büyük harcamalar (ortalama 3x üstü)
+        const avgTx = expTx.reduce((s,t)=>s+this._toMain(t),0)/txCount;
+        const bigTx = expTx.filter(t=>this._toMain(t)>avgTx*3);
+        if(bigTx.length) habits.push({ icon:'', name:'Büyük Harcamalar', desc:`${bigTx.length} işlem ortalamanın 3 katından fazla (${fmt(avgTx)} ort.)`, badge:`${bigTx.length} adet`, badgeColor:'var(--status-danger)', badgeBg:'var(--status-danger-bg)' });
+
+        // 5. Bu ay geçen aya göre trend (sadece 1 aylık değilken)
+        if(this._period >= 2){
+          const lastMonthExp = Core.state.transactions.filter(tx=>{
+            if(tx.cat==='Transfer'||tx.type!=='expense') return false;
+            const d=new Date(tx.date);
+            return d.getMonth()===(now.getMonth()-1+12)%12;
+          }).reduce((s,t)=>s+this._toMain(t),0);
+          const thisMonthExp = expTx.filter(t=>{
+            const d=new Date(tx.date);
+            return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+          }).reduce((s,t)=>s+this._toMain(t),0);
+          if(lastMonthExp > 0){
+            const change = ((thisMonthExp-lastMonthExp)/lastMonthExp*100).toFixed(0);
+            const isUp = thisMonthExp > lastMonthExp;
+            habits.push({ icon:'', name:'Aylık Değişim', desc:`Bu ay ${fmt(thisMonthExp)} — geçen ay ${fmt(lastMonthExp)}`, badge:`%${Math.abs(change)} ${isUp?'artış':'düşüş'}`, badgeColor: isUp?'var(--status-danger)':'var(--status-success)', badgeBg: isUp?'var(--status-danger-bg)':'var(--status-success-bg)' });
           }
         }
-        App.Controllers.Budgets.render(cat);
+
+        el.innerHTML = habits.map(h=>`
+          <div class="habit-item">
+            <div class="habit-icon-wrap" style="background:var(--bg-body)">${h.icon}</div>
+            <div class="habit-info">
+              <div class="habit-name">${h.name}</div>
+              <div class="habit-desc">${h.desc}</div>
+            </div>
+            <span class="habit-badge" style="color:${h.badgeColor};background:${h.badgeBg}">${h.badge}</span>
+          </div>`).join('');
       },
-      _catData:{},_catSorted:[],_renderCatList:null,
-      _showAllCats(){if(this._renderCatList)this._renderCatList(true);},
+
+      // ── AI Yorum Botu ──
+      _renderAIInsight(totalInc, totalExp, net, savingsRate, allTx, months){
+        const el = document.getElementById('aiInsightText');
+        const tagsEl = document.getElementById('aiInsightTags');
+        if(!el) return;
+        const mc = Core.state.settings.currency || 'TRY';
+        const fmt = v => Core.Utils.formatMoney(v, mc);
+        const expTx = allTx.filter(t=>t.type==='expense');
+        const catTotals = {};
+        expTx.forEach(t=>{ catTotals[t.cat]=(catTotals[t.cat]||0)+this._toMain(t); });
+        const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,2);
+
+        const messages = [];
+        const tags = [];
+
+        if(!allTx.length){
+          el.innerHTML = 'Henüz işlem kaydı bulunamadı. İşlem ekledikçe finansal analiziniz burada görünecek.';
+          if(tagsEl) tagsEl.innerHTML='';
+          return;
+        }
+
+        // Ana mesaj — duruma göre
+        if(savingsRate >= 30){
+          messages.push(`Harika gidiyorsunuz! Gelirinizin <strong>%${savingsRate.toFixed(0)}'ini</strong> biriktiriyorsunuz — bu finansal sağlık açısından çok olumlu bir gösterge.`);
+          tags.push({label:'Tasarruf Lideri', cls:'success'});
+        } else if(savingsRate >= 10){
+          messages.push(`Finansal dengeniz makul; gelirinizin <strong>%${savingsRate.toFixed(0)}'ini</strong> biriktiriyorsunuz. Küçük düzenlemelerle bu oranı daha da artırabilirsiniz.`);
+          tags.push({label:'Dengeli', cls:'warn'});
+        } else if(savingsRate >= 0){
+          messages.push(`Gelir-gider dengeniz oldukça dar. Gelirinizin yalnızca <strong>%${savingsRate.toFixed(0)}'i</strong> birikim olarak kalıyor — giderlerinizi gözden geçirmenizi öneririm.`);
+          tags.push({label:'Dikkat', cls:'warn'});
+        } else {
+          messages.push(`Giderleriniz gelirinizi <strong>${fmt(Math.abs(net))}</strong> aşıyor. Bu sürdürülebilir değil; önce sabit giderlerinizi incelemenizi öneririm.`);
+          tags.push({label:'Açık Var', cls:'danger'});
+        }
+
+        // Kategori yorumu
+        if(topCats.length >= 1){
+          const top = topCats[0];
+          const topPct = totalExp > 0 ? (top[1]/totalExp*100).toFixed(0) : 0;
+          messages.push(`En yüksek gider kategorinizin <strong>${top[0]}</strong> (%${topPct}) olduğu görülüyor${topPct > 40 ? ' — bu oran oldukça yüksek' : ''}.`);
+        }
+
+        // Trend yorumu
+        if(months.length >= 3){
+          const last3 = months.slice(-3);
+          const expTrend = last3[2].exp - last3[0].exp;
+          if(Math.abs(expTrend) > 0){
+            const dir = expTrend > 0 ? 'artış' : 'düşüş';
+            const pct = Math.abs(expTrend / (last3[0].exp||1) * 100).toFixed(0);
+            messages.push(`Son 3 ayda giderlerinizde <strong>%${pct} ${dir}</strong> ${expTrend > 0 ? 'gözlemleniyor.' : 'gözlemleniyor — bu olumlu bir işaret!'}`);
+            if(expTrend > 0) tags.push({label:'Gider Artıyor', cls:'danger'});
+            else tags.push({label:'Gider Düşüyor', cls:'success'});
+          }
+        }
+
+        // Tavsiye
+        const recs = [];
+        if(savingsRate < 20) recs.push('50/30/20 kuralını deneyin: Gelirin %50 ihtiyaç, %30 istek, %20 tasarruf.');
+        if(topCats.length && totalExp > 0 && (topCats[0][1]/totalExp) > 0.4) recs.push(`${topCats[0][0]} harcamanızı %10 azaltmak aylık ${fmt(topCats[0][1]*0.1)} tasarruf sağlar.`);
+        if(Core.state.recurring && Core.state.recurring.length < 2) recs.push('Tekrarlayan giderlerinizi kayıt altına alın, sürpriz harcamaları önleyin.');
+        if(recs.length) messages.push(`<em>${recs[0]}</em>`);
+
+        el.innerHTML = messages.join(' ');
+        if(tagsEl) tagsEl.innerHTML = tags.map(tag=>`<span class="ai-tag ${tag.cls}">${tag.label}</span>`).join('');
+      },
+
+      _catData:{expense:{},income:{}},
+      _catSorted:[],
+      _renderCatList:null,
+      _showAllCats(){ if(this._renderCatList) this._renderCatList(true); },
+
       openCatModal(catName){
         const now=new Date();
         const txs=Core.state.transactions.filter(tx=>tx.cat===catName&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
@@ -3358,19 +3863,18 @@ const App = {
           const txCur=tx.amountCurrency||(w&&w.currency)||mainCur;
           const amtMain=App.Money.toMain(tx);
           const origStr=txCur!==mainCur?` <span style="font-size:11px;color:var(--text-muted)">(${Core.Utils.formatMoney(tx.amount,txCur)})</span>`:'';
-          const rateSnap=tx.rateSnapshot?`<span style="font-size:10px;color:var(--text-muted)" title="Kur: 1 USD = ${tx.rateSnapshot['TRY']?.toFixed(2)||'?'} TRY"> #</span>`:'';
-          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-danger)">${Core.Utils.formatMoney(amtMain,mainCur)}${rateSnap}</div>${origStr}</div></div>`;
+          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-danger)">${Core.Utils.formatMoney(amtMain,mainCur)}</div>${origStr}</div></div>`;
         }).join('');
         const modal=document.getElementById('modalCatDetail');
         if(!modal){
           const m=document.createElement('div');m.id='modalCatDetail';m.className='modal-overlay';
-          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">${t('thisMonthTotal')}</span><span class="font-display font-bold color-danger" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||('<div style="text-align:center;color:var(--text-muted);padding:20px">'+t('noTxThisMonth')+'</div>')}</div></div></div>`;
+          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">Bu Ay Toplam</span><span class="font-display font-bold color-danger" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>'}</div></div></div>`;
           document.body.appendChild(m);
           m.addEventListener('click',e=>{if(e.target===m)UI.Modals.close('modalCatDetail');});
         }else{
           modal.querySelector('.modal-title').textContent=catName;
           modal.querySelector('.modal-header div div').style.background=color;
-          modal.querySelector('#catDetailRows').innerHTML=rows||('<div style="text-align:center;color:var(--text-muted);padding:20px">'+t('noTxThisMonth')+'</div>');
+          modal.querySelector('#catDetailRows').innerHTML=rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>';
           const totalEl=modal.querySelector('.font-display.font-bold.color-danger');
           if(totalEl)totalEl.textContent=Core.Utils.formatMoney(total,mainCur);
         }
@@ -3927,8 +4431,8 @@ App.Controllers.BottomBar = {
   _touchTargetIdx: null,
   _touchGhost: null,
   _touchOffsetY: 0,
-  _touchRaf: null,          // requestAnimationFrame handle — ghost hareketini throttle eder
-  _touchCachedRects: null,  // touch sürükleme başında hesaplanır, move sırasında tekrar okumaz
+  _touchRaf: null,
+  _touchCachedRects: null,
 
   getActive(){
     try {
@@ -4000,6 +4504,7 @@ App.Controllers.BottomBar = {
     activeList.innerHTML = activeIds.map((id,i)=>{
       const item = ALL_BNAV_ITEMS.find(x=>x.id===id);
       if(!item)return '';
+      const isLocked = item.id==='settings'; // settings her zaman kalır (isteğe bağlı)
       return `<div class="bnav-sort-item" draggable="true" data-idx="${i}" data-id="${id}"
           ondragstart="App.Controllers.BottomBar._onDragStart(event,${i})"
           ondragover="App.Controllers.BottomBar._onDragOver(event,${i})"
@@ -4016,7 +4521,7 @@ App.Controllers.BottomBar = {
       </div>`;
     }).join('');
 
-    // Touch sürükleme desteği (mobil) — event delegation ile tek listener, sızıntı yok
+    // Touch sürükleme desteği (mobil) — event delegation ile tek listener
     activeList.removeEventListener('touchstart', this._boundTouchStart);
     activeList.removeEventListener('touchmove',  this._boundTouchMove);
     activeList.removeEventListener('touchend',   this._boundTouchEnd);
@@ -4074,8 +4579,7 @@ App.Controllers.BottomBar = {
   _onDragOver(e,idx){
     e.preventDefault();
     e.dataTransfer.dropEffect='move';
-    if(idx===this._dragOverIdx)return; // değişmediyse DOM'a dokunma
-    // Eski drag-over'ı temizle — sadece tek öğeyi güncelle, tüm listeyi tarama
+    if(idx===this._dragOverIdx)return;
     if(this._dragOverIdx!==null){
       const old=document.querySelector(`.bnav-sort-item[data-idx="${this._dragOverIdx}"]`);
       if(old)old.classList.remove('drag-over');
@@ -4094,7 +4598,6 @@ App.Controllers.BottomBar = {
     this.setActive(ids);
   },
   _onDragEnd(e){
-    // Tek geçişte temizle
     const list=document.getElementById('bnavActiveList');
     if(list)list.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));
     this._dragSrcIdx=null;
@@ -4103,11 +4606,9 @@ App.Controllers.BottomBar = {
 
   // ─── Mobile Touch Drag ───
   _onTouchStart(e, el){
-    e.preventDefault(); // scroll'u engelle, ancak sadece handle'a dokunulduğunda
+    e.preventDefault();
     this._touchSrcIdx=parseInt(el.dataset.idx);
     this._touchTargetIdx=null;
-
-    // Ghost oluştur — bir kez oku, sonra sadece transform ile taşı (reflow yok)
     const rect=el.getBoundingClientRect();
     const ghost=el.cloneNode(true);
     ghost.style.cssText=`position:fixed;top:0;left:${rect.left}px;width:${rect.width}px;opacity:.88;pointer-events:none;z-index:9999;border-color:var(--brand-accent);transform:translateY(${rect.top}px) scale(1.03);transform-origin:center;box-shadow:0 12px 32px rgba(0,0,0,.22);border-radius:var(--radius-md);transition:none;will-change:transform`;
@@ -4115,8 +4616,6 @@ App.Controllers.BottomBar = {
     this._touchGhost=ghost;
     this._touchOffsetY=e.touches[0].clientY-rect.top;
     el.classList.add('dragging');
-
-    // Rect'leri bir kez oku, move sırasında tekrar okuma — layout thrashing önlenir
     const activeList=document.getElementById('bnavActiveList');
     if(activeList){
       this._touchCachedRects=[...activeList.querySelectorAll('.bnav-sort-item')].map(item=>({
@@ -4131,24 +4630,18 @@ App.Controllers.BottomBar = {
     if(!this._touchGhost)return;
     e.preventDefault();
     const y=e.touches[0].clientY;
-
-    // Ghost hareketi: sadece transform değiştir, reflow yok — rAF ile throttle et
     if(this._touchRaf)cancelAnimationFrame(this._touchRaf);
     this._touchRaf=requestAnimationFrame(()=>{
       if(this._touchGhost)
         this._touchGhost.style.transform=`translateY(${y-this._touchOffsetY}px) scale(1.03)`;
     });
-
-    // Hedef öğeyi önceden hesaplanmış rect'lerle bul — getBoundingClientRect() yok
     if(!this._touchCachedRects)return;
     let newTargetIdx=null;
     for(const r of this._touchCachedRects){
       if(r.idx===this._touchSrcIdx)continue;
       if(y>=r.top&&y<=r.bottom){newTargetIdx=r.idx;break;}
     }
-
-    if(newTargetIdx===this._touchTargetIdx)return; // değişmediyse DOM'a dokunma
-    // Eski highlight'ı temizle, yenisini ekle — sadece 2 öğeye dokun
+    if(newTargetIdx===this._touchTargetIdx)return;
     for(const r of this._touchCachedRects){
       if(r.idx===this._touchTargetIdx)r.el.classList.remove('drag-over');
       if(r.idx===newTargetIdx&&newTargetIdx!==null)r.el.classList.add('drag-over');
@@ -4158,21 +4651,17 @@ App.Controllers.BottomBar = {
   _onTouchEnd(e){
     if(this._touchRaf){cancelAnimationFrame(this._touchRaf);this._touchRaf=null;}
     if(this._touchGhost){this._touchGhost.remove();this._touchGhost=null;}
-    // Temizlik
     const activeList=document.getElementById('bnavActiveList');
     if(activeList)activeList.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));
     this._touchCachedRects=null;
-
     if(this._touchSrcIdx!==null&&this._touchTargetIdx!==null&&this._touchSrcIdx!==this._touchTargetIdx){
       const ids=[...this.getActive()];
       const [moved]=ids.splice(this._touchSrcIdx,1);
       ids.splice(this._touchTargetIdx,0,moved);
-      this._touchSrcIdx=null;
-      this._touchTargetIdx=null;
+      this._touchSrcIdx=null;this._touchTargetIdx=null;
       this.setActive(ids);
-    } else {
-      this._touchSrcIdx=null;
-      this._touchTargetIdx=null;
+    }else{
+      this._touchSrcIdx=null;this._touchTargetIdx=null;
     }
   }
 };
