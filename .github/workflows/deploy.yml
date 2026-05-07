@@ -4,9 +4,18 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -76,13 +85,17 @@ jobs:
           })();
           EOF
 
-          echo "=== firebase-config.js oluştu mu? ==="
+          echo "=== Dosya oluştu mu ==="
           ls -la firebase-config.js
-          echo "=== içerik ==="
-          cat firebase-config.js
 
-      - name: GitHub Pages deploy
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Pages için hazırla
+        uses: actions/configure-pages@v5
+
+      - name: Dosyaları yükle
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          path: ./
+
+      - name: Deploy et
+        id: deployment
+        uses: actions/deploy-pages@v4
