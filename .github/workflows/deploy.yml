@@ -1,0 +1,87 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: firebase-config.js oluştur
+        run: |
+          cat > firebase-config.js << 'ENDOFFILE'
+          (function () {
+            'use strict';
+
+            const firebaseConfig = {
+              apiKey:            "FIREBASE_API_KEY_PLACEHOLDER",
+              authDomain:        "FIREBASE_AUTH_DOMAIN_PLACEHOLDER",
+              projectId:         "FIREBASE_PROJECT_ID_PLACEHOLDER",
+              storageBucket:     "FIREBASE_STORAGE_BUCKET_PLACEHOLDER",
+              messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID_PLACEHOLDER",
+              appId:             "FIREBASE_APP_ID_PLACEHOLDER",
+              measurementId:     "FIREBASE_MEASUREMENT_ID_PLACEHOLDER"
+            };
+
+            window._fbReady = false;
+            window._fbDB    = null;
+            window._fbErr   = '';
+
+            if (typeof firebase === 'undefined') {
+              console.warn('[SAGI] Firebase SDK yüklenmedi — uygulama yalnızca offline çalışacak.');
+              window._fbErr = 'sdk-missing';
+              return;
+            }
+
+            try {
+              firebase.initializeApp(firebaseConfig);
+              const db = firebase.firestore();
+
+              window._fbDB = db;
+
+              db.enablePersistence({ synchronizeTabs: true })
+                .catch(err => {
+                  if (err.code === 'failed-precondition') {
+                    console.info('[SAGI] Persistence: çoklu sekme aktif, tek sekme modu.');
+                  } else if (err.code === 'unimplemented') {
+                    console.info('[SAGI] Tarayıcı offline persistence desteklemiyor.');
+                  } else {
+                    console.warn('[SAGI] Persistence hatası:', err);
+                  }
+                })
+                .finally(() => {
+                  window._fbReady = true;
+                  console.log('[SAGI] Firebase Firestore hazır.');
+                  if (window.Core && window.Core.Cloud) {
+                    window.Core.Cloud.status = 'idle';
+                    try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
+                  }
+                });
+
+              console.log('[SAGI] Firebase Firestore başlatıldı.');
+            } catch (e) {
+              console.warn('[SAGI] Firebase başlatma hatası:', e);
+              window._fbErr   = (e && e.message) || 'init-failed';
+              window._fbDB    = null;
+              window._fbReady = false;
+            }
+          })();
+          ENDOFFILE
+
+          # Placeholder'ları secret'larla değiştir
+          sed -i "s|FIREBASE_API_KEY_PLACEHOLDER|${{ secrets.FIREBASE_API_KEY }}|g" firebase-config.js
+          sed -i "s|FIREBASE_AUTH_DOMAIN_PLACEHOLDER|${{ secrets.FIREBASE_AUTH_DOMAIN }}|g" firebase-config.js
+          sed -i "s|FIREBASE_PROJECT_ID_PLACEHOLDER|${{ secrets.FIREBASE_PROJECT_ID }}|g" firebase-config.js
+          sed -i "s|FIREBASE_STORAGE_BUCKET_PLACEHOLDER|${{ secrets.FIREBASE_STORAGE_BUCKET }}|g" firebase-config.js
+          sed -i "s|FIREBASE_MESSAGING_SENDER_ID_PLACEHOLDER|${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|g" firebase-config.js
+          sed -i "s|FIREBASE_APP_ID_PLACEHOLDER|${{ secrets.FIREBASE_APP_ID }}|g" firebase-config.js
+          sed -i "s|FIREBASE_MEASUREMENT_ID_PLACEHOLDER|${{ secrets.FIREBASE_MEASUREMENT_ID }}|g" firebase-config.js
+
+      - name: GitHub Pages'e deploy et
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
