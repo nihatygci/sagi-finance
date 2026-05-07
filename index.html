@@ -11,6 +11,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="./manifest.json">
 <script src="./languages.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FIREBASE SDK (compat) — Cloud Firestore üzerinden bulut sync
+     Config ve sync mantığı ayrı dosyalarda:
+       • firebase-config.js  (proje ayarları, başlatma)
+       • cloud-sync.js       (Core.Cloud modülü)
+     Firebase yüklenemese bile uygulama OFFLINE çalışmaya devam eder.
+     ═══════════════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="./firebase-config.js"></script>
+<script src="./core.js"></script>
+<script src="./cloud-sync.js"></script>
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
 window._swReg = null;
@@ -783,6 +796,72 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   #txDetailModal{display:none!important}
 }
 
+/* ── İMPORT SEÇİM MODAL ── */
+.import-choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  margin-bottom: 10px;
+  background: var(--bg-body);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.import-choice-card:hover {
+  border-color: var(--brand-accent);
+  background: rgba(79,70,229,.04);
+}
+.import-choice-card.selected {
+  border-color: var(--brand-accent);
+  background: rgba(79,70,229,.07);
+}
+[data-theme="dark"] .import-choice-card.selected {
+  background: rgba(99,102,241,.11);
+}
+.import-choice-card.selected-danger {
+  border-color: var(--status-danger);
+  background: var(--status-danger-bg);
+}
+.import-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: border-color .18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.import-radio::after {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  opacity: 0;
+  transition: opacity .18s;
+}
+.import-choice-card.selected .import-radio {
+  border-color: var(--brand-accent);
+}
+.import-choice-card.selected .import-radio::after {
+  opacity: 1;
+}
+.import-choice-card.selected-danger .import-radio {
+  border-color: var(--status-danger);
+}
+.import-choice-card.selected-danger .import-radio::after {
+  background: var(--status-danger);
+  opacity: 1;
+}
+
 </style>
 </head>
 <body>
@@ -816,7 +895,66 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="ob-icon-wrap" style="background:transparent;box-shadow:none"><img src="./icon-192.png" alt="SAGI" style="width:68px;height:68px;border-radius:50%;box-shadow:0 6px 24px rgba(108,77,255,.35)"></div>
     <h1 class="text-h1 mb-3">SAGI Finance</h1>
     <p class="text-subtitle mb-8" data-i18n="obWelcome">Tüm varlık ve harcamalarınızı tek ekrandan kolayca yönetin.</p>
-    <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obStart" onclick="App.Controllers.Onboarding.nextStep(2)">Hadi Başlayalım</button>
+    <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obStart" onclick="App.Controllers.Onboarding.nextStep('key')">Hadi Başlayalım</button>
+  </div>
+
+  <!-- ANAHTAR ADIMI: yeni hesap aç, mevcut anahtar ile giriş, ya da atla -->
+  <div class="onboarding-card card" id="ob_step_key">
+    <h1 class="text-h1 mb-2" data-i18n="obKeyTitle">Bulut Senkronizasyonu</h1>
+    <p class="text-subtitle mb-6" data-i18n="obKeyDesc">Verilerinizi cihazlar arasında senkronize etmek için 16 haneli benzersiz bir anahtar kullanılır. Bu adımı şimdi atlayabilir, daha sonra Ayarlar'dan bağlanabilirsiniz. Uygulama bulut olmadan da tam çalışır.</p>
+
+    <!-- Mod seçim segmenti — 3 buton -->
+    <div class="tx-type-seg mb-6" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0">
+      <button type="button" class="tx-type-btn active" id="ob_keymode_new"  onclick="App.Controllers.Onboarding.setKeyMode('new')"  data-i18n="obKeyNew">Yeni Hesap</button>
+      <button type="button" class="tx-type-btn" id="ob_keymode_have" onclick="App.Controllers.Onboarding.setKeyMode('have')" data-i18n="obKeyHave">Anahtarım Var</button>
+      <button type="button" class="tx-type-btn" id="ob_keymode_skip" onclick="App.Controllers.Onboarding.setKeyMode('skip')" data-i18n="obKeySkip">Şimdi Atla</button>
+    </div>
+
+    <!-- YENİ HESAP paneli -->
+    <div id="ob_keypanel_new" style="display:block">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:16px">
+        <div class="font-bold" data-i18n="obKeyInfoTitle">Cihazlar arası eşleşme</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
+      </div>
+      <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" id="ob_btn_create" data-i18n="obKeyCreateBtn" onclick="App.Controllers.Onboarding.createNewAccount()">Anahtar Oluştur</button>
+      <div id="ob_create_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px;text-align:center"></div>
+    </div>
+
+    <!-- MEVCUT ANAHTAR paneli -->
+    <div id="ob_keypanel_have" style="display:none">
+      <div class="form-group" style="text-align:left">
+        <label class="form-label" data-i18n="obKeyLabel">16 Haneli Anahtar</label>
+        <input type="text" class="form-control" id="ob_key_input"
+               placeholder="XXXX-XXXX-XXXX-XXXX"
+               autocomplete="off" autocapitalize="characters"
+               style="font-family:'Outfit',sans-serif;font-size:18px;letter-spacing:2px;padding:16px;text-align:center;text-transform:uppercase"
+               oninput="App.Controllers.Onboarding.formatKeyInput(this)">
+        <div id="ob_key_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px"></div>
+      </div>
+      <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" id="ob_btn_login" data-i18n="obKeyLoginBtn" onclick="App.Controllers.Onboarding.loginExisting()">Giriş Yap</button>
+    </div>
+
+    <!-- ATLA paneli -->
+    <div id="ob_keypanel_skip" style="display:none">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:16px">
+        <div class="font-bold" data-i18n="obKeySkipTitle">Sadece bu cihazda kullan</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6" data-i18n="obKeySkipDesc">Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar &rarr; Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.</div>
+      </div>
+      <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obKeySkipBtn" onclick="App.Controllers.Onboarding.nextStep(2)">Devam Et (Çevrim Dışı)</button>
+    </div>
+
+    <!-- Üretilen anahtar gösterimi -->
+    <div id="ob_key_display" style="display:none;margin-top:16px;padding:16px;border-radius:var(--radius-md);background:var(--status-success-bg);border:1px solid var(--status-success);text-align:center">
+      <div class="font-bold mb-2" style="color:var(--status-success)" data-i18n="obKeyCreated">Anahtarınız hazır!</div>
+      <div id="ob_key_value" style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;color:var(--text-main);padding:10px;background:var(--bg-surface);border-radius:var(--radius-sm);margin-bottom:10px;user-select:all">XXXX-XXXX-XXXX-XXXX</div>
+      <button class="btn btn-outline btn-sm" id="ob_btn_copy" onclick="App.Controllers.Onboarding.copyGeneratedKey()" data-i18n="obKeyCopy">Kopyala</button>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5" data-i18n="obKeyWarn">Bu anahtarı güvenli bir yere kaydedin. Kaybederseniz başka cihazdan verilerinize ulaşamazsınız.</div>
+    </div>
+
+    <div class="flex gap-3 mt-6">
+      <button class="btn btn-outline" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
+      <button class="btn btn-primary w-full" id="ob_btn_keynext" style="display:none" data-i18n="obNext" onclick="App.Controllers.Onboarding.nextStep(2)">Devam</button>
+    </div>
   </div>
   <div class="onboarding-card card" id="ob_step_2">
     <h1 class="text-h1 mb-2" data-i18n="obMeet">Sizi Tanıyalım</h1>
@@ -825,7 +963,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <input type="text" class="form-control" id="ob_name" data-i18n-ph="obNamePh" placeholder="Adınız veya Takma Adınız" autocomplete="off" style="font-size:18px;padding:18px;text-align:center">
     </div>
     <div class="flex gap-3 mt-6">
-      <button class="btn btn-outline" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
+      <button class="btn btn-outline" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep('key')">Geri</button>
       <button class="btn btn-primary w-full" data-i18n="obNext" onclick="App.Controllers.Onboarding.nextStep(3)">Devam</button>
     </div>
   </div>
@@ -1391,6 +1529,16 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <!-- Satır 3: Veri Yönetimi (tam genişlik, tek kart) -->
       <div class="settings-layout stagger-3">
 
+        <!-- BULUT SENKRONİZASYONU KARTI -->
+        <div class="card" style="border-color:rgba(108,77,255,.18);grid-column:1/-1">
+          <h2 class="card-title mb-4" style="color:var(--brand-accent)" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</h2>
+          <p class="text-subtitle mb-5" data-i18n="cloudSyncDesc">Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın. Her değişiklik anında buluta yedeklenir.</p>
+
+          <div id="cloudSyncBox">
+            <!-- Aktif (anahtar var) ve pasif (anahtar yok) durumları JS render eder -->
+          </div>
+        </div>
+
         <div class="card" style="border-color:rgba(229,83,75,.18);grid-column:1/-1">
           <h2 class="card-title color-danger mb-4" data-i18n="dataManagement">Veri Yönetimi</h2>
           <p class="text-subtitle mb-5" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</p>
@@ -1437,6 +1585,90 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 </div>
 
 <!-- MODALS -->
+<!-- BULUT BAĞLANTI MODAL — mevcut anahtarla giriş -->
+<div class="modal-overlay" id="modalCloudConnect">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon"><svg><use href="#icon-wallet"/></svg></div>
+        <h3 class="modal-title" data-i18n="cloudConnectTitle">Anahtarınızla Bağlan</h3>
+      </div>
+      <button class="act-btn" onclick="UI.Modals.close('modalCloudConnect')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <p class="text-subtitle mb-4" data-i18n="cloudConnectDesc">Başka cihazda oluşturduğunuz 16 haneli anahtarı girin. Mevcut yerel verileriniz silinir; bulutta kayıtlı veriler yüklenir.</p>
+      <div class="form-group" style="text-align:left">
+        <label class="form-label" data-i18n="obKeyLabel">16 Haneli Anahtar</label>
+        <input type="text" class="form-control" id="cloudConnectInput"
+               placeholder="XXXX-XXXX-XXXX-XXXX"
+               autocomplete="off" autocapitalize="characters"
+               style="font-family:'Outfit',sans-serif;font-size:18px;letter-spacing:2px;padding:14px;text-align:center;text-transform:uppercase"
+               oninput="App.Controllers.Settings.cloudConnectFormatInput(this)">
+        <div id="cloudConnectErr" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="UI.Modals.close('modalCloudConnect')" data-i18n="cancel">İptal</button>
+      <button id="cloudConnectBtn" class="btn btn-primary" onclick="App.Controllers.Settings.cloudConnectSubmit()" data-i18n="cloudConnectBtn">Bağlan</button>
+    </div>
+  </div>
+</div>
+
+ <!-- İMPORT SEÇİM MODAL -->
+<div class="modal-overlay" id="modalImportChoice">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon">
+          <svg><use href="#icon-arrow-up"/></svg>
+        </div>
+        <h3 class="modal-title">Yedek Yükle</h3>
+      </div>
+      <button class="act-btn" onclick="App.Controllers.Settings._cancelImport()">
+        <svg class="nav-icon"><use href="#icon-x"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Dosya bilgisi -->
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-surface-hover);border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:20px">
+        <svg class="nav-icon" style="width:20px;height:20px;color:var(--brand-accent);flex-shrink:0"><use href="#icon-copy"/></svg>
+        <div style="flex:1;min-width:0">
+          <div id="importFileName" style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="importFileMeta" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
+        </div>
+      </div>
+
+      <!-- Seçenek: Üstüne Yaz -->
+      <div id="importCardMerge" class="import-choice-card" onclick="App.Controllers.Settings._selectImportMode('merge')">
+        <div class="import-radio" id="importRadioMerge"></div>
+        <div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px">Üstüne Yaz</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.55">Mevcut verileriniz korunur. Aynı kayıtlar güncellenir, yeni kayıtlar eklenir. Güvenli seçenek.</div>
+        </div>
+      </div>
+
+      <!-- Seçenek: Tüm Verileri Değiştir -->
+      <div id="importCardReplace" class="import-choice-card" onclick="App.Controllers.Settings._selectImportMode('replace')">
+        <div class="import-radio" id="importRadioReplace"></div>
+        <div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px">Tüm Verileri Değiştir</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.55">Mevcut tüm veriler silinir ve yalnızca bu dosyadaki veriler yüklenir. Geri alınamaz.</div>
+        </div>
+      </div>
+
+      <!-- Replace uyarısı -->
+      <div id="importReplaceWarn" style="display:none;margin-top:12px;padding:12px 14px;background:var(--status-danger-bg);border:1px solid rgba(229,83,75,.2);border-radius:var(--radius-md);font-size:13px;color:var(--status-danger);line-height:1.5">
+        Mevcut hesaplarınız, işlemleriniz ve tüm verileriniz kalıcı olarak silinecek. Bu işlem geri alınamaz.
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="App.Controllers.Settings._cancelImport()">İptal</button>
+      <button id="importActionBtn" class="btn btn-primary" onclick="App.Controllers.Settings._executeImport()" style="flex:1;opacity:.4;cursor:not-allowed" disabled>Yükle</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="modalConfirm">
   <div class="modal-content modal-sm">
     <div class="modal-header">
@@ -2033,11 +2265,21 @@ const Core = {
   events:{},temp:{},
   on(e,l){if(!this.events[e])this.events[e]=[];this.events[e].push(l)},
   emit(e,d){if(this.events[e])this.events[e].forEach(l=>l(d))},
-  state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,notifications:{abonelik:false,borc:false,butce:false,haftalik:false}}},
+  state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,syncKey:'',notifications:{abonelik:false,borc:false,butce:false,haftalik:false}}},
   DB:{
     key:'sagi_v1_data',
     load(){try{const d=localStorage.getItem(this.key);if(d){const p=JSON.parse(d);Core.state={...Core.state,...p};if(!Core.state.settings.notifications)Core.state.settings.notifications={abonelik:false,borc:false,butce:false,haftalik:false};if(Core.state.wallets.length>0)Core.state.settings.onboarded=true;if(Core.state.settings.lang)window.LANG=Core.state.settings.lang;}}catch(e){}},
-    save(){try{localStorage.setItem(this.key,JSON.stringify(Core.state));Core.emit('stateChanged',Core.state);}catch(e){}}
+    save(){
+      try{
+        Core.state.settings.lastModified = Date.now();
+        localStorage.setItem(this.key,JSON.stringify(Core.state));
+        Core.emit('stateChanged',Core.state);
+        // Cloud sync — yalnızca cloud-sync.js yüklendiyse ve anahtar varsa
+        if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
+          Core.Cloud.queuePush();
+        }
+      }catch(e){}
+    }
   },
   Utils:{
     generateId:()=>Date.now().toString(36)+Math.random().toString(36).substr(2),
@@ -2058,7 +2300,9 @@ const Core = {
     const now=new Date(),day=now.getDate(),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
     const mE=this.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()&&new Date(t.date).getFullYear()===now.getFullYear()).reduce((s,t)=>s+t.amount,0);
     return day===0?0:(mE/day)*dim;
-  }
+  },
+  // Cloud modülü (cloud-sync.js tarafından enjekte edilecek)
+  Cloud: null
 };
 
 // ═══════════════════════════════════════
@@ -2507,6 +2751,27 @@ const App = {
         applyLang();
         App.processRecurring();
         Notifications.check();
+        // ── BULUT SYNC: anahtar varsa listener'ı bağla ──
+        if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud && Core.Cloud.isAvailable()){
+          Core.Cloud.attachListener();
+        }
+        // Bulut status değişince ayarlar sayfasındaki kutuyu güncelle
+        Core.on('cloudStatusChanged', ()=>{
+          App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
+          // Onboarding ekranı açıksa buton durumlarını da yenile
+          App.Controllers.Onboarding && App.Controllers.Onboarding._refreshKeyAvailability && App.Controllers.Onboarding._refreshKeyAvailability();
+        });
+        // App.init sırasında Cloud zaten enjekte edildiyse hemen emit et
+        // (cloud-sync.js DOMContentLoaded capture listener'ı önceden çalıştıysa
+        //  Cloud.status zaten 'idle'; değilse kısa bir bekleme ile dene)
+        if(Core.Cloud && Core.Cloud.isAvailable()){
+          setTimeout(()=>Core.emit('cloudStatusChanged', Core.Cloud.status), 0);
+        } else {
+          // Firebase persistence henüz settle olmadıysa (async) polling başlat
+          Core.Cloud && Core.Cloud._waitForFirebaseAndNotify
+            ? Core.Cloud._waitForFirebaseAndNotify()
+            : setTimeout(()=>{ if(Core.Cloud && Core.Cloud.isAvailable()) Core.emit('cloudStatusChanged', Core.Cloud.status); }, 300);
+        }
         if(Notifications.supported && Notification.permission==='default' && Core.state.settings.onboarded){
           setTimeout(()=>{
             UI.Confirm.show(t('confNotifPerm'),()=>Notifications.requestPermission());
@@ -2560,16 +2825,159 @@ const App = {
   Controllers:{
     Onboarding:{
       currentStep:1,
+      _keyMode:'new', // 'new' | 'have'
+      _generatedKey:'',
+      _loginInProgress:false,
+
       nextStep(step){
-        document.getElementById('ob_step_'+this.currentStep).classList.remove('active');
-        this.currentStep=step;
-        document.getElementById('ob_step_'+this.currentStep).classList.add('active');
-        if(step===2)setTimeout(()=>document.getElementById('ob_name').focus(),100);
-        if(step===3){
+        // step '1', '2', '3' veya 'key' olabilir
+        const cur = document.getElementById('ob_step_'+this.currentStep);
+        if(cur) cur.classList.remove('active');
+        this.currentStep = step;
+        const tgt = document.getElementById('ob_step_'+this.currentStep);
+        if(tgt) tgt.classList.add('active');
+        if(step===2 || step==='2') setTimeout(()=>document.getElementById('ob_name').focus(),100);
+        if(step===3 || step==='3'){
           document.querySelectorAll('#ob_step_3 .tx-type-btn').forEach(b=>b.classList.remove('active'));
           const lb=document.getElementById('ob_lang_'+LANG);if(lb)lb.classList.add('active');
         }
+        if(step==='key'){
+          // Bulut SDK yüklenmediyse otomatik "skip" modunda başlat ve diğer modları devre dışı bırak
+          this._refreshKeyAvailability();
+        }
       },
+
+      // Bulut hizmeti yoksa (offline / SDK yüklenmedi) onboarding'i ona göre ayarla
+      _refreshKeyAvailability(){
+        const available = !!(window.Core && Core.Cloud && Core.Cloud.isAvailable());
+        const newBtn  = document.getElementById('ob_keymode_new');
+        const haveBtn = document.getElementById('ob_keymode_have');
+        const skipBtn = document.getElementById('ob_keymode_skip');
+        if(!newBtn || !haveBtn || !skipBtn) return;
+        if(!available){
+          // Bulut kullanılamıyor → sadece skip aktif
+          newBtn.disabled  = true; newBtn.style.opacity='.45';  newBtn.style.cursor='not-allowed';
+          haveBtn.disabled = true; haveBtn.style.opacity='.45'; haveBtn.style.cursor='not-allowed';
+          this.setKeyMode('skip');
+          // Skip panelinde ekstra bilgi notu göster
+          const skipPanel = document.getElementById('ob_keypanel_skip');
+          if(skipPanel && !skipPanel.querySelector('.cloud-unavail-note')){
+            const note = document.createElement('div');
+            note.className = 'cloud-unavail-note';
+            note.style.cssText = 'background:var(--status-warn-bg);border:1px solid var(--status-warn);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--status-warn);margin-bottom:12px;line-height:1.5';
+            note.textContent = (typeof t==='function')?t('cloudUnavailNote'):'Bulut servisine ulaşılamıyor. Şu an çevrim dışı moda geçirildi; istediğiniz zaman Ayarlar bölümünden tekrar deneyebilirsiniz.';
+            skipPanel.insertBefore(note, skipPanel.firstChild);
+          }
+        } else {
+          newBtn.disabled  = false; newBtn.style.opacity='';  newBtn.style.cursor='';
+          haveBtn.disabled = false; haveBtn.style.opacity=''; haveBtn.style.cursor='';
+        }
+      },
+
+      setKeyMode(mode){
+        this._keyMode = mode;
+        ['new','have','skip'].forEach(m => {
+          const btn = document.getElementById('ob_keymode_'+m);
+          const pn  = document.getElementById('ob_keypanel_'+m);
+          if(btn) btn.classList.toggle('active', mode===m);
+          if(pn)  pn.style.display = (mode===m) ? 'block' : 'none';
+        });
+        // Mod değişince hata/üretilen anahtar gösterimini temizle
+        const err = document.getElementById('ob_key_err'); if(err) err.style.display='none';
+        const cerr = document.getElementById('ob_create_err'); if(cerr) cerr.style.display='none';
+      },
+
+      // Anahtar girişi formatla: harf büyült, sadece hex, her 4 karakterde tire
+      formatKeyInput(el){
+        const raw = el.value.replace(/[^0-9a-fA-F]/g,'').toUpperCase().slice(0,16);
+        const grouped = raw.match(/.{1,4}/g);
+        el.value = grouped ? grouped.join('-') : '';
+      },
+
+      async createNewAccount(){
+        const btn = document.getElementById('ob_btn_create');
+        const cerr = document.getElementById('ob_create_err');
+        if(!btn) return;
+        if(cerr) cerr.style.display='none';
+        if(!Core.Cloud || !Core.Cloud.isAvailable()){
+          if(cerr){ cerr.textContent = t('cloudInitFail') + ' — ' + t('obKeySuggestSkip'); cerr.style.display='block'; }
+          else { UI.Toasts.show(t('cloudInitFail'),'error'); }
+          return;
+        }
+        btn.disabled = true; btn.textContent = t('obKeyCreating');
+        try{
+          const key = await Core.Cloud.createAccount();
+          this._generatedKey = key;
+          // Üretilen anahtarı göster
+          document.getElementById('ob_key_value').textContent = key;
+          document.getElementById('ob_key_display').style.display = 'block';
+          // Yeni butonu sakla, "Devam" butonunu göster
+          btn.style.display = 'none';
+          document.getElementById('ob_btn_keynext').style.display = 'block';
+        }catch(e){
+          console.warn('[Onboarding] createAccount hatası:', e);
+          if(cerr){ cerr.textContent = t('cloudCreateFail') + ' — ' + t('obKeySuggestSkip'); cerr.style.display='block'; }
+          else { UI.Toasts.show(t('cloudCreateFail'),'error'); }
+          btn.disabled = false; btn.textContent = t('obKeyCreateBtn');
+        }
+      },
+
+      copyGeneratedKey(){
+        if(!this._generatedKey) return;
+        navigator.clipboard?.writeText(this._generatedKey).then(()=>{
+          UI.Toasts.show(t('msgCopied'),'success');
+        }).catch(()=>{
+          // Fallback
+          try{
+            const ta=document.createElement('textarea');
+            ta.value=this._generatedKey; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy'); ta.remove();
+            UI.Toasts.show(t('msgCopied'),'success');
+          }catch(e){}
+        });
+      },
+
+      async loginExisting(){
+        if(this._loginInProgress) return;
+        const inp = document.getElementById('ob_key_input');
+        const err = document.getElementById('ob_key_err');
+        const btn = document.getElementById('ob_btn_login');
+        if(!inp||!btn) return;
+        const raw = inp.value.trim();
+        const norm = Core.Cloud.normalizeKey(raw);
+        if(!Core.Cloud.isValidKey(norm)){
+          err.textContent = t('obKeyInvalid');
+          err.style.display = 'block';
+          return;
+        }
+        if(!Core.Cloud || !Core.Cloud.isAvailable()){
+          err.textContent = t('cloudInitFail');
+          err.style.display = 'block';
+          return;
+        }
+        err.style.display = 'none';
+        this._loginInProgress = true;
+        btn.disabled = true; btn.textContent = t('obKeyChecking');
+        try{
+          await Core.Cloud.loginWithKey(norm);
+          // Bulutta veri varsa hemen ana ekrana geç (onboarding'i atla)
+          UI.Toasts.show(t('cloudLoginOk'),'success');
+          // Kısa gecikme ile reload — tüm controller'lar güncel state'le yeniden çizilsin
+          setTimeout(()=>location.reload(), 600);
+        }catch(e){
+          this._loginInProgress = false;
+          btn.disabled = false; btn.textContent = t('obKeyLoginBtn');
+          if(e && e.message==='NOT_FOUND'){
+            err.textContent = t('obKeyNotFound');
+          } else if(e && e.message==='INVALID_KEY'){
+            err.textContent = t('obKeyInvalid');
+          } else {
+            err.textContent = t('cloudLoginFail');
+          }
+          err.style.display = 'block';
+        }
+      },
+
       setTheme(mode){Core.state.settings.theme=mode;App.Controllers.Settings.applyTheme();document.querySelectorAll('#ob_step_3 .theme-btn').forEach(b=>b.classList.remove('active'));document.getElementById('ob_tb_'+mode).classList.add('active');},
       setLang(lang,btn){window.LANG=lang;Core.state.settings.lang=lang;document.querySelectorAll('#ob_step_3 .tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyLang();},
       complete(){
@@ -4283,6 +4691,154 @@ const App = {
           </div>`;
           kurInfo.innerHTML=infoBar+`<div style="max-height:340px;overflow-y:auto">${rateRows.join('')}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
         }
+        // Bulut sync kutusu
+        this.renderCloudBox();
+      },
+
+      // ── BULUT SENKRONİZASYONU UI ──────────────────────────────
+      renderCloudBox(){
+        const box = document.getElementById('cloudSyncBox');
+        if(!box) return;
+
+        // SDK hiç yüklenememişse özel mesaj göster
+        if(!Core.Cloud || !Core.Cloud.isAvailable()){
+          box.innerHTML = `
+            <div class="settings-cell" style="background:var(--status-warn-bg);border:1px solid var(--status-warn);flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:0">
+              <div class="font-bold" style="color:var(--status-warn)">${t('cloudUnavailTitle')}</div>
+              <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">${t('cloudUnavailDesc')}</div>
+              <button class="btn btn-outline btn-sm mt-2" onclick="location.reload()">${t('reload')}</button>
+            </div>`;
+          return;
+        }
+
+        const key = Core.state.settings.syncKey;
+        const status = Core.Cloud.status;
+        const statusInfo = (()=>{
+          switch(status){
+            case 'syncing': return {dot:'var(--status-warn)',  txt: t('cloudStatusSyncing')};
+            case 'ok':      return {dot:'var(--status-success)', txt: t('cloudStatusOk')};
+            case 'error':   return {dot:'var(--status-danger)',  txt: t('cloudStatusError')};
+            case 'offline': return {dot:'var(--status-muted)',   txt: t('cloudStatusOffline')};
+            default:        return {dot:'var(--text-muted)',     txt: t('cloudStatusIdle')};
+          }
+        })();
+
+        if(!key){
+          // Anahtar yok — bağlanmadık
+          box.innerHTML = `
+            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
+              <div class="font-bold" data-i18n="cloudInactive">Bulut bağlı değil</div>
+              <div style="font-size:13px;color:var(--text-muted);line-height:1.6">${t('cloudInactiveDesc')}</div>
+              <div class="flex gap-2 mt-3 w-full" style="flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm" onclick="App.Controllers.Settings.cloudCreate()">${t('cloudCreateBtn')}</button>
+                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.cloudConnectExisting()">${t('cloudConnectBtn')}</button>
+              </div>
+            </div>`;
+        } else {
+          // Anahtar var — aktif
+          box.innerHTML = `
+            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:12px">
+              <div class="flex justify-between items-center w-full" style="gap:8px">
+                <div class="font-bold">${t('cloudKeyTitle')}</div>
+                <div class="flex items-center" style="gap:6px;font-size:12px;color:var(--text-muted)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:${statusInfo.dot};display:inline-block"></span>
+                  <span>${statusInfo.txt}</span>
+                </div>
+              </div>
+              <div id="cloudKeyDisplay" style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text-main);padding:10px 14px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-light);user-select:all;width:100%;text-align:center">${key}</div>
+              <div class="flex gap-2 w-full" style="flex-wrap:wrap">
+                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.cloudCopyKey()">${t('cloudCopyKey')}</button>
+                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.cloudForceSync()">${t('cloudForceSync')}</button>
+                <button class="btn btn-danger btn-sm" onclick="App.Controllers.Settings.cloudSignOut()">${t('cloudSignOut')}</button>
+              </div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5">${t('cloudKeyHint')}</div>
+            </div>`;
+        }
+      },
+
+      cloudCopyKey(){
+        const key = Core.state.settings.syncKey;
+        if(!key) return;
+        const finish = ()=>UI.Toasts.show(t('msgCopied'),'success');
+        if(navigator.clipboard?.writeText){
+          navigator.clipboard.writeText(key).then(finish).catch(()=>{
+            try{const ta=document.createElement('textarea');ta.value=key;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();finish();}catch(e){}
+          });
+        }else{
+          try{const ta=document.createElement('textarea');ta.value=key;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();finish();}catch(e){}
+        }
+      },
+
+      async cloudForceSync(){
+        if(!Core.state.settings.syncKey) return;
+        if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
+        UI.Toasts.show(t('cloudSyncing'),'success');
+        await Core.Cloud.forcePush();
+        this.renderCloudBox();
+      },
+
+      cloudSignOut(){
+        UI.Confirm.show(t('confCloudSignOut'),()=>{
+          Core.Cloud.signOut();
+          UI.Toasts.show(t('cloudSignedOut'),'success');
+          this.renderCloudBox();
+        });
+      },
+
+      async cloudCreate(){
+        if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
+        UI.Confirm.show(t('confCloudCreate'), async ()=>{
+          try{
+            const key = await Core.Cloud.createAccount();
+            UI.Toasts.show(t('cloudCreated',{key}),'success');
+            this.renderCloudBox();
+          }catch(e){
+            console.warn(e);
+            UI.Toasts.show(t('cloudCreateFail'),'error');
+          }
+        });
+      },
+
+      cloudConnectExisting(){
+        // Modal aç
+        const modal = document.getElementById('modalCloudConnect');
+        if(!modal) return;
+        const inp = document.getElementById('cloudConnectInput');
+        const err = document.getElementById('cloudConnectErr');
+        if(inp) inp.value='';
+        if(err) err.style.display='none';
+        UI.Modals.open('modalCloudConnect');
+        setTimeout(()=>inp&&inp.focus(),200);
+      },
+
+      async cloudConnectSubmit(){
+        const inp = document.getElementById('cloudConnectInput');
+        const err = document.getElementById('cloudConnectErr');
+        const btn = document.getElementById('cloudConnectBtn');
+        if(!inp||!err||!btn) return;
+        const raw = inp.value.trim();
+        const norm = Core.Cloud.normalizeKey(raw);
+        if(!Core.Cloud.isValidKey(norm)){
+          err.textContent = t('obKeyInvalid'); err.style.display='block'; return;
+        }
+        err.style.display='none';
+        btn.disabled=true; btn.textContent=t('obKeyChecking');
+        try{
+          await Core.Cloud.loginWithKey(norm);
+          UI.Modals.close('modalCloudConnect');
+          UI.Toasts.show(t('cloudLoginOk'),'success');
+          setTimeout(()=>location.reload(), 600);
+        }catch(e){
+          btn.disabled=false; btn.textContent=t('cloudConnectBtn');
+          err.textContent = (e&&e.message==='NOT_FOUND') ? t('obKeyNotFound') : t('cloudLoginFail');
+          err.style.display='block';
+        }
+      },
+
+      cloudConnectFormatInput(el){
+        const raw = el.value.replace(/[^0-9a-fA-F]/g,'').toUpperCase().slice(0,16);
+        const grouped = raw.match(/.{1,4}/g);
+        el.value = grouped ? grouped.join('-') : '';
       },
       togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
       applyPrivacy(){const isOn=Core.state.settings.privacy==='on';const sBtn=document.getElementById('sidePrivacyBtn'),hBtn=document.getElementById('headerPrivacyBtn'),sIcon=document.getElementById('sidePrivacyIcon'),hIcon=document.getElementById('headerPrivacyIcon');if(isOn){if(sBtn)sBtn.classList.add('active');if(hBtn)hBtn.classList.add('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye-off"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye-off"/>';}else{if(sBtn)sBtn.classList.remove('active');if(hBtn)hBtn.classList.remove('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye"/>'; }},
@@ -4376,33 +4932,158 @@ const App = {
         UI.Toasts.show(t('msgCsvDone'));
       },
       importData(e){
-        const f=e.target.files[0];
-        if(!f)return;
-        if(!f.name.endsWith('.json')&&!f.type.includes('json')){
-          UI.Toasts.show(t('msgImportInvalidExt'),'error');
-          e.target.value='';
-          return;
+  const f = e.target.files[0];
+  if(!f){ e.target.value=''; return; }
+
+  if(!f.name.endsWith('.json') && !f.type.includes('json')){
+    UI.Toasts.show(t('msgImportInvalidExt'), 'error');
+    e.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+
+      if(!d || !Array.isArray(d.wallets)){
+        UI.Toasts.show(t('msgImportInvalid'), 'error');
+        e.target.value = '';
+        return;
+      }
+
+      // Veriyi geçici park et
+      Core.temp.pendingImport = d;
+
+      // Dosya bilgilerini yaz
+      const size = f.size < 1024 ? f.size + ' B'
+        : f.size < 1048576 ? (f.size/1024).toFixed(1) + ' KB'
+        : (f.size/1048576).toFixed(1) + ' MB';
+      const wCount = d.wallets.length;
+      const tCount = Array.isArray(d.transactions) ? d.transactions.length : 0;
+
+      const nameEl = document.getElementById('importFileName');
+      const metaEl = document.getElementById('importFileMeta');
+      if(nameEl) nameEl.textContent = f.name;
+      if(metaEl) metaEl.textContent = size + ' · ' + wCount + ' hesap · ' + tCount + ' işlem';
+
+      // Seçimi sıfırla
+      this._importMode = null;
+      ['importCardMerge','importCardReplace'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.remove('selected','selected-danger');
+      });
+      const warnEl = document.getElementById('importReplaceWarn');
+      if(warnEl) warnEl.style.display = 'none';
+      const btn = document.getElementById('importActionBtn');
+      if(btn){
+        btn.disabled = true;
+        btn.style.opacity = '.4';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = 'Yükle';
+        btn.className = 'btn btn-primary';
+      }
+
+      UI.Modals.open('modalImportChoice');
+
+    } catch(err){
+      UI.Toasts.show(t('msgImportFail'), 'error');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(f);
+},
+
+_selectImportMode(mode){
+  this._importMode = mode;
+
+  const mergeCard   = document.getElementById('importCardMerge');
+  const replaceCard = document.getElementById('importCardReplace');
+  const warnEl      = document.getElementById('importReplaceWarn');
+  const btn         = document.getElementById('importActionBtn');
+
+  if(mode === 'merge'){
+    if(mergeCard)   mergeCard.classList.add('selected');
+    if(mergeCard)   mergeCard.classList.remove('selected-danger');
+    if(replaceCard) replaceCard.classList.remove('selected','selected-danger');
+    if(warnEl)      warnEl.style.display = 'none';
+    if(btn){
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.textContent = 'Üstüne Yaz';
+      btn.className = 'btn btn-primary';
+    }
+  } else {
+    if(replaceCard) replaceCard.classList.add('selected-danger');
+    if(replaceCard) replaceCard.classList.remove('selected');
+    if(mergeCard)   mergeCard.classList.remove('selected','selected-danger');
+    if(warnEl)      warnEl.style.display = 'block';
+    if(btn){
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.textContent = 'Tüm Verileri Değiştir';
+      btn.className = 'btn btn-danger';
+    }
+  }
+},
+
+_cancelImport(){
+  Core.temp.pendingImport = null;
+  this._importMode = null;
+  UI.Modals.close('modalImportChoice');
+},
+
+_executeImport(){
+  const d    = Core.temp.pendingImport;
+  const mode = this._importMode;
+  if(!d || !mode) return;
+
+  if(mode === 'merge'){
+    const mergeArr = (existing, incoming) => {
+      if(!Array.isArray(incoming)) return existing;
+      const map = {};
+      existing.forEach(item => { if(item.id) map[item.id] = item; });
+      incoming.forEach(item => { if(item.id) map[item.id] = item; });
+      return Object.values(map);
+    };
+    Core.state.wallets      = mergeArr(Core.state.wallets,       d.wallets      || []);
+    Core.state.transactions = mergeArr(Core.state.transactions,  d.transactions || []);
+    Core.state.recurring    = mergeArr(Core.state.recurring,     d.recurring    || []);
+    Core.state.goals        = mergeArr(Core.state.goals,         d.goals        || []);
+    Core.state.debts        = mergeArr(Core.state.debts,         d.debts        || []);
+    Core.state.budgets      = mergeArr(Core.state.budgets || [], d.budgets      || []);
+    // Settings: sadece eksik alanları doldur, mevcut ayarları koruma
+    if(d.settings){
+      Object.keys(d.settings).forEach(k => {
+        if(Core.state.settings[k] === undefined || Core.state.settings[k] === null || Core.state.settings[k] === ''){
+          Core.state.settings[k] = d.settings[k];
         }
-        const r=new FileReader();
-        r.onload=ev=>{
-          try{
-            const d=JSON.parse(ev.target.result);
-            if(d&&Array.isArray(d.wallets)){
-              Core.state=d;
-              Core.DB.save();
-              UI.Toasts.show(t('msgImportDone'),'success');
-              setTimeout(()=>location.reload(),1000);
-            }else{
-              UI.Toasts.show(t('msgImportInvalid'),'error');
-            }
-          }catch(err){
-            UI.Toasts.show(t('msgImportFail'),'error');
-          }
-          e.target.value='';
-        };
-        r.readAsText(f);
-      },
-      factoryReset(){UI.Confirm.show(t('confFactory'),()=>{localStorage.removeItem(Core.DB.key);location.reload();});}
+      });
+    }
+    Core.DB.save();
+    UI.Modals.close('modalImportChoice');
+    UI.Toasts.show(t('msgImportDone'), 'success');
+    setTimeout(() => location.reload(), 900);
+
+  } else {
+    Core.state = d;
+    Core.DB.save();
+    UI.Modals.close('modalImportChoice');
+    UI.Toasts.show(t('msgImportDone'), 'success');
+    setTimeout(() => location.reload(), 900);
+  }
+
+  Core.temp.pendingImport = null;
+  this._importMode = null;
+},
+      factoryReset(){UI.Confirm.show(t('confFactory'),()=>{
+        // Bulut listener'ı kapat (kullanıcı isterse anahtarla geri dönebilir)
+        try{ Core.Cloud.detachListener(); }catch(e){}
+        localStorage.removeItem(Core.DB.key);
+        location.reload();
+      });}
     }
   }
 };

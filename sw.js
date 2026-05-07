@@ -14,7 +14,7 @@
 //  • Bildirime tıklanınca uygulamayı aç / odağa al
 // ════════════════════════════════════════════════════════════════
 
-const VERSION    = 'v3';
+const VERSION    = 'v5';
 const CACHE_APP  = `sagi-app-${VERSION}`;   // HTML, font CSS
 const CACHE_FONT = `sagi-fonts-${VERSION}`; // Font dosyaları
 
@@ -29,7 +29,14 @@ const BYPASS_PATTERNS = [
   /exchangerate-api\.com/,
   /open\.er-api\.com/,
   /frankfurter\.app/,
-  /fonts\.googleapis\.com\/css/,  // CSS'i cache ama font dosyaları ayrı
+  /fonts\.googleapis\.com\/css/,        // CSS'i cache ama font dosyaları ayrı
+  // ── Firebase Cloud Firestore ────────────────────────────────────
+  /firestore\.googleapis\.com/,         // Firestore REST/gRPC endpoint
+  /firebaseio\.com/,                    // (legacy RTDB için, bypass kalsın)
+  /firebasedatabase\.app/,              // RTDB europe-west1
+  /firebaseapp\.com/,                   // Auth/console domain
+  /googleapis\.com\/identitytoolkit/,   // Auth (gelecekte kullanılırsa)
+  /firebaseinstallations\.googleapis\.com/, // Firebase Installations API
 ];
 
 // ── 1. KURULUM ────────────────────────────────────────────────────
