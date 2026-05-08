@@ -2304,6 +2304,8 @@ const Core = {
   // Cloud modülü (cloud-sync.js tarafından enjekte edilecek)
   Cloud: null
 };
+// cloud-sync.js window.Core'a inject ediyor — aynı nesneyi göster
+window.Core = Core;
 
 // ═══════════════════════════════════════
 // UI HELPERS
@@ -2761,13 +2763,16 @@ const App = {
           // Onboarding ekranı açıksa buton durumlarını da yenile
           App.Controllers.Onboarding && App.Controllers.Onboarding._refreshKeyAvailability && App.Controllers.Onboarding._refreshKeyAvailability();
         });
-        // Cloud durumunu garantilemek için her zaman polling başlat.
-        // Firebase hazırsa ilk denemede hemen emit edilir; değilse 250ms
-        // aralıklarla max 10sn boyunca dener (bkz. cloud-sync.js).
-        if(Core.Cloud && Core.Cloud._waitForFirebaseAndNotify){
-          Core.Cloud._waitForFirebaseAndNotify();
-        } else if(Core.Cloud && Core.Cloud.isAvailable()){
-          Core.emit('cloudStatusChanged', Core.Cloud.status);
+        // App.init sırasında Cloud zaten enjekte edildiyse hemen emit et
+        // (cloud-sync.js DOMContentLoaded capture listener'ı önceden çalıştıysa
+        //  Cloud.status zaten 'idle'; değilse kısa bir bekleme ile dene)
+        if(Core.Cloud && Core.Cloud.isAvailable()){
+          setTimeout(()=>Core.emit('cloudStatusChanged', Core.Cloud.status), 0);
+        } else {
+          // Firebase persistence henüz settle olmadıysa (async) polling başlat
+          Core.Cloud && Core.Cloud._waitForFirebaseAndNotify
+            ? Core.Cloud._waitForFirebaseAndNotify()
+            : setTimeout(()=>{ if(Core.Cloud && Core.Cloud.isAvailable()) Core.emit('cloudStatusChanged', Core.Cloud.status); }, 300);
         }
         if(Notifications.supported && Notification.permission==='default' && Core.state.settings.onboarded){
           setTimeout(()=>{
