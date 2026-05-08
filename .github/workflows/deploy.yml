@@ -69,10 +69,12 @@ jobs:
                 .finally(function() {
                   window._fbReady = true;
                   console.log('[SAGI] Firebase Firestore hazır.');
-                  if (window.Core && window.Core.Cloud) {
-                    window.Core.Cloud.status = 'idle';
-                    try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
-                  }
+                  setTimeout(function() {
+                    if (window.Core && window.Core.Cloud) {
+                      window.Core.Cloud.status = 'idle';
+                      try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
+                    }
+                  }, 700);
                 });
 
               console.log('[SAGI] Firebase Firestore başlatıldı.');
