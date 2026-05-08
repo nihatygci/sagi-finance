@@ -56,10 +56,14 @@
       if (this.isAvailable()) {
         console.log('[Cloud] Firebase polling: hazır, emit ediliyor.');
         this._emitStatus('idle');
+        // syncKey varsa listener'ı şimdi bağla (App.init bunu yapamadıysa)
+        if (Core.state.settings && Core.state.settings.syncKey && !this._unsubscribe) {
+          this.attachListener();
+        }
         return;
       }
-      if (attempts >= 20) {
-        console.warn('[Cloud] Firebase 5sn içinde hazır olmadı, offline kalındı.');
+      if (attempts >= 40) { // 10sn'ye çıkardık (40 × 250ms)
+        console.warn('[Cloud] Firebase 10sn içinde hazır olmadı, offline kalındı.');
         return;
       }
       setTimeout(() => this._waitForFirebaseAndNotify(attempts + 1), 250);
