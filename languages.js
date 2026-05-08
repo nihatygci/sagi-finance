@@ -261,6 +261,48 @@ const LANGS = {
       confDelLimit:'Bu bütçe limiti kaldırılsın mı?',
       confFactory:'TÜM VERİLER SİLİNECEK! Bu işlem geri alınamaz. Devam etmek istiyor musunuz?',
       confNotifPerm:'SAGI Finance size abonelik, borç vadeleri ve bütçe uyarıları için bildirim gönderebilir. İzin vermek ister misiniz?',
+      confCloudCreate:'Mevcut yerel verileriniz buluta yüklenecek ve senkronizasyon başlayacak. Devam etmek istiyor musunuz?',
+      confCloudSignOut:'Bu cihazdan bulut bağlantısı kesilecek. Verileriniz bu cihazda kalmaya devam eder. Devam?',
+
+      // Bulut senkronizasyonu
+      cloudUnavailTitle:'Bulut Servisi Kullanılamıyor',
+      cloudUnavailDesc:'Firebase SDK yüklenemedi veya bağlantı kurulamadı. İnternet bağlantınızı kontrol edip sayfayı yenileyin. Uygulama çevrim dışı modda çalışmaya devam ediyor.',
+      cloudUnavailNote:'Bulut servisine ulaşılamıyor. Şu an çevrim dışı moda geçirildi; istediğiniz zaman Ayarlar bölümünden tekrar deneyebilirsiniz.',
+      cloudInactiveDesc:'Verilerinizi birden fazla cihazda kullanmak için bulut senkronizasyonunu etkinleştirin.',
+      cloudCreateBtn:'Yeni Hesap Oluştur',
+      cloudConnectBtn:'Mevcut Hesaba Bağlan',
+      cloudKeyTitle:'Senkronizasyon Anahtarı',
+      cloudKeyHint:'Bu anahtarı güvende saklayın. Başka bir cihazda giriş yapmak için kullanacaksınız.',
+      cloudCopyKey:'Anahtarı Kopyala',
+      cloudForceSync:'Şimdi Senkronize Et',
+      cloudSignOut:'Bağlantıyı Kes',
+      cloudSignedOut:'Bulut bağlantısı kesildi.',
+      cloudStatusIdle:'Bağlı değil',
+      cloudStatusSyncing:'Senkronize ediliyor...',
+      cloudStatusOk:'Senkronize',
+      cloudStatusError:'Bağlantı hatası',
+      cloudStatusOffline:'Çevrim dışı',
+      cloudSyncing:'Senkronizasyon başlatıldı.',
+      cloudCreated:'Hesap oluşturuldu! Anahtarınız: {key}',
+      cloudCreateFail:'Hesap oluşturulamadı. Lütfen tekrar deneyin.',
+      cloudInitFail:'Bulut servisi kullanılamıyor.',
+      cloudLoginOk:'Giriş başarılı, veriler senkronize edildi.',
+      cloudLoginFail:'Giriş başarısız. Anahtarı kontrol edip tekrar deneyin.',
+
+      // Onboarding — bulut adımı
+      obKeyChecking:'Kontrol ediliyor...',
+      obKeyCreating:'Hesap oluşturuluyor...',
+      obKeyCreateBtn:'Anahtar Oluştur',
+      obKeyLoginBtn:'Giriş Yap',
+      obKeyInvalid:'Geçersiz anahtar. XXXX-XXXX-XXXX-XXXX formatında girin.',
+      obKeyNotFound:'Bu anahtar bulunamadı. Lütfen kontrol edip tekrar deneyin.',
+      obKeySuggestSkip:"Bu adımı atlayıp daha sonra Ayarlar'dan bağlanabilirsiniz.",
+
+      // Genel eksikler
+      reload:'Yenile',
+      ratesUpdated:'Kurlar güncellendi.',
+      msgCopied:'Kopyalandı!',
+
 
       // Diğer
       diffDays0:'Bugün', diffDaysAgo:'{n} gün önce', diffDaysAhead:'{n} gün sonra',
@@ -523,6 +565,48 @@ const LANGS = {
       confDelLimit:'Remove this budget limit?',
       confFactory:'ALL DATA WILL BE DELETED! This cannot be undone. Continue?',
       confNotifPerm:'SAGI Finance can send reminders for subscriptions, debt deadlines, and budget alerts. Allow notifications?',
+      confCloudCreate:'Your local data will be uploaded to the cloud and sync will begin. Continue?',
+      confCloudSignOut:'Cloud connection will be disconnected on this device. Your data will remain here. Continue?',
+
+      // Cloud sync
+      cloudUnavailTitle:'Cloud Service Unavailable',
+      cloudUnavailDesc:'Firebase SDK could not be loaded or connection failed. Check your internet connection and reload the page. The app continues working in offline mode.',
+      cloudUnavailNote:'Cloud service unavailable. Running in offline mode — you can reconnect anytime from Settings.',
+      cloudInactiveDesc:'Enable cloud sync to access your data across multiple devices.',
+      cloudCreateBtn:'Create New Account',
+      cloudConnectBtn:'Connect Existing Account',
+      cloudKeyTitle:'Sync Key',
+      cloudKeyHint:'Keep this key safe. You will need it to sign in on another device.',
+      cloudCopyKey:'Copy Key',
+      cloudForceSync:'Sync Now',
+      cloudSignOut:'Disconnect',
+      cloudSignedOut:'Cloud connection disconnected.',
+      cloudStatusIdle:'Not connected',
+      cloudStatusSyncing:'Syncing...',
+      cloudStatusOk:'Synced',
+      cloudStatusError:'Connection error',
+      cloudStatusOffline:'Offline',
+      cloudSyncing:'Sync started.',
+      cloudCreated:'Account created! Your key: {key}',
+      cloudCreateFail:'Could not create account. Please try again.',
+      cloudInitFail:'Cloud service unavailable.',
+      cloudLoginOk:'Login successful, data synced.',
+      cloudLoginFail:'Login failed. Please check your key and try again.',
+
+      // Onboarding — cloud step
+      obKeyChecking:'Checking...',
+      obKeyCreating:'Creating account...',
+      obKeyCreateBtn:'Create Key',
+      obKeyLoginBtn:'Sign In',
+      obKeyInvalid:'Invalid key. Please enter in XXXX-XXXX-XXXX-XXXX format.',
+      obKeyNotFound:'Key not found. Please check and try again.',
+      obKeySuggestSkip:'You can skip this step and connect later from Settings.',
+
+      // General missing
+      reload:'Reload',
+      ratesUpdated:'Rates updated.',
+      msgCopied:'Copied!',
+
 
       // Other
       diffDays0:'Today', diffDaysAgo:'{n} days ago', diffDaysAhead:'in {n} days',
