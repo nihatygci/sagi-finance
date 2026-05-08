@@ -19,9 +19,13 @@ const CACHE_APP  = `sagi-app-${VERSION}`;   // HTML, font CSS
 const CACHE_FONT = `sagi-fonts-${VERSION}`; // Font dosyaları
 
 // Bu URL'ler kurulumda önceden cache'lenir
+// GitHub Pages gibi alt-dizin deploy'larında SW scope /repo/ olabilir.
+// self.registration.scope'tan base path otomatik türetilir.
+const BASE_PATH = self.registration.scope.replace(self.location.origin, '').replace(/\/$/, '');
+
 const PRECACHE = [
-  './',           // index.html alias
-  './index.html',
+  BASE_PATH + '/',
+  BASE_PATH + '/index.html',
 ];
 
 // Hiçbir zaman SW üzerinden cache'lenmesin
@@ -130,7 +134,7 @@ async function networkFirstStrategy(req) {
     return netRes;
   } catch (_) {
     // Network yok / timeout → cache'den dön
-    const cached = await cache.match(req) || await cache.match('./index.html');
+    const cached = await cache.match(req) || await cache.match(BASE_PATH + '/index.html') || await cache.match(BASE_PATH + '/');
     if (cached) {
       console.log('[SW] Offline: cache\'den sunuluyor');
       return cached;
@@ -207,7 +211,7 @@ self.addEventListener('message', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
 
-  const targetUrl = (event.notification.data && event.notification.data.url) || './';
+  const targetUrl = (event.notification.data && event.notification.data.url) || (self.registration.scope);
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
