@@ -24,6 +24,7 @@
 <script src="./firebase-config.js"></script>
 <script src="./core.js"></script>
 <script src="./cloud-sync.js"></script>
+<script src="./sagi-assistant.js"></script>
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
 window._swReg = null;
@@ -299,6 +300,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .tx-type-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px 12px;border-radius:var(--radius-md);border:2px solid var(--border-light);background:var(--bg-body);font-size:15px;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all .2s}
 .tx-type-btn .nav-icon{stroke-width:2.5}
 .tx-type-btn[data-val="expense"].active{border-color:var(--status-danger);background:var(--status-danger-bg);color:var(--status-danger)}
+.tx-type-btn[data-debt-dir="borç"].active{border-color:var(--status-danger);background:var(--status-danger-bg);color:var(--status-danger)}
+.tx-type-btn[data-debt-dir="alacak"].active{border-color:var(--status-success);background:var(--status-success-bg);color:var(--status-success)}
 .tx-type-btn[data-val="income"].active{border-color:var(--status-success);background:var(--status-success-bg);color:var(--status-success)}
 .tx-type-btn.active{border-color:var(--brand-accent);background:rgba(79,70,229,.1);color:var(--brand-accent)}
 .tx-type-btn:not(.active):hover{border-color:var(--text-muted);color:var(--text-secondary);background:var(--bg-surface)}
@@ -451,7 +454,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* Tasarruf Skoru */
 .score-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
 .score-ring-wrap svg{width:110px;height:110px}
-.score-val{font-family:var(--font-display);font-size:28px;font-weight:800;fill:var(--text-main)}
+.score-val{font-family:var(--font-display);font-size:25px;font-weight:800;fill:var(--text-main)}
 .score-label-txt{font-size:11px;fill:var(--text-muted);font-weight:600}
 .score-grade{font-size:13px;font-weight:700;padding:3px 12px;border-radius:var(--radius-full);margin-top:4px}
 /* Harcama Alışkanlıkları */
@@ -1295,19 +1298,33 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
       <!-- 4'lü KPI -->
       <div class="css-grid grid-cols-4 mb-5 stagger-1" id="analyticsSummary"></div>
-      <!-- AI Yorum Botu -->
+
+      <!-- SAGI Asistan Bot -->
       <div class="ai-insight-card mb-5 stagger-2" id="aiInsightCard">
         <div class="ai-bot-row">
           <div class="ai-bot-avatar">
-            <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1v1a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-1H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1V6a4 4 0 0 1 4-4h4zm0 2H8a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-1 3h2v2h-2V7zm-3 0h2v2H8V7zm2 4h4v1a2 2 0 0 1-2 2h-2v-3z" stroke="none" fill="white"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="8" width="18" height="12" rx="3"/>
+              <path d="M8 8V6a4 4 0 0 1 8 0v2"/>
+              <circle cx="9" cy="14" r="1.5" fill="white" stroke="none"/>
+              <circle cx="15" cy="14" r="1.5" fill="white" stroke="none"/>
+              <path d="M9 18h6" stroke-width="1.5"/>
+            </svg>
           </div>
           <div class="ai-bot-bubble">
             <div class="ai-bot-name">SAGI Asistan</div>
             <div id="aiInsightText" style="line-height:1.7">Verileriniz analiz ediliyor...</div>
             <div class="ai-insight-tags" id="aiInsightTags"></div>
+            <div id="aiInsightTips"></div>
           </div>
         </div>
       </div>
+
+      <!-- Aylık Karşılaştırma Kartları -->
+      <div class="card mb-5 stagger-2" id="sagiMonthlyCardsWrap">
+        <div id="sagiMonthlyCards"></div>
+      </div>
+
       <!-- Trend Grafik + Tasarruf Skoru -->
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
         <div class="card">
@@ -1327,8 +1344,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <div id="savingsScoreGrade" class="score-grade"></div>
             <div style="font-size:12px;color:var(--text-muted);max-width:160px;margin-top:6px" id="savingsScoreDesc"></div>
           </div>
+          <div id="sagiSavingsBreakdown" style="width:100%;text-align:left;margin-top:12px"></div>
         </div>
       </div>
+
       <!-- Önümüzdeki Ay Tahmini -->
       <div class="forecast-card mb-5 stagger-3" id="forecastCard">
         <div class="flex justify-between items-center mb-4">
@@ -1340,12 +1359,12 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div id="forecastRows"></div>
       </div>
+
       <!-- Gider Dağılımı + Kategoriler -->
       <div class="css-grid grid-cols-2 mb-5 stagger-3">
         <div class="card">
           <h2 class="card-title mb-3">Harcama Dağılımı</h2>
           <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Kategoriye tıklayın, işlemleri görün</p>
-          <!-- Tab: Gider / Gelir -->
           <div class="analytics-tabs" id="donutTabs">
             <button class="analytics-tab active" onclick="App.Controllers.Analytics.switchDonut('expense',this)">Gider</button>
             <button class="analytics-tab" onclick="App.Controllers.Analytics.switchDonut('income',this)">Gelir</button>
@@ -1357,6 +1376,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div id="categoryBreakdownList" class="flex flex-col gap-4"></div>
         </div>
       </div>
+
       <!-- Harcama Alışkanlıkları -->
       <div class="card mb-5 stagger-3">
         <h2 class="card-title mb-4">
@@ -1365,16 +1385,16 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </h2>
         <div id="habitAnalysisList"></div>
       </div>
+
       <!-- Bütçe Limitleri -->
       <div class="card stagger-4">
         <div class="flex justify-between items-center mb-5">
-          <h2 class="card-title">Kategori Bütçeleri</h2>
+          <h2 class="card-title">Aylık Kategori Bütçeleri</h2>
           <button class="btn btn-outline btn-sm" onclick="App.Controllers.Budgets.openModal()"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-plus"/></svg>Limit Ekle</button>
         </div>
         <div id="budgetList" class="css-grid grid-cols-2"></div>
       </div>
     </div>
-
     <!-- HEDEFLER -->
     <div id="view-goals" class="view">
       <div class="page-title-row">
@@ -1388,7 +1408,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div id="view-debts" class="view">
       <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="debts">Borç & Alacak</h1><p class="text-subtitle" data-i18n="debtsSubtitle">Finansal yükümlülükleriniz</p></div>
-        <button class="btn btn-primary" onclick="App.Controllers.Debts.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addDebt">İşlem Ekle</span></button>
+        <button class="btn btn-primary" onclick="App.Controllers.Debts.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
       </div>
       <div class="css-grid grid-cols-2 stagger-1">
         <div class="card"><h2 class="card-title color-danger mb-5" data-i18n="myDebts">Borçlarım</h2><div id="debtsContainer" class="flex flex-col gap-4"></div></div>
@@ -1962,8 +1982,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="form-group">
           <label class="form-label">Tür</label>
           <div class="tx-type-seg">
-            <button type="button" class="tx-type-btn active" data-debt-dir="borç" onclick="App.Controllers.Debts.setDir('borç',this)"><svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-arrow-down"/></svg>Borç</button>
-            <button type="button" class="tx-type-btn" data-debt-dir="alacak" onclick="App.Controllers.Debts.setDir('alacak',this)"><svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-arrow-up"/></svg>Alacak</button>
+            <button type="button" class="tx-type-btn active" data-debt-dir="borç" onclick="App.Controllers.Debts.setDir('borç',this)"><svg class="nav-icon" style="width:20px;height:20px;margin-bottom:4px"><use href="#icon-arrow-down"/></svg><span>Borç</span></button>
+            <button type="button" class="tx-type-btn" data-debt-dir="alacak" onclick="App.Controllers.Debts.setDir('alacak',this)"><svg class="nav-icon" style="width:20px;height:20px;margin-bottom:4px"><use href="#icon-arrow-up"/></svg><span>Alacak</span></button>  
           </div>
         </div>
         <div class="form-group"><label class="form-label" data-i18n="personOrInst">Kişi veya Kurum Adı</label><input type="text" class="form-control" id="debt_name" data-i18n-ph="personPh" placeholder="Kime / Kimden?" required autocomplete="off"></div>
@@ -2378,16 +2398,40 @@ const UI = {
     },
     drawBarChart(id,data){
       const c=document.getElementById(id);if(!c)return;
-      const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)))||1;
-      let svg=`<svg viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
-      const gap=360/data.length,barW=10;
-      data.forEach((d,i)=>{
-        const x=i*gap+gap/2,hI=(d.inc/maxVal)*130,hE=(d.exp/maxVal)*130;
-        svg+=`<rect x="${x-barW-1}" y="${145-hI}" width="${barW}" height="${hI}" fill="var(--status-success)" rx="4"><title>Gelir: ${Core.Utils.formatMoney(d.inc)}</title></rect>`;
-        svg+=`<rect x="${x+1}" y="${145-hE}" width="${barW}" height="${hE}" fill="var(--status-danger)" rx="4"><title>Gider: ${Core.Utils.formatMoney(d.exp)}</title></rect>`;
-        svg+=`<text x="${x}" y="${165}" fill="var(--text-muted)" font-size="10" font-weight="600" text-anchor="middle">${d.label}</text>`;
+      if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">Veri yok</div>';return;}
+      const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)),1);
+      // Renk: CSS değişkenlerine bağlı olmayan sabit HEX — SVG fill= içinde CSS var() çalışmaz
+      const INC_COLOR='#22a06b'; // status-success sabit
+      const EXP_COLOR='#e5534b'; // status-danger sabit
+      const MUTED='#9ca3af';
+      const W=360,H=200,PAD_B=32,CHART_H=H-PAD_B-10;
+      const n=data.length;
+      const slotW=W/n;
+      // Çift bar: her slot içinde 2 bar yan yana
+      const barW=Math.min(slotW*0.32,18);
+      const gap=2;
+      let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+      // Grid çizgileri (3 adet)
+      [0.33,0.66,1].forEach(f=>{
+        const y=H-PAD_B-CHART_H*f;
+        svg+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,3"/>`;
+        const val=maxVal*f;
+        const label=val>=1000000?(val/1000000).toFixed(1)+'M':val>=1000?(val/1000).toFixed(0)+'K':val.toFixed(0);
+        svg+=`<text x="4" y="${y-3}" fill="${MUTED}" font-size="8" font-weight="600">${label}</text>`;
       });
-      svg+=`</svg>`;c.innerHTML=svg;
+      data.forEach((d,i)=>{
+        const cx=i*slotW+slotW/2;
+        const hI=Math.max(2,(d.inc/maxVal)*CHART_H);
+        const hE=Math.max(2,(d.exp/maxVal)*CHART_H);
+        const baseY=H-PAD_B;
+        // Gelir bar
+        svg+=`<rect x="${cx-barW-gap/2}" y="${baseY-hI}" width="${barW}" height="${hI}" fill="${INC_COLOR}" rx="3" opacity="0.9"><title>Gelir: ${Core.Utils.formatMoney(d.inc)}</title></rect>`;
+        // Gider bar
+        svg+=`<rect x="${cx+gap/2}" y="${baseY-hE}" width="${barW}" height="${hE}" fill="${EXP_COLOR}" rx="3" opacity="0.9"><title>Gider: ${Core.Utils.formatMoney(d.exp)}</title></rect>`;
+        // Etiket
+        svg+=`<text x="${cx}" y="${H-6}" fill="${MUTED}" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.02em">${d.label}</text>`;
+      });
+      svg+='</svg>';c.innerHTML=svg;
     }
   },
   toggleSelect(dropId,btnId){
@@ -3068,7 +3112,14 @@ const App = {
                 const payBtn=`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')">${t('payBtn')}</button>`;
                 return`<div class="upcoming-item" style="${urgency}"><div style="flex:1;min-width:0"><div class="font-bold" style="font-size:14px">${s.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="upcoming-item-actions"><div class="font-display font-bold color-danger" style="font-size:15px;text-align:right">-${dispAmt}${origInfo}</div>${payBtn}</div></div>`;
               };
-              let html=list.map(renderItem).join('');
+              const sorted=[...list].sort((a,b)=>{
+                const da=a.day-today, db=b.day-today;
+                const aLate=da<0, bLate=db<0;
+                if(aLate&&!bLate)return -1;
+                if(!aLate&&bLate)return 1;
+                return Math.abs(da)-Math.abs(db);
+              });
+              let html=sorted.map(renderItem).join('');
               if(unpaid.length>near.length){
                 const toggleLabel=showAll?t('showLess'):`${t('showAll')} (${unpaid.length-near.length}+)`;
                 html+=`<button class="upcoming-show-more" onclick="App.Controllers.Dashboard.toggleUpcomingShowAll()">${toggleLabel}</button>`;
@@ -3980,10 +4031,37 @@ const App = {
         // ── Alışkanlıklar ──
         this._renderHabits(allTx);
 
-        // ── AI Yorum ──
-        this._renderAIInsight(totalInc, totalExp, net, savingsRate, allTx, months);
+        // ── SAGI Asistan (sagi-assistant.js) ──
+        if(window.SAGIAssistant){
+          SAGIAssistant.render({
+            totalInc, totalExp, net, savingsRate,
+            allTx, months,
+            period: this._period,
+            recurring: Core.state.recurring || [],
+            budgets: Core.state.budgets || [],
+            wallets: Core.state.wallets || [],
+            currency: mc,
+            fmt,
+            prevMonthInc: prevInc,
+            prevMonthExp: prevExp
+          });
+        }
 
-        App.Controllers.Budgets.render(this._catData.expense || {});
+        App.Controllers.Budgets.render(this._monthlyExpenseCats());
+      },
+
+      _monthlyExpenseCats(){
+        const mc = Core.state.settings.currency || 'TRY';
+        const now = new Date();
+        const cats = {};
+        Core.state.transactions
+          .filter(t => {
+            if(t.type !== 'expense' || t.cat === 'Transfer') return false;
+            const d = new Date(t.date);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+          })
+          .forEach(t => { cats[t.cat] = (cats[t.cat] || 0) + this._toMain(t); });
+        return cats;
       },
 
       _buildCatData(allTx){
@@ -4026,34 +4104,44 @@ const App = {
         renderCatList(false);
       },
 
-      // ── Tasarruf Skoru (Halka Grafik) ──
-      _renderSavingsScore(savingsRate){
-        const wrap = document.getElementById('savingsScoreSvg');
-        const gradeEl = document.getElementById('savingsScoreGrade');
-        const descEl = document.getElementById('savingsScoreDesc');
-        if(!wrap) return;
+      _renderSavingsScore(savingsRate) {
+    const wrap = document.getElementById('savingsScoreSvg');
+    const gradeEl = document.getElementById('savingsScoreGrade');
+    const descEl = document.getElementById('savingsScoreDesc');
+    if (!wrap) return;
 
-        const score = Math.min(100, Math.max(0, savingsRate + 50)); // -50%..+50% → 0..100
-        const pct = Math.min(100, Math.max(0, savingsRate));
-        const r = 42, cx = 55, cy = 55, circumference = 2 * Math.PI * r;
-        const dash = (score / 100) * circumference;
-        const color = score >= 70 ? 'var(--status-success)' : score >= 40 ? 'var(--brand-accent)' : score >= 20 ? 'var(--status-warn)' : 'var(--status-danger)';
-        const grade = score >= 80 ? 'Mükemmel' : score >= 60 ? 'İyi' : score >= 40 ? 'Orta' : score >= 20 ? 'Dikkat' : 'Kritik';
-        const gradeColor = score >= 70 ? 'var(--status-success)' : score >= 40 ? 'var(--brand-accent)' : score >= 20 ? 'var(--status-warn)' : 'var(--status-danger)';
-        const desc = score >= 70 ? 'Gelirinizin büyük kısmını biriktiriyorsunuz.' : score >= 40 ? 'Tasarruf oranınız makul düzeyde.' : score >= 20 ? 'Tasarruf potansiyeliniz artırılabilir.' : 'Giderleriniz gelirinizi aşıyor.';
+    const displayPct = Math.max(0, Math.min(100, savingsRate)); // 0-100 arası kısıtla
+    const score = displayPct;
 
-        wrap.innerHTML = `<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg-body)" stroke-width="10"/>
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
-            stroke-dasharray="${dash} ${circumference}" stroke-dashoffset="${circumference*0.25}"
-            stroke-linecap="round" style="transition:stroke-dasharray .8s cubic-bezier(.16,1,.3,1)"/>
-          <text x="${cx}" y="${cy-4}" text-anchor="middle" class="score-val" font-size="18" font-weight="800" font-family="Outfit,sans-serif" fill="var(--text-main)">${pct.toFixed(0)}%</text>
-          <text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--text-muted)" letter-spacing="0.04em">TASARRUF</text>
-        </svg>`;
+    const r = 42, cx = 55, cy = 55;
+    const circumference = 2 * Math.PI * r;
+    const dash = (score / 100) * circumference;
+    const gap = circumference - dash; // ← EKLENDİ
 
-        if(gradeEl){ gradeEl.textContent = grade; gradeEl.style.cssText = `background:${gradeColor}22;color:${gradeColor};border:1px solid ${gradeColor}44;`; }
-        if(descEl) descEl.textContent = desc;
-      },
+    const colorHex = score >= 70 ? '#22a06b' : score >= 40 ? '#4f46e5' : score >= 20 ? '#d97706' : '#e5534b';
+    const grade = score >= 80 ? 'Mükemmel' : score >= 60 ? 'İyi' : score >= 40 ? 'Orta' : score >= 20 ? 'Dikkat' : 'Kritik';
+    const desc = score >= 70 ? 'Gelirinizin büyük kısmını biriktiriyorsunuz.' : 
+                score >= 40 ? 'Tasarruf oranınız makul düzeyde.' : 
+                score >= 20 ? 'Tasarruf potansiyeliniz artırılabilir.' : 
+                'Giderleriniz gelirinizi aşıyor.';
+
+    wrap.innerHTML = `<svg viewBox="0 0 110 110">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colorHex}" stroke-width="10"
+        stroke-dasharray="${dash} ${gap}"
+        stroke-dashoffset="0"
+        stroke-linecap="round"
+        transform="rotate(-90 ${cx} ${cy})" />
+      <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="23" font-weight="800" font-family="Outfit,sans-serif" fill="var(--text-main)">${displayPct.toFixed(0)}%</text>
+      <text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#9ca3af">TASARRUF</text>
+    </svg>`;
+
+    if (gradeEl) {
+        gradeEl.textContent = grade;
+        gradeEl.style.cssText = `background:${colorHex}22;color:${colorHex};border:1px solid ${colorHex}44;`;
+    }
+    if (descEl) descEl.textContent = desc;
+},
 
       // ── Gelecek Ay Tahmini ──
       _renderForecast(months){
@@ -4169,7 +4257,7 @@ const App = {
             return d.getMonth()===(now.getMonth()-1+12)%12;
           }).reduce((s,t)=>s+this._toMain(t),0);
           const thisMonthExp = expTx.filter(t=>{
-            const d=new Date(tx.date);
+            const d=new Date(t.date);
             return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
           }).reduce((s,t)=>s+this._toMain(t),0);
           if(lastMonthExp > 0){
@@ -4190,72 +4278,7 @@ const App = {
           </div>`).join('');
       },
 
-      // ── AI Yorum Botu ──
-      _renderAIInsight(totalInc, totalExp, net, savingsRate, allTx, months){
-        const el = document.getElementById('aiInsightText');
-        const tagsEl = document.getElementById('aiInsightTags');
-        if(!el) return;
-        const mc = Core.state.settings.currency || 'TRY';
-        const fmt = v => Core.Utils.formatMoney(v, mc);
-        const expTx = allTx.filter(t=>t.type==='expense');
-        const catTotals = {};
-        expTx.forEach(t=>{ catTotals[t.cat]=(catTotals[t.cat]||0)+this._toMain(t); });
-        const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,2);
 
-        const messages = [];
-        const tags = [];
-
-        if(!allTx.length){
-          el.innerHTML = 'Henüz işlem kaydı bulunamadı. İşlem ekledikçe finansal analiziniz burada görünecek.';
-          if(tagsEl) tagsEl.innerHTML='';
-          return;
-        }
-
-        // Ana mesaj — duruma göre
-        if(savingsRate >= 30){
-          messages.push(`Harika gidiyorsunuz! Gelirinizin <strong>%${savingsRate.toFixed(0)}'ini</strong> biriktiriyorsunuz — bu finansal sağlık açısından çok olumlu bir gösterge.`);
-          tags.push({label:'Tasarruf Lideri', cls:'success'});
-        } else if(savingsRate >= 10){
-          messages.push(`Finansal dengeniz makul; gelirinizin <strong>%${savingsRate.toFixed(0)}'ini</strong> biriktiriyorsunuz. Küçük düzenlemelerle bu oranı daha da artırabilirsiniz.`);
-          tags.push({label:'Dengeli', cls:'warn'});
-        } else if(savingsRate >= 0){
-          messages.push(`Gelir-gider dengeniz oldukça dar. Gelirinizin yalnızca <strong>%${savingsRate.toFixed(0)}'i</strong> birikim olarak kalıyor — giderlerinizi gözden geçirmenizi öneririm.`);
-          tags.push({label:'Dikkat', cls:'warn'});
-        } else {
-          messages.push(`Giderleriniz gelirinizi <strong>${fmt(Math.abs(net))}</strong> aşıyor. Bu sürdürülebilir değil; önce sabit giderlerinizi incelemenizi öneririm.`);
-          tags.push({label:'Açık Var', cls:'danger'});
-        }
-
-        // Kategori yorumu
-        if(topCats.length >= 1){
-          const top = topCats[0];
-          const topPct = totalExp > 0 ? (top[1]/totalExp*100).toFixed(0) : 0;
-          messages.push(`En yüksek gider kategorinizin <strong>${top[0]}</strong> (%${topPct}) olduğu görülüyor${topPct > 40 ? ' — bu oran oldukça yüksek' : ''}.`);
-        }
-
-        // Trend yorumu
-        if(months.length >= 3){
-          const last3 = months.slice(-3);
-          const expTrend = last3[2].exp - last3[0].exp;
-          if(Math.abs(expTrend) > 0){
-            const dir = expTrend > 0 ? 'artış' : 'düşüş';
-            const pct = Math.abs(expTrend / (last3[0].exp||1) * 100).toFixed(0);
-            messages.push(`Son 3 ayda giderlerinizde <strong>%${pct} ${dir}</strong> ${expTrend > 0 ? 'gözlemleniyor.' : 'gözlemleniyor — bu olumlu bir işaret!'}`);
-            if(expTrend > 0) tags.push({label:'Gider Artıyor', cls:'danger'});
-            else tags.push({label:'Gider Düşüyor', cls:'success'});
-          }
-        }
-
-        // Tavsiye
-        const recs = [];
-        if(savingsRate < 20) recs.push('50/30/20 kuralını deneyin: Gelirin %50 ihtiyaç, %30 istek, %20 tasarruf.');
-        if(topCats.length && totalExp > 0 && (topCats[0][1]/totalExp) > 0.4) recs.push(`${topCats[0][0]} harcamanızı %10 azaltmak aylık ${fmt(topCats[0][1]*0.1)} tasarruf sağlar.`);
-        if(Core.state.recurring && Core.state.recurring.length < 2) recs.push('Tekrarlayan giderlerinizi kayıt altına alın, sürpriz harcamaları önleyin.');
-        if(recs.length) messages.push(`<em>${recs[0]}</em>`);
-
-        el.innerHTML = messages.join(' ');
-        if(tagsEl) tagsEl.innerHTML = tags.map(tag=>`<span class="ai-tag ${tag.cls}">${tag.label}</span>`).join('');
-      },
 
       _catData:{expense:{},income:{}},
       _catSorted:[],
@@ -4590,7 +4613,9 @@ const App = {
         document.getElementById('debtsContainer').innerHTML=d.length?d.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noDebtRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('borç')">${t('addDebt')}</button></div>`;
         document.getElementById('receivablesContainer').innerHTML=rec.length?rec.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noReceivableRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('alacak')">${t('addReceivable')}</button></div>`;
       },
-      setDir(dir,btn){document.getElementById('debt_dir').value=dir;document.querySelectorAll('[data-debt-dir]').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');else{const b=document.querySelector(`[data-debt-dir="${dir}"]`);if(b)b.classList.add('active');}},openModal(dir){const finalDir=dir||'borç';document.getElementById('debt_dir').value=finalDir;document.querySelectorAll('[data-debt-dir]').forEach(b=>b.classList.toggle('active',b.dataset.debtDir===finalDir));document.getElementById('debt_id').value='';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debtLinkRow').classList.remove('active');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent=t('addRecord');App.Controllers.Wallets.upd();UI.Modals.open('modalDebt');},
+      _fillDebtWallets(){const dwd=document.getElementById('debtWalletDrop');if(!dwd)return;dwd.innerHTML=Core.state.wallets.map(w=>`<div class="custom-select-option" data-walid="${w.id}" data-walname="${w.name}" onclick="App.Controllers.Debts._pickDebtWallet(this)">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</div>`).join('')||'<div class="custom-select-option" style="color:var(--text-muted)">Hesap yok</div>';},
+_pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.walid;document.getElementById('debtWalletLabel').textContent=el.dataset.walname;document.querySelectorAll('#debtWalletDrop .custom-select-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');document.getElementById('debtWalletDrop').classList.remove('open');document.getElementById('debtWalletBtn').classList.remove('open');},
+      setDir(dir,btn){document.getElementById('debt_dir').value=dir;document.querySelectorAll('[data-debt-dir]').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');else{const b=document.querySelector(`[data-debt-dir="${dir}"]`);if(b)b.classList.add('active');}},openModal(dir){const finalDir=dir||'borç';document.getElementById('debt_dir').value=finalDir;document.querySelectorAll('[data-debt-dir]').forEach(b=>b.classList.toggle('active',b.dataset.debtDir===finalDir));document.getElementById('debt_id').value='';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debtLinkRow').classList.remove('active');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent=t('addRecord');App.Controllers.Wallets.upd();this._fillDebtWallets();UI.Modals.open('modalDebt');},
       edit(id){const d=Core.state.debts.find(x=>x.id===id);if(d){document.getElementById('debt_id').value=d.id;document.getElementById('debt_dir').value=d.dir;this.setDir(d.dir,null);document.getElementById('debt_name').value=d.name;document.getElementById('debt_amount').value=d.originalAmount||d.amount;document.getElementById('debt_date').value=d.date||'';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent=t('editRecord');const dcEl=document.getElementById('debt_currency');if(dcEl)dcEl.value=d.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalDebt');}},
       save(){
         const id=document.getElementById('debt_id').value,dir=document.getElementById('debt_dir').value,name=document.getElementById('debt_name').value.trim(),rawAmt=parseFloat(document.getElementById('debt_amount').value);
@@ -5289,19 +5314,23 @@ App.Controllers.BottomBar = {
 
   // ─── Mobile Touch Drag ───
   _onTouchStart(e, el){
+    // Eğer tıklanan hedef "kaldır" butonuysa sürüklemeyi başlatma
+    if (e.target.closest('.bnav-sort-remove')) {
+      return;  // preventDefault yapılmaz, buton kendi onclick'ini çalıştırabilir
+    }
     e.preventDefault();
-    this._touchSrcIdx=parseInt(el.dataset.idx);
-    this._touchTargetIdx=null;
-    const rect=el.getBoundingClientRect();
-    const ghost=el.cloneNode(true);
-    ghost.style.cssText=`position:fixed;top:0;left:${rect.left}px;width:${rect.width}px;opacity:.88;pointer-events:none;z-index:9999;border-color:var(--brand-accent);transform:translateY(${rect.top}px) scale(1.03);transform-origin:center;box-shadow:0 12px 32px rgba(0,0,0,.22);border-radius:var(--radius-md);transition:none;will-change:transform`;
+    this._touchSrcIdx = parseInt(el.dataset.idx);
+    this._touchTargetIdx = null;
+    const rect = el.getBoundingClientRect();
+    const ghost = el.cloneNode(true);
+    ghost.style.cssText = `position:fixed;top:0;left:${rect.left}px;width:${rect.width}px;opacity:.88;pointer-events:none;z-index:9999;border-color:var(--brand-accent);transform:translateY(${rect.top}px) scale(1.03);transform-origin:center;box-shadow:0 12px 32px rgba(0,0,0,.22);border-radius:var(--radius-md);transition:none;will-change:transform`;
     document.body.appendChild(ghost);
-    this._touchGhost=ghost;
-    this._touchOffsetY=e.touches[0].clientY-rect.top;
+    this._touchGhost = ghost;
+    this._touchOffsetY = e.touches[0].clientY - rect.top;
     el.classList.add('dragging');
-    const activeList=document.getElementById('bnavActiveList');
+    const activeList = document.getElementById('bnavActiveList');
     if(activeList){
-      this._touchCachedRects=[...activeList.querySelectorAll('.bnav-sort-item')].map(item=>({
+      this._touchCachedRects = [...activeList.querySelectorAll('.bnav-sort-item')].map(item => ({
         idx: parseInt(item.dataset.idx),
         top: item.getBoundingClientRect().top,
         bottom: item.getBoundingClientRect().bottom,
