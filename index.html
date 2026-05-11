@@ -3856,6 +3856,15 @@ const App = {
           if(tx){
             App.Money.revertTx(tx);
             App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
+            if(tx.linkedDebtId){
+              const _ld=Core.state.debts.find(d=>d.id===tx.linkedDebtId);
+              if(_ld){
+                const _mc=Core.state.settings.currency||'TRY';
+                const _txAmt=App.ExchangeRate.convert(tx.amount,tx.amountCurrency||_mc,_mc);
+                _ld.amount=Math.round((_ld.amount+_txAmt)*100)/100;
+              }
+              App.Controllers.Debts&&App.Controllers.Debts.render&&App.Controllers.Debts.render();
+            }
           }
           Core.state.transactions=Core.state.transactions.filter(t=>t.id!==id);
           Core.DB.save();
@@ -4634,8 +4643,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const tType=dir==='borç'?'income':'expense';
             const tDesc=dir==='borç'?t('debtTaken',{name}):t('debtGiven',{name});
             const mc=App.Money.mainCur();
-            const tx={id:Core.Utils.generateId(),type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString()};
-            Core.state.transactions.push(tx);App.Money.applyTx(tx);
+            const txId=Core.Utils.generateId();const tx={id:txId,type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:p.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);p.linkedTxId=txId;
           }
         }
         Core.DB.save();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
@@ -4663,9 +4671,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const wc=App.Money.walletCur(w.id);
             const tType=d.dir==='borç'?'expense':'income';
             const tDesc=d.dir==='borç'?t('debtPayment',{name:d.name}):t('debtCollection',{name:d.name});
-            const tx={id:Core.Utils.generateId(),type:tType,amount:a,amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString()};
-            Core.state.transactions.push(tx);App.Money.applyTx(tx);
-          }
+            const tx={id:Core.Utils.generateId(),type:tType,amount:a,amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:d.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);d.linkedTxId=tx.id;          }
         }
         if(overpayMain>0.01){
           const counterDir=d.dir==='borç'?'alacak':'borç';
