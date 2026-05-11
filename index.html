@@ -591,8 +591,13 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 
 /* MOBILE FILTER STACK */
 @media(max-width:768px){
-  .css-grid.grid-cols-4.items-end{grid-template-columns:1fr 1fr}
-  .css-grid.grid-cols-4.items-end .form-group:last-child{grid-column:1/-1}
+  .css-grid.grid-cols-4.items-end{grid-template-columns:1fr 1fr;gap:10px}
+  .css-grid.grid-cols-4.items-end .form-group:nth-child(1){grid-column:1/-1}
+  .css-grid.grid-cols-4.items-end .form-group:last-child{grid-column:auto}
+  .tx-filter-actions{display:flex;flex-direction:row;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)}
+}
+@media(min-width:769px){
+  .tx-filter-actions{display:none}
 }
 
 /* HEADING ROW ON MOBILE */
@@ -865,6 +870,53 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   opacity: 1;
 }
 
+/* İKİLİ RENK SEÇİCİ */
+.dual-color-picker {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+}
+.dual-color-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-body);
+  padding: 14px 10px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-light);
+  transition: border-color .2s;
+}
+.dual-color-item:focus-within {
+  border-color: var(--brand-accent);
+}
+.dual-color-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+}
+.dual-color-input {
+  width: 60px;
+  height: 40px;
+  border: 2px solid var(--border-light);
+  border-radius: 10px;
+  padding: 2px;
+  cursor: pointer;
+  background: none;
+}
+.dual-color-preview {
+  width: 100%;
+  height: 40px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-light);
+  margin-top: 12px;
+  transition: background .25s;
+}
+
 </style>
 </head>
 <body>
@@ -1054,9 +1106,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
     </div>
     <div class="tx-detail-actions">
-      <button class="btn btn-outline" onclick="App.Controllers.Transactions._detailAction('dup')">
-        <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-copy"/></svg> Kopyala
-      </button>
       <button class="btn btn-primary" onclick="App.Controllers.Transactions._detailAction('edit')">
         <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg> Düzenle
       </button>
@@ -1203,49 +1252,52 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div id="view-transactions" class="view">
       <div class="page-title-row">
         <div><h1 class="text-h1" data-i18n="transactions">İşlemler</h1><p class="text-subtitle" data-i18n="txSubtitle">Tüm gelir ve giderleriniz</p></div>
-        <div class="flex flex-col gap-2 items-end" style="flex-shrink:0">
-          <div class="flex gap-2">
-            <button class="btn btn-select-mode" id="txSelectModeBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" data-i18n-title="select" title="Seç">
-              <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-check"/></svg>
-              <span class="select-mode-label" id="txSelectModeLabel" data-i18n="selectMode">Seç</span>
-            </button>
-            <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
-          </div>
+        <div class="flex gap-2 items-center" style="flex-shrink:0">
+          <button class="btn btn-select-mode" id="txSelectModeBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" data-i18n-title="select" title="Seç">
+            <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-check"/></svg>
+            <span class="select-mode-label" id="txSelectModeLabel" data-i18n="selectMode">Seç</span>
+          </button>
           <button class="btn btn-outline btn-sm color-danger" id="txDeleteSelectedBtnTop" onclick="App.Controllers.Transactions.deleteSelected()" style="display:none;border-color:var(--status-danger-bg);color:var(--status-danger);font-size:12px;padding:6px 14px">
             <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg>
             <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
           </button>
+          <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
         </div>
       </div>
       <div class="card p-4 stagger-1" style="margin-bottom:14px">
-          <div class="css-grid grid-cols-4 items-end">
-            <div class="form-group mb-0">
-              <label class="form-label" data-i18n="filterDate">Tarih</label>
-              <select class="form-control" id="filterTxDate" onchange="App.Controllers.Transactions.onDateFilterChange(this.value)">
-                <option value="all" data-i18n="filterAllTimes">Tüm Zamanlar</option>
-                <option value="this_month" selected data-i18n="filterThisMonth">Bu Ay</option>
-                <option value="last_month" data-i18n="filterLastMonth">Geçen Ay</option>
-                <option value="last_3months" data-i18n="filterLast3">Son 3 Ay</option>
-                <option value="last_6months" data-i18n="filterLast6">Son 6 Ay</option>
-                <option value="last_year" data-i18n="filterLastYear">Son 1 Yıl</option>
-                <option value="custom" data-i18n="filterCustom">Özel Tarih</option>
-              </select>
-              <div id="customDateRange" style="display:none;margin-top:8px">
-                <div class="flex gap-2 items-center">
-                  <input type="date" class="form-control" id="filterDateFrom" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
-                  <span style="color:var(--text-muted);font-size:12px">—</span>
-                  <input type="date" class="form-control" id="filterDateTo" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
-                </div>
+        <div class="css-grid grid-cols-4 items-end">
+          <div class="form-group mb-0">
+            <label class="form-label" data-i18n="filterDate">Tarih</label>
+            <select class="form-control" id="filterTxDate" onchange="App.Controllers.Transactions.onDateFilterChange(this.value)">
+              <option value="all" data-i18n="filterAllTimes">Tüm Zamanlar</option>
+              <option value="this_month" selected data-i18n="filterThisMonth">Bu Ay</option>
+              <option value="last_month" data-i18n="filterLastMonth">Geçen Ay</option>
+              <option value="last_3months" data-i18n="filterLast3">Son 3 Ay</option>
+              <option value="last_6months" data-i18n="filterLast6">Son 6 Ay</option>
+              <option value="last_year" data-i18n="filterLastYear">Son 1 Yıl</option>
+              <option value="custom" data-i18n="filterCustom">Özel Tarih</option>
+            </select>
+            <div id="customDateRange" style="display:none;margin-top:8px">
+              <div class="flex gap-2 items-center">
+                <input type="date" class="form-control" id="filterDateFrom" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
+                <span style="color:var(--text-muted);font-size:12px">—</span>
+                <input type="date" class="form-control" id="filterDateTo" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
               </div>
             </div>
-            <div class="form-group mb-0"><label class="form-label" data-i18n="filterSearch">Arama</label><input type="text" class="form-control" id="filterTxSearch" data-i18n-ph="filterSearchPh" placeholder="Açıklama..."></div>
-            <div class="form-group mb-0"><label class="form-label" data-i18n="filterType">Tür</label><select class="form-control" id="filterTxType"><option value="all" data-i18n="all">Tümü</option><option value="income" data-i18n="filterIncome">Gelir (+)</option><option value="expense" data-i18n="filterExpense">Gider (-)</option></select></div>
-            <div class="form-group mb-0">
-              <label class="form-label flex justify-between items-center"><span data-i18n="account">Hesap</span><button class="act-btn" style="padding:2px 8px;font-size:11px" data-i18n="reset" onclick="App.Controllers.Transactions.clearFilters()">Sıfırla</button></label>
-              <select class="form-control" id="filterTxWallet"><option value="all" data-i18n="filterAllWallets">Tüm Hesaplar</option></select>
-            </div>
+          </div>
+          <div class="form-group mb-0"><label class="form-label" data-i18n="filterSearch">Arama</label><input type="text" class="form-control" id="filterTxSearch" data-i18n-ph="filterSearchPh" placeholder="Açıklama..."></div>
+          <div class="form-group mb-0"><label class="form-label" data-i18n="filterType">Tür</label><select class="form-control" id="filterTxType"><option value="all" data-i18n="all">Tümü</option><option value="income" data-i18n="filterIncome">Gelir (+)</option><option value="expense" data-i18n="filterExpense">Gider (-)</option></select></div>
+          <div class="form-group mb-0">
+            <label class="form-label"><span data-i18n="account">Hesap</span></label>
+            <select class="form-control" id="filterTxWallet"><option value="all" data-i18n="filterAllWallets">Tüm Hesaplar</option></select>
           </div>
         </div>
+        <!-- Mobilde filtre alt aksiyonlar (Sıfırla + Filtrelenenleri Sil) -->
+        <div class="tx-filter-actions">
+          <button class="btn btn-outline btn-sm" onclick="App.Controllers.Transactions.clearFilters()" data-i18n="reset">Sıfırla</button>
+          <button class="btn btn-outline btn-sm color-danger" id="txBulkDeleteBtn" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
+        </div>
+      </div>
       <div class="card stagger-2" style="padding:0;overflow:hidden" id="txCardContainer">
         <div class="table-container" style="margin:0;padding:0">
           <table class="data-table">
@@ -1260,8 +1312,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <div class="text-subtitle font-medium" id="txPageInfo"></div>
           </div>
           <div class="flex gap-2">
-          <button class="btn btn-outline btn-sm color-danger" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
-        </div>
+            <button class="btn btn-outline btn-sm color-danger" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
+          </div>
         </div>
       </div>
       <!-- MOBİL SEÇ MODU SİLME BARI (card dışında, fixed) -->
@@ -1838,11 +1890,19 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div class="form-group mb-0">
           <label class="form-label" data-i18n="cardColor">Kart Rengi</label>
-          <div class="color-palette-grid" id="colorPaletteGrid"></div>
-          <div class="flex gap-3 mt-3 items-center">
-            <span style="font-size:13px;color:var(--text-muted);font-weight:500" data-i18n="custom">Özel:</span>
-            <input type="color" id="wal_c1_custom" style="width:40px;height:36px;border-radius:8px;border:2px solid var(--border-light);padding:2px;cursor:pointer;background:none" onchange="App.Controllers.Wallets.setCustomColor(this.value)">
+          <div class="dual-color-picker">
+            <div class="dual-color-item">
+              <span class="dual-color-label">Renk 1</span>
+              <input type="color" class="dual-color-input" id="wal_c1_custom" value="#111827"
+                    oninput="App.Controllers.Wallets.updateColorPreview()">
+            </div>
+            <div class="dual-color-item">
+              <span class="dual-color-label">Renk 2</span>
+              <input type="color" class="dual-color-input" id="wal_c2_custom" value="#374151"
+                    oninput="App.Controllers.Wallets.updateColorPreview()">
+            </div>
           </div>
+          <div class="dual-color-preview" id="colorPreview"></div>
           <input type="hidden" id="wal_c1" value="#111827">
           <input type="hidden" id="wal_c2" value="#374151">
         </div>
@@ -3274,33 +3334,6 @@ const App = {
         const da=document.getElementById('debt_action_wallet');if(da)da.innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+opt;
         if(document.getElementById('filterTxWallet'))document.getElementById('filterTxWallet').innerHTML='<option value="all">'+t('filterAllWallets')+'</option>'+wallets.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
       },
-      _PAL:[
-        ['#111827','#374151'],['#1e3a5f','#2563eb'],['#064e3b','#059669'],
-        ['#7c2d12','#dc2626'],['#4c1d95','#7c3aed'],['#831843','#db2777'],
-        ['#1e293b','#0ea5e9'],['#14532d','#16a34a'],['#713f12','#d97706'],
-        ['#1a1a2e','#6366f1'],['#3b0764','#a855f7'],['#0f172a','#f43f5e'],
-      ],
-      renderColorPalette(selC1){
-        const grid=document.getElementById('colorPaletteGrid');if(!grid)return;
-        grid.innerHTML=this._PAL.map((p,i)=>{
-          return '<div class="color-swatch'+(p[0]===selC1?' selected':'')+'" style="background:linear-gradient(135deg,'+p[0]+','+p[1]+')" onclick="App.Controllers.Wallets.pickColor('+i+')"></div>';
-        }).join('');
-      },
-      pickColor(idx){
-        const p=this._PAL[idx];
-        document.getElementById('wal_c1').value=p[0];
-        document.getElementById('wal_c2').value=p[1];
-        const ci=document.getElementById('wal_c1_custom');if(ci)ci.value=p[0];
-        document.querySelectorAll('.color-swatch').forEach((s,i)=>s.classList.toggle('selected',i===idx));
-      },
-      setCustomColor(hex){
-        const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-        const d=v=>Math.max(0,Math.round(v*0.65)).toString(16).padStart(2,'0');
-        const c2='#'+d(r)+d(g)+d(b);
-        document.getElementById('wal_c1').value=hex;
-        document.getElementById('wal_c2').value=c2;
-        document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
-      },
       setCur(cur,btn){document.getElementById('wal_currency').value=cur;document.querySelectorAll('#walCurSeg .tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');},
       onTypeChange(typeVal,el){
         UI.pickOption('walTypeDrop','walTypeBtn','walTypeLabel','wal_type',el);
@@ -3332,7 +3365,11 @@ const App = {
         const ccBlock=document.getElementById('walCcFields');if(ccBlock)ccBlock.style.display='none';
         const balLbl=document.getElementById('walBalanceLabel');if(balLbl)balLbl.style.display='';
         const bin=document.getElementById('wal_balance');if(bin)bin.parentElement.style.display='';
-        this.renderColorPalette('#111827');
+        document.getElementById('wal_c1_custom').value = '#111827';
+        document.getElementById('wal_c2_custom').value = '#374151';
+        document.getElementById('wal_c1').value = '#111827';
+        document.getElementById('wal_c2').value = '#374151';
+        this.updateColorPreview();
         document.getElementById('wal_c1').value='#111827';
         document.getElementById('wal_c2').value='#374151';
         UI.Modals.open('modalWallet');
@@ -3357,7 +3394,13 @@ const App = {
         const ccBlock=document.getElementById('walCcFields');if(ccBlock)ccBlock.style.display=isCC?'block':'none';
         const balLbl=document.getElementById('walBalanceLabel');if(balLbl)balLbl.style.display=isCC?'none':'';
         const bin=document.getElementById('wal_balance');if(bin)bin.parentElement.style.display=isCC?'none':'';
-        this.renderColorPalette(w.c1||'#111827');
+        const ec1 = w.c1 || '#111827';
+        const ec2 = w.c2 || '#374151';
+        document.getElementById('wal_c1_custom').value = ec1;
+        document.getElementById('wal_c2_custom').value = ec2;
+        document.getElementById('wal_c1').value = ec1;
+        document.getElementById('wal_c2').value = ec2;
+        this.updateColorPreview();
         document.getElementById('walModalTitle').textContent=t('editWallet');
         UI.Modals.open('modalWallet');
       },
@@ -3491,6 +3534,16 @@ const App = {
         if(!sources.length){UI.Toasts.show(t('msgAccFirst'),'error');return;}
         fromSel.innerHTML=sources.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
         UI.Modals.open('modalPayCard');
+      },
+      updateColorPreview(){
+        const c1 = document.getElementById('wal_c1_custom').value;
+        const c2 = document.getElementById('wal_c2_custom').value;
+        document.getElementById('wal_c1').value = c1;
+        document.getElementById('wal_c2').value = c2;
+        const preview = document.getElementById('colorPreview');
+        if(preview){
+          preview.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
+        }
       },
       executeCardPayment(){
         const cardId=document.getElementById('payCardWalletId').value;
@@ -3661,7 +3714,7 @@ const App = {
           const cbCol=sm?`<td style="padding-left:14px;width:36px"><input type="checkbox" class="tx-select-cb" data-id="${tx.id}" ${isSel?'checked':''} onclick="event.stopPropagation();App.Controllers.Transactions.toggleSelect('${tx.id}')"></td>`:'';
           const rowAttrs=sm?` data-tx-id="${tx.id}" onclick="App.Controllers.Transactions.toggleSelect('${tx.id}')" style="cursor:pointer;border-left:3px solid ${color}"`:` data-tx-id="${tx.id}" style="border-left:3px solid ${color}"`;
           const rowClass=isSel?' class="tx-row-selected"':'';
-          return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.duplicate('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-copy"/></svg></button><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
+          return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
         }).join('');
         // ── MOBİL KART LİSTESİ ──
         const ml=document.getElementById('txMobileList');
@@ -3795,7 +3848,6 @@ const App = {
         this.closeDetailModal();
         setTimeout(()=>{
           if(action==='edit')this.edit(id);
-          else if(action==='dup')this.duplicate(id);
           else if(action==='del')this.delete(id);
         },220);
       },
@@ -3816,7 +3868,6 @@ const App = {
         UI.Modals.open('modalTx');
       },
       edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat||t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));UI.Modals.open('modalTx');},
-      duplicate(id){const tx=Core.state.transactions.find(x=>x.id===id);if(tx){const n={...tx,id:Core.Utils.generateId(),date:new Date().toISOString().split('T')[0]};Core.state.transactions.push(n);App.Money.applyTx(n);Core.DB.save();this.renderTable();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgTxDuped'));}},
       save(){
         const id=document.getElementById('tx_id').value;
         const type=document.getElementById('tx_type_val').value;
