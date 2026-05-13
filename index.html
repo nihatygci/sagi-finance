@@ -673,7 +673,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 [data-theme="dark"] .loader-progress-fill{background:linear-gradient(90deg,var(--brand-accent),#fff)}
 
 /* ONBOARDING */
-.onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
+.onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,rgba(79,70,229,.18),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,rgba(79,70,229,.06),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
@@ -686,9 +686,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 .ob-wave-bottom{bottom:-60px;animation:waveFloat 6s ease-in-out infinite reverse}
 .ob-wave svg{width:100%;height:100%}
 
-.onboarding-card{width:100%;max-width:420px;text-align:center;margin:auto;background:rgba(255,255,255,.93);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.5) inset;border:1px solid rgba(255,255,255,.5);display:none;animation:fadeScaleUp .5s cubic-bezier(.16,1,.3,1) forwards;position:relative;z-index:2}
+.onboarding-card{width:100%;max-width:420px;max-height:calc(100dvh - 32px);text-align:center;margin:auto;background:rgba(255,255,255,.93);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.5) inset;border:1px solid rgba(255,255,255,.5);display:none;animation:fadeScaleUp .5s cubic-bezier(.16,1,.3,1) forwards;position:relative;z-index:2;overflow-y:auto;overflow-x:hidden}
 [data-theme="dark"] .onboarding-card{background:rgba(20,20,22,.92);border:1px solid rgba(255,255,255,.07);box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.04) inset}
 .onboarding-card.active{display:block}
+.onboarding-card{padding:20px 20px !important}
 .ob-icon-wrap{width:68px;height:68px;border-radius:50%;background:var(--brand-primary);color:var(--bg-surface);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:var(--shadow-md)}
 [data-theme="dark"] .ob-icon-wrap{background:#fff;color:#000}
 
@@ -958,10 +959,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   <!-- ANAHTAR ADIMI: yeni hesap aç, mevcut anahtar ile giriş, ya da atla -->
   <div class="onboarding-card card" id="ob_step_key">
     <h1 class="text-h1 mb-2" data-i18n="obKeyTitle">Bulut Senkronizasyonu</h1>
-    <p class="text-subtitle mb-6" data-i18n="obKeyDesc">Verilerinizi cihazlar arasında senkronize etmek için 16 haneli benzersiz bir anahtar kullanılır. Bu adımı şimdi atlayabilir, daha sonra Ayarlar'dan bağlanabilirsiniz. Uygulama bulut olmadan da tam çalışır.</p>
+    <p class="text-subtitle mb-3" data-i18n="obKeyDesc">Verilerinizi cihazlar arasında senkronize etmek için 16 haneli benzersiz bir anahtar kullanılır. Bu adımı şimdi atlayabilir, daha sonra Ayarlar'dan bağlanabilirsiniz. Uygulama bulut olmadan da tam çalışır.</p>
 
     <!-- Mod seçim segmenti — 3 buton -->
-    <div class="tx-type-seg mb-6" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0">
+    <div class="tx-type-seg mb-3" style="display:flex;flex-direction:column;gap:6px">
       <button type="button" class="tx-type-btn active" id="ob_keymode_new"  onclick="App.Controllers.Onboarding.setKeyMode('new')"  data-i18n="obKeyNew">Yeni Hesap</button>
       <button type="button" class="tx-type-btn" id="ob_keymode_have" onclick="App.Controllers.Onboarding.setKeyMode('have')" data-i18n="obKeyHave">Anahtarım Var</button>
       <button type="button" class="tx-type-btn" id="ob_keymode_skip" onclick="App.Controllers.Onboarding.setKeyMode('skip')" data-i18n="obKeySkip">Şimdi Atla</button>
@@ -969,11 +970,11 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- YENİ HESAP paneli -->
     <div id="ob_keypanel_new" style="display:block">
-      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:16px">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:12px;padding:12px 14px">
         <div class="font-bold" data-i18n="obKeyInfoTitle">Cihazlar arası eşleşme</div>
-        <div style="font-size:13px;color:var(--text-muted);line-height:1.6" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.5" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
       </div>
-      <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" id="ob_btn_create" data-i18n="obKeyCreateBtn" onclick="App.Controllers.Onboarding.createNewAccount()">Anahtar Oluştur</button>
+      <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" id="ob_btn_create" data-i18n="obKeyCreateBtn" onclick="App.Controllers.Onboarding.createNewAccount()">Anahtar Oluştur</button>
       <div id="ob_create_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px;text-align:center"></div>
     </div>
 
@@ -988,28 +989,28 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                oninput="App.Controllers.Onboarding.formatKeyInput(this)">
         <div id="ob_key_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px"></div>
       </div>
-      <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" id="ob_btn_login" data-i18n="obKeyLoginBtn" onclick="App.Controllers.Onboarding.loginExisting()">Giriş Yap</button>
+      <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" id="ob_btn_login" data-i18n="obKeyLoginBtn" onclick="App.Controllers.Onboarding.loginExisting()">Giriş Yap</button>
     </div>
 
     <!-- ATLA paneli -->
     <div id="ob_keypanel_skip" style="display:none">
-      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:16px">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:12px;padding:12px 14px">
         <div class="font-bold" data-i18n="obKeySkipTitle">Sadece bu cihazda kullan</div>
-        <div style="font-size:13px;color:var(--text-muted);line-height:1.6" data-i18n="obKeySkipDesc">Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar &rarr; Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.5" data-i18n="obKeySkipDesc">Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar &rarr; Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.</div>
       </div>
-      <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obKeySkipBtn" onclick="App.Controllers.Onboarding.nextStep(2)">Devam Et (Çevrim Dışı)</button>
+      <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" data-i18n="obKeySkipBtn" onclick="App.Controllers.Onboarding.nextStep(2)">Devam Et (Çevrim Dışı)</button>
     </div>
 
     <!-- Üretilen anahtar gösterimi -->
-    <div id="ob_key_display" style="display:none;margin-top:16px;padding:16px;border-radius:var(--radius-md);background:var(--status-success-bg);border:1px solid var(--status-success);text-align:center">
+    <div id="ob_key_display" style="display:none;margin-top:12px;padding:14px;border-radius:var(--radius-md);background:var(--status-success-bg);border:1px solid var(--status-success);text-align:center">
       <div class="font-bold mb-2" style="color:var(--status-success)" data-i18n="obKeyCreated">Anahtarınız hazır!</div>
-      <div id="ob_key_value" style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;color:var(--text-main);padding:10px;background:var(--bg-surface);border-radius:var(--radius-sm);margin-bottom:10px;user-select:all">XXXX-XXXX-XXXX-XXXX</div>
+      <div id="ob_key_value" style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;letter-spacing:2px;color:var(--text-main);padding:10px;background:var(--bg-surface);border-radius:var(--radius-sm);margin-bottom:8px;user-select:all">XXXX-XXXX-XXXX-XXXX</div>
       <button class="btn btn-outline btn-sm" id="ob_btn_copy" onclick="App.Controllers.Onboarding.copyGeneratedKey()" data-i18n="obKeyCopy">Kopyala</button>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5" data-i18n="obKeyWarn">Bu anahtarı güvenli bir yere kaydedin. Kaybederseniz başka cihazdan verilerinize ulaşamazsınız.</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.4" data-i18n="obKeyWarn">Bu anahtarı güvenli bir yere kaydedin. Kaybederseniz başka cihazdan verilerinize ulaşamazsınız.</div>
     </div>
 
-    <div class="flex gap-3 mt-6">
-      <button class="btn btn-outline" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
+    <div class="flex gap-3 mt-3" id="ob_key_nav">
+      <button class="btn btn-outline" id="ob_btn_back" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
       <button class="btn btn-primary w-full" id="ob_btn_keynext" style="display:none" data-i18n="obNext" onclick="App.Controllers.Onboarding.nextStep(2)">Devam</button>
     </div>
   </div>
@@ -1643,6 +1644,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </div>
           <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
           <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
+          <div style="height:1px;background:var(--border-lig  ht);margin:20px 0"></div>
+          <button class="btn btn-danger w-full" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
         </div>
 
       </div><!-- /Satır 3 -->
@@ -2892,7 +2895,27 @@ const App = {
         });
         if(loader){loader.style.opacity='0';setTimeout(()=>loader.remove(),500);}
         if(!Core.state.settings.onboarded){
-          setTimeout(()=>{document.getElementById('onboardingScreen').classList.remove('hidden');},100);
+          setTimeout(()=>{
+            document.getElementById('onboardingScreen').classList.remove('hidden');
+            // Refresh koruması: anahtar oluşturulmuş ama onboarding bitmemişse kaldığı yerden devam et
+            const pendingKey = (() => { try{ return localStorage.getItem('sagi_pending_key'); }catch(e){ return null; } })();
+            if(pendingKey){
+              const ob = App.Controllers.Onboarding;
+              ob.nextStep('key');
+              ob._generatedKey = pendingKey;
+              // Anahtar gösterimini hazırla
+              setTimeout(()=>{
+                document.getElementById('ob_key_value').textContent = pendingKey;
+                document.getElementById('ob_key_display').style.display = 'block';
+                const modeSeg = document.querySelector('#ob_step_key .tx-type-seg');
+                if(modeSeg) modeSeg.style.display = 'none';
+                const createBtn = document.getElementById('ob_btn_create');
+                if(createBtn) createBtn.style.display = 'none';
+                document.getElementById('ob_btn_keynext').style.display = 'block';
+                document.getElementById('ob_btn_back').style.display = 'none';
+              }, 50);
+            }
+          },100);
         } else if(!Core.state.wallets.length){
           setTimeout(()=>App.Controllers.Wallets.openModal(),600);
         }
@@ -3016,12 +3039,18 @@ const App = {
         try{
           const key = await Core.Cloud.createAccount();
           this._generatedKey = key;
+          // Refresh koruması: key oluşturuldu ama onboarding bitmedi — geçici kaydet
+          try{ localStorage.setItem('sagi_pending_key', key); }catch(e){}
           // Üretilen anahtarı göster
           document.getElementById('ob_key_value').textContent = key;
           document.getElementById('ob_key_display').style.display = 'block';
+          // Mod seçim butonlarını gizle (artık değiştirmeye gerek yok)
+          const modeSeg = document.querySelector('#ob_step_key .tx-type-seg');
+          if(modeSeg) modeSeg.style.display = 'none';
           // Yeni butonu sakla, "Devam" butonunu göster
           btn.style.display = 'none';
           document.getElementById('ob_btn_keynext').style.display = 'block';
+          document.getElementById('ob_btn_back').style.display = 'none';
         }catch(e){
           console.warn('[Onboarding] createAccount hatası:', e);
           if(cerr){ cerr.textContent = t('cloudCreateFail') + ' — ' + t('obKeySuggestSkip'); cerr.style.display='block'; }
@@ -3093,6 +3122,8 @@ const App = {
         Core.state.settings.currency=document.getElementById('ob_currency').value;
         Core.state.settings.lang=LANG;
         Core.state.settings.onboarded=true;Core.DB.save();
+        // Onboarding bitti — geçici key'i temizle
+        try{ localStorage.removeItem('sagi_pending_key'); }catch(e){}
         const obs=document.getElementById('onboardingScreen');obs.style.opacity='0';obs.style.visibility='hidden';
         App.Controllers.Wallets.upd();
         setTimeout(()=>{obs.remove();App.Controllers.Wallets.openModal();},600);
@@ -4870,6 +4901,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           Core.Cloud.signOut();
           UI.Toasts.show(t('cloudSignedOut'),'success');
           this.renderCloudBox();
+        });
+      },
+
+      cloudDeleteAccount(){
+        UI.Confirm.show('Hesabınızı ve tüm verilerinizi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz. Firebase üzerindeki tüm hesap verileriniz ve cihazda kayıtlı yerel verileriniz tamamen silinecektir.', async ()=>{
+          await Core.Cloud.deleteAccount();
+          UI.Toasts.show('Hesabınız silindi.','success');
+          setTimeout(()=>location.reload(), 800);
         });
       },
 

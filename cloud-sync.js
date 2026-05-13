@@ -350,7 +350,40 @@
         Core.emit("stateChanged", Core.state);
       } catch (e) {}
     },
+    
+    // ── Hesabı tamamen sil ────────────────────────────────────────────
+    // Firestore'daki dokümanı siler, listener'ı keser, localStorage'ı temizler.
+    async deleteAccount() {
+      const key = Core.state.settings.syncKey;
+
+      // Listener'ı hemen kes — silme sırasında snapshot gelmesin
+      this.detachListener();
+      if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }
+
+      // Firebase'den sil (key varsa)
+      if (key && this.isAvailable()) {
+        try {
+          await this._doc(key).delete();
+          console.log('[Cloud] Firestore dokümanı silindi:', key);
+        } catch (e) {
+          console.warn('[Cloud] Firestore silme hatası:', e);
+          // Silme başarısız olsa da yerel temizliğe devam et
+        }
+      }
+
+      // Yerel her şeyi temizle
+      localStorage.removeItem(Core.DB.key);
+      Core.state = JSON.parse(JSON.stringify({
+        settings: { syncKey: '', lastModified: Date.now(),
+          notifications: { abonelik:false, borc:false, butce:false, haftalik:false }},
+        wallets:[], transactions:[], recurring:[], goals:[], debts:[], categories:[]
+      }));
+
+      this._emitStatus('idle');
+      try { Core.emit('stateChanged', Core.state); } catch(e) {}
+    },
   };
+  
 
   // ── Core'a enjekte et ────────────────────────────────────────────
   window.Cloud = Cloud;
