@@ -97,11 +97,11 @@ if ('serviceWorker' in navigator) {
 :root {
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
   --border-light:rgba(0,0,0,0.07); --border-focus:rgba(79,70,229,0.28);
-  --brand-primary:#111827; --brand-accent:#4f46e5;
+  --brand-primary:#111827; --brand-accent:#6257f0;
   --text-main:#111827; --text-secondary:#4b5563; --text-muted:#9ca3af;
-  --status-success:#22a06b; --status-success-bg:rgba(34,160,107,0.09);
-  --status-danger:#e5534b; --status-danger-bg:rgba(229,83,75,0.09);
-  --status-warn:#d97706; --status-warn-bg:rgba(217,119,6,0.09);
+  --status-success:#1db87a; --status-success-bg:rgba(34,160,107,0.09);
+  --status-danger:#f04040; --status-danger-bg:rgba(229,83,75,0.09);
+  --status-warn:#e08000; --status-warn-bg:rgba(217,119,6,0.09);
   --status-neutral:#6b7280;
   --font-sans:'Inter',sans-serif; --font-display:'Outfit',sans-serif;
   --radius-sm:10px; --radius-md:16px; --radius-lg:22px; --radius-xl:30px; --radius-full:9999px;
@@ -110,7 +110,7 @@ if ('serviceWorker' in navigator) {
   --shadow-lg:0 24px 48px -12px rgba(0,0,0,0.13); --shadow-floating:0 12px 32px -8px rgba(0,0,0,0.16);
 }
 [data-theme="dark"] {
-  --bg-body:#09090b; --bg-surface:#141416; --bg-surface-hover:#1c1c1f;
+  --bg-body:#020203; --bg-surface:#090909; --bg-surface-hover:#101012;
   --border-light:rgba(255,255,255,0.07); --border-focus:rgba(99,102,241,0.45);
   --brand-primary:#f9fafb; --brand-accent:#6366f1;
   --text-main:#f9fafb; --text-secondary:#a1a1aa; --text-muted:#71717a;
@@ -593,7 +593,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 @media(max-width:768px){
   .css-grid.grid-cols-4.items-end{grid-template-columns:1fr 1fr;gap:10px}
   .css-grid.grid-cols-4.items-end .form-group:nth-child(1){grid-column:1/-1}
-  .css-grid.grid-cols-4.items-end .form-group:last-child{grid-column:auto}
+  .css-grid.grid-cols-4.items-end .form-group:nth-child(2){grid-column:1/-1}
+  .css-grid.grid-cols-4.items-end .form-group:nth-child(3),.css-grid.grid-cols-4.items-end .form-group:nth-child(4){grid-column:auto}
   .tx-filter-actions{display:flex;flex-direction:row;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)}
 }
 @media(min-width:769px){
@@ -621,7 +622,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .theme-btn:not(.active):hover{background:var(--bg-surface-hover);color:var(--text-main)}
 
 /* KPI */
-.kpi-value{font-family:var(--font-display);font-size:clamp(20px,5vw,28px);font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:6px}
+.kpi-value{font-family:var(--font-display);font-size:clamp(28px,7vw,30px);font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:6px}
+
 
 /* PAGE TITLE ROW */
 .page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
@@ -1207,7 +1209,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <p class="text-subtitle" data-i18n="dashSubtitle">Finansal durumunuzun özeti</p>
         </div>
       </div>
-      <div class="css-grid grid-cols-2 mb-5 stagger-1">
+      <div class="css-grid grid-cols-4 mb-5 stagger-1">
         <div class="card"><div class="text-caption mb-2" data-i18n="netWorth">Net Varlık</div><div class="kpi-value color-primary" id="kpiNetWorth">₺0</div></div>
         <div class="card"><div class="text-caption mb-2" data-i18n="monthExpense">Bu Ay Gider</div><div class="kpi-value color-danger" id="kpiExpense">₺0</div></div>
         <div class="card"><div class="text-caption mb-2" data-i18n="monthIncome">Bu Ay Gelir</div><div class="kpi-value color-success" id="kpiIncome">₺0</div></div>
@@ -1498,7 +1500,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <div class="font-bold" data-i18n="theme">Ekran Teması</div>
               <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="themeHint">Açık veya koyu mod.</div>
             </div>
-            <div class="theme-toggle-group" style="width:140px">
+            <div class="theme-toggle-group" style="flex-shrink:0;min-width:0">
               <button class="theme-btn" id="tb_light2" onclick="App.Controllers.Settings.setTheme('light')">
                 <svg class="nav-icon" style="width:13px"><use href="#icon-sun"/></svg><span data-i18n="themeLight">Açık</span>
               </button>
@@ -1522,7 +1524,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <div class="font-bold" data-i18n="langSelect">Dil / Language</div>
               <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="langHint">Uygulama dili.</div>
             </div>
-            <div class="theme-toggle-group" style="width:160px">
+            <div class="theme-toggle-group" style="width:160px;flex-shrink:0;min-width:0">
               <button class="theme-btn" id="set_lang_tr" onclick="App.Controllers.Settings.setLang('tr')">Türkçe</button>
               <button class="theme-btn" id="set_lang_en" onclick="App.Controllers.Settings.setLang('en')">English</button>
             </div>
@@ -2461,8 +2463,8 @@ const UI = {
       if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">Veri yok</div>';return;}
       const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)),1);
       // Renk: CSS değişkenlerine bağlı olmayan sabit HEX — SVG fill= içinde CSS var() çalışmaz
-      const INC_COLOR='#22a06b'; // status-success sabit
-      const EXP_COLOR='#e5534b'; // status-danger sabit
+      const INC_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-success').trim()||'#22a06b';
+      const EXP_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-danger').trim()||'#e5534b';
       const MUTED='#9ca3af';
       const W=360,H=200,PAD_B=32,CHART_H=H-PAD_B-10;
       const n=data.length;
@@ -4153,7 +4155,7 @@ const App = {
           let html = visible.map(([name, val]) => {
             const cc = Core.Utils.getCatColor(name);
             const nameEsc = name.replace(/'/g, "\\'");
-            return `<div class="mb-4" style="cursor:${isExp?'pointer':'default'}" ${isExp?`onclick="App.Controllers.Analytics.openCatModal('${nameEsc}')"`:''}><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:10px;height:10px;border-radius:50%;background:${cc}"></div>${name}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(val,mc)} <span class="color-muted" style="font-size:12px;font-weight:500">%${((val/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(val/tot)*100}%;background:${cc}"></div></div></div>`;
+            return `<div class="mb-4" style="cursor:pointer" onclick="App.Controllers.Analytics.openCatModal('${nameEsc}')"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:10px;height:10px;border-radius:50%;background:${cc}"></div>${name}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(val,mc)} <span class="color-muted" style="font-size:12px;font-weight:500">%${((val/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(val/tot)*100}%;background:${cc}"></div></div></div>`;
           }).join('');
           if(!showAll && sorted.length > 5)
             html += `<button class="btn btn-outline btn-sm w-full mt-2" onclick="App.Controllers.Analytics._showAllCats()" style="font-size:13px">Tümünü Gör (${sorted.length-5} daha)</button>`;
@@ -4346,8 +4348,9 @@ const App = {
       _showAllCats(){ if(this._renderCatList) this._renderCatList(true); },
 
       openCatModal(catName){
+        const isIncome = this._donutType === 'income';
         const now=new Date();
-        const txs=Core.state.transactions.filter(tx=>tx.cat===catName&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
+        const txs=Core.state.transactions.filter(tx=>tx.cat===catName&&tx.cat!=='Transfer'&&tx.type===(isIncome?'income':'expense')&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
         const mainCur=Core.state.settings.currency||'TRY';
         const color=Core.Utils.getCatColor(catName);
         const total=txs.reduce((s,tx)=>s+App.Money.toMain(tx),0);
@@ -4356,20 +4359,21 @@ const App = {
           const txCur=tx.amountCurrency||(w&&w.currency)||mainCur;
           const amtMain=App.Money.toMain(tx);
           const origStr=txCur!==mainCur?` <span style="font-size:11px;color:var(--text-muted)">(${Core.Utils.formatMoney(tx.amount,txCur)})</span>`:'';
-          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-danger)">${Core.Utils.formatMoney(amtMain,mainCur)}</div>${origStr}</div></div>`;
+          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-${isIncome?'success':'danger'})">${Core.Utils.formatMoney(amtMain,mainCur)}</div>${origStr}</div></div>`;
         }).join('');
         const modal=document.getElementById('modalCatDetail');
         if(!modal){
           const m=document.createElement('div');m.id='modalCatDetail';m.className='modal-overlay';
-          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">Bu Ay Toplam</span><span class="font-display font-bold color-danger" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>'}</div></div></div>`;
+          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">Bu Ay Toplam</span><span class="font-display font-bold ${isIncome?'color-success':'color-danger'}" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>'}</div></div></div>`;
           document.body.appendChild(m);
           m.addEventListener('click',e=>{if(e.target===m)UI.Modals.close('modalCatDetail');});
         }else{
           modal.querySelector('.modal-title').textContent=catName;
           modal.querySelector('.modal-header div div').style.background=color;
           modal.querySelector('#catDetailRows').innerHTML=rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>';
-          const totalEl=modal.querySelector('.font-display.font-bold.color-danger');
-          if(totalEl)totalEl.textContent=Core.Utils.formatMoney(total,mainCur);
+          const totalEl=modal.querySelector('.font-display.font-bold.color-danger,.font-display.font-bold.color-success');
+          if(totalEl){totalEl.className=`font-display font-bold ${isIncome?'color-success':'color-danger'}`;totalEl.textContent=Core.Utils.formatMoney(total,mainCur);}
+
         }
         UI.Modals.open('modalCatDetail');
       }
