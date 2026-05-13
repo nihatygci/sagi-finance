@@ -55,28 +55,19 @@
 
   /** Ayarlar alt sayfası (detail panel) açık mı? */
   function isSettingsDetailOpen() {
-    const hash = window.location.hash;
-    if (!hash.includes('/settings')) return false;
+    const hash = window.location.hash.replace('#', '') || '/dashboard';
+    if (hash !== '/settings') return false;
     return !!document.querySelector('.settings-detail-panel.active');
   }
 
   /** Mevcut hash route */
   function getCurrentRoute() {
-    const hash = window.location.hash.replace('#', '').replace(/^\/+$/, '');
-    // Boş hash, sadece "/" veya hiç hash yok → dashboard kabul et
-    return hash || '/dashboard';
+    return window.location.hash.replace('#', '') || '/dashboard';
   }
 
-  /**
-   * Dashboard'da mıyız?
-   * sagi/          → hash yok           → dashboard ✓
-   * sagi/#/        → hash sadece "/"    → dashboard ✓
-   * sagi/#/dashboard                    → dashboard ✓
-   */
+  /** Dashboard mi? */
   function isOnDashboard() {
-    const hash = window.location.hash; // ham değer
-    if (!hash || hash === '#' || hash === '#/' || hash === '#/dashboard') return true;
-    return false;
+    return getCurrentRoute() === '/dashboard';
   }
 
   // ─── Çıkış toast'u ────────────────────────────────────────────────
@@ -133,15 +124,15 @@
       toast.style.transform = 'translateX(-50%) translateY(0)';
     });
 
-    // 3.5 sn sonra kaldır
+    // 2.5 sn sonra kaldır
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(-50%) translateY(16px)';
       setTimeout(() => {
         if (toast.parentNode) toast.remove();
         if (State._exitToastEl === toast) State._exitToastEl = null;
-      }, 350);
-    }, 3500);
+      }, 300);
+    }, 2500);
   }
 
   function hideExitToast() {
@@ -210,14 +201,14 @@
       return;
     }
 
-    // İlk basış → toast göster, 3.5 sn bekle
+    // İlk basış → toast göster, 2.5 sn bekle
     State.exitPending = true;
     showExitToast();
 
     State.exitTimer = setTimeout(() => {
       State.exitPending = false;
       hideExitToast();
-    }, 3500);
+    }, 2500);
   }
 
   // ─── History API entegrasyonu ─────────────────────────────────────
