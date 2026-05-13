@@ -190,6 +190,28 @@ table{width:100%;border-collapse:collapse}
 @keyframes fadeScaleUp{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes settingsSlideIn{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
+@keyframes settingsSlideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-24px)}}
+
+/* SETTINGS SUB-PAGE SYSTEM */
+.settings-hub{position:relative;overflow:hidden}
+.settings-menu-panel,.settings-detail-panel{width:100%}
+.settings-detail-panel{display:none;animation:settingsSlideIn .28s cubic-bezier(.16,1,.3,1) forwards}
+.settings-detail-panel.active{display:block}
+.settings-menu-panel.slide-out{animation:settingsSlideOut .22s cubic-bezier(.4,0,1,1) forwards}
+.settings-menu-row{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;transition:all .18s;gap:12px;user-select:none}
+.settings-menu-row:hover{background:var(--bg-surface-hover);transform:translateX(2px)}
+.settings-menu-row:active{transform:scale(.98)}
+.settings-menu-row-left{display:flex;align-items:center;gap:12px}
+.settings-menu-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.settings-menu-row-text .title{font-weight:600;font-size:15px;color:var(--text-main)}
+.settings-menu-row-text .subtitle{font-size:12px;color:var(--text-muted);margin-top:2px}
+.settings-chevron{color:var(--text-muted);flex-shrink:0;transition:transform .18s}
+.settings-menu-row:hover .settings-chevron{transform:translateX(2px);color:var(--brand-accent)}
+.settings-back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--brand-accent);font-weight:600;font-size:14px;cursor:pointer;padding:6px 0;margin-bottom:18px;background:none;border:none;transition:opacity .15s}
+.settings-back-btn:hover{opacity:.75}
+.settings-detail-title{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-main);margin-bottom:4px;letter-spacing:-.025em}
+.settings-detail-sub{font-size:14px;color:var(--text-secondary);margin-bottom:22px}
 @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(79,70,229,0)}50%{box-shadow:0 0 0 6px rgba(79,70,229,.12)}}
 /* Wave animations for onboarding */
 @keyframes waveTop{0%{transform:translateX(-50%) scaleY(1)}50%{transform:translateX(-40%) scaleY(1.12)}100%{transform:translateX(-50%) scaleY(1)}}
@@ -1085,6 +1107,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 <symbol id="icon-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21h6"/><path d="M12 21v-4"/><path d="M12 17c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/></symbol>
 <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></symbol>
 <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></symbol>
+<symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></symbol>
+<symbol id="icon-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol>
 <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></symbol>
 </defs></svg>
 
@@ -1473,183 +1497,300 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- AYARLAR -->
     <div id="view-settings" class="view">
-      <div class="mb-5"><h1 class="text-h1" data-i18n="settings">Ayarlar</h1><p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p></div>
+      <div class="settings-hub" id="settingsHub">
 
-      <!-- Satır 1: Kişiselleştirme + Bildirimler -->
-      <div class="settings-layout stagger-1">
+        <!-- ── MENU PANELİ ── -->
+        <div class="settings-menu-panel" id="settingsMenuPanel">
+          <div class="mb-5">
+            <h1 class="text-h1" data-i18n="settings">Ayarlar</h1>
+            <p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p>
+          </div>
 
-        <div class="card">
-          <h2 class="card-title mb-5" data-i18n="personalization">Kişiselleştirme</h2>
-          <div class="settings-cell">
-            <div>
-              <div class="font-bold" data-i18n="yourName">İsminiz</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="yourNameHint">Karşılama mesajı için.</div>
-            </div>
-            <input type="text" class="form-control" id="set_name" placeholder="Örn: Ahmet" style="width:140px;padding:10px">
-          </div>
-          <div class="settings-cell">
-            <div>
-              <div class="font-bold" data-i18n="currency">Para Birimi</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="currencyHint">Tüm ekranlarda geçerli.</div>
-            </div>
-            <select class="form-control" id="set_currency" style="width:140px;padding:10px">
-              <option value="TRY">₺ (TRY)</option><option value="USD">$ (USD)</option><option value="EUR">€ (EUR)</option><option value="GBP">£ (GBP)</option>
-            </select>
-          </div>
-          <div class="settings-cell">
-            <div>
-              <div class="font-bold" data-i18n="theme">Ekran Teması</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="themeHint">Açık veya koyu mod.</div>
-            </div>
-            <div class="theme-toggle-group" style="flex-shrink:0;min-width:0">
-              <button class="theme-btn" id="tb_light2" onclick="App.Controllers.Settings.setTheme('light')">
-                <svg class="nav-icon" style="width:13px"><use href="#icon-sun"/></svg><span data-i18n="themeLight">Açık</span>
-              </button>
-              <button class="theme-btn" id="tb_dark2" onclick="App.Controllers.Settings.setTheme('dark')">
-                <svg class="nav-icon" style="width:13px"><use href="#icon-moon"/></svg><span data-i18n="themeDark">Koyu</span>
-              </button>
+          <div onclick="App.Controllers.Settings.openSection('personalization')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-settings"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="personalization">Kişiselleştirme</div>
+                  <div class="subtitle" data-i18n="personalizationHint">İsim, para birimi, tema, dil</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
             </div>
           </div>
-          <div class="settings-cell">
-            <div>
-              <div class="font-bold" data-i18n="animations">Animasyonlar</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="animHint">Geçiş efektleri.</div>
-            </div>
-            <select class="form-control" id="set_anim" style="width:140px;padding:10px">
-              <option value="on" data-i18n="animOn">Açık</option>
-              <option value="off" data-i18n="animOff">Kapalı</option>
-            </select>
-          </div>
-          <div class="settings-cell">
-            <div>
-              <div class="font-bold" data-i18n="langSelect">Dil / Language</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="langHint">Uygulama dili.</div>
-            </div>
-            <div class="theme-toggle-group" style="width:160px;flex-shrink:0;min-width:0">
-              <button class="theme-btn" id="set_lang_tr" onclick="App.Controllers.Settings.setLang('tr')">Türkçe</button>
-              <button class="theme-btn" id="set_lang_en" onclick="App.Controllers.Settings.setLang('en')">English</button>
+
+          <div onclick="App.Controllers.Settings.openSection('notifications')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(251,191,36,.12);color:#d97706">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-bell"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="notifTitle">Bildirimler</div>
+                  <div class="subtitle" data-i18n="notifMenuHint">Hatırlatmalar ve uyarılar</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
             </div>
           </div>
-          <button class="btn btn-primary w-full mt-4" data-i18n="save" onclick="App.Controllers.Settings.savePreferences()">Kaydet</button>
+
+          <div onclick="App.Controllers.Settings.openSection('rates')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(217,119,6,.1);color:var(--status-warn)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-transfer"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="ratesTitle">Döviz Kurları</div>
+                  <div class="subtitle" data-i18n="ratesMenuHint">Güncel kur değerleri</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+
+          <div onclick="App.Controllers.Settings.openSection('bottombar')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-menu"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title">Alt Menü Düzeni</div>
+                  <div class="subtitle">Sıralama ve özelleştirme</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+
+          <div onclick="App.Controllers.Settings.openSection('cloud')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(108,77,255,.1);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-cloud"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</div>
+                  <div class="subtitle" data-i18n="cloudMenuHint">Cihazlar arası eşleşme</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+
+          <div onclick="App.Controllers.Settings.openSection('data')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(229,83,75,.1);color:var(--status-danger)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-trash"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="dataManagement">Veri Yönetimi</div>
+                  <div class="subtitle" data-i18n="dataMenuHint">Yedek al, yükle, sıfırla</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+        </div><!-- /settings-menu-panel -->
+
+        <!-- ── KİŞİSELLEŞTİRME ── -->
+        <div class="settings-detail-panel" id="settingsDetail-personalization">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title" data-i18n="personalization">Kişiselleştirme</div>
+          <div class="settings-detail-sub" data-i18n="personalizationHint">İsim, para birimi, tema, dil</div>
+          <div class="card">
+            <div class="settings-cell">
+              <div>
+                <div class="font-bold" data-i18n="yourName">İsminiz</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="yourNameHint">Karşılama mesajı için.</div>
+              </div>
+              <input type="text" class="form-control" id="set_name" placeholder="Örn: Ahmet" style="width:140px;padding:10px">
+            </div>
+            <div class="settings-cell">
+              <div>
+                <div class="font-bold" data-i18n="currency">Para Birimi</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="currencyHint">Tüm ekranlarda geçerli.</div>
+              </div>
+              <select class="form-control" id="set_currency" style="width:140px;padding:10px">
+                <option value="TRY">₺ (TRY)</option><option value="USD">$ (USD)</option><option value="EUR">€ (EUR)</option><option value="GBP">£ (GBP)</option>
+              </select>
+            </div>
+            <div class="settings-cell">
+              <div>
+                <div class="font-bold" data-i18n="theme">Ekran Teması</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="themeHint">Açık veya koyu mod.</div>
+              </div>
+              <div class="theme-toggle-group" style="flex-shrink:0;min-width:0">
+                <button class="theme-btn" id="tb_light2" onclick="App.Controllers.Settings.setTheme('light')">
+                  <svg class="nav-icon" style="width:13px"><use href="#icon-sun"/></svg><span data-i18n="themeLight">Açık</span>
+                </button>
+                <button class="theme-btn" id="tb_dark2" onclick="App.Controllers.Settings.setTheme('dark')">
+                  <svg class="nav-icon" style="width:13px"><use href="#icon-moon"/></svg><span data-i18n="themeDark">Koyu</span>
+                </button>
+              </div>
+            </div>
+            <div class="settings-cell">
+              <div>
+                <div class="font-bold" data-i18n="animations">Animasyonlar</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="animHint">Geçiş efektleri.</div>
+              </div>
+              <select class="form-control" id="set_anim" style="width:140px;padding:10px">
+                <option value="on" data-i18n="animOn">Açık</option>
+                <option value="off" data-i18n="animOff">Kapalı</option>
+              </select>
+            </div>
+            <div class="settings-cell">
+              <div>
+                <div class="font-bold" data-i18n="langSelect">Dil / Language</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="langHint">Uygulama dili.</div>
+              </div>
+              <div class="theme-toggle-group" style="width:160px;flex-shrink:0;min-width:0">
+                <button class="theme-btn" id="set_lang_tr" onclick="App.Controllers.Settings.setLang('tr')">Türkçe</button>
+                <button class="theme-btn" id="set_lang_en" onclick="App.Controllers.Settings.setLang('en')">English</button>
+              </div>
+            </div>
+            <button class="btn btn-primary w-full mt-4" data-i18n="save" onclick="App.Controllers.Settings.savePreferences()">Kaydet</button>
+          </div>
         </div>
 
-        <!-- BİLDİRİMLER -->
-        <div class="card">
-          <h2 class="card-title mb-4"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="notifTitle">Bildirimler</span></h2>
-          <p class="text-subtitle mb-5" data-i18n="notifDesc">Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.</p>
-          <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
-            <div>
-              <div class="font-bold" style="font-size:15px">Bildirimleri Etkinleştir</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="notifMasterDesc">Tüm bildirimleri açın veya kapatın</div>
+        <!-- ── BİLDİRİMLER ── -->
+        <div class="settings-detail-panel" id="settingsDetail-notifications">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title" data-i18n="notifTitle">Bildirimler</div>
+          <div class="settings-detail-sub" data-i18n="notifDesc">Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.</div>
+          <div class="card">
+            <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
+              <div>
+                <div class="font-bold" style="font-size:15px">Bildirimleri Etkinleştir</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="notifMasterDesc">Tüm bildirimleri açın veya kapatın</div>
+              </div>
+              <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
             </div>
-            <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
+            <div id="notifPermBox" style="background:rgba(79,70,229,.07);border:1px solid rgba(79,70,229,.2);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
+              <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
+              <button class="btn btn-primary btn-sm w-full" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
+            </div>
+            <div id="notifSubToggles" style="transition:opacity .25s;margin-top:12px;display:flex;flex-direction:column;gap:10px">
+              <div class="toggle-row" id="notifAbonelik" onclick="App.Notifications.toggleSetting('abonelik')">
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifSub">Abonelik Hatırlatmaları</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifSubDesc">3 gün önce, 1 gün önce ve ödeme günü bildir</div></div>
+                <div class="toggle-track" id="notifAbonelikTrack"><div class="toggle-thumb"></div></div>
+              </div>
+              <div class="toggle-row" id="notifBorc" onclick="App.Notifications.toggleSetting('borc')">
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifDebt">Borç & Vade Uyarıları</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifDebtDesc">3 gün öncesinden bildir</div></div>
+                <div class="toggle-track" id="notifBorcTrack"><div class="toggle-thumb"></div></div>
+              </div>
+              <div class="toggle-row" id="notifButce" onclick="App.Notifications.toggleSetting('butce')">
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifBudget">Bütçe Limit Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifBudgetDesc">%80 dolduğunda bildir</div></div>
+                <div class="toggle-track" id="notifButceTrack"><div class="toggle-thumb"></div></div>
+              </div>
+              <div class="toggle-row" id="notifHaftalik" onclick="App.Notifications.toggleSetting('haftalik')">
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifWeekly">Haftalık Özet</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifWeeklyDesc">Her Pazartesi haftalık rapor</div></div>
+                <div class="toggle-track" id="notifHaftalikTrack"><div class="toggle-thumb"></div></div>
+              </div>
+            </div>
           </div>
-          <div id="notifPermBox" style="background:rgba(79,70,229,.07);border:1px solid rgba(79,70,229,.2);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
-            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
-            <button class="btn btn-primary btn-sm w-full" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
-          </div>
-          <div id="notifSubToggles" style="transition:opacity .25s;margin-top:12px;display:flex;flex-direction:column;gap:10px">
-            <div class="toggle-row" id="notifAbonelik" onclick="App.Notifications.toggleSetting('abonelik')">
-              <div><div class="font-bold" style="font-size:15px" data-i18n="notifSub">Abonelik Hatırlatmaları</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifSubDesc">3 gün önce, 1 gün önce ve ödeme günü bildir</div></div>
-              <div class="toggle-track" id="notifAbonelikTrack"><div class="toggle-thumb"></div></div>
-            </div>
-            <div class="toggle-row" id="notifBorc" onclick="App.Notifications.toggleSetting('borc')">
-              <div><div class="font-bold" style="font-size:15px" data-i18n="notifDebt">Borç & Vade Uyarıları</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifDebtDesc">3 gün öncesinden bildir</div></div>
-              <div class="toggle-track" id="notifBorcTrack"><div class="toggle-thumb"></div></div>
-            </div>
-            <div class="toggle-row" id="notifButce" onclick="App.Notifications.toggleSetting('butce')">
-              <div><div class="font-bold" style="font-size:15px" data-i18n="notifBudget">Bütçe Limit Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifBudgetDesc">%80 dolduğunda bildir</div></div>
-              <div class="toggle-track" id="notifButceTrack"><div class="toggle-thumb"></div></div>
-            </div>
-            <div class="toggle-row" id="notifHaftalik" onclick="App.Notifications.toggleSetting('haftalik')">
-              <div><div class="font-bold" style="font-size:15px" data-i18n="notifWeekly">Haftalık Özet</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifWeeklyDesc">Her Pazartesi haftalık rapor</div></div>
-              <div class="toggle-track" id="notifHaftalikTrack"><div class="toggle-thumb"></div></div>
+        </div>
+
+        <!-- ── DÖVİZ KURLARI ── -->
+        <div class="settings-detail-panel" id="settingsDetail-rates">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title" data-i18n="ratesTitle">Döviz Kurları</div>
+          <div class="settings-detail-sub" data-i18n="ratesDesc">Ana para biriminize göre güncel kur değerleri.</div>
+          <div class="card">
+            <div id="kurBilgiBox" style="min-height:60px">
+              <div style="color:var(--text-muted);font-size:14px" data-i18n="ratesLoading">Yükleniyor...</div>
             </div>
           </div>
         </div>
 
-      </div><!-- /Satır 1 -->
-
-      <!-- Satır 2: Döviz Kurları + Alt Menü Düzeni -->
-      <div class="settings-layout stagger-2">
-
-        <div class="card">
-          <h2 class="card-title mb-4"><svg class="nav-icon" style="color:var(--status-warn)"><use href="#icon-transfer"/></svg><span data-i18n="ratesTitle">Döviz Kurları</span></h2>
-          <p class="text-subtitle mb-4" data-i18n="ratesDesc">Ana para biriminize göre güncel kur değerleri.</p>
-          <div id="kurBilgiBox" style="min-height:60px">
-            <div style="color:var(--text-muted);font-size:14px" data-i18n="ratesLoading">Yükleniyor...</div>
-          </div>
-        </div>
-
-        <!-- ALT BAR ÖZELLEŞTİRME -->
-        <div class="card">
-          <div class="flex justify-between items-center mb-2">
-            <h2 class="card-title"><svg class="nav-icon" style="color:var(--brand-accent)"><use href="#icon-menu"/></svg><span>Alt Menü Düzeni</span></h2>
-            <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()">Sıfırla</button>
-          </div>
-          <p class="text-subtitle mb-4">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</p>
-          <div style="margin-bottom:14px">
-            <div class="text-caption mb-2">Aktif Öğeler (sürükle & bırak)</div>
+        <!-- ── ALT MENÜ DÜZENİ ── -->
+        <div class="settings-detail-panel" id="settingsDetail-bottombar">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title">Alt Menü Düzeni</div>
+          <div class="settings-detail-sub">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</div>
+          <div class="card">
+            <div class="flex justify-between items-center mb-4">
+              <div class="font-bold">Aktif Öğeler</div>
+              <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()">Sıfırla</button>
+            </div>
             <div id="bnavActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
-          </div>
-          <div style="height:1px;background:var(--border-light);margin:14px 0"></div>
-          <div>
+            <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
             <div class="text-caption mb-2">Eklenebilecek Öğeler</div>
             <div id="bnavAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
         </div>
 
-      </div><!-- /Satır 2 -->
-
-      <!-- Satır 3: Veri Yönetimi (tam genişlik, tek kart) -->
-      <div class="settings-layout stagger-3">
-
-        <!-- BULUT SENKRONİZASYONU KARTI -->
-        <div class="card" style="border-color:rgba(108,77,255,.18);grid-column:1/-1">
-          <h2 class="card-title mb-4" style="color:var(--brand-accent)" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</h2>
-          <p class="text-subtitle mb-5" data-i18n="cloudSyncDesc">Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın. Her değişiklik anında buluta yedeklenir.</p>
-
-          <div id="cloudSyncBox">
-            <!-- Aktif (anahtar var) ve pasif (anahtar yok) durumları JS render eder -->
+        <!-- ── BULUT SENKRONİZASYONU ── -->
+        <div class="settings-detail-panel" id="settingsDetail-cloud">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</div>
+          <div class="settings-detail-sub" data-i18n="cloudSyncDesc">Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın.</div>
+          <div class="card" style="border-color:rgba(108,77,255,.18)">
+            <div id="cloudSyncBox"><!-- JS render eder --></div>
           </div>
         </div>
 
-        <div class="card" style="border-color:rgba(229,83,75,.18);grid-column:1/-1">
-          <h2 class="card-title color-danger mb-4" data-i18n="dataManagement">Veri Yönetimi</h2>
-          <p class="text-subtitle mb-5" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</p>
-          <div class="css-grid grid-cols-2" style="gap:10px;margin-bottom:0">
-            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
-              <div class="font-bold" data-i18n="backup">Yedek Al</div>
-              <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
-              <div class="flex gap-2">
-                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">
-                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
-                </button>
-                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportCSV()">
-                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
-                </button>
+        <!-- ── VERİ YÖNETİMİ ── -->
+        <div class="settings-detail-panel" id="settingsDetail-data">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title" data-i18n="dataManagement">Veri Yönetimi</div>
+          <div class="settings-detail-sub" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</div>
+          <div class="card" style="border-color:rgba(229,83,75,.18)">
+            <div class="css-grid grid-cols-2" style="gap:10px;margin-bottom:0">
+              <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
+                <div class="font-bold" data-i18n="backup">Yedek Al</div>
+                <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
+                <div class="flex gap-2">
+                  <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">
+                    <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
+                  </button>
+                  <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportCSV()">
+                    <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
+                  </button>
+                </div>
+              </div>
+              <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
+                <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
+                <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
+                <div class="flex gap-2 w-full">
+                  <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
+                  <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
+                    <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
+                    Dosya Seç (.json)
+                  </label>
+                </div>
               </div>
             </div>
-            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
-              <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
-              <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
-              <div class="flex gap-2 w-full">
-                <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
-                <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
-                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
-                  Dosya Seç (.json)
-                </label>
-              </div>
-            </div>
+            <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
+            <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
+            <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
+            <button class="btn btn-danger w-full" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
           </div>
-          <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
-          <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
-          <div style="height:1px;background:var(--border-lig  ht);margin:20px 0"></div>
-          <button class="btn btn-danger w-full" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
         </div>
 
-      </div><!-- /Satır 3 -->
-
+      </div><!-- /settings-hub -->
     </div>
 
     </div>
@@ -2412,9 +2553,7 @@ const UI = {
       window.scrollTo(0,0);
       // Ayarlar sayfasında bottom bar editor'ı güncelle
       if(hash==='/settings'){
-        setTimeout(()=>{
-          if(typeof App.Controllers.BottomBar!=='undefined')App.Controllers.BottomBar.renderEditor();
-        },100);
+        // sadece ayarlar menüsüne dön, editor section açıksa o zaman çalışır
       }
     }
   },
@@ -4775,7 +4914,44 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       delete(id){UI.Confirm.show(t('confDelDebt'),()=>{Core.state.debts=Core.state.debts.filter(d=>d.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgRecordDeleted'));});}
     },
     Settings:{
+      _activeSection: null,
+
+      openSection(section){
+        const menuPanel = document.getElementById('settingsMenuPanel');
+        const targetDetail = document.getElementById('settingsDetail-' + section);
+        if(!menuPanel || !targetDetail) return;
+        this._activeSection = section;
+        // Slide out menu
+        menuPanel.classList.add('slide-out');
+        setTimeout(() => {
+          menuPanel.style.display = 'none';
+          menuPanel.classList.remove('slide-out');
+          // Hide all detail panels, show target
+          document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+          targetDetail.classList.add('active');
+          window.scrollTo(0, 0);
+          // Trigger renders needed per section
+          if(section === 'bottombar') setTimeout(() => App.Controllers.BottomBar.renderEditor(), 50);
+          if(section === 'cloud') this.renderCloudBox();
+          if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
+        }, 200);
+      },
+
+      closeSection(){
+        const menuPanel = document.getElementById('settingsMenuPanel');
+        if(!menuPanel) return;
+        this._activeSection = null;
+        document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+        menuPanel.style.display = '';
+        window.scrollTo(0, 0);
+      },
+
       renderForm(){
+        // Reset to menu panel when navigating to settings
+        const menuPanel = document.getElementById('settingsMenuPanel');
+        if(menuPanel) { menuPanel.style.display = ''; menuPanel.classList.remove('slide-out'); }
+        document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+        this._activeSection = null;
         const s=Core.state.settings;
         if(document.getElementById('set_name'))document.getElementById('set_name').value=s.name||'';
         if(document.getElementById('set_currency'))document.getElementById('set_currency').value=s.currency||'TRY';
@@ -4808,10 +4984,8 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             </div>
             <div style="font-size:10px;color:var(--status-warn);background:var(--status-warn-bg);padding:3px 9px;border-radius:99px;font-weight:700;white-space:nowrap">≈ Gösterge kur</div>
           </div>`;
-          kurInfo.innerHTML=infoBar+`<div style="max-height:340px;overflow-y:auto">${rateRows.join('')}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
+          kurInfo.innerHTML=infoBar+`<div style="max-height:340px;overflow-y:auto">${rateRows.join('')}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();App.Controllers.Settings.openSection('rates');UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
         }
-        // Bulut sync kutusu
-        this.renderCloudBox();
       },
 
       // ── BULUT SENKRONİZASYONU UI ──────────────────────────────
