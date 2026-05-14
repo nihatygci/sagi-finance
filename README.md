@@ -14,7 +14,7 @@ SAGI Finance is a local-first web application designed to help users manage thei
 
 ## Live Demo
 
-https://nihatygci.github.io/sagi/
+https://nihatygci.github.io/sagi-finance/
 
 ## Features
 
@@ -83,7 +83,7 @@ SAGI Finance, kullanıcıların finanslarını yönetmesine yardımcı olan ve t
 
 ## Canlı Demo
 
-https://nihatygci.github.io/sagi/
+https://nihatygci.github.io/sagi-finance/
 
 ## Özellikler
 
