@@ -191,18 +191,24 @@ self.addEventListener('message', event => {
 
   if (!event.data || event.data.type !== 'SHOW_NOTIF') return;
 
-  const { title = 'SAGI Finance', body = '', tag = 'sagi-notif' } = event.data;
+  const { title = 'SAGI Finance' } = event.data;
+  // options objesi direkt gelebilir (yeni format) ya da ayrı alanlar (eski format)
+  const opts = event.data.options || event.data;
+  const body    = opts.body    || '';
+  const tag     = opts.tag     || 'sagi-notif';
+  const action  = (opts.data && opts.data.action) || opts.action || 'dashboard';
 
   // showNotification SW içinde çalışır → Android Chrome dahil tüm platformlar
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      tag,                // Aynı tag → eski bildirimi günceller (spam olmaz)
-      icon:  './icon-192.png',
-      badge: './icon-96.png',
-      vibrate: [200, 100, 200],
-      requireInteraction: false,
-      data: { url: './' }
+      tag,
+      icon:               './icon-192.png',
+      badge:              './icon-96.png',
+      vibrate:            opts.vibrate || [200, 100, 200],
+      requireInteraction: opts.requireInteraction || false,
+      silent:             opts.silent || false,
+      data:               { action, url: './' }
     })
   );
 });
@@ -211,19 +217,26 @@ self.addEventListener('message', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
 
-  const targetUrl = (event.notification.data && event.notification.data.url) || (self.registration.scope);
+  const action    = (event.notification.data && event.notification.data.action) || 'dashboard';
+  const targetUrl = self.registration.scope + '?notif_action=' + encodeURIComponent(action);
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(clientList => {
         // Zaten açık bir SAGI sekmesi var mı?
-        for (const client of clientList) {
-          if (client.url.includes(self.registration.scope)) {
-            return client.focus();
-          }
+        const sagiClient = clientList.find(c => c.url.includes(self.registration.scope));
+        if (sagiClient) {
+          // Öne getir ve deeplink mesajı gönder
+          sagiClient.focus();
+          sagiClient.postMessage({ type: 'NOTIF_CLICK', action });
+          return;
         }
-        // Yoksa yeni pencere aç
-        return clients.openWindow(targetUrl);
+        // Yoksa yeni pencere aç (URL param ile action taşı)
+        return clients.openWindow(targetUrl).then(newClient => {
+          if (newClient) {
+            setTimeout(() => newClient.postMessage({ type: 'NOTIF_CLICK', action }), 1200);
+          }
+        });
       })
   );
 });
