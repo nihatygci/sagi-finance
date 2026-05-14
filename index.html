@@ -203,10 +203,13 @@ table{width:100%;border-collapse:collapse}
 
 /* ANIMATIONS */
 @keyframes fadeScaleUp{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fadeScaleDown{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(10px) scale(.97)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 @keyframes settingsSlideIn{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
 @keyframes settingsSlideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-24px)}}
+@keyframes settingsSlideInReverse{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}}
 
 /* SETTINGS SUB-PAGE SYSTEM */
 .settings-hub{position:relative;overflow:hidden}
@@ -214,6 +217,7 @@ table{width:100%;border-collapse:collapse}
 .settings-detail-panel{display:none;animation:settingsSlideIn .28s cubic-bezier(.16,1,.3,1) forwards}
 .settings-detail-panel.active{display:block}
 .settings-menu-panel.slide-out{animation:settingsSlideOut .22s cubic-bezier(.4,0,1,1) forwards}
+.settings-menu-panel.slide-in{animation:settingsSlideInReverse .28s cubic-bezier(.16,1,.3,1) forwards}
 .settings-menu-row{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;transition:all .18s;gap:12px;user-select:none}
 .settings-menu-row:hover{background:var(--bg-surface-hover);transform:translateX(2px)}
 .settings-menu-row:active{transform:scale(.98)}
@@ -234,7 +238,12 @@ table{width:100%;border-collapse:collapse}
 @keyframes waveFloat{0%,100%{opacity:.5;transform:translateY(0) translateX(-50%)}50%{opacity:.8;transform:translateY(-8px) translateX(-50%)}}
 .view{display:none !important;animation:fadeScaleUp .38s cubic-bezier(.16,1,.3,1) forwards}
 .view.active{display:block !important}
+.view.leaving{display:block !important;animation:fadeScaleDown .22s cubic-bezier(.4,0,1,1) forwards;pointer-events:none}
 .stagger-1{animation-delay:.04s}.stagger-2{animation-delay:.09s}.stagger-3{animation-delay:.14s}
+/* Modal kapanış exit animasyonu */
+.modal-overlay.closing{opacity:0 !important;transition:opacity .22s ease !important}
+.modal-overlay.closing .modal-content{transform:scale(.94) translateY(20px) !important;transition:all .22s cubic-bezier(.4,0,1,1) !important}
+@media(max-width:639px){.modal-overlay.closing .modal-content{transform:translateY(100%) !important;transition:all .22s cubic-bezier(.4,0,1,1) !important}}
 body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !important;transition:none !important}
 
 /* GRID */
@@ -1292,19 +1301,21 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- İŞLEMLER -->
     <div id="view-transactions" class="view">
-      <div class="page-title-row">
+      <div class="page-title-row" id="txPageTitleRow">
         <div><h1 class="text-h1" data-i18n="transactions">İşlemler</h1><p class="text-subtitle" data-i18n="txSubtitle">Tüm gelir ve giderleriniz</p></div>
         <div class="flex gap-2 items-center" style="flex-shrink:0">
           <button class="btn btn-select-mode" id="txSelectModeBtn" onclick="App.Controllers.Transactions.toggleSelectMode()" data-i18n-title="select" title="Seç">
             <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-check"/></svg>
             <span class="select-mode-label" id="txSelectModeLabel" data-i18n="selectMode">Seç</span>
           </button>
-          <button class="btn btn-outline btn-sm color-danger" id="txDeleteSelectedBtnTop" onclick="App.Controllers.Transactions.deleteSelected()" style="display:none;border-color:var(--status-danger-bg);color:var(--status-danger);font-size:12px;padding:6px 14px">
-            <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg>
-            <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
-          </button>
           <button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
         </div>
+      </div>
+      <div id="txDeleteSelectedRow" style="display:none;margin-bottom:14px">
+        <button class="btn btn-outline btn-sm color-danger w-full" id="txDeleteSelectedBtnTop" onclick="App.Controllers.Transactions.deleteSelected()" style="border-color:var(--status-danger-bg);color:var(--status-danger);justify-content:center;padding:10px 16px;font-size:14px;font-weight:600">
+          <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg>
+          <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
+        </button>
       </div>
       <div class="card p-4 stagger-1" style="margin-bottom:14px">
         <div class="css-grid grid-cols-4 items-end">
@@ -1656,10 +1667,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 <div class="font-bold" data-i18n="animations">Animasyonlar</div>
                 <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="animHint">Geçiş efektleri.</div>
               </div>
-              <select class="form-control" id="set_anim" style="width:140px;padding:10px">
-                <option value="on" data-i18n="animOn">Açık</option>
-                <option value="off" data-i18n="animOff">Kapalı</option>
-              </select>
+              <div class="theme-toggle-group" style="width:160px;flex-shrink:0;min-width:0">
+                <button class="theme-btn" id="set_anim_on"  onclick="App.Controllers.Settings.setAnim('on')"><span data-i18n="animOn">Açık</span></button>
+                <button class="theme-btn" id="set_anim_off" onclick="App.Controllers.Settings.setAnim('off')"><span data-i18n="animOff">Kapalı</span></button>
+              </div>
             </div>
             <div class="settings-cell">
               <div>
@@ -2479,7 +2490,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div id="cardDetailDebt" style="display:none"></div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail')">Kapat</button>
       <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> Tüm İşlemler</button>
       <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> Ödeme Yap</button>
     </div>
@@ -2570,30 +2580,68 @@ window.Core = Core;
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings'],
+    settingsSections:['personalization','notifications','rates','bottombar','cloud','data'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
       let hash=window.location.hash.replace('#','')||'/dashboard';
+      // Settings sub-route kontrolü: #/settings/notifications gibi
+      let settingsSection=null;
+      if(hash.startsWith('/settings/')){
+        const sub=hash.replace('/settings/','');
+        if(this.settingsSections.includes(sub)) settingsSection=sub;
+        hash='/settings';
+      }
       if(!this.routes.includes(hash))hash='/dashboard';
-      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      const t=document.getElementById('view-'+hash.replace('/',''));
-      if(t)t.classList.add('active');
+      const noAnim=document.body.classList.contains('no-anim');
+      const currentActive=document.querySelector('.view.active');
+      const nextId='view-'+hash.replace('/','');
+      const nextView=document.getElementById(nextId);
+      const isSameView=currentActive===nextView;
+      const doAfter=()=>{
+        Core.emit('routeChanged',settingsSection?'/settings/'+settingsSection:hash);
+        if(settingsSection) App.Controllers.Settings._openSectionDirect(settingsSection);
+        else if(hash==='/settings') App.Controllers.Settings._openSectionDirect(null);
+        setTimeout(applyLang,50);
+        window.scrollTo(0,0);
+      };
+      if(currentActive&&nextView&&!isSameView&&!noAnim){
+        currentActive.classList.add('leaving');
+        setTimeout(()=>{
+          currentActive.classList.remove('active','leaving');
+          nextView.classList.add('active');
+          doAfter();
+        },200);
+      } else {
+        document.querySelectorAll('.view').forEach(v=>v.classList.remove('active','leaving'));
+        nextView&&nextView.classList.add('active');
+        doAfter();
+      }
+      // Nav link highlight — settings alt route'larında da /settings aktif
       document.querySelectorAll('.nav-link,.bnav-link').forEach(n=>n.classList.remove('active'));
       document.querySelectorAll(`[data-route="${hash}"]`).forEach(n=>n.classList.add('active'));
-      Core.emit('routeChanged',hash);
-      setTimeout(applyLang,50);
-      window.scrollTo(0,0);
-      // Ayarlar sayfasında bottom bar editor'ı güncelle
-      if(hash==='/settings'){
-        // sadece ayarlar menüsüne dön, editor section açıksa o zaman çalışır
-      }
     }
   },
   Modals:{
     open(id){document.getElementById(id)?.classList.add('active')},
-    close(id){const m=document.getElementById(id);if(m){m.classList.remove('active');const f=m.querySelector('form');if(f)f.reset();
-      m.querySelectorAll('.toggle-track.on').forEach(t=>t.classList.remove('on'));
-      m.querySelectorAll('[value="0"]').forEach(i=>{if(i.type==='hidden')i.value='0';});
-    }}
+    close(id){
+      const m=document.getElementById(id);
+      if(!m)return;
+      const noAnim=document.body.classList.contains('no-anim');
+      if(noAnim){
+        m.classList.remove('active');
+        const f=m.querySelector('form');if(f)f.reset();
+        m.querySelectorAll('.toggle-track.on').forEach(t=>t.classList.remove('on'));
+        m.querySelectorAll('[value="0"]').forEach(i=>{if(i.type==='hidden')i.value='0';});
+        return;
+      }
+      m.classList.add('closing');
+      setTimeout(()=>{
+        m.classList.remove('active','closing');
+        const f=m.querySelector('form');if(f)f.reset();
+        m.querySelectorAll('.toggle-track.on').forEach(t=>t.classList.remove('on'));
+        m.querySelectorAll('[value="0"]').forEach(i=>{if(i.type==='hidden')i.value='0';});
+      },230);
+    }
   },
   Confirm:{cb:null,show(msg,cb){document.getElementById('confirmMsg').textContent=msg;this.cb=cb;UI.Modals.open('modalConfirm');},execute(){if(this.cb)this.cb();UI.Modals.close('modalConfirm');}},
   Toasts:{
@@ -2753,7 +2801,7 @@ const Notifications = {
   },
   handleNotifAction(action){
     if(!action)return;
-    var nav={'dashboard':function(){App.navigate('dashboard');},'recurring':function(){App.navigate('recurring');},'debts':function(){App.navigate('debts');},'analytics':function(){App.navigate('analytics');},'goals':function(){App.navigate('goals');},'wallets':function(){App.navigate('wallets');},'settings':function(){App.navigate('settings');},'settings/notifications':function(){App.navigate('settings');setTimeout(function(){App.Controllers.Settings.openSection('notifications');},300);}};
+    var nav={'dashboard':function(){App.navigate('dashboard');},'recurring':function(){App.navigate('recurring');},'debts':function(){App.navigate('debts');},'analytics':function(){App.navigate('analytics');},'goals':function(){App.navigate('goals');},'wallets':function(){App.navigate('wallets');},'settings':function(){App.navigate('settings');},'settings/notifications':function(){window.location.hash='/settings/notifications';}};
     var fn=nav[action]||nav['dashboard'];
     fn();
   },
@@ -3139,6 +3187,7 @@ const App = {
       document.getElementById('tx_amount')?.addEventListener('input',()=>App.Controllers.Transactions._updateAmountHint());
       Core.on('routeChanged',r=>{
         App.ExchangeRate.ensureFresh();
+        const isSettings=r==='/settings'||r.startsWith('/settings/');
         if(r==='/dashboard')App.Controllers.Dashboard.render();
         if(r==='/wallets')App.Controllers.Wallets.render();
         if(r==='/transactions')App.Controllers.Transactions.renderSetup();
@@ -3146,7 +3195,7 @@ const App = {
         if(r==='/recurring')App.Controllers.Recurring.render();
         if(r==='/goals')App.Controllers.Goals.render();
         if(r==='/debts')App.Controllers.Debts.render();
-        if(r==='/settings'){App.Controllers.Settings.renderForm();if(Notifications.supported)Notifications.updateUI();else{const pb=document.getElementById('notifPermBox');const sb=document.getElementById('notifStatusBox');if(pb)pb.innerHTML='<p style="font-size:14px;color:var(--text-muted)">'+t('msgNotifUnsup')+'</p>';if(sb)sb.style.display='none';}}
+        if(isSettings){App.Controllers.Settings.renderForm();if(Notifications.supported)Notifications.updateUI();else{const pb=document.getElementById('notifPermBox');const sb=document.getElementById('notifStatusBox');if(pb)pb.innerHTML='<p style="font-size:14px;color:var(--text-muted)">'+t('msgNotifUnsup')+'</p>';if(sb)sb.style.display='none';}}
       });
       Core.on('ratesUpdated',()=>{
         const hash=window.location.hash.replace('#','')||'/dashboard';
@@ -3955,8 +4004,8 @@ const App = {
         const lbl=document.getElementById('txSelectModeLabel');
         if(btn)btn.classList.toggle('active',this._selectMode);
         if(lbl)lbl.textContent=this._selectMode?t('cancelSelect'):t('selectMode');
-        const delBtnTop=document.getElementById('txDeleteSelectedBtnTop');
-        if(delBtnTop)delBtnTop.style.display='none';
+        const delRowTop=document.getElementById('txDeleteSelectedRow');
+        if(delRowTop)delRowTop.style.display='none';
         // Mobil container'a seç modu class'ı
         const cont=document.getElementById('txCardContainer');
         if(cont){
@@ -3969,10 +4018,10 @@ const App = {
       toggleSelect(id){
         if(this._selected.has(id))this._selected.delete(id);else this._selected.add(id);
         // Masaüstü checkbox sync
-        const delTop=document.getElementById('txDeleteSelectedBtnTop');
+        const delTop=document.getElementById('txDeleteSelectedRow');
         const cntTop=document.getElementById('txSelectedCountTop');
         if(cntTop)cntTop.textContent=this._selected.size;
-        if(delTop)delTop.style.display=(this._selectMode&&this._selected.size>0)?'inline-flex':'none';
+        if(delTop)delTop.style.display=(this._selectMode&&this._selected.size>0)?'block':'none';
         document.querySelectorAll('.tx-select-cb').forEach(cb=>{cb.checked=this._selected.has(cb.dataset.id);});
         document.querySelectorAll('#txTableBody tr[data-tx-id]').forEach(tr=>{
           tr.classList.toggle('tx-row-selected',this._selected.has(tr.dataset.txId));
@@ -4013,7 +4062,7 @@ const App = {
           UI.Toasts.show(t('msgSelectedDeleted'));
           const btn=document.getElementById('txSelectModeBtn');if(btn)btn.classList.remove('active');
           const lbl=document.getElementById('txSelectModeLabel');if(lbl)lbl.textContent=t('selectMode');
-          const delTop=document.getElementById('txDeleteSelectedBtnTop');if(delTop)delTop.style.display='none';
+          const delRowTop=document.getElementById('txDeleteSelectedRow');if(delRowTop)delRowTop.style.display='none';
         });
       },
       getFiltered(){
@@ -4150,7 +4199,22 @@ const App = {
       },
       closeDetailModal(){
         const modal=document.getElementById('txDetailModal');
-        if(modal)modal.classList.remove('open');
+        const sheet=document.getElementById('txDetailSheet');
+        const noAnim=document.body.classList.contains('no-anim');
+        if(modal&&sheet&&!noAnim){
+          sheet.style.transition='transform .28s cubic-bezier(.4,0,1,1)';
+          sheet.style.transform='translateY(100%)';
+          modal.style.transition='opacity .28s ease';
+          modal.style.opacity='0';
+          setTimeout(()=>{
+            modal.classList.remove('open');
+            modal.style.opacity='';
+            sheet.style.transform='';
+            sheet.style.transition='';
+          },290);
+        } else if(modal){
+          modal.classList.remove('open');
+        }
         document.body.style.position='';
         document.body.style.width='';
         this._detailTxId=null;
@@ -5091,46 +5155,77 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
     Settings:{
       _activeSection: null,
 
+      // Hash-tabanlı navigasyon: #/settings/notifications gibi
       openSection(section){
-        const menuPanel = document.getElementById('settingsMenuPanel');
-        const targetDetail = document.getElementById('settingsDetail-' + section);
-        if(!menuPanel || !targetDetail) return;
-        this._activeSection = section;
-        // Slide out menu
-        menuPanel.classList.add('slide-out');
-        setTimeout(() => {
-          menuPanel.style.display = 'none';
-          menuPanel.classList.remove('slide-out');
-          // Hide all detail panels, show target
-          document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
-          targetDetail.classList.add('active');
-          window.scrollTo(0, 0);
-          // Trigger renders needed per section
-          if(section === 'bottombar') setTimeout(() => App.Controllers.BottomBar.renderEditor(), 50);
-          if(section === 'cloud') this.renderCloudBox();
-          if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
-        }, 200);
+        window.location.hash = '/settings/' + section;
       },
 
       closeSection(){
+        window.location.hash = '/settings';
+      },
+
+      // Router tarafından doğrudan çağrılır — hash değiştirmez, sadece UI'ı günceller
+      _openSectionDirect(section){
         const menuPanel = document.getElementById('settingsMenuPanel');
         if(!menuPanel) return;
-        this._activeSection = null;
-        document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
-        menuPanel.style.display = '';
-        window.scrollTo(0, 0);
+        if(!section){
+          // Detail panel'i slide-out ile kapat
+          const activeDetail = document.querySelector('.settings-detail-panel.active');
+          if(activeDetail){
+            activeDetail.style.animation = 'settingsSlideOut .2s cubic-bezier(.4,0,1,1) forwards';
+            setTimeout(() => {
+              activeDetail.style.animation = '';
+              document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+              menuPanel.style.display = '';
+              menuPanel.classList.remove('slide-out');
+              menuPanel.classList.add('slide-in');
+              setTimeout(() => menuPanel.classList.remove('slide-in'), 300);
+              window.scrollTo(0, 0);
+            }, 200);
+          } else {
+            document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+            menuPanel.style.display = '';
+            menuPanel.classList.remove('slide-out');
+            window.scrollTo(0, 0);
+          }
+          this._activeSection = null;
+          return;
+        }
+        const targetDetail = document.getElementById('settingsDetail-' + section);
+        if(!targetDetail) return;
+        this._activeSection = section;
+        // Slide out menu (sadece menü görünüyorsa)
+        if(menuPanel.style.display !== 'none'){
+          menuPanel.classList.add('slide-out');
+          setTimeout(() => {
+            menuPanel.style.display = 'none';
+            menuPanel.classList.remove('slide-out');
+            document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+            targetDetail.classList.add('active');
+            window.scrollTo(0, 0);
+            if(section === 'bottombar') setTimeout(() => App.Controllers.BottomBar.renderEditor(), 50);
+            if(section === 'cloud') this.renderCloudBox();
+            if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
+          }, 200);
+        } else {
+          // Zaten bir section açıkken başka section'a geçiş (settingsSlideIn ile)
+          document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+          targetDetail.classList.add('active');
+          window.scrollTo(0, 0);
+          if(section === 'bottombar') setTimeout(() => App.Controllers.BottomBar.renderEditor(), 50);
+          if(section === 'cloud') this.renderCloudBox();
+          if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
+        }
       },
 
       renderForm(){
-        // Reset to menu panel when navigating to settings
+        // renderForm artık sadece form değerlerini doldurur; section yönetimi router üstlenir
         const menuPanel = document.getElementById('settingsMenuPanel');
-        if(menuPanel) { menuPanel.style.display = ''; menuPanel.classList.remove('slide-out'); }
-        document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
+        if(menuPanel) menuPanel.classList.remove('slide-out');
         this._activeSection = null;
         const s=Core.state.settings;
         if(document.getElementById('set_name'))document.getElementById('set_name').value=s.name||'';
         if(document.getElementById('set_currency'))document.getElementById('set_currency').value=s.currency||'TRY';
-        if(document.getElementById('set_anim'))document.getElementById('set_anim').value=s.anim||'on';
         const curLang=s.lang||LANG;
         ['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});
         const lb=document.getElementById('set_lang_'+curLang);if(lb)lb.classList.add('active');
@@ -5319,14 +5414,18 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
       applyPrivacy(){const isOn=Core.state.settings.privacy==='on';const sBtn=document.getElementById('sidePrivacyBtn'),hBtn=document.getElementById('headerPrivacyBtn'),sIcon=document.getElementById('sidePrivacyIcon'),hIcon=document.getElementById('headerPrivacyIcon');if(isOn){if(sBtn)sBtn.classList.add('active');if(hBtn)hBtn.classList.add('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye-off"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye-off"/>';}else{if(sBtn)sBtn.classList.remove('active');if(hBtn)hBtn.classList.remove('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye"/>'; }},
       setTheme(mode){Core.state.settings.theme=mode;Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
-      applyTheme(){document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');if(Core.state.settings.anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active');});},
+      applyTheme(){document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');const anim=Core.state.settings.anim||'on';if(anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light',lang=Core.state.settings.lang||'tr';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active')});const animBtn=document.getElementById('set_anim_'+anim);if(animBtn)animBtn.classList.add('active');const langBtn=document.getElementById('set_lang_'+lang);if(langBtn)langBtn.classList.add('active')},
       setLang(lang){window.LANG=lang;Core.state.settings.lang=lang;Core.DB.save();applyLang();['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const btn=document.getElementById('set_lang_'+lang);if(btn)btn.classList.add('active');UI.Toasts.show(lang==='tr'?t('msgTrSelected'):t('msgEnSelected'));},
+      setAnim(val){
+        Core.state.settings.anim=val;
+        App.Controllers.Settings.applyTheme();
+        Core.save();
+      },
       savePreferences(){
         const oC=Core.state.settings.currency||'TRY';
         const nC=document.getElementById('set_currency').value;
         Core.state.settings.name=document.getElementById('set_name').value;
         Core.state.settings.currency=nC;
-        Core.state.settings.anim=document.getElementById('set_anim').value;
         // Para birimi değiştiyse tüm ana-para-biriminde saklanan değerleri dönüştür
         if(oC!==nC){
           const conv=(amt)=>App.ExchangeRate.convert(amt,oC,nC);
