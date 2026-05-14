@@ -1,29 +1,141 @@
 # SAGI Finance
 
-**Kişisel finans yönetim aracı – verileriniz tamamen size ait.**
+[English](#english) | [Türkçe](#turkce)
 
-SAGI Finance, tüm finansal verilerinizi yalnızca kendi cihazınızda saklayan, bulut veya üçüncü taraf sunucularına hiçbir veri göndermeyen gizlilik odaklı bir web uygulamasıdır.
+---
 
-🔗 **Canlı Uygulama:** [SAGI Finance'ı Kullan](https://nihatygci.github.io/sagi/) *(uygulama ana sayfanızı buraya ekleyin)*
+<a id="english"></a>
 
-## ✨ Özellikler
+# SAGI Finance
 
-- **📱 Tamamen Yerel** – Tüm veriler tarayıcınızın `localStorage` alanında saklanır. Bulut yok, sunucu yok.
-- **💰 Hesap Yönetimi** – Birden fazla hesap, bakiye ve para birimi desteği.
-- **📊 Gelir/Gider Takibi** – Kategoriler, tarihler, açıklamalar ve işlem geçmişi.
-- **🔄 Düzenli Ödemeler** – Abonelikler ve tekrarlayan ödemeler için hatırlatıcılar.
-- **📉 Borç/Alacak Yönetimi** – Borç ve alacak takibi, vade uyarıları.
-- **🎯 Finansal Hedefler** – Birikim hedefleri ve ilerleme takibi.
-- **💱 Gerçek Zamanlı Döviz Kurları** – Ücretsiz API'lerden anlık kur bilgisi (kimlik veya kişisel veri gönderilmez).
-- **🔔 Yerel Bildirimler** – Ödeme hatırlatıcıları, bütçe limit uyarıları (push sunucusu kullanılmaz).
-- **🌙 Kişiselleştirme** – Dil, tema, para birimi ve bildirim ayarları.
+Privacy-first personal finance management.
 
-## 🛡️ Gizlilik & Güvenlik
+SAGI Finance is a local-first web application designed to help users manage their finances while keeping all sensitive data on their own device. No cloud sync, no tracking, no analytics, and no third-party data collection.
 
-Bu proje, **gizliliği temel prensip** olarak benimser. Gizlilik politikasının tam metnine [buradan](./privacy.html) ulaşabilirsiniz. Kısa özet:
+## Live Demo
 
-- ❌ **Veri toplanmaz** – Hiçbir analitik, izleme veya reklam ağı yoktur.
-- ❌ **Çerez kullanılmaz**.
-- 🔒 **Veriler cihazınızda kalır** – Tüm finansal bilgiler yalnızca tarayıcınızın `localStorage`'ında saklanır.
-- 🌐 **Döviz kurları için dış API istekleri** – Yalnızca kur bilgisi alınır, kişisel veri gönderilmez.
-- 📁 **Yedekleme önerilir** – Ayarlar > Veri Yönetimi'nden düzenli JSON yedeği alabilirsiniz.
+https://nihatygci.github.io/sagi/
+
+## Features
+
+* Local-only data storage using browser localStorage
+* Multi-account balance management
+* Income and expense tracking
+* Categories and transaction history
+* Recurring payments and subscription reminders
+* Debt and receivable tracking
+* Savings goals and progress monitoring
+* Exchange rate support via public APIs
+* Local notifications and reminders
+* Theme, language, and currency preferences
+
+## Privacy
+
+SAGI Finance is built with privacy as a core principle.
+
+* No account required
+* No analytics tools
+* No tracking scripts
+* No advertising networks
+* No cloud database
+* Your financial data stays on your device
+
+Full privacy policy is available in:
+
+`privacy.html`
+
+## Tech Stack
+
+* HTML
+* CSS
+* JavaScript
+* GitHub Pages
+
+## Installation
+
+```bash
+git clone https://github.com/nihatygci/sagi.git
+```
+
+Then open `index.html` in your browser.
+
+## Roadmap
+
+* Improved backup and restore system
+* Charts and analytics dashboard
+* Better recurring payment automation
+* Mobile UX improvements
+* Optional offline install enhancements
+
+## License
+
+Licensed under the MIT License.
+
+---
+
+<a id="turkce"></a>
+
+# SAGI Finance
+
+Gizlilik odaklı kişisel finans yönetimi.
+
+SAGI Finance, kullanıcıların finanslarını yönetmesine yardımcı olan ve tüm hassas verileri yalnızca kendi cihazlarında tutan yerel öncelikli bir web uygulamasıdır. Bulut senkronizasyonu yoktur, takip sistemi yoktur, analiz araçları yoktur ve üçüncü taraf veri toplama yapılmaz.
+
+## Canlı Demo
+
+https://nihatygci.github.io/sagi/
+
+## Özellikler
+
+* Tarayıcı localStorage ile tamamen yerel veri saklama
+* Çoklu hesap ve bakiye yönetimi
+* Gelir ve gider takibi
+* Kategoriler ve işlem geçmişi
+* Düzenli ödemeler ve abonelik hatırlatıcıları
+* Borç ve alacak takibi
+* Birikim hedefleri ve ilerleme izleme
+* Açık API'ler ile döviz kuru desteği
+* Yerel bildirimler ve hatırlatmalar
+* Tema, dil ve para birimi tercihleri
+
+## Gizlilik
+
+SAGI Finance, gizliliği temel prensip olarak benimser.
+
+* Hesap oluşturma gerekmez
+* Analitik araç kullanılmaz
+* Takip scriptleri bulunmaz
+* Reklam ağı kullanılmaz
+* Bulut veritabanı yoktur
+* Finansal verileriniz cihazınızda kalır
+
+Tam gizlilik politikası:
+
+`privacy.html`
+
+## Teknolojiler
+
+* HTML
+* CSS
+* JavaScript
+* GitHub Pages
+
+## Kurulum
+
+```bash
+git clone https://github.com/nihatygci/sagi.git
+```
+
+Ardından `index.html` dosyasını tarayıcıda açın.
+
+## Yol Haritası
+
+* Gelişmiş yedekleme ve geri yükleme sistemi
+* Grafikler ve analiz paneli
+* Daha iyi düzenli ödeme otomasyonu
+* Mobil kullanıcı deneyimi geliştirmeleri
+* Gelişmiş çevrimdışı kurulum desteği
+
+## Lisans
+
+MIT Lisansı ile lisanslanmıştır.
