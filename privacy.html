@@ -3,594 +3,771 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SAGI Finance · Privacy Policy</title>
-<meta name="description" content="SAGI Finance Privacy Policy. We do not collect any personal data. Your data stays on your device.">
+<title>SAGI Finance · Gizlilik Politikası</title>
+<meta name="description" content="SAGI Finance Gizlilik Politikası. Kişisel veri toplamıyoruz. Verileriniz yalnızca cihazınızda saklanır.">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<link rel="manifest" href="./manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+/* ══════════════════════════════════════════════
+   SAGI Finance · Privacy Policy
+   Matches main app design language (v0.9.86)
+   ══════════════════════════════════════════════ */
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 
 :root{
---brand:#4f46e5;
---brand2:#6366f1;
---bg:#f7f8fb;
---surface:#ffffff;
---text:#0f172a;
---text2:#475569;
---muted:#94a3b8;
---border:rgba(15,23,42,.08);
---radius:22px;
---shadow:0 10px 30px rgba(0,0,0,.06);
+  --brand:#6257f0;
+  --brand2:#6C4DFF;
+  --brand-soft:rgba(98,87,240,0.1);
+  --brand-border:rgba(98,87,240,0.2);
+  --bg:#f0f2f5;
+  --surface:#ffffff;
+  --text:#111827;
+  --text2:#4b5563;
+  --muted:#9ca3af;
+  --border:rgba(0,0,0,0.07);
+  --radius:22px;
+  --radius-sm:14px;
+  --shadow:0 2px 10px rgba(0,0,0,0.04);
+  --shadow-md:0 10px 28px -6px rgba(0,0,0,0.08);
+  --font-body:'Inter',sans-serif;
+  --font-display:'Outfit',sans-serif;
 }
 
 @media(prefers-color-scheme:dark){
-:root{
---bg:#09090b;
---surface:#121214;
---text:#f8fafc;
---text2:#a1a1aa;
---muted:#71717a;
---border:rgba(255,255,255,.07);
---shadow:none;
-}
+  :root{
+    --bg:#020203;
+    --surface:#090909;
+    --text:#f9fafb;
+    --text2:#a1a1aa;
+    --muted:#52525b;
+    --border:rgba(255,255,255,0.07);
+    --shadow:none;
+    --shadow-md:none;
+  }
 }
 
 body{
-font-family:Inter,sans-serif;
-background:
-radial-gradient(circle at top right, rgba(99,102,241,.08), transparent 30%),
-radial-gradient(circle at bottom left, rgba(79,70,229,.08), transparent 30%),
-var(--bg);
-color:var(--text);
-min-height:100vh;
-line-height:1.65;
+  font-family:var(--font-body);
+  background:
+    radial-gradient(circle at 80% 10%, rgba(108,77,255,0.07) 0%, transparent 35%),
+    radial-gradient(circle at 10% 90%, rgba(98,87,240,0.06) 0%, transparent 35%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.65;
+  font-size:16px;
 }
 
+/* ── WRAPPER ── */
 .wrapper{
-max-width:760px;
-margin:auto;
-padding:0 16px;
+  max-width:720px;
+  margin:0 auto;
+  padding:0 16px;
 }
 
-/* HEADER */
-.header{
-position:sticky;
-top:0;
-z-index:30;
-backdrop-filter:blur(12px);
-background:rgba(255,255,255,.72);
-border-bottom:1px solid var(--border);
+/* ── HEADER ── */
+.app-header{
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 0 var(--border);
 }
-
 @media(prefers-color-scheme:dark){
-.header{
-background:rgba(9,9,11,.72);
-}
+  .app-header{background:rgba(9,9,11,0.88);}
 }
 
 .header-inner{
-height:64px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
 }
 
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-text-decoration:none;
-color:var(--text);
-font-family:Outfit,sans-serif;
-font-size:22px;
-font-weight:800;
+.brand-logo{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  text-decoration:none;
+  color:var(--text);
+  font-family:var(--font-display);
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:-.01em;
 }
 
-.dot{
-width:10px;
-height:10px;
-border-radius:50%;
-background:linear-gradient(135deg,var(--brand),var(--brand2));
-box-shadow:0 0 0 5px rgba(79,70,229,.12);
+.brand-dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));
+  box-shadow:0 0 0 4px rgba(98,87,240,0.15);
+  flex-shrink:0;
 }
 
-.brand small{
-font-size:12px;
-opacity:.55;
-font-style:italic;
-font-weight:600;
+.brand-logo small{
+  font-size:12px;
+  opacity:0.45;
+  font-style:italic;
+  font-weight:600;
+  margin-left:1px;
 }
 
-.actions{
-display:flex;
-align-items:center;
-gap:10px;
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 
-.lang{
-display:flex;
-padding:4px;
-border-radius:999px;
-background:rgba(79,70,229,.08);
-border:1px solid rgba(79,70,229,.18);
+/* Language switcher */
+.lang-switcher{
+  display:flex;
+  align-items:center;
+  padding:3px;
+  border-radius:999px;
+  background:var(--brand-soft);
+  border:1px solid var(--brand-border);
 }
 
-.lang button{
-border:none;
-background:none;
-padding:8px 14px;
-font-size:12px;
-font-weight:800;
-border-radius:999px;
-cursor:pointer;
-color:var(--text2);
+.lang-btn{
+  border:none;
+  background:none;
+  padding:6px 13px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.05em;
+  border-radius:999px;
+  cursor:pointer;
+  color:var(--text2);
+  transition:all .2s;
 }
 
-.lang button.active{
-background:var(--brand);
-color:#fff;
-box-shadow:0 4px 12px rgba(79,70,229,.25);
+.lang-btn.active{
+  background:var(--brand);
+  color:#fff;
+  box-shadow:0 3px 10px rgba(98,87,240,0.3);
 }
 
-.back{
-text-decoration:none;
-font-size:13px;
-font-weight:700;
-color:var(--brand);
-padding:10px 14px;
-border-radius:999px;
-border:1px solid rgba(79,70,229,.16);
+/* Back link */
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--brand);
+  text-decoration:none;
+  padding:9px 14px;
+  border-radius:999px;
+  border:1.5px solid var(--brand-border);
+  transition:all .2s;
+  white-space:nowrap;
 }
+.back-btn:hover{background:var(--brand-soft);}
+.back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 
-/* HERO */
+/* ── HERO ── */
 .hero{
-padding:36px 0 20px;
+  padding:44px 0 24px;
 }
 
-.badge{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:8px 14px;
-border-radius:999px;
-font-size:12px;
-font-weight:800;
-letter-spacing:.08em;
-text-transform:uppercase;
-color:var(--brand);
-background:rgba(79,70,229,.08);
-border:1px solid rgba(79,70,229,.18);
-margin-bottom:18px;
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--brand);
+  background:var(--brand-soft);
+  border:1px solid var(--brand-border);
+  margin-bottom:20px;
 }
+.hero-badge svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
 
 .hero h1{
-font-family:Outfit,sans-serif;
-font-size:38px;
-font-weight:800;
-line-height:1.1;
-letter-spacing:-.03em;
-margin-bottom:16px;
+  font-family:var(--font-display);
+  font-size:clamp(28px,6vw,40px);
+  font-weight:800;
+  line-height:1.15;
+  letter-spacing:-.03em;
+  margin-bottom:14px;
+  color:var(--text);
 }
 
 .hero p{
-font-size:17px;
-color:var(--text2);
-max-width:580px;
+  font-size:16px;
+  color:var(--text2);
+  max-width:560px;
+  line-height:1.75;
 }
 
-.meta{
-margin-top:16px;
-font-size:13px;
-color:var(--muted);
+.hero-meta{
+  margin-top:14px;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:500;
 }
 
-/* ALERT */
-.notice{
-margin-top:22px;
-background:linear-gradient(135deg,rgba(79,70,229,.08),rgba(99,102,241,.03));
-border:1px solid rgba(79,70,229,.18);
-padding:20px;
-border-radius:var(--radius);
+/* Highlight notice */
+.highlight-card{
+  margin-top:20px;
+  background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));
+  border:1.5px solid var(--brand-border);
+  border-radius:var(--radius);
+  padding:22px 24px;
+  display:flex;
+  align-items:flex-start;
+  gap:18px;
 }
 
-/* CARDS */
+.highlight-icon{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:var(--brand-soft);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.highlight-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.highlight-card h3{
+  font-family:var(--font-display);
+  font-size:15px;
+  font-weight:700;
+  color:var(--brand);
+  margin-bottom:6px;
+}
+
+.highlight-card p{
+  font-size:14px;
+  color:var(--text2);
+  line-height:1.7;
+}
+
+/* ── SECTIONS ── */
+.sections{
+  margin-top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-bottom:10px;
+}
+
 .section{
-margin-top:18px;
-background:var(--surface);
-border:1px solid var(--border);
-border-radius:var(--radius);
-padding:24px;
-box-shadow:var(--shadow);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px 26px;
+  box-shadow:var(--shadow);
+  transition:border-color .2s;
+}
+
+.section:hover{
+  border-color:rgba(98,87,240,0.2);
 }
 
 .section h2{
-font-family:Outfit,sans-serif;
-font-size:20px;
-font-weight:700;
-display:flex;
-align-items:center;
-gap:12px;
-margin-bottom:14px;
+  font-family:var(--font-display);
+  font-size:17px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:14px;
+  color:var(--text);
 }
 
-.num{
-width:30px;
-height:30px;
-border-radius:12px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:14px;
-font-weight:800;
-color:var(--brand);
-background:rgba(79,70,229,.1);
+.sec-num{
+  width:30px;
+  height:30px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:800;
+  color:var(--brand);
+  background:var(--brand-soft);
+  flex-shrink:0;
 }
+
+.sec-icon{
+  width:30px;
+  height:30px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--brand-soft);
+  flex-shrink:0;
+}
+.sec-icon svg{width:16px;height:16px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
 .section p{
-font-size:15px;
-color:var(--text2);
-margin-bottom:10px;
+  font-size:14px;
+  color:var(--text2);
+  line-height:1.75;
+  margin-bottom:10px;
 }
+.section p:last-child{margin-bottom:0;}
 
 .section ul{
-list-style:none;
-display:grid;
-gap:10px;
-margin-top:12px;
+  list-style:none;
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
 .section li{
-padding-left:22px;
-position:relative;
-color:var(--text2);
-font-size:15px;
+  font-size:14px;
+  color:var(--text2);
+  padding-left:20px;
+  position:relative;
+  line-height:1.65;
 }
 
-.section li:before{
-content:"";
-position:absolute;
-left:0;
-top:9px;
-width:8px;
-height:8px;
-border-radius:50%;
-background:var(--brand);
+.section li::before{
+  content:'';
+  position:absolute;
+  left:4px;
+  top:8px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--brand);
+  opacity:.7;
 }
 
-/* CONTACT */
-.contact{
-margin:22px 0 40px;
-text-align:center;
-padding:26px;
-background:var(--surface);
-border:1px solid var(--border);
-border-radius:var(--radius);
+.tag{
+  display:inline-block;
+  font-size:11px;
+  font-weight:700;
+  padding:2px 8px;
+  border-radius:999px;
+  margin-left:6px;
+  vertical-align:middle;
+}
+.tag-success{background:rgba(29,184,122,0.1);color:#1db87a;border:1px solid rgba(29,184,122,0.2);}
+.tag-warn{background:rgba(217,119,6,0.1);color:#d97706;border:1px solid rgba(217,119,6,0.2);}
+.tag-info{background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);}
+
+/* ── CONTACT ── */
+.contact-card{
+  margin:4px 0 0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:28px 24px;
+  text-align:center;
+  box-shadow:var(--shadow);
 }
 
-.contact h3{
-font-family:Outfit,sans-serif;
-font-size:24px;
-margin-bottom:10px;
+.contact-card h2{
+  font-family:var(--font-display);
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:10px;
 }
 
-.contact p{
-color:var(--text2);
-margin-bottom:18px;
+.contact-card p{
+  font-size:14px;
+  color:var(--text2);
+  margin-bottom:20px;
+  line-height:1.7;
 }
 
-.contact a{
-display:inline-flex;
-justify-content:center;
-align-items:center;
-width:100%;
-max-width:260px;
-padding:14px 20px;
-border-radius:999px;
-text-decoration:none;
-background:var(--brand);
-color:#fff;
-font-weight:700;
+.contact-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:var(--brand);
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  padding:13px 28px;
+  border-radius:999px;
+  text-decoration:none;
+  transition:opacity .2s,transform .2s;
+  box-shadow:0 4px 16px rgba(98,87,240,0.3);
+}
+.contact-btn:hover{opacity:.88;transform:scale(1.02);}
+.contact-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.5;}
+
+/* ── FOOTER ── */
+.site-footer{
+  margin-top:32px;
+  padding:24px 16px 40px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:500;
+  border-top:1px solid var(--border);
 }
 
-/* FOOTER */
-.footer{
-padding:28px 0 34px;
-text-align:center;
-font-size:13px;
-color:var(--muted);
+/* ── LANGUAGE SYSTEM ── */
+[data-lang] .t-tr,
+[data-lang] .t-en{display:none;}
+
+[data-lang="tr"] .t-tr{display:block;}
+[data-lang="tr"] .t-tr-i{display:inline;}
+
+[data-lang="en"] .t-en{display:block;}
+[data-lang="en"] .t-en-i{display:inline;}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+
+  .header-inner{
+    height:auto;
+    padding:10px 0;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .header-actions{
+    width:100%;
+    flex-direction:row;
+    justify-content:space-between;
+  }
+
+  .lang-switcher{flex:1;justify-content:center;}
+  .back-btn{flex:1;justify-content:center;}
+
+  .hero{padding:28px 0 16px;}
+  .hero h1{font-size:26px;}
+  .hero p{font-size:15px;}
+
+  .highlight-card{
+    flex-direction:column;
+    gap:14px;
+    padding:18px 18px;
+  }
+
+  .section{
+    padding:18px 18px;
+    border-radius:18px;
+  }
+
+  .section h2{font-size:16px;}
+  .section p,.section li{font-size:13px;}
+
+  .contact-card{padding:22px 18px;border-radius:18px;}
+  .contact-card h2{font-size:18px;}
 }
-
-/* MOBILE */
-@media(max-width:640px){
-
-.header-inner{
-height:auto;
-padding:12px 0;
-flex-direction:column;
-align-items:stretch;
-}
-
-.actions{
-flex-direction:column;
-width:100%;
-}
-
-.lang,
-.back{
-width:100%;
-justify-content:center;
-}
-
-.back{
-text-align:center;
-}
-
-.hero{
-padding:24px 0 12px;
-}
-
-.hero h1{
-font-size:30px;
-}
-
-.hero p{
-font-size:15px;
-}
-
-.section{
-padding:18px;
-border-radius:18px;
-}
-
-.section h2{
-font-size:18px;
-line-height:1.25;
-}
-
-.section p,
-.section li{
-font-size:14px;
-}
-
-.contact{
-padding:20px;
-}
-
-.contact h3{
-font-size:20px;
-}
-}
-
-/* LANGUAGE */
-.lang-tr,.lang-en{display:none;}
-
-body[data-lang="tr"] .lang-tr{display:block;}
-body[data-lang="tr"] .lang-tr-inline{display:inline;}
-
-body[data-lang="en"] .lang-en{display:block;}
-body[data-lang="en"] .lang-en-inline{display:inline;}
 </style>
 </head>
 
 <body data-lang="tr">
 
-<header class="header">
+<!-- ── HEADER ── -->
+<header class="app-header">
 <div class="wrapper">
 <div class="header-inner">
 
-<a href="./" class="brand">
-<span class="dot"></span>
-SAGI <small>Finance</small>
-</a>
+  <a href="./" class="brand-logo">
+    <div class="brand-dot"></div>
+    SAGI <small>Finance</small>
+  </a>
 
-<div class="actions">
+  <div class="header-actions">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="./" class="back-btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      <span class="t-tr">Uygulamaya Dön</span>
+      <span class="t-en">Back to App</span>
+    </a>
+  </div>
 
-<div class="lang">
-<button data-lang="tr" onclick="setLanguage('tr')">TR</button>
-<button data-lang="en" onclick="setLanguage('en')">EN</button>
-</div>
-
-<a href="./" class="back">
-<span class="lang-tr">Uygulamaya Dön</span>
-<span class="lang-en">Back to App</span>
-</a>
-
-</div>
 </div>
 </div>
 </header>
 
+<!-- ── MAIN ── -->
 <main class="wrapper">
 
-<section class="hero">
-<div class="badge">
-<span class="lang-tr">Gizlilik Politikası</span>
-<span class="lang-en">Privacy Policy</span>
-</div>
+  <!-- HERO -->
+  <section class="hero">
 
-<h1>
-<span class="lang-tr">Kişisel veri toplamıyoruz.</span>
-<span class="lang-en">We collect no personal data.</span>
-</h1>
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="t-tr">Gizlilik Politikası</span>
+      <span class="t-en">Privacy Policy</span>
+    </div>
 
-<p class="lang-tr">
-SAGI Finance hiçbir kişisel verinizi toplamaz. Tüm finans verileriniz yalnızca cihazınızda saklanır. Sunucuya, reklam ağına veya üçüncü taraflara hiçbir veri gönderilmez.
-</p>
+    <h1>
+      <span class="t-tr">Kişisel veri toplamıyoruz.</span>
+      <span class="t-en">We collect no personal data.</span>
+    </h1>
 
-<p class="lang-en">
-SAGI Finance does not collect any personal data. All your finance data is stored only on your device. No data is ever sent to servers, ad networks, or third parties.
-</p>
+    <p class="t-tr">
+      SAGI Finance hiçbir kişisel verinizi toplamaz. Tüm finans verileriniz yalnızca cihazınızda saklanır; sunucuya, reklam ağına veya üçüncü taraflara hiçbir veri gönderilmez.
+    </p>
+    <p class="t-en">
+      SAGI Finance does not collect any personal data. All your financial data is stored only on your device — no data is ever sent to servers, ad networks, or third parties.
+    </p>
 
-<div class="meta">
-v0.9.86 · May 2026
-</div>
+    <div class="hero-meta">v0.9.86 · May 2026</div>
 
-<div class="notice">
-<strong class="lang-tr">Tamamen Yerel Depolama:</strong>
-<strong class="lang-en">Fully Local Storage:</strong>
+    <!-- Highlight Card -->
+    <div class="highlight-card">
+      <div class="highlight-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div>
+      <div>
+        <h3 class="t-tr">Önce yerel — isteğe bağlı bulut sync</h3>
+        <h3 class="t-en">Local-first — optional cloud sync</h3>
+        <p class="t-tr">Tüm verileriniz varsayılan olarak yalnızca tarayıcınızın <strong>localStorage</strong>'ında tutulur. İsteğe bağlı olarak 16 haneli anonim anahtar ile Firestore bulut senkronizasyonunu etkinleştirebilirsiniz. Bulut sync'i devre dışı bırakırsanız hiçbir veri sunucuya gönderilmez.</p>
+        <p class="t-en">By default, all your data lives only in your browser's <strong>localStorage</strong>. Optionally, you can enable Firestore cloud sync using an anonymous 16-digit key. If cloud sync is disabled, no data is ever sent to any server.</p>
+      </div>
+    </div>
 
-<span class="lang-tr-inline"> localStorage üzerinde çalışır, kişisel veri içermez.</span>
-<span class="lang-en-inline"> runs using localStorage, contains no personal data.</span>
-</div>
-</section>
+  </section>
 
-<section class="section">
-<h2><span class="num">1</span>
-<span class="lang-tr">Cihazınızda Saklanan Veriler</span>
-<span class="lang-en">Data Stored on Your Device</span>
-</h2>
+  <!-- SECTIONS -->
+  <div class="sections">
 
-<p class="lang-tr">
-Uygulama yalnızca aşağıdaki finansal bilgileri cihazınızda saklar. Bu veriler tamamen size aittir ve hiçbir şekilde dışarı aktarılmaz:
-</p>
-<p class="lang-en">
-The app stores only the following financial information on your device. This data belongs entirely to you and is never exported:
-</p>
+    <!-- 1 — Cihazda Saklanan Veriler -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <span class="t-tr">Cihazınızda Saklanan Veriler</span>
+        <span class="t-en">Data Stored on Your Device</span>
+      </h2>
+      <p class="t-tr">SAGI Finance yalnızca aşağıdaki finansal bilgileri cihazınızda saklar. Bu veriler tamamen size aittir ve hiçbir şekilde dışarı aktarılmaz:</p>
+      <p class="t-en">SAGI Finance stores only the following financial information on your device. This data belongs entirely to you and is never exported:</p>
+      <ul>
+        <li class="t-tr">Hesap adları, bakiyeler ve para birimleri</li>
+        <li class="t-en">Account names, balances, and currencies</li>
+        <li class="t-tr">Gelir ve gider işlemleri (tutar, kategori, tarih, açıklama)</li>
+        <li class="t-en">Income and expense transactions (amount, category, date, description)</li>
+        <li class="t-tr">Abonelik ve düzenli ödeme kayıtları</li>
+        <li class="t-en">Subscription and recurring payment records</li>
+        <li class="t-tr">Borç ve alacak takipleri</li>
+        <li class="t-en">Debt and receivable tracking</li>
+        <li class="t-tr">Finansal hedefler ve birikim verileri</li>
+        <li class="t-en">Financial goals and savings data</li>
+        <li class="t-tr">Uygulama tercihleri (dil, tema, para birimi, bildirim ayarları)</li>
+        <li class="t-en">App preferences (language, theme, currency, notification settings)</li>
+      </ul>
+      <p class="t-tr" style="margin-top:12px">Bu verilerin hiçbiri sunuculara, analitik servislerine veya üçüncü taraflara iletilmez.</p>
+      <p class="t-en" style="margin-top:12px">None of this data is transmitted to servers, analytics services, or third parties.</p>
+    </div>
 
-<ul>
-<li class="lang-tr">Hesaplar, bakiyeler, para birimleri</li>
-<li class="lang-en">Accounts, balances, currencies</li>
+    <!-- 2 — Döviz Kurları -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <span class="t-tr">Döviz Kuru Verileri</span>
+        <span class="t-en">Exchange Rate Data</span>
+      </h2>
+      <p class="t-tr">Döviz hesabı kullanıyorsanız, güncel kurları almak için herkese açık ücretsiz API'lere anonim istek yapılır:</p>
+      <p class="t-en">If you use multi-currency accounts, live rates are fetched anonymously from public, free APIs:</p>
+      <ul>
+        <li><strong>exchangerate.host</strong> <span class="tag tag-info">Ana / Primary</span></li>
+        <li><strong>open.er-api.com</strong> <span class="tag tag-warn" style="margin-left:6px">Yedek / Fallback</span></li>
+      </ul>
+      <p class="t-tr" style="margin-top:12px">Bu istekler yalnızca döviz kuru bilgisi içerir. Kimlik, hesap verisi veya kişisel bilgi gönderilmez. Kur verileri kısa süreli cihaz önbelleğinde tutulur.</p>
+      <p class="t-en" style="margin-top:12px">These requests contain only exchange rate queries. No identity, account data, or personal information is transmitted. Rate data is briefly cached on your device.</p>
+    </div>
 
-<li class="lang-tr">Gelir / gider kayıtları</li>
-<li class="lang-en">Income / expense records</li>
+    <!-- 3 — Sunucu & Bulut Sync -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        </div>
+        <span class="t-tr">İsteğe Bağlı Bulut Senkronizasyonu</span>
+        <span class="t-en">Optional Cloud Synchronization</span>
+      </h2>
+      <p class="t-tr">SAGI Finance, cihazlar arası senkronizasyon için <strong>isteğe bağlı</strong> bir Firestore (Google Firebase) bulut sync özelliği sunar. Bu özellik varsayılan olarak kapalıdır; yalnızca siz etkinleştirirseniz çalışır.</p>
+      <p class="t-en">SAGI Finance offers an <strong>optional</strong> Firestore (Google Firebase) cloud sync feature for cross-device synchronization. This is disabled by default and only activates if you choose to enable it.</p>
+      <ul>
+        <li class="t-tr">Sync etkinleştirildiğinde 16 haneli anonim bir anahtar oluşturulur; bu anahtar hesabınıza bağlıdır</li>
+        <li class="t-en">When enabled, a 16-digit anonymous key is generated and tied to your sync account</li>
+        <li class="t-tr">Firestore'a yüklenen veriler: hesaplar, işlemler, hedefler ve abonelikler — ad, e-posta veya kimlik bilgisi içermez</li>
+        <li class="t-en">Data uploaded to Firestore: accounts, transactions, goals, and subscriptions — no name, email, or identity information</li>
+        <li class="t-tr">Anahtarınızı silerseniz (<em>Ayarlar → Bulut Senkronizasyonu → Hesabımı Sil</em>) tüm bulut verileriniz kalıcı olarak silinir</li>
+        <li class="t-en">Deleting your key (<em>Settings → Cloud Sync → Delete My Account</em>) permanently removes all your cloud data</li>
+        <li class="t-tr">Bulut sync'i hiç etkinleştirmezseniz hiçbir veri sunucuya gönderilmez</li>
+        <li class="t-en">If you never enable cloud sync, no data is ever sent to any server</li>
+      </ul>
+      <p class="t-tr" style="margin-top:12px">Firebase gizlilik politikası: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener" style="color:var(--brand)">firebase.google.com/support/privacy</a></p>
+      <p class="t-en" style="margin-top:12px">Firebase privacy policy: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener" style="color:var(--brand)">firebase.google.com/support/privacy</a></p>
+    </div>
 
-<li class="lang-tr">Borçlar ve abonelikler</li>
-<li class="lang-en">Debts and subscriptions</li>
+    <!-- 4 — Google Fonts -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        </div>
+        <span class="t-tr">Google Fonts</span>
+        <span class="t-en">Google Fonts</span>
+        <span class="tag tag-warn">Harici / External</span>
+      </h2>
+      <p class="t-tr">Uygulama, <em>Outfit</em> ve <em>Inter</em> yazı tiplerini yüklemek için Google Fonts CDN'ini kullanır. Bu istek sırasında IP adresiniz Google sunucularına ulaşabilir. Google'ın gizlilik politikası için: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--brand)">policies.google.com/privacy</a></p>
+      <p class="t-en">The app uses Google Fonts CDN to load <em>Outfit</em> and <em>Inter</em> typefaces. During this request, your IP address may reach Google's servers. See Google's privacy policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--brand)">policies.google.com/privacy</a></p>
+    </div>
 
-<li class="lang-tr">Hedefler ve ayarlar</li>
-<li class="lang-en">Goals and settings</li>
-</ul>
-</section>
+    <!-- 5 — Bildirimler -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <span class="t-tr">Bildirimler</span>
+        <span class="t-en">Notifications</span>
+      </h2>
+      <p class="t-tr">Bildirim iznini kabul ederseniz uygulama yalnızca şu bildirimleri gönderir:</p>
+      <p class="t-en">If you grant notification permission, the app sends only these notification types:</p>
+      <ul>
+        <li class="t-tr">Abonelik ödeme hatırlatmaları</li>
+        <li class="t-en">Subscription payment reminders</li>
+        <li class="t-tr">Borç vade uyarıları</li>
+        <li class="t-en">Debt due date alerts</li>
+        <li class="t-tr">Bütçe limiti bildirimleri</li>
+        <li class="t-en">Budget limit notifications</li>
+      </ul>
+      <p class="t-tr" style="margin-top:12px">Bildirimler cihazınızda yerel olarak tetiklenir. Hiçbir push bildirim sunucusu kullanılmaz. Bildirimleri <strong>Ayarlar → Bildirimler</strong> bölümünden istediğiniz zaman kapatabilirsiniz.</p>
+      <p class="t-en" style="margin-top:12px">Notifications are triggered locally on your device. No push notification server is used. You can disable them anytime under <strong>Settings → Notifications</strong>.</p>
+    </div>
 
-<section class="section">
-<h2><span class="num">2</span>
-<span class="lang-tr">Sunucu Kullanımı</span>
-<span class="lang-en">Server Usage</span>
-</h2>
+    <!-- 6 — Çerezler & İzleme -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <span class="t-tr">Çerezler ve İzleme</span>
+        <span class="t-en">Cookies &amp; Tracking</span>
+      </h2>
+      <p class="t-tr">SAGI Finance çerez (cookie) kullanmaz. Google Analytics, Facebook Pixel veya benzeri hiçbir izleme aracı entegre değildir. Kullanıcı davranışı analizi yapılmaz.</p>
+      <p class="t-en">SAGI Finance does not use cookies. No analytics tool, ad tracker, or behavioral tracking technology is integrated — not Google Analytics, Facebook Pixel, or anything similar.</p>
+    </div>
 
-<p class="lang-tr">
-SAGI Finance hiçbir kişisel veriyi sunucuya göndermez. Kullanıcı hesabı oluşturmaz, merkezi veritabanı kullanmaz ve hiçbir bilginizi çevrimiçi olarak depolamaz.
-</p>
+    <!-- 7 — Veri Güvenliği -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <span class="t-tr">Veri Güvenliği</span>
+        <span class="t-en">Data Security</span>
+      </h2>
+      <p class="t-tr">Verileriniz cihazınızın tarayıcısına ait localStorage alanında saklandığı için güvenlik tamamen sizin kontrolünüzdedir:</p>
+      <p class="t-en">Since your data lives in your browser's localStorage, security is entirely in your hands:</p>
+      <ul>
+        <li class="t-tr">Cihazınızı başkalarıyla paylaşmaktan kaçının</li>
+        <li class="t-en">Avoid sharing your device with others</li>
+        <li class="t-tr">Tarayıcı verilerini silerseniz uygulama verileri de silinir</li>
+        <li class="t-en">Clearing browser storage will delete your app data</li>
+        <li class="t-tr">Düzenli JSON yedeği almanızı öneririz (Ayarlar → Veri Yönetimi)</li>
+        <li class="t-en">We recommend regular JSON backups (Settings → Data Management)</li>
+      </ul>
+    </div>
 
-<p class="lang-en">
-SAGI Finance never sends any personal data to a server. It does not create user accounts, does not use a central database, and does not store any of your information online.
-</p>
-</section>
+    <!-- 8 — Çocukların Gizliliği -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <span class="t-tr">Çocukların Gizliliği</span>
+        <span class="t-en">Children's Privacy</span>
+      </h2>
+      <p class="t-tr">SAGI Finance, 13 yaşın altındaki çocuklara yönelik bir uygulama değildir ve bu yaş grubundan bilerek veri toplamaz.</p>
+      <p class="t-en">SAGI Finance is not directed at children under 13 and does not knowingly collect data from this age group.</p>
+    </div>
 
-<section class="section">
-<h2><span class="num">3</span>
-<span class="lang-tr">Döviz Kurları</span>
-<span class="lang-en">Exchange Rates</span>
-</h2>
+    <!-- 9 — Politika Güncellemeleri -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </div>
+        <span class="t-tr">Politika Güncellemeleri</span>
+        <span class="t-en">Policy Updates</span>
+      </h2>
+      <p class="t-tr">Bu gizlilik politikası gerektiğinde güncellenebilir. Önemli değişikliklerde uygulama içinde bildirim gösterilir. Güncel politikayı her zaman bu sayfada bulabilirsiniz.</p>
+      <p class="t-en">This policy may be updated when necessary. For significant changes, an in-app notification will be shown. The current policy is always available on this page.</p>
+    </div>
 
-<p class="lang-tr">
-Canlı kur bilgileri yalnızca anonim olarak, herkese açık servislerden alınabilir. Bu istekler hiçbir kişisel veri, cihaz bilgisi veya kimlik içermez.
-</p>
+    <!-- CONTACT -->
+    <div class="contact-card">
+      <h2>
+        <span class="t-tr">Soru veya Geri Bildirim</span>
+        <span class="t-en">Questions or Feedback</span>
+      </h2>
+      <p class="t-tr">Gizlilik ile ilgili herhangi bir sorunuz varsa GitHub üzerinden ulaşabilirsiniz. Herhangi bir kişisel veri talebi söz konusu değildir.</p>
+      <p class="t-en">If you have any privacy-related questions, reach out via GitHub. We do not request any personal data.</p>
+      <a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener" class="contact-btn">
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        GitHub
+      </a>
+    </div>
 
-<p class="lang-en">
-Live exchange rates may be fetched anonymously from public services. These requests contain no personal data, device information, or identifiers.
-</p>
-</section>
-
-<section class="section">
-<h2><span class="num">4</span>
-<span class="lang-tr">Çerezler ve Takip</span>
-<span class="lang-en">Cookies & Tracking</span>
-</h2>
-
-<p class="lang-tr">
-Çerez kullanılmaz. Analytics, reklam takibi, davranış analizi veya herhangi bir izleme teknolojisi bulunmaz.
-</p>
-
-<p class="lang-en">
-No cookies are used. There is no analytics, ad tracking, behavior analysis, or any tracking technology whatsoever.
-</p>
-</section>
-
-<section class="section">
-<h2><span class="num">5</span>
-<span class="lang-tr">Veri Güvenliği</span>
-<span class="lang-en">Data Security</span>
-</h2>
-
-<p class="lang-tr">
-Tüm bilgileriniz yalnızca sizin cihazınızda saklandığı için güvenlik tamamen sizin kontrolünüzdedir. Tarayıcı depolama alanını temizlerseniz verileriniz silinir. Düzenli yedek almanız önerilir.
-</p>
-
-<p class="lang-en">
-Since all your information is stored only on your device, security is entirely under your control. If browser storage is cleared, your data will be deleted. Regular backups are recommended.
-</p>
-</section>
-
-<section class="section">
-<h2><span class="num">6</span>
-<span class="lang-tr">Politika Güncellemeleri</span>
-<span class="lang-en">Policy Updates</span>
-</h2>
-
-<p class="lang-tr">
-Bu politika, hiçbir kişisel veri toplamadığımız gerçeğini yansıtacak şekilde gerektiğinde güncellenebilir.
-</p>
-
-<p class="lang-en">
-This policy may be updated when necessary, always reflecting the fact that we collect no personal data.
-</p>
-</section>
-
-<section class="contact">
-<h3>
-<span class="lang-tr">İletişim</span>
-<span class="lang-en">Contact</span>
-</h3>
-
-<p class="lang-tr">Herhangi bir kişisel veri talebi söz konusu değildir. Sorularınız için GitHub üzerinden ulaşabilirsiniz.</p>
-<p class="lang-en">We do not request any personal data. For questions, please reach out via GitHub.</p>
-
-<a href="https://github.com/nihatygci/sagi" target="_blank">
-GitHub
-</a>
-</section>
+  </div><!-- /sections -->
 
 </main>
 
-<footer class="footer">
-SAGI Finance © 2026 · <span class="lang-tr">Sıfır veri toplama politikası</span><span class="lang-en">Zero data collection policy</span>
+<footer class="site-footer">
+  <strong>SAGI Finance</strong> v0.9.86 ·
+  <span class="t-tr">Sıfır veri toplama politikası</span>
+  <span class="t-en">Zero data collection policy</span>
+  · © 2026
 </footer>
 
 <script>
 (function(){
+  'use strict';
 
-const saved = localStorage.getItem("sagi_privacy_lang");
+  const STORAGE_KEY = 'sagi_privacy_lang';
 
-function setLanguage(lang){
-document.body.setAttribute("data-lang",lang);
-localStorage.setItem("sagi_privacy_lang",lang);
+  function applyLang(lang){
+    document.body.setAttribute('data-lang', lang);
+    localStorage.setItem(STORAGE_KEY, lang);
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    // Update html lang attribute for accessibility
+    document.documentElement.lang = lang;
+  }
 
-document.querySelectorAll(".lang button").forEach(btn=>{
-btn.classList.remove("active");
-if(btn.dataset.lang===lang){
-btn.classList.add("active");
-}
-});
-}
+  window.setLang = applyLang;
 
-window.setLanguage = setLanguage;
-
-if(saved){
-setLanguage(saved);
-}else{
-const useEnglish = confirm("Use English?\n\nOK = English\nCancel = Türkçe");
-setLanguage(useEnglish ? "en" : "tr");
-}
-
+  // On load: check saved pref → browser preference → default TR
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(saved === 'tr' || saved === 'en'){
+    applyLang(saved);
+  } else {
+    // Detect browser language
+    const browserLang = (navigator.language || '').toLowerCase();
+    const preferEn = browserLang.startsWith('en') && !browserLang.startsWith('tr');
+    applyLang(preferEn ? 'en' : 'tr');
+  }
 })();
 </script>
 
