@@ -189,16 +189,20 @@
       if (!data || !data.state) throw new Error("NOT_FOUND");
 
       // Buluttaki state'i yerel state'in üzerine yaz
+      const savedLocalSettings = Core.state.settings;
       Core.state = data.state;
+      // Eksik settings alanlarını mevcut yerel değerlerle doldur (geriye dönük uyumluluk)
+      Core.state.settings = Object.assign({
+        notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
+          krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
+        notifMaster: false,
+        theme: 'light',
+        lang: 'tr',
+        anim: 'on',
+        privacy: 'off',
+        currency: 'TRY',
+      }, data.state.settings || {});
       Core.state.settings.syncKey = key;
-      if (!Core.state.settings.notifications) {
-        Core.state.settings.notifications = {
-          abonelik: false,
-          borc: false,
-          butce: false,
-          haftalik: false,
-        };
-      }
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
 
       this._emitStatus("ok");
@@ -234,15 +238,18 @@
             console.log("[Cloud] Uzak değişiklik alındı, yerel güncelleniyor.");
             const savedKey = Core.state.settings.syncKey;
             Core.state = data.state;
+            // Eksik settings alanlarını tamamla (geriye dönük uyumluluk)
+            Core.state.settings = Object.assign({
+              notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
+                krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
+              notifMaster: false,
+              theme: 'light',
+              lang: 'tr',
+              anim: 'on',
+              privacy: 'off',
+              currency: 'TRY',
+            }, data.state.settings || {});
             Core.state.settings.syncKey = savedKey;
-            if (!Core.state.settings.notifications) {
-              Core.state.settings.notifications = {
-                abonelik: false,
-                borc: false,
-                butce: false,
-                haftalik: false,
-              };
-            }
             localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
             try {
               Core.emit("stateChanged", Core.state);
@@ -374,8 +381,18 @@
       // Yerel her şeyi temizle
       localStorage.removeItem(Core.DB.key);
       Core.state = JSON.parse(JSON.stringify({
-        settings: { syncKey: '', lastModified: Date.now(),
-          notifications: { abonelik:false, borc:false, butce:false, haftalik:false }},
+        settings: {
+          syncKey: '',
+          lastModified: Date.now(),
+          notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
+            krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
+          notifMaster: false,
+          theme: 'light',
+          lang: 'tr',
+          anim: 'on',
+          privacy: 'off',
+          currency: 'TRY',
+        },
         wallets:[], transactions:[], recurring:[], goals:[], debts:[], categories:[]
       }));
 

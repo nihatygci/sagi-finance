@@ -81,7 +81,13 @@
 
     DB: {
       key: DB_KEY,
-      save: saveState
+      save: function() {
+        saveState();
+        // Bulut bağlıysa değişikliği otomatik olarak kuyruğa al
+        if (Core.Cloud && Core.Cloud.isAvailable && Core.Cloud.isAvailable()) {
+          Core.Cloud.queuePush();
+        }
+      }
     },
 
     // Event sistemi
