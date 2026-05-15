@@ -284,6 +284,26 @@
         const hash = window.location.hash.replace("#", "") || "/dashboard";
         const c = (window.App && App.Controllers) || null;
         if (!c) return;
+
+        // bnavItems değiştiyse alt menüyü her durumda yenile
+        // (localStorage'daki eski key'i de güncelle — uyumluluk için)
+        if (c.BottomBar) {
+          const items = Core.state.settings.bnavItems;
+          if (Array.isArray(items) && items.length > 0) {
+            try { localStorage.setItem(c.BottomBar.STORAGE_KEY, JSON.stringify(items)); } catch(e) {}
+          }
+          c.BottomBar.renderNav();
+        }
+
+        // Tema & dil değiştiyse uygula
+        if (c.Settings) {
+          c.Settings.applyTheme && c.Settings.applyTheme();
+          if (Core.state.settings.lang && window.LANG !== Core.state.settings.lang) {
+            window.LANG = Core.state.settings.lang;
+            typeof applyLang === 'function' && applyLang();
+          }
+        }
+
         if (hash === "/dashboard")
           c.Dashboard && c.Dashboard.render && c.Dashboard.render();
         else if (hash === "/wallets")
