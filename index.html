@@ -5691,20 +5691,33 @@ App.Controllers.BottomBar = {
   _touchCachedRects: null,
 
   getActive(){
+    // Core.state'teki bnavItems öncelikli — sync'e girer
+    try {
+      const stateItems = Core.state.settings.bnavItems;
+      if(Array.isArray(stateItems) && stateItems.length > 0) return stateItems.slice(0, 5);
+    } catch(e) {}
+    // Eski localStorage key'inden migrate et (ilk geçiş)
     try {
       const saved = localStorage.getItem(this.STORAGE_KEY);
       if(saved){const arr=JSON.parse(saved);if(Array.isArray(arr)&&arr.length>0)return arr.slice(0,5);}
-    }catch(e){}
+    } catch(e) {}
     return [...this.DEFAULT_IDS];
   },
 
   setActive(ids){
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ids.slice(0,5)));
+    const trimmed = ids.slice(0, 5);
+    // Core.state'e yaz → Core.DB.save() → otomatik sync'e girer
+    Core.state.settings.bnavItems = trimmed;
+    Core.DB.save();
+    // Eski key'i de güncelle (geriye dönük uyumluluk)
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
     this.renderNav();
     this.renderEditor();
   },
 
   reset(){
+    Core.state.settings.bnavItems = [...this.DEFAULT_IDS];
+    Core.DB.save();
     localStorage.removeItem(this.STORAGE_KEY);
     this.renderNav();
     this.renderEditor();
