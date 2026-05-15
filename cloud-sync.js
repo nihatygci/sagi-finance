@@ -55,14 +55,15 @@
       if (attempts === undefined) attempts = 0;
       if (this.isAvailable()) {
         console.log('[Cloud] Firebase polling: hazır, emit ediliyor.');
-        this._emitStatus('idle');
-        // syncKey varsa listener'ı şimdi bağla (App.init bunu yapamadıysa)
+        // syncKey varsa listener'ı bağla (race condition güvencesi)
         if (Core.state.settings && Core.state.settings.syncKey && !this._unsubscribe) {
-          this.attachListener();
+          this.attachListener(); // attachListener içinde _emitStatus('ok') çağrılır
+        } else {
+          this._emitStatus('idle');
         }
         return;
       }
-      if (attempts >= 40) { // 10sn'ye çıkardık (40 × 250ms)
+      if (attempts >= 40) {
         console.warn('[Cloud] Firebase 10sn içinde hazır olmadı, offline kalındı.');
         return;
       }
@@ -189,9 +190,8 @@
       if (!data || !data.state) throw new Error("NOT_FOUND");
 
       // Buluttaki state'i yerel state'in üzerine yaz
-      const savedLocalSettings = Core.state.settings;
       Core.state = data.state;
-      // Eksik settings alanlarını mevcut yerel değerlerle doldur (geriye dönük uyumluluk)
+      // Eksik settings alanlarını tamamla (eski sürüm uyumluluğu)
       Core.state.settings = Object.assign({
         notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
           krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
@@ -201,6 +201,7 @@
         anim: 'on',
         privacy: 'off',
         currency: 'TRY',
+        cachedRates: null,
       }, data.state.settings || {});
       Core.state.settings.syncKey = key;
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
@@ -238,7 +239,7 @@
             console.log("[Cloud] Uzak değişiklik alındı, yerel güncelleniyor.");
             const savedKey = Core.state.settings.syncKey;
             Core.state = data.state;
-            // Eksik settings alanlarını tamamla (geriye dönük uyumluluk)
+            // Eksik settings alanlarını tamamla (eski sürüm uyumluluğu)
             Core.state.settings = Object.assign({
               notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
                 krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
@@ -248,6 +249,7 @@
               anim: 'on',
               privacy: 'off',
               currency: 'TRY',
+              cachedRates: null,
             }, data.state.settings || {});
             Core.state.settings.syncKey = savedKey;
             localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));

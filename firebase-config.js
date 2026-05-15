@@ -42,17 +42,20 @@
         }
       })
       .finally(() => {
-        // Persistence başarılı da olsa başarısız da olsa Firestore çalışır;
-        // _fbReady'i burada true yapıyoruz ki Cloud modülü zamanlamayı kaçırmasın.
         window._fbReady = true;
         console.log('[SAGI] Firebase Firestore hazır.');
-        // App.init'in setTimeout zinciri (200ms+400ms=~600ms) listener'ı kayıt eder.
-        // Firebase persistence genellikle bundan önce biter; 700ms geciktiriyoruz
-        // ki cloudStatusChanged listener'ı kesinlikle kayıtlı olsun.
+        // App.init'in setTimeout zinciri tamamlandıktan sonra emit et
+        // ve syncKey varsa listener'ı bağla (race condition düzeltmesi)
         setTimeout(function() {
           if (window.Core && window.Core.Cloud) {
             window.Core.Cloud.status = 'idle';
-            try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
+            // syncKey var ama listener henüz bağlanamamışsa şimdi bağla
+            if (Core.state && Core.state.settings && Core.state.settings.syncKey
+                && !window.Core.Cloud._unsubscribe) {
+              console.log('[SAGI] Firebase geç hazır oldu, listener şimdi bağlanıyor.');
+              window.Core.Cloud.attachListener();
+            }
+            try { window.Core.emit('cloudStatusChanged', window.Core.Cloud.status); } catch(e) {}
           }
         }, 700);
       });
