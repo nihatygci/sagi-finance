@@ -635,16 +635,27 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
 @media(min-width:640px){.page-title-row{margin-bottom:22px}}
 
+/* FILTER PANEL COLLAPSE */
+.tx-filter-body{overflow:hidden;transition:max-height .32s cubic-bezier(.16,1,.3,1),opacity .25s ease;max-height:600px;opacity:1}
+.tx-filter-body.collapsed{max-height:0;opacity:0;pointer-events:none}
+.tx-filter-toggle-btn{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;background:none;border:none;padding:0;transition:color .18s;flex-shrink:0}
+.tx-filter-toggle-btn:hover{color:var(--text-main)}
+.tx-filter-toggle-btn .toggle-chevron{transition:transform .28s cubic-bezier(.16,1,.3,1);display:flex}
+.tx-filter-toggle-btn.collapsed .toggle-chevron{transform:rotate(-90deg)}
+.tx-filter-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tx-filter-header-left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+
 /* MOBILE FILTER STACK */
 @media(max-width:768px){
   .css-grid.grid-cols-4.items-end{grid-template-columns:1fr 1fr;gap:10px}
   .css-grid.grid-cols-4.items-end .form-group:nth-child(1){grid-column:1/-1}
   .css-grid.grid-cols-4.items-end .form-group:nth-child(2){grid-column:1/-1}
   .css-grid.grid-cols-4.items-end .form-group:nth-child(3),.css-grid.grid-cols-4.items-end .form-group:nth-child(4){grid-column:auto}
-  .tx-filter-actions{display:flex;flex-direction:row;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)}
+  .tx-filter-actions{display:flex;flex-direction:row;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light)}
 }
 @media(min-width:769px){
   .tx-filter-actions{display:none}
+  .tx-filter-header{margin-bottom:16px}
 }
 
 /* HEADING ROW ON MOBILE */
@@ -678,8 +689,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .page-title-row > div:last-child,.page-title-row > button:last-child{flex-shrink:0}
 
 /* WALLET CARD */
-.wallet-card-premium{color:#fff;padding:26px;border-radius:var(--radius-xl);position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;box-shadow:var(--shadow-md),0 0 0 1px rgba(255,255,255,.08) inset;border:1px solid rgba(255,255,255,.08);transition:transform .3s,box-shadow .3s}
-.wallet-card-premium:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.12) inset}
+.wallet-card-premium{color:#fff;padding:26px;border-radius:var(--radius-xl);position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;box-shadow:var(--shadow-md);border:none;transition:transform .3s,box-shadow .3s}
+.wallet-card-premium:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
 .wallet-card-premium::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 55%);z-index:1;pointer-events:none}
 .wallet-card-premium::after{content:'';position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);z-index:1;pointer-events:none}
 .wallet-card-premium>*{position:relative;z-index:10}
@@ -1318,37 +1329,51 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </button>
       </div>
       <div class="card p-4 stagger-1" style="margin-bottom:14px">
-        <div class="css-grid grid-cols-4 items-end">
-          <div class="form-group mb-0">
-            <label class="form-label" data-i18n="filterDate">Tarih</label>
-            <select class="form-control" id="filterTxDate" onchange="App.Controllers.Transactions.onDateFilterChange(this.value)">
-              <option value="all" data-i18n="filterAllTimes">Tüm Zamanlar</option>
-              <option value="this_month" selected data-i18n="filterThisMonth">Bu Ay</option>
-              <option value="last_month" data-i18n="filterLastMonth">Geçen Ay</option>
-              <option value="last_3months" data-i18n="filterLast3">Son 3 Ay</option>
-              <option value="last_6months" data-i18n="filterLast6">Son 6 Ay</option>
-              <option value="last_year" data-i18n="filterLastYear">Son 1 Yıl</option>
-              <option value="custom" data-i18n="filterCustom">Özel Tarih</option>
-            </select>
-            <div id="customDateRange" style="display:none;margin-top:8px">
-              <div class="flex gap-2 items-center">
-                <input type="date" class="form-control" id="filterDateFrom" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
-                <span style="color:var(--text-muted);font-size:12px">—</span>
-                <input type="date" class="form-control" id="filterDateTo" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
+        <div class="tx-filter-header">
+          <div class="tx-filter-header-left">
+            <svg class="nav-icon" style="width:15px;height:15px;color:var(--text-muted)"><use href="#icon-list"/></svg>
+            <span data-i18n="filterToggle">Filtrele</span>
+          </div>
+          <button class="tx-filter-toggle-btn" id="txFilterToggleBtn" onclick="App.Controllers.Transactions.toggleFilter()">
+            <span id="txFilterToggleLabel" style="font-size:12px">Gizle</span>
+            <span class="toggle-chevron">
+              <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-down"/></svg>
+            </span>
+          </button>
+        </div>
+        <div class="tx-filter-body" id="txFilterBody">
+          <div class="css-grid grid-cols-4 items-end">
+            <div class="form-group mb-0">
+              <label class="form-label" data-i18n="filterDate">Tarih</label>
+              <select class="form-control" id="filterTxDate" onchange="App.Controllers.Transactions.onDateFilterChange(this.value)">
+                <option value="all" data-i18n="filterAllTimes">Tüm Zamanlar</option>
+                <option value="this_month" selected data-i18n="filterThisMonth">Bu Ay</option>
+                <option value="last_month" data-i18n="filterLastMonth">Geçen Ay</option>
+                <option value="last_3months" data-i18n="filterLast3">Son 3 Ay</option>
+                <option value="last_6months" data-i18n="filterLast6">Son 6 Ay</option>
+                <option value="last_year" data-i18n="filterLastYear">Son 1 Yıl</option>
+                <option value="custom" data-i18n="filterCustom">Özel Tarih</option>
+              </select>
+              <div id="customDateRange" style="display:none;margin-top:8px">
+                <div class="flex gap-2 items-center">
+                  <input type="date" class="form-control" id="filterDateFrom" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
+                  <span style="color:var(--text-muted);font-size:12px">—</span>
+                  <input type="date" class="form-control" id="filterDateTo" style="padding:8px;font-size:13px" onchange="App.Controllers.Transactions.renderTable()">
+                </div>
               </div>
             </div>
+            <div class="form-group mb-0"><label class="form-label" data-i18n="filterSearch">Arama</label><input type="text" class="form-control" id="filterTxSearch" data-i18n-ph="filterSearchPh" placeholder="Açıklama..." oninput="App.Controllers.Transactions._updateBulkDeleteVisibility();App.Controllers.Transactions.renderTable()"></div>
+            <div class="form-group mb-0"><label class="form-label" data-i18n="filterType">Tür</label><select class="form-control" id="filterTxType" onchange="App.Controllers.Transactions._updateBulkDeleteVisibility();App.Controllers.Transactions.renderTable()"><option value="all" data-i18n="all">Tümü</option><option value="income" data-i18n="filterIncome">Gelir (+)</option><option value="expense" data-i18n="filterExpense">Gider (-)</option></select></div>
+            <div class="form-group mb-0">
+              <label class="form-label"><span data-i18n="account">Hesap</span></label>
+              <select class="form-control" id="filterTxWallet" onchange="App.Controllers.Transactions._updateBulkDeleteVisibility();App.Controllers.Transactions.renderTable()"><option value="all" data-i18n="filterAllWallets">Tüm Hesaplar</option></select>
+            </div>
           </div>
-          <div class="form-group mb-0"><label class="form-label" data-i18n="filterSearch">Arama</label><input type="text" class="form-control" id="filterTxSearch" data-i18n-ph="filterSearchPh" placeholder="Açıklama..."></div>
-          <div class="form-group mb-0"><label class="form-label" data-i18n="filterType">Tür</label><select class="form-control" id="filterTxType"><option value="all" data-i18n="all">Tümü</option><option value="income" data-i18n="filterIncome">Gelir (+)</option><option value="expense" data-i18n="filterExpense">Gider (-)</option></select></div>
-          <div class="form-group mb-0">
-            <label class="form-label"><span data-i18n="account">Hesap</span></label>
-            <select class="form-control" id="filterTxWallet"><option value="all" data-i18n="filterAllWallets">Tüm Hesaplar</option></select>
+          <!-- Mobilde filtre alt aksiyonlar (Sıfırla + Filtrelenenleri Sil) -->
+          <div class="tx-filter-actions">
+            <button class="btn btn-outline btn-sm" onclick="App.Controllers.Transactions.clearFilters()" data-i18n="reset">Sıfırla</button>
+            <button class="btn btn-outline btn-sm color-danger" id="txBulkDeleteBtn" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
           </div>
-        </div>
-        <!-- Mobilde filtre alt aksiyonlar (Sıfırla + Filtrelenenleri Sil) -->
-        <div class="tx-filter-actions">
-          <button class="btn btn-outline btn-sm" onclick="App.Controllers.Transactions.clearFilters()" data-i18n="reset">Sıfırla</button>
-          <button class="btn btn-outline btn-sm color-danger" id="txBulkDeleteBtn" style="border-color:var(--status-danger-bg)" data-i18n="deleteFiltered" onclick="App.Controllers.Transactions.bulkDelete()">Filtrelenenleri Sil</button>
         </div>
       </div>
       <div class="card stagger-2" style="padding:0;overflow:hidden" id="txCardContainer">
@@ -1799,36 +1824,45 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </button>
           <div class="settings-detail-title" data-i18n="dataManagement">Veri Yönetimi</div>
           <div class="settings-detail-sub" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</div>
-          <div class="card" style="border-color:rgba(229,83,75,.18)">
-            <div class="css-grid grid-cols-2" style="gap:10px;margin-bottom:0">
-              <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
-                <div class="font-bold" data-i18n="backup">Yedek Al</div>
-                <div style="font-size:13px;color:var(--text-muted)">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
-                <div class="flex gap-2">
-                  <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportJSON()">
-                    <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
-                  </button>
-                  <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.exportCSV()">
-                    <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
-                  </button>
+          <div class="card" style="border-color:rgba(229,83,75,.18);display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
+            <!-- Yedek Al -->
+            <div style="padding:18px 20px;border-bottom:1px solid var(--border-light)">
+              <div class="flex items-center gap-2 mb-2">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(79,70,229,.1);color:var(--brand-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-arrow-down"/></svg>
                 </div>
+                <div class="font-bold" style="font-size:15px" data-i18n="backup">Yedek Al</div>
               </div>
-              <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
-                <div class="font-bold" data-i18n="restore">Yedek Yükle</div>
-                <div style="font-size:13px;color:var(--text-muted)">Sadece JSON yedek dosyaları desteklenir.</div>
-                <div class="flex gap-2 w-full">
-                  <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
-                  <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0" style="flex:1;text-align:center" data-i18n="chooseFile">
-                    <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
-                    Dosya Seç (.json)
-                  </label>
-                </div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
+              <div class="flex gap-2">
+                <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="App.Controllers.Settings.exportJSON()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
+                </button>
+                <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="App.Controllers.Settings.exportCSV()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
+                </button>
               </div>
             </div>
-            <div style="height:1px;background:var(--border-light);margin:20px 0"></div>
-            <button class="btn btn-danger w-full" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
-            <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
-            <button class="btn btn-danger w-full" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
+            <!-- Yedek Yükle -->
+            <div style="padding:18px 20px;border-bottom:1px solid var(--border-light)">
+              <div class="flex items-center gap-2 mb-2">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(34,160,107,.1);color:var(--status-success);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-arrow-up"/></svg>
+                </div>
+                <div class="font-bold" style="font-size:15px" data-i18n="restore">Yedek Yükle</div>
+              </div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">Sadece JSON yedek dosyaları desteklenir.</div>
+              <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
+              <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0 w-full" style="justify-content:center" data-i18n="chooseFile">
+                <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
+                Dosya Seç (.json)
+              </label>
+            </div>
+            <!-- Tehlikeli Aksiyonlar -->
+            <div style="padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+              <button class="btn btn-danger w-full" style="justify-content:center" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
+              <button class="btn btn-danger w-full" style="justify-content:center" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
+            </div>
           </div>
         </div>
 
@@ -3987,7 +4021,50 @@ const App = {
       renderSetup(){this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_date').valueAsDate=new Date();this.renderTable();},
       quickFilter(wId){window.location.hash='/transactions';setTimeout(()=>{const fw=document.getElementById('filterTxWallet');if(fw){fw.value=wId;this.renderTable();}},150);},
       quickAdd(wId){this.openModal();setTimeout(()=>{document.getElementById('tx_wallet').value=wId;document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${wId}'`)));},200);},
-      clearFilters(){document.getElementById('filterTxSearch').value='';document.getElementById('filterTxType').value='all';document.getElementById('filterTxWallet').value='all';document.getElementById('filterTxDate').value='all';this.renderTable();},
+      clearFilters(){
+        document.getElementById('filterTxSearch').value='';
+        document.getElementById('filterTxType').value='all';
+        document.getElementById('filterTxWallet').value='all';
+        document.getElementById('filterTxDate').value='this_month';
+        const dr=document.getElementById('customDateRange');
+        if(dr)dr.style.display='none';
+        this._updateBulkDeleteVisibility();
+        this.renderTable();
+      },
+      _isFilterActive(){
+        const s=(document.getElementById('filterTxSearch')?.value||'').trim();
+        const typ=document.getElementById('filterTxType')?.value||'all';
+        const w=document.getElementById('filterTxWallet')?.value||'all';
+        const dF=document.getElementById('filterTxDate')?.value||'this_month';
+        if(s) return true;
+        if(typ!=='all') return true;
+        if(w!=='all') return true;
+        if(dF!=='this_month'&&dF!=='') return true;
+        return false;
+      },
+      _updateBulkDeleteVisibility(){
+        const active=this._isFilterActive();
+        // Footer'daki buton (desktop)
+        const footerBtn=document.querySelector('#txFooter .btn.color-danger');
+        if(footerBtn)footerBtn.style.display=active?'':'none';
+        // Mobil filtre aksiyonlar içindeki buton
+        const mobileBtn=document.getElementById('txBulkDeleteBtn');
+        if(mobileBtn)mobileBtn.style.display=active?'':'none';
+      },
+      toggleFilter(){
+        const body = document.getElementById('txFilterBody');
+        const btn  = document.getElementById('txFilterToggleBtn');
+        const lbl  = document.getElementById('txFilterToggleLabel');
+        if(!body) return;
+        const isOpen = !body.classList.contains('collapsed');
+        body.classList.toggle('collapsed', isOpen);
+        btn.classList.toggle('collapsed', isOpen);
+        // Label metni dile göre
+        const lang = (window.Core && Core.Data && Core.Data.load('lang')) || 'tr';
+        lbl.textContent = isOpen
+          ? (lang === 'tr' ? 'Göster' : 'Show')
+          : (lang === 'tr' ? 'Gizle'  : 'Hide');
+      },
       _selectMode:false,
       _selected:new Set(),
       _detailTxId:null,
@@ -3995,6 +4072,7 @@ const App = {
         const v=document.getElementById('filterTxDate')?.value;
         const dr=document.getElementById('customDateRange');
         if(dr)dr.style.display=v==='custom'?'flex':'none';
+        this._updateBulkDeleteVisibility();
         this.renderTable();
       },
       toggleSelectMode(){
@@ -4092,6 +4170,7 @@ const App = {
         }).sort((a,b)=>new Date(b.date)-new Date(a.date)||b.id.localeCompare(a.id));
       },
       renderTable(){
+        this._updateBulkDeleteVisibility();
         const f=this.getFiltered(),cont=document.getElementById('txCardContainer');
         if(!Core.state.transactions.length){cont.innerHTML=`<div class="empty-state" style="border:none;margin:0"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-list"/></svg></div><h3>${t('emptyTxTitle')}</h3><p>${t('emptyTxDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Transactions.openModal()">${t('addFirstTx')}</button></div>`;return;}
         if(cont.querySelector('table')===null){
@@ -5238,15 +5317,26 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           const ageMs=s.lastRateUpdate?(Date.now()-s.lastRateUpdate):null;
           const ageStr=ageMs===null?'—':ageMs<3600000?(Math.round(ageMs/60000)+' dk önce'):(Math.round(ageMs/3600000)+' sa önce');
           const allCurs=['USD','EUR','GBP','TRY'];
-          const rateRows=[];
-          allCurs.forEach(from=>{
-            allCurs.forEach(to=>{
-              if(from!==to){
-                const rate=App.ExchangeRate.convert(1,from,to);
-                rateRows.push(`<div class="fx-row"><div class="fx-from"><span class="fx-cur-pill">${from}</span><span>1.00</span></div><span class="fx-arrow">→</span><div class="fx-to-value"><span class="fx-cur-pill">${to}</span> ${Core.Utils.formatMoney(rate,to)}</div></div>`);
-              }
-            });
-          });
+          const mainCur=Core.state.settings.currency||'TRY';
+          // Ana para birimini başa al, kalanlar sıralı
+          const orderedCurs=[mainCur,...allCurs.filter(c=>c!==mainCur)];
+          const curLabel={'USD':'Amerikan Doları','EUR':'Euro','GBP':'İngiliz Sterlini','TRY':'Türk Lirası'};
+          const curFlag={'USD':'🇺🇸','EUR':'🇪🇺','GBP':'🇬🇧','TRY':'🇹🇷'};
+          const groupsHtml=orderedCurs.map((from,idx)=>{
+            const others=orderedCurs.filter(c=>c!==from);
+            const rows=others.map(to=>{
+              const rate=App.ExchangeRate.convert(1,from,to);
+              return `<div class="fx-row"><div class="fx-from"><span class="fx-cur-pill">${from}</span><span>1.00</span></div><span class="fx-arrow">→</span><div class="fx-to-value"><span class="fx-cur-pill">${to}</span> ${Core.Utils.formatMoney(rate,to)}</div></div>`;
+            }).join('');
+            const isMain=idx===0;
+            const headerStyle=isMain
+              ?'display:flex;align-items:center;gap:8px;padding:10px 15px;background:rgba(79,70,229,.08);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--brand-accent)'
+              :'display:flex;align-items:center;gap:8px;padding:10px 15px;background:var(--bg-surface-hover);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--text-secondary);margin-top:8px';
+            return `<div style="border:1px solid var(--border-light);border-radius:var(--radius-md);overflow:hidden;${idx>0?'margin-top:8px':''}">
+              <div style="${headerStyle}">${curFlag[from]} <span>${from}</span> <span style="font-weight:400;opacity:.7;font-size:12px">— ${curLabel[from]||from}${isMain?' (Ana Para Birimi)':''}</span></div>
+              ${rows}
+            </div>`;
+          }).join('');
           const infoBar=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid var(--border-light);margin-bottom:12px">
             <div>
               <div style="font-size:12px;color:var(--text-muted);font-weight:500">Son güncelleme: <strong style="color:var(--text-secondary)">${last}</strong> <span style="opacity:.6">(${ageStr})</span></div>
@@ -5254,7 +5344,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             </div>
             <div style="font-size:10px;color:var(--status-warn);background:var(--status-warn-bg);padding:3px 9px;border-radius:99px;font-weight:700;white-space:nowrap">≈ Gösterge kur</div>
           </div>`;
-          kurInfo.innerHTML=infoBar+`<div style="max-height:340px;overflow-y:auto">${rateRows.join('')}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();App.Controllers.Settings.openSection('rates');UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
+          kurInfo.innerHTML=infoBar+`<div>${groupsHtml}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();App.Controllers.Settings.openSection('rates');UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
         }
       },
 
@@ -5289,32 +5379,34 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         if(!key){
           // Anahtar yok — bağlanmadık
           box.innerHTML = `
-            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:0">
-              <div class="font-bold" data-i18n="cloudInactive">Bulut bağlı değil</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.6">${t('cloudInactiveDesc')}</div>
-              <div class="flex gap-2 mt-3 w-full" style="flex-wrap:wrap">
-                <button class="btn btn-primary btn-sm" onclick="App.Controllers.Settings.cloudCreate()">${t('cloudCreateBtn')}</button>
-                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.cloudConnectExisting()">${t('cloudConnectBtn')}</button>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+              <div>
+                <div class="font-bold" style="font-size:15px;margin-bottom:6px" data-i18n="cloudInactive">Bulut bağlı değil</div>
+                <div style="font-size:13px;color:var(--text-muted);line-height:1.6">${t('cloudInactiveDesc')}</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" style="flex:1;justify-content:center;min-width:0" onclick="App.Controllers.Settings.cloudCreate()">${t('cloudCreateBtn')}</button>
+                <button class="btn btn-outline" style="flex:1;justify-content:center;min-width:0" onclick="App.Controllers.Settings.cloudConnectExisting()">${t('cloudConnectBtn')}</button>
               </div>
             </div>`;
         } else {
           // Anahtar var — aktif
           box.innerHTML = `
-            <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:12px">
-              <div class="flex justify-between items-center w-full" style="gap:8px">
-                <div class="font-bold">${t('cloudKeyTitle')}</div>
-                <div class="flex items-center" style="gap:6px;font-size:12px;color:var(--text-muted)">
-                  <span style="width:8px;height:8px;border-radius:50%;background:${statusInfo.dot};display:inline-block"></span>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+              <div class="flex justify-between items-center" style="gap:8px">
+                <div class="font-bold" style="font-size:15px">${t('cloudKeyTitle')}</div>
+                <div class="flex items-center" style="gap:6px;font-size:12px;color:var(--text-muted);flex-shrink:0">
+                  <span style="width:8px;height:8px;border-radius:50%;background:${statusInfo.dot};flex-shrink:0;display:inline-block"></span>
                   <span>${statusInfo.txt}</span>
                 </div>
               </div>
-              <div id="cloudKeyDisplay" style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text-main);padding:10px 14px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border-light);user-select:all;width:100%;text-align:center">${key}</div>
-              <div class="flex gap-2 w-full" style="flex-wrap:wrap">
-                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.cloudCopyKey()">${t('cloudCopyKey')}</button>
-                <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.cloudForceSync()">${t('cloudForceSync')}</button>
-                <button class="btn btn-danger btn-sm" onclick="App.Controllers.Settings.cloudSignOut()">${t('cloudSignOut')}</button>
+              <div id="cloudKeyDisplay" style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;letter-spacing:2px;color:var(--text-main);padding:12px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid var(--border-light);user-select:all;width:100%;text-align:center;word-break:break-all">${key}</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-outline" style="flex:1;justify-content:center;min-width:0" onclick="App.Controllers.Settings.cloudCopyKey()">${t('cloudCopyKey')}</button>
+                <button class="btn btn-outline" style="flex:1;justify-content:center;min-width:0" onclick="App.Controllers.Settings.cloudForceSync()">${t('cloudForceSync')}</button>
               </div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5">${t('cloudKeyHint')}</div>
+              <button class="btn btn-danger w-full" style="justify-content:center" onclick="App.Controllers.Settings.cloudSignOut()">${t('cloudSignOut')}</button>
+              <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${t('cloudKeyHint')}</div>
             </div>`;
         }
       },

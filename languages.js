@@ -108,7 +108,7 @@ const LANGS = {
       // İşlemler (Transactions)
       txSubtitle:'Tüm gelir ve giderleriniz',
       emptyTxTitle:'Henüz İşlem Yok', emptyTxDesc:'Gelir ve giderlerinizi ekleyerek bütçenizi takip edin.',
-      filterDate:'Tarih', filterAllTimes:'Tüm Zamanlar', filterThisMonth:'Bu Ay', filterLastMonth:'Geçen Ay',
+      filterToggle:'Filtrele',filterDate:'Tarih', filterAllTimes:'Tüm Zamanlar', filterThisMonth:'Bu Ay', filterLastMonth:'Geçen Ay',
       filterLast3:'Son 3 Ay', filterLast6:'Son 6 Ay', filterLastYear:'Son 1 Yıl', filterCustom:'Özel Tarih',
       filterSearch:'Arama', filterSearchPh:'Açıklama...', filterType:'Tür',
       filterIncome:'Gelir (+)', filterExpense:'Gider (-)',
@@ -274,7 +274,7 @@ const LANGS = {
       cloudKeyTitle:'Senkronizasyon Anahtarı',
       cloudKeyHint:'Bu anahtarı güvende saklayın. Başka bir cihazda giriş yapmak için kullanacaksınız.',
       cloudCopyKey:'Anahtarı Kopyala',
-      cloudForceSync:'Şimdi Senkronize Et',
+      cloudForceSync:'Senkronize Et',
       cloudSignOut:'Bağlantıyı Kes',
       cloudSignedOut:'Bulut bağlantısı kesildi.',
       cloudStatusIdle:'Bağlı değil',
@@ -412,7 +412,7 @@ const LANGS = {
       // Transactions
       txSubtitle:'All your income and expenses',
       emptyTxTitle:'No Transactions Yet', emptyTxDesc:'Track your budget by adding income and expenses.',
-      filterDate:'Date', filterAllTimes:'All Time', filterThisMonth:'This Month', filterLastMonth:'Last Month',
+      filterToggle:'Filters',filterDate:'Date', filterAllTimes:'All Time', filterThisMonth:'This Month', filterLastMonth:'Last Month',
       filterLast3:'Last 3 Months', filterLast6:'Last 6 Months', filterLastYear:'Last Year', filterCustom:'Custom Range',
       filterSearch:'Search', filterSearchPh:'Description...', filterType:'Type',
       filterIncome:'Income (+)', filterExpense:'Expense (-)',
