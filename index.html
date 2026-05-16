@@ -545,6 +545,29 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .bnav-add-icon{width:18px;height:18px;border-radius:50%;background:var(--brand-accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .bnav-add-icon .nav-icon{width:10px;height:10px;stroke-width:3}
 .bnav-max-warn{font-size:12px;color:var(--status-warn);font-weight:600;background:var(--status-warn-bg);border-radius:var(--radius-sm);padding:8px 12px;text-align:center;border:1px solid rgba(217,119,6,.2)}
+/* QUICK ACTIONS */
+.bnav-fab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);flex:1;height:100%;border-radius:20px;transition:all .22s cubic-bezier(.16,1,.3,1);padding:8px 4px;cursor:pointer;position:relative}
+.bnav-fab:hover{color:var(--text-main)}
+.bnav-fab.open{color:var(--brand-accent)}
+.bnav-fab.open .nav-icon{stroke-width:2.5;transform:translateY(-1px)}
+.bnav-fab .nav-icon{transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.bnav-fab.open .bnav-fab-rotate{transform:rotate(45deg)}
+.bnav-fab-text{font-size:9.5px;font-weight:700;letter-spacing:.02em;transition:all .2s}
+
+/* Quick actions panel */
+.quick-actions-panel{position:fixed;bottom:calc(var(--nav-h) + 18px);right:10px;width:220px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:59;overflow:hidden;transform-origin:bottom right;transform:scale(.92) translateY(10px);opacity:0;pointer-events:none;transition:transform .26s cubic-bezier(.16,1,.3,1),opacity .2s ease}
+.quick-actions-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
+.qa-header{padding:12px 16px;border-bottom:1px solid var(--border-light);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+.qa-item{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border-light)}
+.qa-item:last-child{border-bottom:none}
+.qa-item:hover,.qa-item:active{background:var(--bg-surface-hover)}
+.qa-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qa-label{font-size:14px;font-weight:600;color:var(--text-main)}
+.qa-backdrop{position:fixed;inset:0;z-index:58;display:none}
+.qa-backdrop.open{display:block}
+
+@media(min-width:1024px){.bnav-fab{display:none}.quick-actions-panel{display:none}}
+
 /* Bnav animated entrance */
 @keyframes bnavItemIn{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .bnav-link{animation:bnavItemIn .28s cubic-bezier(.16,1,.3,1) both}
@@ -1801,7 +1824,22 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <div class="text-caption mb-2">Eklenebilecek Öğeler</div>
             <div id="bnavAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
+
+          <div class="card" style="margin-top:16px">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <div class="font-bold">Hızlı İşlemler <span style="font-size:11px;font-weight:600;color:var(--brand-accent);background:rgba(99,102,241,.1);padding:2px 8px;border-radius:99px;margin-left:6px">+</span></div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:3px">Sağdaki + butonundan erişilen hızlı aksiyonlar</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="App.Controllers.QuickActions.reset()">Sıfırla</button>
+            </div>
+            <div id="qaActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
+            <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
+            <div class="text-caption mb-2">Eklenebilecek Öğeler</div>
+            <div id="qaAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+          </div>
         </div>
+
 
         <!-- ── BULUT SENKRONİZASYONU ── -->
         <div class="settings-detail-panel" id="settingsDetail-cloud">
@@ -5282,7 +5320,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
             targetDetail.classList.add('active');
             window.scrollTo(0, 0);
-            if(section === 'bottombar') setTimeout(() => App.Controllers.BottomBar.renderEditor(), 50);
+            if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
             if(section === 'cloud') this.renderCloudBox();
             if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
           }, 200);
@@ -5291,7 +5329,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
           targetDetail.classList.add('active');
           window.scrollTo(0, 0);
-          if(section === 'bottombar') setTimeout(() => App.Controllers.BottomBar.renderEditor(), 50);
+          if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
           if(section === 'cloud') this.renderCloudBox();
           if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
         }
@@ -5770,9 +5808,157 @@ const ALL_BNAV_ITEMS = [
   {id:'sidebar',   icon:'icon-menu',   label:'Menü',       labelEn:'Menu',         route:'#'},
 ];
 
+// ═══════════════════════════════════════
+// QUICK ACTIONS — Hızlı İşlem Tanımları
+// ═══════════════════════════════════════
+const ALL_QUICK_ACTIONS = [
+  {id:'addTx',       label:'İşlem Ekle',     labelEn:'Add Transaction', icon:'icon-plus',      color:'rgba(99,102,241,.12)',  iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Transactions.openModal()},
+  {id:'addRecurring',label:'Abonelik Ekle',  labelEn:'Add Subscription',icon:'icon-repeat',    color:'rgba(34,160,107,.12)', iconColor:'var(--status-success)', action:()=>App.Controllers.Recurring.openModal()},
+  {id:'addGoal',     label:'Hedef Ekle',     labelEn:'Add Goal',        icon:'icon-target',    color:'rgba(217,119,6,.12)',  iconColor:'var(--status-warn)',    action:()=>App.Controllers.Goals.openModal()},
+  {id:'addDebt',     label:'Borç/Alacak',    labelEn:'Add Debt',        icon:'icon-briefcase', color:'rgba(229,83,75,.12)',  iconColor:'var(--status-danger)',  action:()=>App.Controllers.Debts.openModal()},
+  {id:'addWallet',   label:'Hesap Ekle',     labelEn:'Add Account',     icon:'icon-wallet',    color:'rgba(99,102,241,.12)', iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Wallets.openModal()},
+  {id:'transfer',    label:'Para Aktar',     labelEn:'Transfer',        icon:'icon-transfer',  color:'rgba(34,160,107,.12)', iconColor:'var(--status-success)', action:()=>App.Controllers.Transfer.openModal()},
+];
+
+App.Controllers.QuickActions = {
+  STORAGE_KEY: 'sagi_qa_order',
+  DEFAULT_IDS: ['addTx','addRecurring','addGoal','addDebt'],
+  _open: false,
+
+  getActive(){
+    try{
+      const s = Core.state.settings.qaItems;
+      if(Array.isArray(s) && s.length) return s.slice(0,6);
+    }catch(e){}
+    try{
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if(saved){const arr=JSON.parse(saved);if(Array.isArray(arr)&&arr.length)return arr.slice(0,6);}
+    }catch(e){}
+    return [...this.DEFAULT_IDS];
+  },
+
+  setActive(ids){
+    const trimmed = ids.slice(0,6);
+    Core.state.settings.qaItems = trimmed;
+    Core.DB.save();
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
+    this.renderPanel();
+    this.renderEditor();
+  },
+
+  reset(){
+    Core.state.settings.qaItems = [...this.DEFAULT_IDS];
+    Core.DB.save();
+    localStorage.removeItem(this.STORAGE_KEY);
+    this.renderPanel();
+    this.renderEditor();
+    UI.Toasts.show('Hızlı işlemler sıfırlandı.');
+  },
+
+  getLabel(item){
+    return (window.LANG==='en'&&item.labelEn)?item.labelEn:item.label;
+  },
+
+  toggle(){
+    this._open ? this.close() : this.open();
+  },
+
+  open(){
+    this._open = true;
+    this.renderPanel();
+    document.getElementById('quickActionsPanel')?.classList.add('open');
+    document.getElementById('qaBackdrop')?.classList.add('open');
+    document.getElementById('qaBnavFab')?.classList.add('open');
+  },
+
+  close(){
+    this._open = false;
+    document.getElementById('quickActionsPanel')?.classList.remove('open');
+    document.getElementById('qaBackdrop')?.classList.remove('open');
+    document.getElementById('qaBnavFab')?.classList.remove('open');
+  },
+
+  renderPanel(){
+    const list = document.getElementById('qaItemList');
+    if(!list) return;
+    const ids = this.getActive();
+    list.innerHTML = ids.map(id=>{
+      const item = ALL_QUICK_ACTIONS.find(x=>x.id===id);
+      if(!item) return '';
+      return `<div class="qa-item" onclick="App.Controllers.QuickActions.close();setTimeout(()=>${item.action.toString().replace(/\(\)=>/,'').trim()},120)">
+        <div class="qa-icon" style="background:${item.color};color:${item.iconColor}">
+          <svg class="nav-icon" style="width:17px;height:17px"><use href="#${item.icon}"/></svg>
+        </div>
+        <span class="qa-label">${this.getLabel(item)}</span>
+      </div>`;
+    }).join('');
+  },
+
+  renderEditor(){
+    const activeList = document.getElementById('qaActiveList');
+    const availList  = document.getElementById('qaAvailableList');
+    if(!activeList||!availList) return;
+    const activeIds = this.getActive();
+    const availIds  = ALL_QUICK_ACTIONS.map(x=>x.id).filter(id=>!activeIds.includes(id));
+
+    activeList.innerHTML = activeIds.map((id,i)=>{
+      const item = ALL_QUICK_ACTIONS.find(x=>x.id===id);
+      if(!item) return '';
+      return `<div class="bnav-sort-item" draggable="true" data-idx="${i}" data-id="${id}"
+          ondragstart="App.Controllers.QuickActions._onDragStart(event,${i})"
+          ondragover="App.Controllers.QuickActions._onDragOver(event,${i})"
+          ondragend="App.Controllers.QuickActions._onDragEnd(event)"
+          ondrop="App.Controllers.QuickActions._onDrop(event,${i})">
+        <div class="bnav-sort-drag-handle">
+          <svg style="width:18px;height:18px;stroke:currentColor;fill:none" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="6" r="1.5" fill="currentColor"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="9" cy="18" r="1.5" fill="currentColor"/><circle cx="15" cy="18" r="1.5" fill="currentColor"/></svg>
+        </div>
+        <div class="bnav-sort-icon" style="background:${item.color};color:${item.iconColor}"><svg class="nav-icon" style="width:18px;height:18px"><use href="#${item.icon}"/></svg></div>
+        <span class="bnav-sort-label">${this.getLabel(item)}</span>
+        <button class="bnav-sort-remove" onclick="App.Controllers.QuickActions.removeItem('${id}')">
+          <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+
+    availList.innerHTML = availIds.length===0
+      ? `<span style="font-size:13px;color:var(--text-muted)">Tüm öğeler aktif.</span>`
+      : availIds.map(id=>{
+          const item = ALL_QUICK_ACTIONS.find(x=>x.id===id);
+          if(!item) return '';
+          return `<div class="bnav-avail-chip" onclick="App.Controllers.QuickActions.addItem('${id}')">
+            <div class="bnav-add-icon"><svg class="nav-icon"><use href="#icon-plus"/></svg></div>
+            <svg class="nav-icon" style="color:var(--text-secondary)"><use href="#${item.icon}"/></svg>
+            ${this.getLabel(item)}
+          </div>`;
+        }).join('');
+  },
+
+  addItem(id){
+    const ids = this.getActive();
+    if(ids.length>=6){UI.Toasts.show('Maksimum 6 öğe eklenebilir.','error');return;}
+    if(ids.includes(id))return;
+    ids.push(id);
+    this.setActive(ids);
+    UI.Toasts.show('Öğe eklendi.');
+  },
+
+  removeItem(id){
+    let ids = this.getActive().filter(x=>x!==id);
+    if(!ids.length) ids=['addTx'];
+    this.setActive(ids);
+    UI.Toasts.show('Öğe kaldırıldı.');
+  },
+
+  _dragSrcIdx:null, _dragOverIdx:null,
+  _onDragStart(e,idx){this._dragSrcIdx=idx;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';},
+  _onDragOver(e,idx){e.preventDefault();e.dataTransfer.dropEffect='move';if(idx===this._dragOverIdx)return;if(this._dragOverIdx!==null){const o=document.querySelector(`#qaActiveList .bnav-sort-item[data-idx="${this._dragOverIdx}"]`);if(o)o.classList.remove('drag-over');}this._dragOverIdx=idx;if(idx!==this._dragSrcIdx)e.currentTarget.classList.add('drag-over');},
+  _onDrop(e,targetIdx){e.preventDefault();if(this._dragSrcIdx===null||this._dragSrcIdx===targetIdx)return;const ids=[...this.getActive()];const [moved]=ids.splice(this._dragSrcIdx,1);ids.splice(targetIdx,0,moved);this._dragSrcIdx=null;this._dragOverIdx=null;this.setActive(ids);},
+  _onDragEnd(){const list=document.getElementById('qaActiveList');if(list)list.querySelectorAll('.bnav-sort-item').forEach(el=>el.classList.remove('dragging','drag-over'));this._dragSrcIdx=null;this._dragOverIdx=null;}
+};
+
 App.Controllers.BottomBar = {
   STORAGE_KEY: 'sagi_bnav_order',
-  DEFAULT_IDS: ['dashboard','wallets','transactions','analytics','settings'],
+  DEFAULT_IDS: ['dashboard','wallets','transactions','settings'],
   _dragSrcIdx: null,
   _dragOverIdx: null,
   _touchSrcIdx: null,
@@ -5823,6 +6009,10 @@ App.Controllers.BottomBar = {
     if(!nav) return;
     const activeIds = this.getActive();
     const currentRoute = window.location.hash.replace('#','') || '/dashboard';
+    const fabBtn = `<div class="bnav-fab" id="qaBnavFab" onclick="App.Controllers.QuickActions.toggle()">
+      <svg class="nav-icon bnav-fab-rotate" style="width:20px;height:20px"><use href="#icon-plus"/></svg>
+      <span class="bnav-fab-text">Hızlı</span>
+    </div>`;
     nav.innerHTML = activeIds.map((id, i) => {
       const item = ALL_BNAV_ITEMS.find(x => x.id === id);
       if(!item) return '';
@@ -5844,7 +6034,7 @@ App.Controllers.BottomBar = {
         <svg class="nav-icon"><use href="#${item.icon}"/></svg>
         <span class="bnav-text">${this.getLabel(item)}</span>
       </a>`;
-    }).join('');
+    }).join('') + fabBtn;
 
     // Aktif rotayı işaretle
     document.querySelectorAll('.nav-link,.bnav-link').forEach(n => n.classList.remove('active'));
@@ -6031,6 +6221,13 @@ App.Controllers.BottomBar = {
 
 document.addEventListener('DOMContentLoaded',()=>App.init());
 </script>
+<!-- QUICK ACTIONS PANEL -->
+<div class="qa-backdrop" id="qaBackdrop" onclick="App.Controllers.QuickActions.close()"></div>
+<div class="quick-actions-panel" id="quickActionsPanel">
+  <div class="qa-header">Hızlı İşlem</div>
+  <div id="qaItemList"></div>
+</div>
+
 <script src="./back-handler.js"></script>
 </body>
 </html>
