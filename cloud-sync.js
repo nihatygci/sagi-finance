@@ -338,6 +338,8 @@
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       this._emitStatus("syncing");
       const docRef = this._doc(Core.state.settings.syncKey);
+      Core.state.settings.lastModified = Date.now();
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
       try {
         this._suppressNextRemote = true;
         await docRef.set(
@@ -365,6 +367,63 @@
         this._pushTimer = null;
       }
       return this._doPush();
+    },
+
+    // ── Akıllı senkronizasyon — lastModified karşılaştır, kazananı uygula ──
+    async forceSync() {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }
+
+      this._emitStatus('syncing');
+      const docRef = this._doc(Core.state.settings.syncKey);
+      try {
+        const snap = await docRef.get();
+        const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
+
+        if (!snap.exists) {
+          // Bulutta hiç veri yok — push yap
+          console.log('[Cloud] forceSync: bulutta veri yok, push yapılıyor.');
+          return this._doPush();
+        }
+
+        const data = snap.data();
+        const remoteMod = (data && data.lastModified) || 0;
+
+        console.log('[Cloud] forceSync — local:', localMod, 'remote:', remoteMod);
+
+        if (remoteMod > localMod) {
+          // Bulut daha yeni — pull yap
+          console.log('[Cloud] forceSync: bulut daha yeni, pull yapılıyor.');
+          const savedKey = Core.state.settings.syncKey;
+          Core.state = data.state;
+          Core.state.settings = Object.assign({
+            notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
+              krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
+            notifMaster: false, theme: 'light', lang: 'tr', anim: 'on',
+            privacy: 'off', currency: 'TRY', cachedRates: null,
+          }, data.state.settings || {});
+          Core.state.settings.syncKey = savedKey;
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          this._emitStatus('ok');
+          try { Core.emit('stateChanged', Core.state); } catch(e) {}
+          try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
+          this._rerenderActiveView();
+          return 'pulled';
+        } else if (localMod > remoteMod) {
+          // Yerel daha yeni — push yap
+          console.log('[Cloud] forceSync: yerel daha yeni, push yapılıyor.');
+          return this._doPush();
+        } else {
+          // Eşit — zaten senkron
+          console.log('[Cloud] forceSync: zaten senkron.');
+          this._emitStatus('ok');
+          return 'in-sync';
+        }
+      } catch(e) {
+        console.warn('[Cloud] forceSync hatası:', e);
+        this._emitStatus(navigator.onLine === false ? 'offline' : 'error');
+        throw e;
+      }
     },
 
     // ── Bu cihazdan çıkış ─────────────────────────────────────────────
