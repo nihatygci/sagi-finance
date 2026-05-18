@@ -2936,10 +2936,10 @@ const Notifications = {
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
         const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring',tag:'rec-'+s.id+'-'+key});}};
-        if(diff===3)sendIfNew('3d',`📅 ${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
-        else if(diff===1)sendIfNew('1d',`⏰ Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
-        else if(diff===0)sendIfNew('0d',`🔔 Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
-        else if(diff<0&&diff>=-7)sendIfNew('late',`⚠️ ${s.name} ödemesi ${Math.abs(diff)} gün gecikti!`);
+        if(diff===3)sendIfNew('3d',`${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
+        else if(diff===1)sendIfNew('1d',`Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
+        else if(diff===0)sendIfNew('0d',`Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
+        else if(diff<0&&diff>=-7)sendIfNew('late',`${s.name} ödemesi ${Math.abs(diff)} gün gecikti!`);
       });
     }
 
@@ -2953,7 +2953,7 @@ const Notifications = {
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
-            const msg=diffD===0?`📌 Bugün: ${d.name} için ${Core.Utils.formatMoney(d.amount)} vadesi doldu.`:`📌 ${diffD} gün içinde: ${d.name} — ${Core.Utils.formatMoney(d.amount)}`;
+            const msg=diffD===0?`Bugün: ${d.name} için ${Core.Utils.formatMoney(d.amount)} vadesi doldu.`:`${diffD} gün içinde: ${d.name} — ${Core.Utils.formatMoney(d.amount)}`;
             this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts',tag:'debt-'+d.id});
           }
         }
@@ -2969,7 +2969,7 @@ const Notifications = {
           const nk='sagi_nt_cc_'+cc.id+'_'+(diff)+'_'+now.getFullYear()+'_'+now.getMonth();
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
-            const msg=diff===0?`💳 Bugün ${cc.name} ödeme günü! Borç: ${Core.Utils.formatMoney(debt)}`:`💳 ${cc.name} ödeme gününe ${diff} gün kaldı. Borç: ${Core.Utils.formatMoney(debt)}`;
+            const msg=diff===0?`Bugün ${cc.name} ödeme günü! Borç: ${Core.Utils.formatMoney(debt)}`:`💳 ${cc.name} ödeme gününe ${diff} gün kaldı. Borç: ${Core.Utils.formatMoney(debt)}`;
             this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets',tag:'cc-'+cc.id+'-'+diff});
           }
         }
@@ -2987,7 +2987,7 @@ const Notifications = {
             const nk='sagi_nt_goal_'+g.id+'_'+milestone+'_'+now.getFullYear();
             if(!sessionStorage.getItem(nk)){
               sessionStorage.setItem(nk,'1');
-              this.sendNotif('SAGI — Birikim Hedefi',`🎯 ${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals',tag:'goal-'+g.id+'-'+milestone});
+              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals',tag:'goal-'+g.id+'-'+milestone});
             }
           }
         });
@@ -2999,7 +2999,7 @@ const Notifications = {
             const nk='sagi_nt_goaldate_'+g.id+'_'+now.getFullYear()+'_'+now.getMonth();
             if(!sessionStorage.getItem(nk)){
               sessionStorage.setItem(nk,'1');
-              this.sendNotif('SAGI — Birikim Hedefi',`⏳ ${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals',tag:'goaldate-'+g.id});
+              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals',tag:'goaldate-'+g.id});
             }
           }
         }
@@ -3020,7 +3020,7 @@ const Notifications = {
               const nk='sagi_nt_big_'+tx.id;
               if(!sessionStorage.getItem(nk)){
                 sessionStorage.setItem(nk,'1');
-                this.sendNotif('SAGI — Büyük Harcama',`💸 Normalin 5 katı harcama! ${tx.desc||tx.cat}: ${Core.Utils.formatMoney(amt)}`,{action:'analytics',tag:'big-'+tx.id});
+                this.sendNotif('SAGI — Büyük Harcama',`Normalin 5 katı harcama! ${tx.desc||tx.cat}: ${Core.Utils.formatMoney(amt)}`,{action:'analytics',tag:'big-'+tx.id});
               }
             }
           });
@@ -3039,7 +3039,7 @@ const Notifications = {
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
             const dir=current.TRY>cached.TRY?'yükseldi':'düştü';
-            this.sendNotif('SAGI — Döviz Kurları',`📈 USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings',tag:'fx-'+now.getDate()});
+            this.sendNotif('SAGI — Döviz Kurları',`USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings',tag:'fx-'+now.getDate()});
           }
         }
       }
@@ -3058,7 +3058,7 @@ const Notifications = {
         const expense=weekTx.filter(tx=>tx.type==='expense').reduce((s,tx)=>s+App.Money.toMain(tx),0);
         const net=income-expense;
         const sign=net>=0?'+':'';
-        this.sendNotif('SAGI — Haftalık Özet',`📊 Geçen hafta: ${Core.Utils.formatMoney(income)} gelir, ${Core.Utils.formatMoney(expense)} gider. Net: ${sign}${Core.Utils.formatMoney(net)}`,{action:'analytics',tag:'weekly-'+now.getMonth()+'-'+Math.floor(today/7)});
+        this.sendNotif('SAGI — Haftalık Özet',`Geçen hafta: ${Core.Utils.formatMoney(income)} gelir, ${Core.Utils.formatMoney(expense)} gider. Net: ${sign}${Core.Utils.formatMoney(net)}`,{action:'analytics',tag:'weekly-'+now.getMonth()+'-'+Math.floor(today/7)});
       }
     }
 
@@ -3073,13 +3073,13 @@ const Notifications = {
           const nk='sagi_nt_budg_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(perc/10);
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
-            this.sendNotif('SAGI — Bütçe Uyarısı',`📊 ${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-'+b.id});
+            this.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-'+b.id});
           }
         } else if(perc>=100){
           const nk='sagi_nt_budgover_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth();
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
-            this.sendNotif('SAGI — Bütçe Aşıldı!',`🚨 ${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-'+b.id});
+            this.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-'+b.id});
           }
         }
       });
@@ -3658,10 +3658,10 @@ const App = {
               unpaid.forEach(s=>{
                 const diff=s.day-today;
                 const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now2.getFullYear()+'_'+now2.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');Notifications.sendNotif('SAGI — Abonelik',msg,{action:'recurring',tag:'rec-'+s.id+'-'+key});}};
-                if(diff===3)sendIfNew('3d',`📅 ${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
-                else if(diff===1)sendIfNew('1d',`⏰ Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
-                else if(diff===0)sendIfNew('0d',`🔔 Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
-                else if(diff<0&&diff>=-7)sendIfNew('late',`⚠️ ${s.name} ödemesi ${Math.abs(diff)} gün gecikti!`);
+                if(diff===3)sendIfNew('3d',`${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
+                else if(diff===1)sendIfNew('1d',`Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
+                else if(diff===0)sendIfNew('0d',`Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
+                else if(diff<0&&diff>=-7)sendIfNew('late',`${s.name} ödemesi ${Math.abs(diff)} gün gecikti!`);
               });
             }
           }
@@ -4421,7 +4421,7 @@ const App = {
           App.Money.applyTx(p);
         }
         Core.DB.save();
-        if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif('SAGI — Bütçe Uyarısı',`📊 ${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif('SAGI — Bütçe Aşıldı!',`🚨 ${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-tx-'+b.id});});}
+        if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-tx-'+b.id});});}
         App.Controllers.Dashboard.render();
         const keepOpen=document.getElementById('tx_keep_open').value==='1';
         if(keepOpen){const prevType=type;this.openModal();document.getElementById('tx_type_val').value=prevType;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===prevType));UI.Toasts.show(t('msgKeepGoing'));}
@@ -5359,7 +5359,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           // Ana para birimini başa al, kalanlar sıralı
           const orderedCurs=[mainCur,...allCurs.filter(c=>c!==mainCur)];
           const curLabel={'USD':'Amerikan Doları','EUR':'Euro','GBP':'İngiliz Sterlini','TRY':'Türk Lirası'};
-          const curFlag={'USD':'🇺🇸','EUR':'🇪🇺','GBP':'🇬🇧','TRY':'🇹🇷'};
+          const curFlag={'USD':'','EUR':'','GBP':'','TRY':''};
           const groupsHtml=orderedCurs.map((from,idx)=>{
             const others=orderedCurs.filter(c=>c!==from);
             const rows=others.map(to=>{
