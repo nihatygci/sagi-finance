@@ -200,6 +200,7 @@ const LANGS = {
       dataDesc:'Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.',
       backup:'Yedek Al', restore:'Yedek Yükle', chooseFile:'Dosya Seç (.json)', deleteAll:'Tüm Verileri Sil',
       backupHint:'JSON — tüm veriler, geri yükleme için. CSV — işlem geçmişi, Excel\'de açılır.',
+      backupHintHtml:'JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel\'de açılır.',
       restoreHint:'Sadece JSON yedek dosyaları desteklenir.',
 
       // Onboarding
@@ -263,6 +264,95 @@ const LANGS = {
       confNotifPerm:'SAGI Finance size abonelik, borç vadeleri ve bütçe uyarıları için bildirim gönderebilir. İzin vermek ister misiniz?',
       confCloudCreate:'Mevcut yerel verileriniz buluta yüklenecek ve senkronizasyon başlayacak. Devam etmek istiyor musunuz?',
       confCloudSignOut:'Bu cihazdan bulut bağlantısı kesilecek. Verileriniz bu cihazda kalmaya devam eder. Devam?',
+
+      // Ayarlar menü ipuçları
+      personalizationHint:'İsim, para birimi, tema, dil',
+      notifMenuHint:'Hatırlatmalar ve uyarılar',
+      ratesMenuHint:'Güncel kur değerleri',
+      cloudMenuHint:'Cihazlar arası eşleşme',
+      cloudSyncTitle:'Bulut Senkronizasyonu',
+      cloudSyncDesc:'Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın.',
+      dataMenuHint:'Yedek al, yükle, sıfırla',
+      cloudConnectTitle:'Anahtarınızla Bağlan',
+      cloudConnectDesc:'Başka cihazda oluşturduğunuz 16 haneli anahtarı girin. Mevcut yerel verileriniz silinir; bulutta kayıtlı veriler yüklenir.',
+      cloudInactive:'Bulut bağlı değil',
+
+      // Onboarding — anahtar adımı
+      obKeyTitle:'Bulut Senkronizasyonu',
+      obKeyDesc:'Verilerinizi cihazlar arasında senkronize etmek için 16 haneli benzersiz bir anahtar kullanılır. Bu adımı şimdi atlayabilir, daha sonra Ayarlar\'dan bağlanabilirsiniz. Uygulama bulut olmadan da tam çalışır.',
+      obKeyNew:'Yeni Hesap',
+      obKeyHave:'Anahtarım Var',
+      obKeySkip:'Şimdi Atla',
+      obKeyInfoTitle:'Cihazlar arası eşleşme',
+      obKeyInfoBody:'Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.',
+      obKeyLabel:'16 Haneli Anahtar',
+      obKeyCreated:'Anahtarınız hazır!',
+      obKeyCopy:'Kopyala',
+      obKeyWarn:'Bu anahtarı güvenli bir yere kaydedin. Kaybederseniz başka cihazdan verilerinize ulaşamazsınız.',
+      obKeySkipTitle:'Sadece bu cihazda kullan',
+      obKeySkipDesc:'Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar → Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.',
+      obKeySkipBtn:'Devam Et (Çevrim Dışı)',
+
+      // Alt menü düzeni (bottombar)
+      bottombarTitle:'Alt Menü Düzeni',
+      bottombarDesc:'Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.',
+      bottombarDesc2:'Sıralama ve özelleştirme',
+      bottombarActive:'Aktif Öğeler',
+      bottombarAvailable:'Eklenebilecek Öğeler',
+      quickActionsTitle:'Hızlı İşlemler',
+      quickActionsDesc:'Sağdaki + butonundan erişilen hızlı aksiyonlar',
+
+      // Analiz sayfası
+      analyticsTitle:'Analiz',
+      analyticsSubTitle:'Finansal tablonuzu keşfedin',
+      periodThisMonth:'Bu Ay',
+      period3Month:'3 Ay',
+      period6Month:'6 Ay',
+      period1Year:'1 Yıl',
+      trendTitle:'Gelir / Gider Trendi',
+      trendIncome:'Gelir',
+      trendExpense:'Gider',
+      savingsScoreTitle:'Tasarruf Skoru',
+      forecastTitle:'Önümüzdeki Ay Tahmini',
+      forecastBadge:'Geçmişe Dayalı',
+      donutTitle:'Harcama Dağılımı',
+      donutHint:'Kategoriye tıklayın, işlemleri görün',
+      donutExpense:'Gider',
+      donutIncome:'Gelir',
+      categoriesTitle:'Kategoriler',
+      habitTitle:'Alışkanlık Analizi',
+      budgetSectionTitle:'Aylık Kategori Bütçeleri',
+      addLimit:'Limit Ekle',
+      sagiAssistantName:'SAGI Asistan',
+      sagiAssistantLoading:'Verileriniz analiz ediliyor...',
+
+      // Bildirimler — eksik olanlar
+      notifMasterTitle:'Bildirimleri Etkinleştir',
+      notifMasterSubtitle:'Tüm bildirimleri açın veya kapatın',
+      notifCreditCard:'Kredi Kartı Ödeme Günü',
+      notifCreditCardDesc:'Ödeme tarihinden 3 gün önce ve gün gelince uyar',
+      notifBudgetDesc2:'%80 dolduğunda ve limit aşıldığında bildir',
+      notifGoal:'Birikim Hedefi',
+      notifGoalDesc:'%75 ve %90\'a ulaşınca & hedef tarihi yaklaşınca bildir',
+      notifBigSpend:'Büyük Harcama Uyarısı',
+      notifBigSpendDesc:'Ortalamanın 5 katını aşan harcamalarda bildir',
+      notifFx:'Döviz Kuru Değişimi',
+      notifFxDesc:'USD/TRY %3+ hareket ettiğinde uyar',
+
+      // Veri yönetimi — eksik olanlar
+      backupHintJson:'JSON — tüm veriler, geri yükleme için.',
+      backupHintCsv:'CSV — işlem geçmişi, Excel\'de açılır.',
+      restoreHintJson:'Sadece JSON yedek dosyaları desteklenir.',
+      deleteAccount:'Hesabımı Sil',
+
+      // Import modal
+      importModalTitle:'Yedek Yükle',
+      importMergeTitle:'Üstüne Yaz',
+      importMergeDesc:'Mevcut verileriniz korunur. Aynı kayıtlar güncellenir, yeni kayıtlar eklenir. Güvenli seçenek.',
+      importReplaceTitle:'Tüm Verileri Değiştir',
+      importReplaceDesc:'Mevcut tüm veriler silinir ve yalnızca bu dosyadaki veriler yüklenir. Geri alınamaz.',
+      importReplaceWarn:'Mevcut hesaplarınız, işlemleriniz ve tüm verileriniz kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      importActionBtn:'Yükle',
 
       // Bulut senkronizasyonu
       cloudUnavailTitle:'Bulut Servisi Kullanılamıyor',
@@ -504,6 +594,7 @@ const LANGS = {
       dataDesc:'Your data is stored only on this device. Regular backups are recommended.',
       backup:'Backup', restore:'Restore', chooseFile:'Choose File (.json)', deleteAll:'Delete All Data',
       backupHint:'JSON — full data, for restore. CSV — transaction history, opens in Excel.',
+      backupHintHtml:'JSON — full data, for restore.<br>CSV — transaction history, opens in Excel.',
       restoreHint:'Only JSON backup files are supported.',
 
       // Onboarding
@@ -640,6 +731,95 @@ const LANGS = {
       notifLate:'{name} payment is {n} days late!',
       notifBudgetMsg:'You used {perc}% of your budget in {cat}.',
       notifDebtDue:'{name} — {amount} {dir} due on {date}.',
+
+      // Settings menu hints
+      personalizationHint:'Name, currency, theme, language',
+      notifMenuHint:'Reminders and alerts',
+      ratesMenuHint:'Current exchange rates',
+      cloudMenuHint:'Cross-device pairing',
+      cloudSyncTitle:'Cloud Sync',
+      cloudSyncDesc:'Use your key to access your data on other devices.',
+      dataMenuHint:'Backup, restore, reset',
+      cloudConnectTitle:'Connect with Your Key',
+      cloudConnectDesc:'Enter the 16-digit key created on another device. Your local data will be replaced with cloud data.',
+      cloudInactive:'Cloud not connected',
+
+      // Onboarding — key step
+      obKeyTitle:'Cloud Sync',
+      obKeyDesc:'A unique 16-digit key is used to sync your data across devices. You can skip this step and connect later from Settings. The app works fully offline.',
+      obKeyNew:'New Account',
+      obKeyHave:'I Have a Key',
+      obKeySkip:'Skip for Now',
+      obKeyInfoTitle:'Cross-device pairing',
+      obKeyInfoBody:'Save the generated key. You will need it to sign in on another device. Without the key, your data cannot be accessed.',
+      obKeyLabel:'16-Digit Key',
+      obKeyCreated:'Your key is ready!',
+      obKeyCopy:'Copy',
+      obKeyWarn:'Save this key somewhere safe. Without it, you cannot access your data from another device.',
+      obKeySkipTitle:'Use on this device only',
+      obKeySkipDesc:'Your data will only be stored on this device. You can create a key anytime from Settings → Cloud Sync.',
+      obKeySkipBtn:'Continue (Offline)',
+
+      // Bottom nav layout
+      bottombarTitle:'Bottom Menu Layout',
+      bottombarDesc:'Up to 5 items. Drag to reorder, + to add, × to remove.',
+      bottombarDesc2:'Order and customise',
+      bottombarActive:'Active Items',
+      bottombarAvailable:'Available Items',
+      quickActionsTitle:'Quick Actions',
+      quickActionsDesc:'Quick actions accessed via the + button on the right',
+
+      // Analytics page
+      analyticsTitle:'Analytics',
+      analyticsSubTitle:'Explore your financial picture',
+      periodThisMonth:'This Month',
+      period3Month:'3 Months',
+      period6Month:'6 Months',
+      period1Year:'1 Year',
+      trendTitle:'Income / Expense Trend',
+      trendIncome:'Income',
+      trendExpense:'Expense',
+      savingsScoreTitle:'Savings Score',
+      forecastTitle:'Next Month Forecast',
+      forecastBadge:'History-Based',
+      donutTitle:'Spending Breakdown',
+      donutHint:'Click a category to see transactions',
+      donutExpense:'Expense',
+      donutIncome:'Income',
+      categoriesTitle:'Categories',
+      habitTitle:'Habit Analysis',
+      budgetSectionTitle:'Monthly Category Budgets',
+      addLimit:'Add Limit',
+      sagiAssistantName:'SAGI Assistant',
+      sagiAssistantLoading:'Analysing your data...',
+
+      // Notifications — missing
+      notifMasterTitle:'Enable Notifications',
+      notifMasterSubtitle:'Turn all notifications on or off',
+      notifCreditCard:'Credit Card Payment Day',
+      notifCreditCardDesc:'Alert 3 days before and on payment due date',
+      notifBudgetDesc2:'Alert at 80% usage and when limit is exceeded',
+      notifGoal:'Savings Goal',
+      notifGoalDesc:'Alert at 75% and 90% milestones & when target date approaches',
+      notifBigSpend:'Large Expense Alert',
+      notifBigSpendDesc:'Alert when spending is 5x above average',
+      notifFx:'Exchange Rate Change',
+      notifFxDesc:'Alert when USD/TRY moves 3%+',
+
+      // Data management — missing
+      backupHintJson:'JSON — full data, for restore.',
+      backupHintCsv:'CSV — transaction history, opens in Excel.',
+      restoreHintJson:'Only JSON backup files are supported.',
+      deleteAccount:'Delete My Account',
+
+      // Import modal
+      importModalTitle:'Restore Backup',
+      importMergeTitle:'Merge',
+      importMergeDesc:'Your existing data is kept. Duplicate records are updated, new ones added. Safe option.',
+      importReplaceTitle:'Replace All Data',
+      importReplaceDesc:'All current data is deleted and only data from this file is loaded. Cannot be undone.',
+      importReplaceWarn:'Your accounts, transactions and all data will be permanently deleted. This cannot be undone.',
+      importActionBtn:'Load',
     }
   }
 };

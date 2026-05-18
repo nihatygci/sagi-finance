@@ -1440,14 +1440,14 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div id="view-analytics" class="view">
       <!-- Başlık + Dönem Seçici -->
       <div class="page-title-row mb-4">
-        <div><h1 class="text-h1">Analiz</h1><p class="text-subtitle">Finansal tablonuzu keşfedin</p></div>
+        <div><h1 class="text-h1" data-i18n="analyticsTitle">Analiz</h1><p class="text-subtitle" data-i18n="analyticsSubTitle">Finansal tablonuzu keşfedin</p></div>
       </div>
       <!-- Dönem seçici -->
       <div class="analytics-period-bar mb-5 stagger-1" id="analyticsPeriodBar">
-        <button class="analytics-period-btn active" data-period="1" onclick="App.Controllers.Analytics.setPeriod(1,this)">Bu Ay</button>
-        <button class="analytics-period-btn" data-period="3" onclick="App.Controllers.Analytics.setPeriod(3,this)">3 Ay</button>
-        <button class="analytics-period-btn" data-period="6" onclick="App.Controllers.Analytics.setPeriod(6,this)">6 Ay</button>
-        <button class="analytics-period-btn" data-period="12" onclick="App.Controllers.Analytics.setPeriod(12,this)">1 Yıl</button>
+        <button class="analytics-period-btn active" data-period="1" data-i18n="periodThisMonth" onclick="App.Controllers.Analytics.setPeriod(1,this)">Bu Ay</button>
+        <button class="analytics-period-btn" data-period="3" data-i18n="period3Month" onclick="App.Controllers.Analytics.setPeriod(3,this)">3 Ay</button>
+        <button class="analytics-period-btn" data-period="6" data-i18n="period6Month" onclick="App.Controllers.Analytics.setPeriod(6,this)">6 Ay</button>
+        <button class="analytics-period-btn" data-period="12" data-i18n="period1Year" onclick="App.Controllers.Analytics.setPeriod(12,this)">1 Yıl</button>
       </div>
       <!-- 4'lü KPI -->
       <div class="css-grid grid-cols-4 mb-5 stagger-1" id="analyticsSummary"></div>
@@ -1466,7 +1466,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </div>
           <div class="ai-bot-bubble">
             <div class="ai-bot-name">SAGI Asistan</div>
-            <div id="aiInsightText" style="line-height:1.7">Verileriniz analiz ediliyor...</div>
+            <div id="aiInsightText" style="line-height:1.7" data-i18n="sagiAssistantLoading">Verileriniz analiz ediliyor...</div>
             <div class="ai-insight-tags" id="aiInsightTags"></div>
             <div id="aiInsightTips"></div>
           </div>
@@ -1482,16 +1482,16 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
         <div class="card">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="card-title">Gelir / Gider Trendi</h2>
+            <h2 class="card-title" data-i18n="trendTitle">Gelir / Gider Trendi</h2>
             <div style="display:flex;gap:10px;font-size:12px;font-weight:600">
-              <span style="display:flex;align-items:center;gap:5px;color:var(--status-success)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-success);display:inline-block"></span>Gelir</span>
-              <span style="display:flex;align-items:center;gap:5px;color:var(--status-danger)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-danger);display:inline-block"></span>Gider</span>
+              <span style="display:flex;align-items:center;gap:5px;color:var(--status-success)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-success);display:inline-block"></span><span data-i18n="trendIncome">Gelir</span></span>
+              <span style="display:flex;align-items:center;gap:5px;color:var(--status-danger)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-danger);display:inline-block"></span><span data-i18n="trendExpense">Gider</span></span>
             </div>
           </div>
           <div class="bar-chart-wrap"><div id="trendBarChart"></div></div>
         </div>
         <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
-          <h2 class="card-title mb-4" style="width:100%">Tasarruf Skoru</h2>
+          <h2 class="card-title mb-4" style="width:100%" data-i18n="savingsScoreTitle">Tasarruf Skoru</h2>
           <div class="score-ring-wrap">
             <div id="savingsScoreSvg"></div>
             <div id="savingsScoreGrade" class="score-grade"></div>
@@ -1506,9 +1506,9 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="flex justify-between items-center mb-4">
           <h2 class="card-title">
             <svg class="nav-icon" style="width:18px;height:18px;color:var(--brand-accent)"><use href="#icon-chart"/></svg>
-            Önümüzdeki Ay Tahmini
+            <span data-i18n="forecastTitle">Önümüzdeki Ay Tahmini</span>
           </h2>
-          <span style="font-size:11px;color:var(--text-muted);font-weight:600;background:var(--bg-body);padding:4px 10px;border-radius:var(--radius-full);border:1px solid var(--border-light)">Geçmişe Dayalı</span>
+          <span style="font-size:11px;color:var(--text-muted);font-weight:600;background:var(--bg-body);padding:4px 10px;border-radius:var(--radius-full);border:1px solid var(--border-light)" data-i18n="forecastBadge">Geçmişe Dayalı</span>
         </div>
         <div id="forecastRows"></div>
       </div>
@@ -1516,16 +1516,16 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <!-- Gider Dağılımı + Kategoriler -->
       <div class="css-grid grid-cols-2 mb-5 stagger-3">
         <div class="card">
-          <h2 class="card-title mb-3">Harcama Dağılımı</h2>
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Kategoriye tıklayın, işlemleri görün</p>
+          <h2 class="card-title mb-3" data-i18n="donutTitle">Harcama Dağılımı</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px" data-i18n="donutHint">Kategoriye tıklayın, işlemleri görün</p>
           <div class="analytics-tabs" id="donutTabs">
-            <button class="analytics-tab active" onclick="App.Controllers.Analytics.switchDonut('expense',this)">Gider</button>
-            <button class="analytics-tab" onclick="App.Controllers.Analytics.switchDonut('income',this)">Gelir</button>
+            <button class="analytics-tab active" data-i18n="donutExpense" onclick="App.Controllers.Analytics.switchDonut('expense',this)">Gider</button>
+            <button class="analytics-tab" data-i18n="donutIncome" onclick="App.Controllers.Analytics.switchDonut('income',this)">Gelir</button>
           </div>
           <div class="chart-container" id="mainDonutChart" style="cursor:pointer"></div>
         </div>
         <div class="card">
-          <h2 class="card-title mb-4">Kategoriler</h2>
+          <h2 class="card-title mb-4" data-i18n="categoriesTitle">Kategoriler</h2>
           <div id="categoryBreakdownList" class="flex flex-col gap-4"></div>
         </div>
       </div>
@@ -1534,7 +1534,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div class="card mb-5 stagger-3">
         <h2 class="card-title mb-4">
           <svg class="nav-icon" style="width:18px;height:18px;color:var(--brand-accent)"><use href="#icon-repeat"/></svg>
-          Alışkanlık Analizi
+          <span data-i18n="habitTitle">Alışkanlık Analizi</span>
         </h2>
         <div id="habitAnalysisList"></div>
       </div>
@@ -1542,8 +1542,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <!-- Bütçe Limitleri -->
       <div class="card stagger-4">
         <div class="flex justify-between items-center mb-5">
-          <h2 class="card-title">Aylık Kategori Bütçeleri</h2>
-          <button class="btn btn-outline btn-sm" onclick="App.Controllers.Budgets.openModal()"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-plus"/></svg>Limit Ekle</button>
+          <h2 class="card-title" data-i18n="budgetSectionTitle">Aylık Kategori Bütçeleri</h2>
+          <button class="btn btn-outline btn-sm" onclick="App.Controllers.Budgets.openModal()"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-plus"/></svg><span data-i18n="addLimit">Limit Ekle</span></button>
         </div>
         <div id="budgetList" class="css-grid grid-cols-2"></div>
       </div>
@@ -1632,8 +1632,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-menu"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
-                  <div class="title">Alt Menü Düzeni</div>
-                  <div class="subtitle">Sıralama ve özelleştirme</div>
+                  <div class="title" data-i18n="bottombarTitle">Alt Menü Düzeni</div>
+                  <div class="subtitle" data-i18n="bottombarDesc2">Sıralama ve özelleştirme</div>
                 </div>
               </div>
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
@@ -1745,8 +1745,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="card">
             <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
               <div>
-                <div class="font-bold" style="font-size:15px">Bildirimleri Etkinleştir</div>
-                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="notifMasterDesc">Tüm bildirimleri açın veya kapatın</div>
+                <div class="font-bold" style="font-size:15px" data-i18n="notifMasterTitle">Bildirimleri Etkinleştir</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="notifMasterDesc" data-i18n="notifMasterSubtitle">Tüm bildirimleri açın veya kapatın</div>
               </div>
               <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
             </div>
@@ -1764,23 +1764,23 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 <div class="toggle-track" id="notifBorcTrack"><div class="toggle-thumb"></div></div>
               </div>
               <div class="toggle-row" id="notifKrediKarti" onclick="App.Notifications.toggleSetting('krediKarti')">
-                <div><div class="font-bold" style="font-size:15px">Kredi Kartı Ödeme Günü</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px">Ödeme tarihinden 3 gün önce ve gün gelince uyar</div></div>
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifCreditCard">Kredi Kartı Ödeme Günü</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifCreditCardDesc">Ödeme tarihinden 3 gün önce ve gün gelince uyar</div></div>
                 <div class="toggle-track" id="notifKrediKartiTrack"><div class="toggle-thumb"></div></div>
               </div>
               <div class="toggle-row" id="notifButce" onclick="App.Notifications.toggleSetting('butce')">
-                <div><div class="font-bold" style="font-size:15px" data-i18n="notifBudget">Bütçe Limit Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px">%80 dolduğunda ve limit aşıldığında bildir</div></div>
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifBudget">Bütçe Limit Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifBudgetDesc2">%80 dolduğunda ve limit aşıldığında bildir</div></div>
                 <div class="toggle-track" id="notifButceTrack"><div class="toggle-thumb"></div></div>
               </div>
               <div class="toggle-row" id="notifHedef" onclick="App.Notifications.toggleSetting('hedef')">
-                <div><div class="font-bold" style="font-size:15px">Birikim Hedefi</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px">%75 ve %90'a ulaşınca & hedef tarihi yaklaşınca bildir</div></div>
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifGoal">Birikim Hedefi</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifGoalDesc">%75 ve %90'a ulaşınca & hedef tarihi yaklaşınca bildir</div></div>
                 <div class="toggle-track" id="notifHedefTrack"><div class="toggle-thumb"></div></div>
               </div>
               <div class="toggle-row" id="notifBuyukHarcama" onclick="App.Notifications.toggleSetting('buyukHarcama')">
-                <div><div class="font-bold" style="font-size:15px">Büyük Harcama Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px">Ortalamanın 5 katını aşan harcamalarda bildir</div></div>
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifBigSpend">Büyük Harcama Uyarısı</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifBigSpendDesc">Ortalamanın 5 katını aşan harcamalarda bildir</div></div>
                 <div class="toggle-track" id="notifBuyukHarcamaTrack"><div class="toggle-thumb"></div></div>
               </div>
               <div class="toggle-row" id="notifDoviz" onclick="App.Notifications.toggleSetting('doviz')">
-                <div><div class="font-bold" style="font-size:15px">Döviz Kuru Değişimi</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px">USD/TRY %3+ hareket ettiğinde uyar</div></div>
+                <div><div class="font-bold" style="font-size:15px" data-i18n="notifFx">Döviz Kuru Değişimi</div><div style="font-size:13px;color:var(--text-muted);margin-top:3px" data-i18n="notifFxDesc">USD/TRY %3+ hareket ettiğinde uyar</div></div>
                 <div class="toggle-track" id="notifDovizTrack"><div class="toggle-thumb"></div></div>
               </div>
               <div class="toggle-row" id="notifHaftalik" onclick="App.Notifications.toggleSetting('haftalik')">
@@ -1812,30 +1812,30 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
             <span data-i18n="settings">Ayarlar</span>
           </button>
-          <div class="settings-detail-title">Alt Menü Düzeni</div>
-          <div class="settings-detail-sub">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</div>
+          <div class="settings-detail-title" data-i18n="bottombarTitle">Alt Menü Düzeni</div>
+          <div class="settings-detail-sub" data-i18n="bottombarDesc">Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.</div>
           <div class="card">
             <div class="flex justify-between items-center mb-4">
-              <div class="font-bold">Aktif Öğeler</div>
+              <div class="font-bold" data-i18n="bottombarActive">Aktif Öğeler</div>
               <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()">Sıfırla</button>
             </div>
             <div id="bnavActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
             <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
-            <div class="text-caption mb-2">Eklenebilecek Öğeler</div>
+            <div class="text-caption mb-2" data-i18n="bottombarAvailable">Eklenebilecek Öğeler</div>
             <div id="bnavAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
 
           <div class="card" style="margin-top:16px">
             <div class="flex justify-between items-center mb-4">
               <div>
-                <div class="font-bold">Hızlı İşlemler <span style="font-size:11px;font-weight:600;color:var(--brand-accent);background:rgba(99,102,241,.1);padding:2px 8px;border-radius:99px;margin-left:6px">+</span></div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:3px">Sağdaki + butonundan erişilen hızlı aksiyonlar</div>
+                <div class="font-bold"><span data-i18n="quickActionsTitle">Hızlı İşlemler</span> <span style="font-size:11px;font-weight:600;color:var(--brand-accent);background:rgba(99,102,241,.1);padding:2px 8px;border-radius:99px;margin-left:6px">+</span></div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:3px" data-i18n="quickActionsDesc">Sağdaki + butonundan erişilen hızlı aksiyonlar</div>
               </div>
               <button class="btn btn-outline btn-sm" onclick="App.Controllers.QuickActions.reset()">Sıfırla</button>
             </div>
             <div id="qaActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
             <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
-            <div class="text-caption mb-2">Eklenebilecek Öğeler</div>
+            <div class="text-caption mb-2" data-i18n="bottombarAvailable">Eklenebilecek Öğeler</div>
             <div id="qaAvailableList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
         </div>
@@ -1871,7 +1871,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 </div>
                 <div class="font-bold" style="font-size:15px" data-i18n="backup">Yedek Al</div>
               </div>
-              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6" data-i18n-html="backupHintHtml">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
               <div class="flex gap-2">
                 <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="App.Controllers.Settings.exportJSON()">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
@@ -1899,7 +1899,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <!-- Tehlikeli Aksiyonlar -->
             <div style="padding:18px 20px;display:flex;flex-direction:column;gap:10px">
               <button class="btn btn-danger w-full" style="justify-content:center" data-i18n="deleteAll" onclick="App.Controllers.Settings.factoryReset()">Tüm Verileri Sil</button>
-              <button class="btn btn-danger w-full" style="justify-content:center" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
+              <button class="btn btn-danger w-full" style="justify-content:center" data-i18n="deleteAccount" onclick="App.Controllers.Settings.cloudDeleteAccount()">Hesabımı Sil</button>
             </div>
           </div>
         </div>
