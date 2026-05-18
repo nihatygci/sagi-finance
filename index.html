@@ -5466,8 +5466,20 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         if(!Core.state.settings.syncKey) return;
         if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
         UI.Toasts.show(t('cloudSyncing'),'success');
-        await Core.Cloud.forcePush();
-        this.renderCloudBox();
+        try {
+          const result = await Core.Cloud.forceSync();
+          this.renderCloudBox();
+          if(result === 'pulled'){
+            UI.Toasts.show(LANG==='tr' ? 'Buluttan güncellendi ✓' : 'Updated from cloud ✓','success');
+          } else if(result === 'in-sync'){
+            UI.Toasts.show(LANG==='tr' ? 'Zaten güncel ✓' : 'Already up to date ✓','success');
+          } else {
+            UI.Toasts.show(LANG==='tr' ? 'Buluta gönderildi ✓' : 'Pushed to cloud ✓','success');
+          }
+        } catch(e) {
+          UI.Toasts.show(t('cloudInitFail'),'error');
+          this.renderCloudBox();
+        }
       },
 
       cloudSignOut(){
