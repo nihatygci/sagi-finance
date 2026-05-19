@@ -5112,11 +5112,11 @@ const App = {
         const fId=document.getElementById('trn_from').value;
         const tE=document.getElementById('trn_to');
         let o='<optgroup label="'+t('accounts')+'">';
-        Core.state.wallets.forEach(w=>{if(w.id!==fId)o+=`<option value="w:${w.id}">${w.name}</option>`;});
+        Core.state.wallets.forEach(w=>{if(w.id!==fId)o+=`<option value="w:${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`;});
         o+='</optgroup>';
         if(Core.state.goals.length){
           o+='<optgroup label="'+t('goalsLabel')+'">';
-          Core.state.goals.forEach(g=>{o+=`<option value="g:${g.id}">${g.name}</option>`;});
+          Core.state.goals.forEach(g=>{o+=`<option value="g:${g.id}">${g.name} (${Core.Utils.formatMoney(g.current,Core.state.settings.currency||'TRY')} / ${Core.Utils.formatMoney(g.target,Core.state.settings.currency||'TRY')})</option>`;});
           o+='</optgroup>';
         }
         tE.innerHTML=o;
