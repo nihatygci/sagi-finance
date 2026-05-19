@@ -55,9 +55,9 @@
       if (attempts === undefined) attempts = 0;
       if (this.isAvailable()) {
         console.log('[Cloud] Firebase polling: hazır, emit ediliyor.');
-        // syncKey varsa listener'ı bağla (race condition güvencesi)
         if (Core.state.settings && Core.state.settings.syncKey && !this._unsubscribe) {
-          this.attachListener(); // attachListener içinde _emitStatus('ok') çağrılır
+          // Önce bir kez zorla pull yap, sonra listener'ı bağla
+          this._initialPull().then(() => this.attachListener());
         } else {
           this._emitStatus('idle');
         }
@@ -68,6 +68,44 @@
         return;
       }
       setTimeout(() => this._waitForFirebaseAndNotify(attempts + 1), 250);
+    },
+
+    async _initialPull() {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      try {
+        const docRef = this._doc(Core.state.settings.syncKey);
+        const snap = await docRef.get();
+        if (!snap.exists) return;
+        const data = snap.data();
+        if (!data || !data.state) return;
+
+        const remoteMod = data.lastModified || 0;
+        const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
+
+        console.log('[Cloud] initialPull — local:', localMod, 'remote:', remoteMod);
+
+        if (remoteMod > localMod) {
+          console.log('[Cloud] initialPull: bulut daha yeni, pull yapılıyor.');
+          const savedKey = Core.state.settings.syncKey;
+          Core.state = data.state;
+          Core.state.settings = Object.assign({
+            notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
+              krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
+            notifMaster: false, theme: 'light', lang: 'tr', anim: 'on',
+            privacy: 'off', currency: 'TRY', cachedRates: null,
+          }, data.state.settings || {});
+          Core.state.settings.syncKey = savedKey;
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          // Listener ilk snapshot'ı suppress etsin — biz zaten pull yaptık
+          this._suppressNextRemote = true;
+          try { Core.emit('stateChanged', Core.state); } catch(e) {}
+          try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
+          this._rerenderActiveView();
+          this._emitStatus('ok');
+        }
+      } catch(e) {
+        console.warn('[Cloud] initialPull hatası:', e);
+      }
     },
 
     _checkFirebase() {
