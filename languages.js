@@ -64,7 +64,7 @@ const LANGS = {
       save:'Kaydet', cancel:'İptal', delete:'Sil', edit:'Düzenle',
       confirm:'Evet, Devam Et', confirmTitle:'Onay Gerekiyor',
       all:'Tümü', reset:'Sıfırla', select:'Seç',
-      showAll:'Tümünü Göster', showLess:'Daha Az Göster',
+      showAll:'Tümünü Göster', showLess:'Daha Az Göster', showMore:'Daha Fazla Göster',
       transferBtn:'Para Aktar', payBtn:'Öde', payNow:'Ödemeyi Yap',
 
       // Form etiketleri
@@ -458,7 +458,7 @@ const LANGS = {
       save:'Save', cancel:'Cancel', delete:'Delete', edit:'Edit',
       confirm:'Yes, Proceed', confirmTitle:'Confirmation Needed',
       all:'All', reset:'Reset', select:'Select',
-      showAll:'Show All', showLess:'Show Less',
+      showAll:'Show All', showLess:'Show Less', showMore:'Show More',
       transferBtn:'Transfer', payBtn:'Pay', payNow:'Pay Now',
 
       // Form labels
