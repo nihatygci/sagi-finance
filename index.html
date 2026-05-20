@@ -1898,7 +1898,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 </div>
                 <div class="font-bold" style="font-size:15px" data-i18n="restore">Yedek Yükle</div>
               </div>
-              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">Sadece JSON yedek dosyaları desteklenir.</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6" data-i18n="restoreHintJson">Sadece JSON yedek dosyaları desteklenir.</div>
               <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
               <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0 w-full" style="justify-content:center" data-i18n="chooseFile">
                 <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
@@ -2882,9 +2882,42 @@ const Notifications = {
   },
   handleNotifAction(action){
     if(!action)return;
-    var nav={'dashboard':function(){App.navigate('dashboard');},'recurring':function(){App.navigate('recurring');},'debts':function(){App.navigate('debts');},'analytics':function(){App.navigate('analytics');},'goals':function(){App.navigate('goals');},'wallets':function(){App.navigate('wallets');},'settings':function(){App.navigate('settings');},'settings/notifications':function(){window.location.hash='/settings/notifications';}};
-    var fn=nav[action]||nav['dashboard'];
-    fn();
+    const parts=action.split(':');
+    const page=parts[0];
+    const id=parts[1]||null;
+    const openModal=()=>{
+      if(!id)return;
+      try{
+        if(page==='recurring'){
+          const s=Core.state.recurring.find(x=>x.id===id);
+          if(s)App.Controllers.Recurring.edit(id);
+        } else if(page==='debts'){
+          const d=Core.state.debts.find(x=>x.id===id);
+          if(d)App.Controllers.Debts.edit(id);
+        } else if(page==='goals'){
+          const g=Core.state.goals.find(x=>x.id===id);
+          if(g)App.Controllers.Goals.edit(id);
+        } else if(page==='wallets'){
+          // Kredi kartı kartını öne çıkar — scroll to
+          const el=document.querySelector(`[data-wallet-id="${id}"]`);
+          if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+        }
+      }catch(e){console.warn('[Notif] Modal açılamadı:',e);}
+    };
+    const pageMap={
+      'dashboard':()=>App.navigate('dashboard'),
+      'recurring':()=>App.navigate('recurring'),
+      'debts':()=>App.navigate('debts'),
+      'analytics':()=>App.navigate('analytics'),
+      'goals':()=>App.navigate('goals'),
+      'wallets':()=>App.navigate('wallets'),
+      'settings':()=>App.navigate('settings'),
+      'settings/notifications':()=>{window.location.hash='/settings/notifications';}
+    };
+    const navFn=pageMap[page]||pageMap['dashboard'];
+    navFn();
+    // Sayfa render'ı bitince modal aç
+    setTimeout(openModal,450);
   },
   updateUI(){
     if(!this.supported)return;
@@ -2944,7 +2977,7 @@ const Notifications = {
       const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]');
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
-        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring',tag:'rec-'+s.id+'-'+key});}};
+        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
         if(diff===3)sendIfNew('3d',`${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
         else if(diff===1)sendIfNew('1d',`Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
         else if(diff===0)sendIfNew('0d',`Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
@@ -2963,7 +2996,7 @@ const Notifications = {
             sessionStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
             const msg=diffD===0?`Bugün: ${d.name} için ${Core.Utils.formatMoney(d.amount)} vadesi doldu.`:`${diffD} gün içinde: ${d.name} — ${Core.Utils.formatMoney(d.amount)}`;
-            this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts',tag:'debt-'+d.id});
+            this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
           }
         }
       });
@@ -2979,7 +3012,7 @@ const Notifications = {
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
             const msg=diff===0?`Bugün ${cc.name} ödeme günü! Borç: ${Core.Utils.formatMoney(debt)}`:`💳 ${cc.name} ödeme gününe ${diff} gün kaldı. Borç: ${Core.Utils.formatMoney(debt)}`;
-            this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets',tag:'cc-'+cc.id+'-'+diff});
+            this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
           }
         }
       });
@@ -2996,7 +3029,7 @@ const Notifications = {
             const nk='sagi_nt_goal_'+g.id+'_'+milestone+'_'+now.getFullYear();
             if(!sessionStorage.getItem(nk)){
               sessionStorage.setItem(nk,'1');
-              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals',tag:'goal-'+g.id+'-'+milestone});
+              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals:'+g.id,tag:'goal-'+g.id+'-'+milestone});
             }
           }
         });
@@ -3008,7 +3041,7 @@ const Notifications = {
             const nk='sagi_nt_goaldate_'+g.id+'_'+now.getFullYear()+'_'+now.getMonth();
             if(!sessionStorage.getItem(nk)){
               sessionStorage.setItem(nk,'1');
-              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals',tag:'goaldate-'+g.id});
+              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals:'+g.id,tag:'goaldate-'+g.id});
             }
           }
         }
@@ -4690,7 +4723,7 @@ const App = {
             <div class="kpi-icon" style="background:rgba(79,70,229,.1);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-chart"/></svg></div>
             <div class="kpi-label">Günlük Ort. Gider</div>
             <div class="kpi-val">${fmt(totalExp / (period * 30))}</div>
-            <div class="kpi-delta neutral">${period * 30} günlük ortalama</div>
+            <div class="kpi-delta neutral">${period * 30} ${t('periodDayAvg')}</div>
           </div>`;
 
         // ── Trend Grafik ──
@@ -4796,11 +4829,11 @@ const App = {
     const gap = circumference - dash; // ← EKLENDİ
 
     const colorHex = score >= 70 ? '#22a06b' : score >= 40 ? '#4f46e5' : score >= 20 ? '#d97706' : '#e5534b';
-    const grade = score >= 80 ? 'Mükemmel' : score >= 60 ? 'İyi' : score >= 40 ? 'Orta' : score >= 20 ? 'Dikkat' : 'Kritik';
-    const desc = score >= 70 ? 'Gelirinizin büyük kısmını biriktiriyorsunuz.' : 
-                score >= 40 ? 'Tasarruf oranınız makul düzeyde.' : 
-                score >= 20 ? 'Tasarruf potansiyeliniz artırılabilir.' : 
-                'Giderleriniz gelirinizi aşıyor.';
+    const grade = score >= 80 ? t('scoreGradeExcellent') : score >= 60 ? t('scoreGradeGood') : score >= 40 ? t('scoreGradeMid') : score >= 20 ? t('scoreGradeWarn') : t('scoreGradeCrit');
+    const desc = score >= 70 ? t('scoreDescExcellent') : 
+                score >= 40 ? t('scoreDescGood') : 
+                score >= 20 ? t('scoreDescMid') : 
+                t('scoreDescCrit');
 
     wrap.innerHTML = `<svg viewBox="0 0 110 110">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
@@ -4810,7 +4843,7 @@ const App = {
         stroke-linecap="round"
         transform="rotate(-90 ${cx} ${cy})" />
       <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="23" font-weight="800" font-family="Outfit,sans-serif" fill="var(--text-main)">${displayPct.toFixed(0)}%</text>
-      <text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#9ca3af">TASARRUF</text>
+      <text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#9ca3af">${t('scoreSavingsLabel2')}</text>
     </svg>`;
 
     if (gradeEl) {
@@ -4827,7 +4860,7 @@ const App = {
         const mc = Core.state.settings.currency || 'TRY';
         const fmt = v => Core.Utils.formatMoney(v, mc);
 
-        if(months.length < 2){ el.innerHTML = `<div style="color:var(--text-muted);font-size:14px;padding:12px 0">Tahmin için en az 2 aylık veri gerekli.</div>`; return; }
+        if(months.length < 2){ el.innerHTML = `<div style="color:var(--text-muted);font-size:14px;padding:12px 0">${t('forecastMinData')}</div>`; return; }
 
         // Ağırlıklı ortalama: son ay 3x, önceki 2x, daha öncesi 1x ağırlık
         const weights = months.map((_,i) => i+1);
@@ -4869,19 +4902,19 @@ const App = {
             </div>
             <div>
               <div class="forecast-val" style="color:${color}">${val}</div>
-              ${conf ? `<div class="forecast-conf">%${conf.toFixed(0)} güven</div>` : ''}
+              ${conf ? `<div class="forecast-conf">%${conf.toFixed(0)} ${t('forecastConfidence')}</div>` : ''}
               ${note ? `<div class="forecast-conf">${note}</div>` : ''}
             </div>
           </div>`;
 
         el.innerHTML = `
           <div style="font-size:13px;font-weight:600;color:var(--brand-accent);margin-bottom:12px;padding:8px 12px;background:rgba(79,70,229,.07);border-radius:var(--radius-sm)">
-            ${nextMonth} Tahmini
+            ${nextMonth} ${t('forecastLabel')}
           </div>
-          ${row('Beklenen Gelir', fmt(forecastInc), confPct, '', 'var(--status-success)')}
-          ${row('Beklenen Gider', fmt(forecastExp), confPct, '', 'var(--status-danger)')}
-          ${recBase > 0 ? row('Sabit Giderler', fmt(recBase), null, '', 'var(--status-warn)', 'Abonelik & tekrarlayan') : ''}
-          ${row('Tahmini Net', fmt(forecastNet), null, '', forecastNet>=0?'var(--status-success)':'var(--status-danger)', forecastNet<0?'Giderlerinizi gözden geçirin':'')}`;
+          ${row(t('forecastExpIncome'), fmt(forecastInc), confPct, '', 'var(--status-success)')}
+          ${row(t('forecastExpExpense'), fmt(forecastExp), confPct, '', 'var(--status-danger)')}
+          ${recBase > 0 ? row(t('forecastFixedCosts'), fmt(recBase), null, '', 'var(--status-warn)', t('forecastFixedNote')) : ''}
+          ${row(t('forecastNet'), fmt(forecastNet), null, '', forecastNet>=0?'var(--status-success)':'var(--status-danger)', forecastNet<0?t('forecastNetWarn'):'')}`;
       },
 
       _catData:{expense:{},income:{}},
@@ -4903,20 +4936,30 @@ const App = {
           const origStr=txCur!==mainCur?` <span style="font-size:11px;color:var(--text-muted)">(${Core.Utils.formatMoney(tx.amount,txCur)})</span>`:'';
           return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-${isIncome?'success':'danger'})">${Core.Utils.formatMoney(amtMain,mainCur)}</div>${origStr}</div></div>`;
         }).join('');
-        const modal=document.getElementById('modalCatDetail');
-        if(!modal){
-          const m=document.createElement('div');m.id='modalCatDetail';m.className='modal-overlay';
-          m.innerHTML=`<div class="modal-content" style="max-width:500px"><div class="modal-header"><div style="display:flex;align-items:center;gap:10px"><div style="width:14px;height:14px;border-radius:50%;background:${color}"></div><h3 class="modal-title">${catName}</h3></div><button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button></div><div class="modal-body"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px"><span style="color:var(--text-secondary)">Bu Ay Toplam</span><span class="font-display font-bold ${isIncome?'color-success':'color-danger'}" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span></div><div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>'}</div></div></div>`;
-          document.body.appendChild(m);
-          m.addEventListener('click',e=>{if(e.target===m)UI.Modals.close('modalCatDetail');});
-        }else{
-          modal.querySelector('.modal-title').textContent=catName;
-          modal.querySelector('.modal-header div div').style.background=color;
-          modal.querySelector('#catDetailRows').innerHTML=rows||'<div style="text-align:center;color:var(--text-muted);padding:20px">Bu ay işlem yok</div>';
-          const totalEl=modal.querySelector('.font-display.font-bold.color-danger,.font-display.font-bold.color-success');
-          if(totalEl){totalEl.className=`font-display font-bold ${isIncome?'color-success':'color-danger'}`;totalEl.textContent=Core.Utils.formatMoney(total,mainCur);}
-
-        }
+        const noTxHtml=`<div style="text-align:center;color:var(--text-muted);padding:20px">${t('catModalNoTx')}</div>`;
+        const totalLabel=t('catModalMonthTotal')||'Bu Ay Toplam';
+        // Her açılışta modalı sıfırdan oluştur — stale DOM sorununu önler
+        let modal=document.getElementById('modalCatDetail');
+        if(modal) modal.remove();
+        const m=document.createElement('div');m.id='modalCatDetail';m.className='modal-overlay';
+        m.innerHTML=`<div class="modal-content" style="max-width:500px">
+          <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:14px;height:14px;border-radius:50%;background:${color}"></div>
+              <h3 class="modal-title">${catName}</h3>
+            </div>
+            <button class="act-btn" onclick="UI.Modals.close('modalCatDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+          </div>
+          <div class="modal-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-body);border-radius:var(--radius-md);margin-bottom:16px">
+              <span style="color:var(--text-secondary)">${totalLabel}</span>
+              <span id="catDetailTotal" class="font-display font-bold ${isIncome?'color-success':'color-danger'}" style="font-size:20px">${Core.Utils.formatMoney(total,mainCur)}</span>
+            </div>
+            <div id="catDetailRows" style="max-height:50vh;overflow-y:auto">${rows||noTxHtml}</div>
+          </div>
+        </div>`;
+        document.body.appendChild(m);
+        m.addEventListener('click',e=>{if(e.target===m)UI.Modals.close('modalCatDetail');});
         UI.Modals.open('modalCatDetail');
       }
     },
@@ -4954,7 +4997,7 @@ const App = {
         g.innerHTML=Core.state.recurring.map(s=>{
           const isPaid=paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
-          const autoPayBadge=s.autoPay?`<span class="autopay-badge">Oto. Ödeme</span>`:'';
+          const autoPayBadge=s.autoPay?`<span class="autopay-badge">${t('autoPayLabel')}</span>`:'';
           const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:(!isPaid&&s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;opacity:.55;cursor:default" disabled title="Otomatik ödeme aktif">Oto</button>`:'');
           const dayLabel=t('onDayOfMonth',{day:s.day});
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:rgba(79,70,229,.22)"':''}>
@@ -5393,10 +5436,10 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           }).join('');
           const infoBar=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid var(--border-light);margin-bottom:12px">
             <div>
-              <div style="font-size:12px;color:var(--text-muted);font-weight:500">Son güncelleme: <strong style="color:var(--text-secondary)">${last}</strong> <span style="opacity:.6">(${ageStr})</span></div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Kaynak: <strong style="color:var(--text-secondary)">${src}</strong> · Referans kurlar günlük güncellenir</div>
+              <div style="font-size:12px;color:var(--text-muted);font-weight:500">${t('ratesLastUpdate')}: <strong style="color:var(--text-secondary)">${last}</strong> <span style="opacity:.6">(${ageStr})</span></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${t('ratesSource')}: <strong style="color:var(--text-secondary)">${src}</strong> · ${t('ratesSourceNote')}</div>
             </div>
-            <div style="font-size:10px;color:var(--status-warn);background:var(--status-warn-bg);padding:3px 9px;border-radius:99px;font-weight:700;white-space:nowrap">≈ Gösterge kur</div>
+            <div style="font-size:10px;color:var(--status-warn);background:var(--status-warn-bg);padding:3px 9px;border-radius:99px;font-weight:700;white-space:nowrap">${t('ratesIndicator')}</div>
           </div>`;
           kurInfo.innerHTML=infoBar+`<div>${groupsHtml}</div><button class="btn btn-outline btn-sm w-full" onclick="App.ExchangeRate.fetch(true).then(()=>{App.Controllers.Settings.renderForm();App.Controllers.Settings.openSection('rates');UI.Toasts.show(t('msgRatesUpdated'));})" style="margin-top:12px">${t('ratesRefresh')}</button>`;
         }
@@ -5880,7 +5923,7 @@ App.Controllers.QuickActions = {
     localStorage.removeItem(this.STORAGE_KEY);
     this.renderPanel();
     this.renderEditor();
-    UI.Toasts.show('Hızlı işlemler sıfırlandı.');
+    UI.Toasts.show(t('quickActionsReset'));
   },
 
   getLabel(item){
@@ -6116,7 +6159,7 @@ App.Controllers.BottomBar = {
     const currentRoute = window.location.hash.replace('#','') || '/dashboard';
     const fabBtn = `<div class="bnav-fab" id="qaBnavFab" onclick="App.Controllers.QuickActions.toggle()">
       <svg class="nav-icon bnav-fab-rotate" style="width:20px;height:20px"><use href="#icon-plus"/></svg>
-      <span class="bnav-fab-text">Hızlı</span>
+      <span class="bnav-fab-text" data-i18n="quickActionsLabel">Hızlı</span>
     </div>`;
     nav.innerHTML = activeIds.map((id, i) => {
       const item = ALL_BNAV_ITEMS.find(x => x.id === id);
@@ -6329,7 +6372,7 @@ document.addEventListener('DOMContentLoaded',()=>App.init());
 <!-- QUICK ACTIONS PANEL -->
 <div class="qa-backdrop" id="qaBackdrop" onclick="App.Controllers.QuickActions.close()"></div>
 <div class="quick-actions-panel" id="quickActionsPanel">
-  <div class="qa-header">Hızlı İşlem</div>
+  <div class="qa-header" data-i18n="quickActionsHeader">Hızlı İşlem</div>
   <div id="qaItemList"></div>
 </div>
 

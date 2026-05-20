@@ -293,6 +293,47 @@ const LANGS = {
       obKeySkipDesc:'Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar → Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.',
       obKeySkipBtn:'Devam Et (Çevrim Dışı)',
 
+      // Hızlı işlem
+      quickActionsLabel:'Hızlı',
+      quickActionsHeader:'Hızlı İşlem',
+      quickActionsReset:'Hızlı işlemler sıfırlandı.',
+
+      // Kur sayfası
+      ratesLastUpdate:'Son güncelleme',
+      ratesSource:'Kaynak',
+      ratesSourceNote:'Referans kurlar günlük güncellenir',
+      ratesIndicator:'≈ Gösterge kur',
+
+      // Veri yönetimi
+      restoreHintJson:'Sadece JSON yedek dosyaları desteklenir.',
+
+      // Analiz sayfası — hardcoded
+      forecastLabel:'Tahmini',
+      forecastExpIncome:'Beklenen Gelir',
+      forecastExpExpense:'Beklenen Gider',
+      forecastFixedCosts:'Sabit Giderler',
+      forecastFixedNote:'Abonelik & tekrarlayan',
+      forecastNet:'Tahmini Net',
+      forecastNetWarn:'Giderlerinizi gözden geçirin',
+      forecastMinData:'Tahmin için en az 2 aylık veri gerekli.',
+      forecastConfidence:'güven',
+      scoreSavingsLabel2:'TASARRUF',
+      scoreGradeExcellent:'Mükemmel',
+      scoreGradeGood:'İyi',
+      scoreGradeMid:'Orta',
+      scoreGradeWarn:'Dikkat',
+      scoreGradeCrit:'Kritik',
+      scoreDescExcellent:'Gelirinizin büyük kısmını biriktiriyorsunuz.',
+      scoreDescGood:'Tasarruf oranınız makul düzeyde.',
+      scoreDescMid:'Tasarruf potansiyeliniz artırılabilir.',
+      scoreDescCrit:'Giderleriniz gelirinizi aşıyor.',
+      catModalMonthTotal:'Bu Ay Toplam',
+      catModalNoTx:'Bu ay işlem yok',
+      periodDayAvg:'günlük ortalama',
+
+      // Abonelik
+      autoPayLabel:'Oto. Ödeme',
+
       // Alt menü düzeni (bottombar)
       bottombarTitle:'Alt Menü Düzeni',
       bottombarDesc:'Maksimum 5 öğe. Sürükleyerek sıralayın, + ile ekleyin, × ile kaldırın.',
@@ -343,7 +384,7 @@ const LANGS = {
       backupHintJson:'JSON — tüm veriler, geri yükleme için.',
       backupHintCsv:'CSV — işlem geçmişi, Excel\'de açılır.',
       restoreHintJson:'Sadece JSON yedek dosyaları desteklenir.',
-      deleteAccount:'Hesabımı Sil',
+      deleteAccount:'Hesabı Sil',
 
       // Import modal
       importModalTitle:'Yedek Yükle',
@@ -447,8 +488,8 @@ const LANGS = {
     ui: {
       // Navigation
       dashboard:'Dashboard', netWorth:'Net Worth', monthExpense:'This Month Expenses', monthIncome:'This Month Income',
-      cashFlow:'Monthly Cash Flow', goals:'My Goals', debts:'Debts & Receivables', debtSummary:'Debts & Receivables',
-      recentTx:'Recent Transactions', upcoming:'Upcoming Payments', wallets:'My Accounts', transactions:'Transactions',
+      cashFlow:'Monthly Cash Flow', goals:'Goals', debts:'Debts & Receivables', debtSummary:'Debts & Receivables',
+      recentTx:'Recent Transactions', upcoming:'Upcoming Payments', wallets:'Accounts', transactions:'Transactions',
       recurring:'Subscriptions', analytics:'Analytics', settings:'Settings', privacyPolicy:'Privacy Policy',
       mainMenu:'Main Menu',
 
@@ -810,7 +851,48 @@ const LANGS = {
       backupHintJson:'JSON — full data, for restore.',
       backupHintCsv:'CSV — transaction history, opens in Excel.',
       restoreHintJson:'Only JSON backup files are supported.',
-      deleteAccount:'Delete My Account',
+      deleteAccount:'Delete Account',
+
+      // Quick actions
+      quickActionsLabel:'Quick',
+      quickActionsHeader:'Quick Action',
+      quickActionsReset:'Quick actions reset.',
+
+      // Rates page
+      ratesLastUpdate:'Last updated',
+      ratesSource:'Source',
+      ratesSourceNote:'Reference rates updated daily',
+      ratesIndicator:'≈ Indicative rate',
+
+      // Data management
+      restoreHintJson:'Only JSON backup files are supported.',
+
+      // Analytics page — hardcoded
+      forecastLabel:'Forecast',
+      forecastExpIncome:'Expected Income',
+      forecastExpExpense:'Expected Expense',
+      forecastFixedCosts:'Fixed Costs',
+      forecastFixedNote:'Subscriptions & recurring',
+      forecastNet:'Estimated Net',
+      forecastNetWarn:'Review your expenses',
+      forecastMinData:'At least 2 months of data needed for forecast.',
+      forecastConfidence:'confidence',
+      scoreSavingsLabel2:'SAVINGS',
+      scoreGradeExcellent:'Excellent',
+      scoreGradeGood:'Good',
+      scoreGradeMid:'Average',
+      scoreGradeWarn:'Caution',
+      scoreGradeCrit:'Critical',
+      scoreDescExcellent:'You\'re saving a large portion of your income.',
+      scoreDescGood:'Your savings rate is reasonable.',
+      scoreDescMid:'You have potential to save more.',
+      scoreDescCrit:'Your expenses exceed your income.',
+      catModalMonthTotal:'This Month Total',
+      catModalNoTx:'No transactions this month',
+      periodDayAvg:'day average',
+
+      // Recurring
+      autoPayLabel:'Auto Pay',
 
       // Import modal
       importModalTitle:'Restore Backup',
