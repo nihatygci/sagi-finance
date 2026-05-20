@@ -884,9 +884,19 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   #txMobileList{display:block}
   #txCardContainer{padding:0;overflow:hidden}
 }
-/* Modal SADECE masaüstünde gizli */
+/* Modal masaüstünde ortada açılır */
 @media(min-width:769px){
-  #txDetailModal{display:none!important}
+  #txDetailModal{align-items:center}
+  #txDetailSheet{
+    border-radius:var(--radius-xl);
+    max-width:460px;
+    max-height:80vh;
+    transform:scale(.94) translateY(12px);
+    transition:transform .28s cubic-bezier(.16,1,.3,1);
+    box-shadow:0 24px 60px rgba(0,0,0,.28);
+  }
+  #txDetailModal.open #txDetailSheet{transform:scale(1) translateY(0)}
+  .tx-detail-handle{display:none}
 }
 
 /* ── İMPORT SEÇİM MODAL ── */
@@ -3604,8 +3614,8 @@ const App = {
         const dd=document.getElementById('dashDebts');
         if(dd){const dB=Core.state.debts.filter(x=>x.dir==='borç').reduce((a,b)=>a+b.amount,0),dA=Core.state.debts.filter(x=>x.dir==='alacak').reduce((a,b)=>a+b.amount,0);if(dB===0&&dA===0)dd.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noDebt')}</span></div>`;else{const net=dA-dB,nc=net>=0?'var(--status-success)':'var(--status-danger)';dd.innerHTML=`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body);margin-bottom:10px"><div class="flex justify-between items-center mb-2"><span class="color-danger font-bold">${t('debtDir_borc')}</span><span class="font-display font-bold color-danger" style="font-size:17px">${Core.Utils.formatMoney(dB)}</span></div><div class="flex justify-between items-center"><span class="color-success font-bold">${t('debtDir_alacak')}</span><span class="font-display font-bold color-success" style="font-size:17px">${Core.Utils.formatMoney(dA)}</span></div></div><div class="flex justify-between items-center"><span class="text-subtitle font-medium">Net</span><span class="font-display font-bold" style="font-size:19px;color:${nc}">${Core.Utils.formatMoney(Math.abs(net))}</span></div>`;}}
 
-        this._recentTxAll = Core.state.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
-        this._recentTxShown = 5;
+        this._recentTxAll=Core.state.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+        this._recentTxShown=5;
         this._renderRecentTxs();
 
         this.renderCCAlerts();
@@ -3761,6 +3771,41 @@ const App = {
 
       _showMoreRecent(){
         this._recentTxShown = Math.min((this._recentTxShown || 5) + 5, 15);
+        this._renderRecentTxs();
+      },
+
+      _renderRecentTxs(){
+        const list=document.getElementById('dashRecentTxsList');
+        const moreBtn=document.getElementById('dashRecentTxsMore');
+        if(!list)return;
+        const mainCur=Core.state.settings.currency||'TRY';
+        const all=this._recentTxAll||[];
+        const shown=this._recentTxShown||5;
+        const slice=all.slice(0,shown);
+        if(!slice.length){
+          list.innerHTML=`<div class="text-center color-muted" style="padding:28px;font-size:14px">${t('noTx')}</div>`;
+          if(moreBtn)moreBtn.style.display='none';
+          return;
+        }
+        list.innerHTML=slice.map(tx=>{
+          const color=tx.type==='income'?'var(--status-success)':'var(--status-danger)';
+          const txW=Core.state.wallets.find(x=>x.id===tx.wallet);
+          const txCur=(txW&&txW.currency)||mainCur;
+          const sign=tx.type==='income'?'+':'-';
+          const timeStr=tx.date&&tx.date.includes('T')?' · '+new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'';
+          return`<div class="dash-tx-row" onclick="App.Controllers.Transactions.openDetailModal('${tx.id}')">
+            <div style="width:4px;height:36px;border-radius:2px;background:${color};flex-shrink:0"></div>
+            <div class="dash-tx-row-left">
+              <div class="dash-tx-row-title">${tx.desc||tx.cat}</div>
+              <div class="dash-tx-row-sub">${tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
+            </div>
+            <div class="dash-tx-row-amount" style="color:${color}">${sign}${Core.Utils.formatMoney(tx.amount,txCur)}</div>
+          </div>`;
+        }).join('');
+        if(moreBtn)moreBtn.style.display=(all.length>shown)?'block':'none';
+      },
+      _showMoreRecent(){
+        this._recentTxShown=Math.min((this._recentTxShown||5)+5,15);
         this._renderRecentTxs();
       },
 
@@ -4345,10 +4390,11 @@ const App = {
         }
         if(modal){
           modal.classList.add('open');
-          // Scroll kilidi: sadece body kaymayı engelle
-          document.body.style.position='fixed';
-          document.body.style.width='100%';
-          // Swipe-to-close
+          // Scroll kilidi sadece mobilde
+          if(window.innerWidth<769){
+            document.body.style.position='fixed';
+            document.body.style.width='100%';
+          }
           this._initSheetSwipe();
         }
       },
@@ -4356,17 +4402,25 @@ const App = {
         const modal=document.getElementById('txDetailModal');
         const sheet=document.getElementById('txDetailSheet');
         const noAnim=document.body.classList.contains('no-anim');
+        const isDesktop=window.innerWidth>=769;
         if(modal&&sheet&&!noAnim){
-          sheet.style.transition='transform .28s cubic-bezier(.4,0,1,1)';
-          sheet.style.transform='translateY(100%)';
-          modal.style.transition='opacity .28s ease';
+          if(isDesktop){
+            sheet.style.transition='transform .22s cubic-bezier(.4,0,1,1),opacity .2s ease';
+            sheet.style.transform='scale(.94) translateY(12px)';
+            sheet.style.opacity='0';
+          } else {
+            sheet.style.transition='transform .28s cubic-bezier(.4,0,1,1)';
+            sheet.style.transform='translateY(100%)';
+          }
+          modal.style.transition='opacity .25s ease';
           modal.style.opacity='0';
           setTimeout(()=>{
             modal.classList.remove('open');
             modal.style.opacity='';
             sheet.style.transform='';
             sheet.style.transition='';
-          },290);
+            sheet.style.opacity='';
+          },260);
         } else if(modal){
           modal.classList.remove('open');
         }
