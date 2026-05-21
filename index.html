@@ -53,15 +53,16 @@ if ('serviceWorker' in navigator) {
   // SW'dan gelen bildirim tıklaması mesajını yakala → deeplink
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data && e.data.type === 'NOTIF_CLICK' && e.data.action) {
-      // App henüz hazır olmayabilir, kısa gecikmeyle dene
-      const doNav = () => {
+      const action = e.data.action;
+      const doNav = (attempt) => {
+        if(attempt > 20) return;
         if (window.App && window.App.Notifications) {
-          App.Notifications.handleNotifAction(e.data.action);
+          App.Notifications.handleNotifAction(action);
         } else {
-          setTimeout(doNav, 300);
+          setTimeout(()=>doNav(attempt+1), 300);
         }
       };
-      doNav();
+      doNav(0);
     }
   });
 }
@@ -2885,39 +2886,68 @@ const Notifications = {
     const parts=action.split(':');
     const page=parts[0];
     const id=parts[1]||null;
+
     const openModal=()=>{
-      if(!id)return;
       try{
+        // 1. ABONELİK — ödeme modalını aç (edit)
         if(page==='recurring'){
-          const s=Core.state.recurring.find(x=>x.id===id);
-          if(s)App.Controllers.Recurring.edit(id);
-        } else if(page==='debts'){
-          const d=Core.state.debts.find(x=>x.id===id);
-          if(d)App.Controllers.Debts.edit(id);
-        } else if(page==='goals'){
-          const g=Core.state.goals.find(x=>x.id===id);
-          if(g)App.Controllers.Goals.edit(id);
-        } else if(page==='wallets'){
-          // Kredi kartı kartını öne çıkar — scroll to
-          const el=document.querySelector(`[data-wallet-id="${id}"]`);
-          if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+          if(id){
+            const s=Core.state.recurring.find(x=>x.id===id);
+            if(s) App.Controllers.Recurring.edit(id);
+          } else {
+            App.Controllers.Recurring.openModal();
+          }
+        }
+        // 2. BORÇ/ALACAK — o kaydın kısmi ödeme modalını aç
+        else if(page==='debts'){
+          if(id){
+            const d=Core.state.debts.find(x=>x.id===id);
+            if(d) App.Controllers.Debts.prepAction(id); // kısmi ödeme modalı
+          } else {
+            App.Controllers.Debts.openModal();
+          }
+        }
+        // 3. KREDİ KARTI — hesap düzenleme modalını aç
+        else if(page==='wallets'){
+          if(id){
+            const w=Core.state.wallets.find(x=>x.id===id);
+            if(w) App.Controllers.Wallets.edit(id);
+          }
+        }
+        // 4. HEDEFLer — hedef modalını aç (para yatır)
+        else if(page==='goals'){
+          if(id){
+            const g=Core.state.goals.find(x=>x.id===id);
+            if(g) App.Controllers.Goals.prepAction(id,'add'); // para yatır
+          } else {
+            App.Controllers.Goals.openModal();
+          }
+        }
+        // 5. ANALİZ — büyük harcama, haftalık özet, bütçe → sadece sayfa
+        // 6. AYARLAR — döviz kuru → ayarlar/kurlar
+        else if(page==='settings'&&id==='rates'){
+          App.Controllers.Settings.openSection('rates');
         }
       }catch(e){console.warn('[Notif] Modal açılamadı:',e);}
     };
+
     const pageMap={
-      'dashboard':()=>App.navigate('dashboard'),
-      'recurring':()=>App.navigate('recurring'),
-      'debts':()=>App.navigate('debts'),
-      'analytics':()=>App.navigate('analytics'),
-      'goals':()=>App.navigate('goals'),
-      'wallets':()=>App.navigate('wallets'),
-      'settings':()=>App.navigate('settings'),
-      'settings/notifications':()=>{window.location.hash='/settings/notifications';}
+      'dashboard':'#/dashboard',
+      'recurring':'#/recurring',
+      'debts':'#/debts',
+      'analytics':'#/analytics',
+      'goals':'#/goals',
+      'wallets':'#/wallets',
+      'settings':'#/settings',
     };
-    const navFn=pageMap[page]||pageMap['dashboard'];
-    navFn();
-    // Sayfa render'ı bitince modal aç
-    setTimeout(openModal,450);
+    const targetHash=pageMap[page]||'#/dashboard';
+    const currentHash=window.location.hash;
+    if(currentHash===targetHash){
+      setTimeout(openModal,100);
+    } else {
+      window.location.hash=targetHash.replace('#','');
+      setTimeout(openModal,650);
+    }
   },
   updateUI(){
     if(!this.supported)return;
@@ -3081,7 +3111,7 @@ const Notifications = {
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
             const dir=current.TRY>cached.TRY?'yükseldi':'düştü';
-            this.sendNotif('SAGI — Döviz Kurları',`USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings',tag:'fx-'+now.getDate()});
+            this.sendNotif('SAGI — Döviz Kurları',`USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings:rates',tag:'fx-'+now.getDate()});
           }
         }
       }
