@@ -27,7 +27,8 @@
     recurring: [],
     goals: [],
     debts: [],
-    categories: []
+    categories: [],
+    notifInbox: []
   };
 
   // State'i localStorage'dan yükle
@@ -37,7 +38,8 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         return Object.assign({}, DEFAULT_STATE, parsed, {
-          settings: Object.assign({}, DEFAULT_STATE.settings, parsed.settings || {})
+          settings: Object.assign({}, DEFAULT_STATE.settings, parsed.settings || {}),
+          notifInbox: Array.isArray(parsed.notifInbox) ? parsed.notifInbox : []
         });
       }
     } catch(e) {
