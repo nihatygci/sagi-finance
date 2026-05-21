@@ -652,6 +652,31 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
 @media(min-width:640px){.page-title-row{margin-bottom:22px}}
 
+/* NOTIF INBOX */
+.notif-inbox-list{background:var(--bg-surface);border-radius:var(--radius-lg);border:1px solid var(--border-light);overflow:hidden;margin-bottom:16px}
+.notif-inbox-item{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;position:relative}
+.notif-inbox-item:last-child{border-bottom:none}
+.notif-inbox-item:hover,.notif-inbox-item:active{background:var(--bg-surface-hover)}
+.notif-inbox-item.unread{background:rgba(99,102,241,.035)}
+.notif-inbox-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand-accent);border-radius:0 2px 2px 0}
+.notif-inbox-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-inbox-body{flex:1;min-width:0}
+.notif-inbox-title{font-size:13px;font-weight:700;color:var(--text-main);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-inbox-text{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.notif-inbox-time{font-size:11px;color:var(--text-muted);margin-top:5px;display:flex;align-items:center;gap:5px}
+.notif-inbox-unread-dot{width:6px;height:6px;border-radius:50%;background:var(--brand-accent);flex-shrink:0}
+.notif-inbox-del{background:none;border:none;padding:6px;cursor:pointer;color:var(--text-muted);border-radius:8px;flex-shrink:0;opacity:0;transition:opacity .15s}
+.notif-inbox-item:hover .notif-inbox-del{opacity:.7}
+.notif-inbox-del:hover{opacity:1!important;color:var(--status-danger)}
+.notif-inbox-empty{text-align:center;padding:72px 20px;color:var(--text-muted);background:var(--bg-surface);border-radius:var(--radius-lg);border:1px solid var(--border-light)}
+.notif-inbox-empty-icon{width:52px;height:52px;margin:0 auto 16px;opacity:.2;display:block}
+.notif-inbox-section-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;padding:10px 20px 6px;background:var(--bg-body)}
+/* Mobil */
+@media(max-width:768px){
+  .notif-inbox-del{opacity:.5}
+  .notif-inbox-item{padding:14px 16px}
+}
+
 /* FILTER PANEL COLLAPSE */
 .tx-filter-body{overflow:hidden;transition:max-height .32s cubic-bezier(.16,1,.3,1),opacity .25s ease;max-height:600px;opacity:1}
 .tx-filter-body.collapsed{max-height:0;opacity:0;pointer-events:none}
@@ -1241,6 +1266,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <button class="act-btn" id="headerPrivacyBtn" onclick="App.Controllers.Settings.togglePrivacy()">
         <svg class="nav-icon" id="headerPrivacyIcon"><use href="#icon-eye"/></svg>
       </button>
+      <button class="act-btn" id="notifBellBtn" onclick="window.location.hash='/notifications'" style="position:relative">
+        <svg class="nav-icon"><use href="#icon-bell"/></svg>
+        <span id="notifBadge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--status-danger)"></span>
+      </button>
       <button class="act-btn" id="mobileMenuBtn">
         <svg class="nav-icon"><use href="#icon-menu"/></svg>
       </button>
@@ -1285,6 +1314,11 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
       <a href="#/goals" class="nav-link" data-route="/goals"><svg class="nav-icon"><use href="#icon-target"/></svg>Hedefler</a>
       <a href="#/debts" class="nav-link" data-route="/debts"><svg class="nav-icon"><use href="#icon-briefcase"/></svg>Borç & Alacak</a>
+      <a href="#/notifications" class="nav-link" data-route="/notifications" style="position:relative">
+        <svg class="nav-icon"><use href="#icon-bell"/></svg>
+        <span data-i18n="notifInboxTitle">Bildirimler</span>
+        <span id="sideNotifBadge" style="display:none;margin-left:auto;font-size:10px;font-weight:800;background:var(--status-danger);color:#fff;padding:1px 7px;border-radius:99px"></span>
+      </a>
     </div>
     <div class="nav-section" style="margin-top:auto;padding-bottom:16px">
       <a href="./privacy.html" target="_blank" rel="noopener" class="nav-link">
@@ -1578,6 +1612,34 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="card"><h2 class="card-title color-success mb-5" data-i18n="myReceivables">Alacaklarım</h2><div id="receivablesContainer" class="flex flex-col gap-4"></div></div>
       </div>
     </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- BİLDİRİM MERKEZİ VIEW -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="view-notifications" class="view">
+    <div class="page-header">
+      <div>
+        <h1 class="text-h1" data-i18n="notifInboxTitle">Bildirimler</h1>
+        <p class="text-subtitle" data-i18n="notifInboxSubtitle">Tüm bildirimleriniz burada</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <button class="btn btn-outline btn-sm" onclick="App.Controllers.NotifInbox.markAllRead()" data-i18n="notifMarkAllRead">Tümünü Okundu</button>
+        <button class="btn btn-outline btn-sm color-danger" onclick="App.Controllers.NotifInbox.clearAll()" data-i18n="notifClearAll">Temizle</button>
+      </div>
+    </div>
+
+    <!-- Filtre tabları -->
+    <div class="flex gap-2 mb-4" id="notifFilterTabs" style="border-bottom:1px solid var(--border-light);padding-bottom:0">
+      <button class="analytics-tab active" data-filter="all" onclick="App.Controllers.NotifInbox.setFilter('all',this)" data-i18n="notifFilterAll">Tümü</button>
+      <button class="analytics-tab" data-filter="unread" onclick="App.Controllers.NotifInbox.setFilter('unread',this)" data-i18n="notifFilterUnread">Okunmamış</button>
+      <button class="analytics-tab" data-filter="recurring" onclick="App.Controllers.NotifInbox.setFilter('recurring',this)" data-i18n="notifFilterRecurring">Abonelik</button>
+      <button class="analytics-tab" data-filter="debts" onclick="App.Controllers.NotifInbox.setFilter('debts',this)" data-i18n="notifFilterDebts">Borç</button>
+      <button class="analytics-tab" data-filter="goals" onclick="App.Controllers.NotifInbox.setFilter('goals',this)" data-i18n="notifFilterGoals">Hedef</button>
+    </div>
+
+    <!-- Liste -->
+    <div id="notifInboxList"></div>
+  </div>
 
     <!-- AYARLAR -->
     <div id="view-settings" class="view">
@@ -2661,7 +2723,7 @@ window.Core = Core;
 // ═══════════════════════════════════════
 const UI = {
   Router:{
-    routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings'],
+    routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
     settingsSections:['personalization','notifications','rates','bottombar','cloud','data'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
@@ -2683,6 +2745,7 @@ const UI = {
         Core.emit('routeChanged',settingsSection?'/settings/'+settingsSection:hash);
         if(settingsSection) App.Controllers.Settings._openSectionDirect(settingsSection);
         else if(hash==='/settings') App.Controllers.Settings._openSectionDirect(null);
+        else if(hash==='/notifications') App.Controllers.NotifInbox.render();
         setTimeout(applyLang,50);
         window.scrollTo(0,0);
       };
@@ -2871,10 +2934,25 @@ const Notifications = {
     }catch(e){UI.Toasts.show(t('msgNotifFail'),'error');}
   },
   sendNotif(title,body,opts){
-    if(!this.granted)return;
     opts=opts||{};
     var action=opts.action||'dashboard';
     var tag=opts.tag||('sagi-'+action+'-'+Date.now());
+    // Her zaman inbox'a kaydet (izin olmasa da)
+    if(!Array.isArray(Core.state.notifInbox)) Core.state.notifInbox=[];
+    // Aynı tag'li bildirim zaten varsa ekleme
+    if(!Core.state.notifInbox.find(n=>n.tag===tag)){
+      Core.state.notifInbox.unshift({
+        id:'ni_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        title, body, action, tag,
+        ts:Date.now(), read:false
+      });
+      // Max 50 kayıt tut
+      if(Core.state.notifInbox.length>50) Core.state.notifInbox.length=50;
+      Core.DB.save();
+      // Header badge güncelle
+      App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge();
+    }
+    if(!this.granted)return;
     var notifOpts={body:body,tag:tag,icon:'./icon-192.png',badge:'./icon-192.png',vibrate:[180,80,180],requireInteraction:false,silent:opts.silent||false,data:{action:action,url:'./',ts:Date.now()}};
     var swReg=window._swReg;
     if(swReg&&swReg.showNotification){try{swReg.showNotification(title,notifOpts);return;}catch(e){}}
@@ -3357,6 +3435,7 @@ const App = {
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
         UI.Router.init();
+        setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         applyLang();
         App.processRecurring();
         Notifications.check();
@@ -5360,6 +5439,137 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       delete(id){UI.Confirm.show(t('confDelDebt'),()=>{Core.state.debts=Core.state.debts.filter(d=>d.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgRecordDeleted'));});}
     },
+    NotifInbox:{
+      _filter:'all',
+      setFilter(filter,btn){
+        this._filter=filter;
+        document.querySelectorAll('#notifFilterTabs .analytics-tab').forEach(b=>b.classList.remove('active'));
+        if(btn)btn.classList.add('active');
+        this.render();
+      },
+      render(){
+        const list=document.getElementById('notifInboxList');
+        if(!list)return;
+        let inbox=Core.state.notifInbox||[];
+
+        // Filtrele
+        if(this._filter==='unread') inbox=inbox.filter(n=>!n.read);
+        else if(this._filter!=='all') inbox=inbox.filter(n=>(n.action||'').startsWith(this._filter));
+
+        if(!inbox.length){
+          list.innerHTML=`<div class="notif-inbox-empty">
+            <svg class="notif-inbox-empty-icon nav-icon"><use href="#icon-bell"/></svg>
+            <div style="font-size:16px;font-weight:700;color:var(--text-secondary);margin-bottom:8px">${t('notifInboxEmpty')}</div>
+            <div style="font-size:13px">${t('notifInboxEmptyDesc')}</div>
+          </div>`;
+          this.updateBadge();
+          return;
+        }
+
+        // Tarihe göre grupla (Bugün / Bu Hafta / Daha Önce)
+        const now=Date.now();
+        const todayStart=new Date();todayStart.setHours(0,0,0,0);
+        const weekStart=new Date(todayStart);weekStart.setDate(weekStart.getDate()-6);
+        const groups=[
+          {key:'today',  label:LANG==='en'?'Today':'Bugün',          items:inbox.filter(n=>n.ts>=todayStart.getTime())},
+          {key:'week',   label:LANG==='en'?'This Week':'Bu Hafta',    items:inbox.filter(n=>n.ts<todayStart.getTime()&&n.ts>=weekStart.getTime())},
+          {key:'older',  label:LANG==='en'?'Earlier':'Daha Önce',     items:inbox.filter(n=>n.ts<weekStart.getTime())},
+        ].filter(g=>g.items.length>0);
+
+        const renderItem=n=>{
+          const {icon,bg,color}=this._actionMeta(n.action);
+          const timeStr=this._timeAgo(n.ts);
+          return`<div class="notif-inbox-item${n.read?'':' unread'}" onclick="App.Controllers.NotifInbox.handleClick('${n.id}')">
+            <div class="notif-inbox-icon" style="background:${bg};color:${color}">
+              <svg class="nav-icon" style="width:18px;height:18px"><use href="#${icon}"/></svg>
+            </div>
+            <div class="notif-inbox-body">
+              <div class="notif-inbox-title">${n.title}</div>
+              <div class="notif-inbox-text">${n.body}</div>
+              <div class="notif-inbox-time">
+                ${!n.read?'<span class="notif-inbox-unread-dot"></span>':''}
+                <span>${timeStr}</span>
+              </div>
+            </div>
+            <button class="notif-inbox-del" onclick="event.stopPropagation();App.Controllers.NotifInbox.remove('${n.id}')">
+              <svg class="nav-icon" style="width:15px;height:15px"><use href="#icon-x"/></svg>
+            </button>
+          </div>`;
+        };
+
+        list.innerHTML=groups.map(g=>`
+          <div class="notif-inbox-section-label">${g.label}</div>
+          <div class="notif-inbox-list">${g.items.map(renderItem).join('')}</div>
+        `).join('');
+
+        this.updateBadge();
+      },
+      handleClick(id){
+        const n=(Core.state.notifInbox||[]).find(x=>x.id===id);
+        if(!n)return;
+        n.read=true;
+        Core.DB.save();
+        this.render();
+        this.updateBadge();
+        if(n.action)App.Notifications.handleNotifAction(n.action);
+      },
+      remove(id){
+        Core.state.notifInbox=(Core.state.notifInbox||[]).filter(x=>x.id!==id);
+        Core.DB.save();
+        this.render();
+        this.updateBadge();
+      },
+      markAllRead(){
+        (Core.state.notifInbox||[]).forEach(n=>n.read=true);
+        Core.DB.save();
+        this.render();
+        this.updateBadge();
+        UI.Toasts.show(t('notifAllRead'));
+      },
+      clearAll(){
+        UI.Confirm.show(t('notifClearConfirm'),()=>{
+          Core.state.notifInbox=[];
+          Core.DB.save();
+          this.render();
+          this.updateBadge();
+        });
+      },
+      updateBadge(){
+        const unread=(Core.state.notifInbox||[]).filter(n=>!n.read).length;
+        // Header zil badge
+        const badge=document.getElementById('notifBadge');
+        if(badge)badge.style.display=unread>0?'block':'none';
+        // Sidebar badge
+        const sideBadge=document.getElementById('sideNotifBadge');
+        if(sideBadge){sideBadge.style.display=unread>0?'inline-block':'none';sideBadge.textContent=unread>9?'9+':unread;}
+        // Bnav badge (text güncelleme yerine nokta yeterli, text bozuyor)
+        const bnavBell=document.querySelector('[data-route="/notifications"] .bnav-text');
+        if(bnavBell)bnavBell.textContent=t('notifInboxTitle')||'Bildirimler';
+      },
+      _actionMeta(action){
+        const page=(action||'').split(':')[0];
+        const map={
+          recurring:{icon:'icon-repeat',   bg:'rgba(34,160,107,.12)', color:'var(--status-success)'},
+          debts:    {icon:'icon-briefcase', bg:'rgba(229,83,75,.12)',  color:'var(--status-danger)'},
+          goals:    {icon:'icon-target',    bg:'rgba(217,119,6,.12)',  color:'var(--status-warn)'},
+          wallets:  {icon:'icon-wallet',    bg:'rgba(99,102,241,.12)', color:'var(--brand-accent)'},
+          analytics:{icon:'icon-chart',     bg:'rgba(99,102,241,.12)', color:'var(--brand-accent)'},
+          settings: {icon:'icon-settings',  bg:'rgba(113,113,122,.12)',color:'var(--text-secondary)'},
+          dashboard:{icon:'icon-home',      bg:'rgba(99,102,241,.12)', color:'var(--brand-accent)'},
+        };
+        return map[page]||{icon:'icon-bell',bg:'rgba(99,102,241,.12)',color:'var(--brand-accent)'};
+      },
+      _timeAgo(ts){
+        const diff=Date.now()-ts;
+        const m=Math.floor(diff/60000);
+        const h=Math.floor(m/60);
+        const d=Math.floor(h/24);
+        if(m<1)return LANG==='en'?'Just now':'Az önce';
+        if(m<60)return LANG==='en'?`${m}m ago`:`${m} dk önce`;
+        if(h<24)return LANG==='en'?`${h}h ago`:`${h} sa önce`;
+        return LANG==='en'?`${d}d ago`:`${d} gün önce`;
+      }
+    },
     Settings:{
       _activeSection: null,
 
@@ -5907,8 +6117,9 @@ const ALL_BNAV_ITEMS = [
   {id:'recurring', icon:'icon-repeat',label:'Abonelikler', labelEn:'Subscriptions',route:'/recurring'},
   {id:'goals',     icon:'icon-target',label:'Hedefler',    labelEn:'Goals',        route:'/goals'},
   {id:'debts',     icon:'icon-briefcase',label:'Borç/Alacak',labelEn:'Debts',     route:'/debts'},
-  {id:'settings',  icon:'icon-settings',label:'Ayarlar',  labelEn:'Settings',     route:'/settings'},
-  {id:'sidebar',   icon:'icon-menu',   label:'Menü',       labelEn:'Menu',         route:'#'},
+  {id:'settings',       icon:'icon-settings',label:'Ayarlar',      labelEn:'Settings',      route:'/settings'},
+  {id:'notifications',  icon:'icon-bell',    label:'Bildirimler',  labelEn:'Notifications', route:'/notifications'},
+  {id:'sidebar',        icon:'icon-menu',    label:'Menü',          labelEn:'Menu',          route:'#'},
 ];
 
 // ═══════════════════════════════════════
