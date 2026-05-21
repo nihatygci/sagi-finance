@@ -222,21 +222,26 @@ self.addEventListener('notificationclick', event => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(clientList => {
-        // Zaten açık bir SAGI sekmesi var mı?
-        const sagiClient = clientList.find(c => c.url.includes(self.registration.scope));
+      .then(async clientList => {
+        // Scope içinde açık sekme var mı?
+        const sagiClient = clientList.find(c =>
+          c.url.startsWith(self.registration.scope) && 'focus' in c
+        );
+
         if (sagiClient) {
-          // Öne getir ve deeplink mesajı gönder
-          sagiClient.focus();
+          try { await sagiClient.focus(); } catch(e) {}
+          // focus sonrası kısa bekle, sonra mesaj gönder
+          await new Promise(r => setTimeout(r, 300));
           sagiClient.postMessage({ type: 'NOTIF_CLICK', action });
           return;
         }
-        // Yoksa yeni pencere aç (URL param ile action taşı)
-        return clients.openWindow(targetUrl).then(newClient => {
-          if (newClient) {
-            setTimeout(() => newClient.postMessage({ type: 'NOTIF_CLICK', action }), 1200);
-          }
-        });
+
+        // Açık sekme yok — yeni aç, URL param ile action taşı
+        const newClient = await clients.openWindow(targetUrl);
+        if (newClient) {
+          // Sayfa yüklenince URL param'ı index.html'deki handler okur
+          // postMessage'a gerek yok, URL param yeterli
+        }
       })
   );
 });
