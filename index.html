@@ -2223,7 +2223,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="toggle-row" id="recAutoPayRow" onclick="App.Controllers.Recurring.toggleAutoPay()">
             <div>
               <div class="font-bold" style="font-size:15px">Otomatik Ödeme Talimatı</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px">Ödeme günü geldiğinde hesaptan otomatik çekilsin</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="autoPayDesc">Ödeme günü geldiğinde hesaptan otomatik çekilsin</div>
             </div>
             <div class="toggle-track" id="recAutoPayTrack"><div class="toggle-thumb"></div></div>
           </div>
@@ -2231,13 +2231,13 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div id="recAutoPayDetails" class="autopay-info-box" style="display:none">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
               <svg class="nav-icon" style="width:15px;height:15px;color:var(--brand-accent)"><use href="#icon-check"/></svg>
-              <span style="font-size:13px;font-weight:700;color:var(--brand-accent)">Otomatik ödeme etkin</span>
+              <span style="font-size:13px;font-weight:700;color:var(--brand-accent)" data-i18n="autoPayActive">Otomatik ödeme etkin</span>
             </div>
             <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">
-              Ödeme günü (<strong id="recAutoPayDayPreview">—</strong>), seçilen hesaptan otomatik işlem kaydedilecek.
+              <span data-i18n="autoPayActive" style="display:none"></span><span id="recAutoPayScheduleText">Ödeme günü (<strong id="recAutoPayDayPreview">—</strong>), seçilen hesaptan otomatik işlem kaydedilecek.</span>
             </div>
             <div class="autopay-warn-box">
-              Uygulama arka planda çalışmadan veya açılmadan otomatik ödeme gerçekleşmez. Her gün uygulamayı açtığınızda bekleyen ödemeler işlenir.
+              <span data-i18n="autoPayWarn">Uygulama arka planda çalışmadan veya açılmadan otomatik ödeme gerçekleşmez. Her gün uygulamayı açtığınızda bekleyen ödemeler işlenir.</span>
             </div>
           </div>
         </div>
@@ -2480,7 +2480,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="modal-info-row" style="background:var(--status-danger-bg);border-color:rgba(229,83,75,.2)">
           <span class="info-label" id="payCardName" style="font-weight:700">—</span>
           <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Güncel Borç</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px" data-i18n="ccCurrentDebt">Güncel Borç</div>
             <span class="info-value color-danger" id="payCardDebt" style="font-size:20px;font-family:var(--font-display)">₺0</span>
           </div>
         </div>
@@ -2508,7 +2508,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div class="modal-title-row">
         <div class="modal-title-icon" style="background:rgba(108,77,255,.12);color:#6C4DFF"><svg><use href="#icon-wallet"/></svg></div>
         <div>
-          <h3 class="modal-title" id="cardDetailName" style="font-size:18px">Kart Detayı</h3>
+          <h3 class="modal-title" id="cardDetailName" style="font-size:18px" data-i18n="ccCardDetail">Kart Detayı</h3>
           <div id="cardDetailSubtitle" style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px"></div>
         </div>
       </div>
@@ -2519,19 +2519,19 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div class="cc-detail-hero" id="cardDetailHero" style="background:linear-gradient(135deg,#1a1a2e,#6366f1)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
           <div>
-            <div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Kredi Kartı</div>
+            <div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px" data-i18n="ccType">Kredi Kartı</div>
             <div style="font-size:16px;font-weight:700" id="cardDetailHeroName">—</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
             <div id="cardDetailDueBadge" style="display:none;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fbbf24;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700"></div>
           </div>
         </div>
-        <div style="font-size:12px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Güncel Borç</div>
+        <div style="font-size:12px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px" data-i18n="ccCurrentDebt">Güncel Borç</div>
         <div style="font-size:32px;font-weight:800;font-family:var(--font-display);letter-spacing:-1.5px;line-height:1;color:#fff" id="cardDetailHeroDebt">₺0</div>
         <!-- Mini progress on hero -->
         <div style="margin-top:14px">
           <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.65;font-weight:600;margin-bottom:5px">
-            <span>Kullanım</span><span id="cardDetailHeroPerc">%0</span>
+            <span data-i18n="ccUsageLabel">Kullanım</span><span id="cardDetailHeroPerc">%0</span>
           </div>
           <div style="height:5px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden">
             <div id="cardDetailHeroBar" style="height:100%;border-radius:99px;transition:width .7s cubic-bezier(.16,1,.3,1);background:rgba(255,255,255,.8)"></div>
@@ -2541,30 +2541,30 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <!-- Stats row -->
       <div class="cc-stat-grid">
         <div class="cc-stat-card">
-          <div class="cc-stat-label">Limit</div>
+          <div class="cc-stat-label" data-i18n="ccLimit">Limit</div>
           <div class="cc-stat-value" id="cardDetailLimit">₺0</div>
         </div>
         <div class="cc-stat-card">
-          <div class="cc-stat-label">Kullanılabilir</div>
+          <div class="cc-stat-label" data-i18n="ccAvailable">Kullanılabilir</div>
           <div class="cc-stat-value color-success" id="cardDetailAvail">₺0</div>
         </div>
         <div class="cc-stat-card">
-          <div class="cc-stat-label">Kullanım %</div>
+          <div class="cc-stat-label" data-i18n="ccUsagePct">Kullanım %</div>
           <div class="cc-stat-value" id="cardDetailPerc">%0</div>
         </div>
       </div>
       <!-- Date row -->
       <div class="cc-date-row" id="cardDetailDateRow">
         <div class="cc-date-item" id="cardDetailCutoffCell">
-          <div class="cc-date-label">Hesap Kesim</div>
+          <div class="cc-date-label" data-i18n="ccCutoffLabel">Hesap Kesim</div>
           <div class="cc-date-val" id="cardDetailCutoff">-</div>
         </div>
         <div class="cc-date-item" id="cardDetailDueCell">
-          <div class="cc-date-label">Son Ödeme</div>
+          <div class="cc-date-label" data-i18n="ccDueLabel">Son Ödeme</div>
           <div class="cc-date-val" id="cardDetailDue">-</div>
         </div>
         <div class="cc-date-item" id="cardDetailDaysCell" style="display:none">
-          <div class="cc-date-label">Kalan Süre</div>
+          <div class="cc-date-label" data-i18n="ccDaysLeft">Kalan Süre</div>
           <div class="cc-date-val" id="cardDetailDaysLeft">-</div>
         </div>
       </div>
@@ -2572,8 +2572,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div id="cardDetailDebt" style="display:none"></div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> Tüm İşlemler</button>
-      <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> Ödeme Yap</button>
+      <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> <span data-i18n="ccAllTx">Tüm İşlemler</span></button>
+      <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> <span data-i18n="ccPayNow">Ödeme Yap</span></button>
     </div>
   </div>
 </div>
@@ -2790,9 +2790,9 @@ const UI = {
         const hE=Math.max(2,(d.exp/maxVal)*CHART_H);
         const baseY=H-PAD_B;
         // Gelir bar
-        svg+=`<rect x="${cx-barW-gap/2}" y="${baseY-hI}" width="${barW}" height="${hI}" fill="${INC_COLOR}" rx="3" opacity="0.9"><title>Gelir: ${Core.Utils.formatMoney(d.inc)}</title></rect>`;
+        svg+=`<rect x="${cx-barW-gap/2}" y="${baseY-hI}" width="${barW}" height="${hI}" fill="${INC_COLOR}" rx="3" opacity="0.9"><title>${t('chartIncomeLabel')}: ${Core.Utils.formatMoney(d.inc)}</title></rect>`;
         // Gider bar
-        svg+=`<rect x="${cx+gap/2}" y="${baseY-hE}" width="${barW}" height="${hE}" fill="${EXP_COLOR}" rx="3" opacity="0.9"><title>Gider: ${Core.Utils.formatMoney(d.exp)}</title></rect>`;
+        svg+=`<rect x="${cx+gap/2}" y="${baseY-hE}" width="${barW}" height="${hE}" fill="${EXP_COLOR}" rx="3" opacity="0.9"><title>${t('chartExpenseLabel')}: ${Core.Utils.formatMoney(d.exp)}</title></rect>`;
         // Etiket
         svg+=`<text x="${cx}" y="${H-6}" fill="${MUTED}" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.02em">${d.label}</text>`;
       });
@@ -3008,10 +3008,10 @@ const Notifications = {
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
         const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
-        if(diff===3)sendIfNew('3d',`${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
-        else if(diff===1)sendIfNew('1d',`Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
-        else if(diff===0)sendIfNew('0d',`Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
-        else if(diff<0&&diff>=-7)sendIfNew('late',`${s.name} ödemesi ${Math.abs(diff)} gün gecikti!`);
+        if(diff===3)sendIfNew('3d',L().notifRecurring3d(s.name,Core.Utils.formatMoney(s.amount)));
+        else if(diff===1)sendIfNew('1d',L().notifRecurring1d(s.name,Core.Utils.formatMoney(s.amount)));
+        else if(diff===0)sendIfNew('0d',L().notifRecurring0d(s.name,Core.Utils.formatMoney(s.amount)));
+        else if(diff<0&&diff>=-7)sendIfNew('late',L().notifRecurringLate(s.name,Math.abs(diff)));
       });
     }
 
@@ -3025,7 +3025,7 @@ const Notifications = {
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
-            const msg=diffD===0?`Bugün: ${d.name} için ${Core.Utils.formatMoney(d.amount)} vadesi doldu.`:`${diffD} gün içinde: ${d.name} — ${Core.Utils.formatMoney(d.amount)}`;
+            const msg=diffD===0?L().notifDebtMsg0(d.name,Core.Utils.formatMoney(d.amount)):L().notifDebtMsgN(diffD,d.name,Core.Utils.formatMoney(d.amount));
             this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
           }
         }
@@ -3041,7 +3041,7 @@ const Notifications = {
           const nk='sagi_nt_cc_'+cc.id+'_'+(diff)+'_'+now.getFullYear()+'_'+now.getMonth();
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
-            const msg=diff===0?`Bugün ${cc.name} ödeme günü! Borç: ${Core.Utils.formatMoney(debt)}`:`💳 ${cc.name} ödeme gününe ${diff} gün kaldı. Borç: ${Core.Utils.formatMoney(debt)}`;
+            const msg=diff===0?L().notifCCMsg0(cc.name,Core.Utils.formatMoney(debt)):L().notifCCMsgN(cc.name,diff,Core.Utils.formatMoney(debt));
             this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
           }
         }
@@ -3453,7 +3453,7 @@ const App = {
     if(add>0){
       Core.state.settings.lastProcessedDate=tStr;
       Core.DB.save();
-      UI.Toasts.show(`${add} otomatik ödeme talimatı işlendi.`,'success');
+      UI.Toasts.show(L().autoPayProcessed(add),'success');
     } else {
       // Tarih güncellemesi (manuel ödeme olmasa da)
       Core.state.settings.lastProcessedDate=tStr;
@@ -3730,10 +3730,10 @@ const App = {
               unpaid.forEach(s=>{
                 const diff=s.day-today;
                 const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now2.getFullYear()+'_'+now2.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');Notifications.sendNotif('SAGI — Abonelik',msg,{action:'recurring',tag:'rec-'+s.id+'-'+key});}};
-                if(diff===3)sendIfNew('3d',`${s.name} ödemesine 3 gün kaldı: ${Core.Utils.formatMoney(s.amount)}`);
-                else if(diff===1)sendIfNew('1d',`Yarın: ${s.name} ödemesi — ${Core.Utils.formatMoney(s.amount)}`);
-                else if(diff===0)sendIfNew('0d',`Bugün ${s.name} ödemesi yapılmalı: ${Core.Utils.formatMoney(s.amount)}`);
-                else if(diff<0&&diff>=-7)sendIfNew('late',`${s.name} ödemesi ${Math.abs(diff)} gün gecikti!`);
+                if(diff===3)sendIfNew('3d',t('notifRecurring3d')(s.name,Core.Utils.formatMoney(s.amount)));
+                else if(diff===1)sendIfNew('1d',t('notifRecurring1d')(s.name,Core.Utils.formatMoney(s.amount)));
+                else if(diff===0)sendIfNew('0d',t('notifRecurring0d')(s.name,Core.Utils.formatMoney(s.amount)));
+                else if(diff<0&&diff>=-7)sendIfNew('late',t('notifRecurringLate')(s.name,Math.abs(diff)));
               });
             }
           }
@@ -4099,7 +4099,7 @@ const App = {
         if(heroBar){heroBar.style.width=ccUsedPerc+'%';heroBar.style.background=ccUsedPerc>=80?'#f87171':(ccUsedPerc>=50?'#fbbf24':'rgba(255,255,255,.8)');}
         // Due badge
         const dueBadge=document.getElementById('cardDetailDueBadge');
-        if(dueBadge){if(isDueUrgent){dueBadge.style.display='block';dueBadge.textContent=daysUntilDue===0?'Bugün son ödeme!':daysUntilDue+' gün kaldı';}else{dueBadge.style.display='none';}}
+        if(dueBadge){if(isDueUrgent){dueBadge.style.display='block';dueBadge.textContent=daysUntilDue===0?t('ccDueToday'):L().ccDaysRemaining(daysUntilDue);}else{dueBadge.style.display='none';}}
         // Stats
         document.getElementById('cardDetailLimit').textContent=Core.Utils.formatMoney(ccLimit,cc.currency);
         document.getElementById('cardDetailAvail').textContent=Core.Utils.formatMoney(ccAvail,cc.currency);
@@ -5099,7 +5099,9 @@ const App = {
       _updateAutoPayPreview(){
         const dayVal=document.getElementById('rec_day')?.value||'1';
         const preview=document.getElementById('recAutoPayDayPreview');
-        if(preview)preview.textContent='her ayın '+dayVal+'. günü';
+        if(preview)preview.textContent=dayVal;
+        const schedText=document.getElementById('recAutoPayScheduleText');
+        if(schedText)schedText.innerHTML=L().autoPaySchedule(dayVal);
       },
       save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const rawAmount=parseFloat(document.getElementById('rec_amount').value);if(!rawAmount)return UI.Toasts.show(t('msgAmountReq'),'error');const recCurEl=document.getElementById('rec_currency');const recCur=recCurEl?recCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amount=App.ExchangeRate.convert(rawAmount,recCur,mc);const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';
         const recId=document.getElementById('rec_id').value;
@@ -5715,7 +5717,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           const w = Core.state.wallets.find(x=>x.id===tx.wallet);
           const wName = w ? w.name : 'Silinmiş';
           const wCur  = (tx.amountCurrency) || (w && w.currency) || 'TRY';
-          const type  = tx.type==='income' ? 'Gelir' : 'Gider';
+          const type  = tx.type==='income' ? t('csvIncome') : t('csvExpense');
           csv += [tx.date, esc(type), esc(tx.cat), esc(wName), esc(wCur), tx.amount, esc(tx.desc||'')].join(',') + '\r\n';
         });
         csv += '\r\n## ABONELİKLER\r\n';
