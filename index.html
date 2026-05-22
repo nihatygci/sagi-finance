@@ -653,6 +653,13 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 @media(min-width:640px){.page-title-row{margin-bottom:22px}}
 
 /* NOTIF INBOX */
+/* Notif filtre tabları mobil */
+#notifFilterTabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;gap:4px;padding-bottom:2px}
+#notifFilterTabs::-webkit-scrollbar{display:none}
+#notifFilterTabs .analytics-tab{white-space:nowrap;flex-shrink:0}
+@media(max-width:768px){
+  #notifFilterTabs{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+}
 .notif-inbox-list{background:var(--bg-surface);border-radius:var(--radius-lg);border:1px solid var(--border-light);overflow:hidden;margin-bottom:16px}
 .notif-inbox-item{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;position:relative}
 .notif-inbox-item:last-child{border-bottom:none}
@@ -1266,10 +1273,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <button class="act-btn" id="headerPrivacyBtn" onclick="App.Controllers.Settings.togglePrivacy()">
         <svg class="nav-icon" id="headerPrivacyIcon"><use href="#icon-eye"/></svg>
       </button>
-      <button class="act-btn" id="notifBellBtn" onclick="window.location.hash='/notifications'" style="position:relative">
-        <svg class="nav-icon"><use href="#icon-bell"/></svg>
-        <span id="notifBadge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--status-danger)"></span>
-      </button>
       <button class="act-btn" id="mobileMenuBtn">
         <svg class="nav-icon"><use href="#icon-menu"/></svg>
       </button>
@@ -1308,17 +1311,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="nav-section">
       <div class="text-caption mb-3 px-2" data-i18n="mainMenu">Ana Menü</div>
       <a href="#/dashboard" class="nav-link" data-route="/dashboard"><svg class="nav-icon"><use href="#icon-home"/></svg>Ana Sayfa</a>
+      <a href="#/notifications" class="nav-link" data-route="/notifications" style="position:relative">
+        <svg class="nav-icon"><use href="#icon-bell"/></svg>
+        <span data-i18n="notifInboxTitle">Bildirimler</span>
+        <span id="sideNotifBadge" style="display:none;margin-left:auto;font-size:10px;font-weight:800;background:var(--status-danger);color:#fff;padding:1px 7px;border-radius:99px"></span>
+      </a>
       <a href="#/wallets" class="nav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg>Hesaplarım</a>
       <a href="#/transactions" class="nav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg>İşlemler</a>
       <a href="#/analytics" class="nav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg>Analiz</a>
       <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
       <a href="#/goals" class="nav-link" data-route="/goals"><svg class="nav-icon"><use href="#icon-target"/></svg>Hedefler</a>
       <a href="#/debts" class="nav-link" data-route="/debts"><svg class="nav-icon"><use href="#icon-briefcase"/></svg>Borç & Alacak</a>
-      <a href="#/notifications" class="nav-link" data-route="/notifications" style="position:relative">
-        <svg class="nav-icon"><use href="#icon-bell"/></svg>
-        <span data-i18n="notifInboxTitle">Bildirimler</span>
-        <span id="sideNotifBadge" style="display:none;margin-left:auto;font-size:10px;font-weight:800;background:var(--status-danger);color:#fff;padding:1px 7px;border-radius:99px"></span>
-      </a>
     </div>
     <div class="nav-section" style="margin-top:auto;padding-bottom:16px">
       <a href="./privacy.html" target="_blank" rel="noopener" class="nav-link">
@@ -3086,10 +3089,10 @@ const Notifications = {
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
         const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
-        if(diff===3)sendIfNew('3d',L().notifRecurring3d(s.name,Core.Utils.formatMoney(s.amount)));
-        else if(diff===1)sendIfNew('1d',L().notifRecurring1d(s.name,Core.Utils.formatMoney(s.amount)));
-        else if(diff===0)sendIfNew('0d',L().notifRecurring0d(s.name,Core.Utils.formatMoney(s.amount)));
-        else if(diff<0&&diff>=-7)sendIfNew('late',L().notifRecurringLate(s.name,Math.abs(diff)));
+        if(diff===3)sendIfNew('3d',L().ui.notifRecurring3d(s.name,Core.Utils.formatMoney(s.amount)));
+        else if(diff===1)sendIfNew('1d',L().ui.notifRecurring1d(s.name,Core.Utils.formatMoney(s.amount)));
+        else if(diff===0)sendIfNew('0d',L().ui.notifRecurring0d(s.name,Core.Utils.formatMoney(s.amount)));
+        else if(diff<0&&diff>=-7)sendIfNew('late',L().ui.notifRecurringLate(s.name,Math.abs(diff)));
       });
     }
 
@@ -3103,7 +3106,7 @@ const Notifications = {
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
-            const msg=diffD===0?L().notifDebtMsg0(d.name,Core.Utils.formatMoney(d.amount)):L().notifDebtMsgN(diffD,d.name,Core.Utils.formatMoney(d.amount));
+            const msg=diffD===0?L().ui.notifDebtMsg0(d.name,Core.Utils.formatMoney(d.amount)):L().ui.notifDebtMsgN(diffD,d.name,Core.Utils.formatMoney(d.amount));
             this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
           }
         }
@@ -3119,7 +3122,7 @@ const Notifications = {
           const nk='sagi_nt_cc_'+cc.id+'_'+(diff)+'_'+now.getFullYear()+'_'+now.getMonth();
           if(!sessionStorage.getItem(nk)){
             sessionStorage.setItem(nk,'1');
-            const msg=diff===0?L().notifCCMsg0(cc.name,Core.Utils.formatMoney(debt)):L().notifCCMsgN(cc.name,diff,Core.Utils.formatMoney(debt));
+            const msg=diff===0?L().ui.notifCCMsg0(cc.name,Core.Utils.formatMoney(debt)):L().ui.notifCCMsgN(cc.name,diff,Core.Utils.formatMoney(debt));
             this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
           }
         }
@@ -3532,7 +3535,7 @@ const App = {
     if(add>0){
       Core.state.settings.lastProcessedDate=tStr;
       Core.DB.save();
-      UI.Toasts.show(L().autoPayProcessed(add),'success');
+      UI.Toasts.show(L().ui.autoPayProcessed(add),'success');
     } else {
       // Tarih güncellemesi (manuel ödeme olmasa da)
       Core.state.settings.lastProcessedDate=tStr;
@@ -4178,7 +4181,7 @@ const App = {
         if(heroBar){heroBar.style.width=ccUsedPerc+'%';heroBar.style.background=ccUsedPerc>=80?'#f87171':(ccUsedPerc>=50?'#fbbf24':'rgba(255,255,255,.8)');}
         // Due badge
         const dueBadge=document.getElementById('cardDetailDueBadge');
-        if(dueBadge){if(isDueUrgent){dueBadge.style.display='block';dueBadge.textContent=daysUntilDue===0?t('ccDueToday'):L().ccDaysRemaining(daysUntilDue);}else{dueBadge.style.display='none';}}
+        if(dueBadge){if(isDueUrgent){dueBadge.style.display='block';dueBadge.textContent=daysUntilDue===0?t('ccDueToday'):L().ui.ccDaysRemaining(daysUntilDue);}else{dueBadge.style.display='none';}}
         // Stats
         document.getElementById('cardDetailLimit').textContent=Core.Utils.formatMoney(ccLimit,cc.currency);
         document.getElementById('cardDetailAvail').textContent=Core.Utils.formatMoney(ccAvail,cc.currency);
@@ -5180,7 +5183,7 @@ const App = {
         const preview=document.getElementById('recAutoPayDayPreview');
         if(preview)preview.textContent=dayVal;
         const schedText=document.getElementById('recAutoPayScheduleText');
-        if(schedText)schedText.innerHTML=L().autoPaySchedule(dayVal);
+        if(schedText)schedText.innerHTML=L().ui.autoPaySchedule(dayVal);
       },
       save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const rawAmount=parseFloat(document.getElementById('rec_amount').value);if(!rawAmount)return UI.Toasts.show(t('msgAmountReq'),'error');const recCurEl=document.getElementById('rec_currency');const recCur=recCurEl?recCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amount=App.ExchangeRate.convert(rawAmount,recCur,mc);const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';
         const recId=document.getElementById('rec_id').value;
