@@ -3808,16 +3808,6 @@ const App = {
               }
               du.innerHTML=html;
             }
-            if(Notifications.granted&&(Core.state.settings.notifications?.abonelik)){
-              unpaid.forEach(s=>{
-                const diff=s.day-today;
-                const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now2.getFullYear()+'_'+now2.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');Notifications.sendNotif('SAGI — Abonelik',msg,{action:'recurring',tag:'rec-'+s.id+'-'+key});}};
-                if(diff===3)sendIfNew('3d',t('notifRecurring3d')(s.name,Core.Utils.formatMoney(s.amount)));
-                else if(diff===1)sendIfNew('1d',t('notifRecurring1d')(s.name,Core.Utils.formatMoney(s.amount)));
-                else if(diff===0)sendIfNew('0d',t('notifRecurring0d')(s.name,Core.Utils.formatMoney(s.amount)));
-                else if(diff<0&&diff>=-7)sendIfNew('late',t('notifRecurringLate')(s.name,Math.abs(diff)));
-              });
-            }
           }
         }
       },
