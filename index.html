@@ -24,7 +24,6 @@
 <script src="./firebase-config.js"></script>
 <script src="./core.js"></script>
 <script src="./cloud-sync.js"></script>
-<script src="./sagi-assistant.js"></script>
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
 window._swReg = null;
@@ -476,34 +475,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .kpi-card .kpi-delta{font-size:12px;font-weight:600;margin-top:5px;display:flex;align-items:center;gap:4px}
 .kpi-card .kpi-delta.up{color:var(--status-success)}.kpi-card .kpi-delta.down{color:var(--status-danger)}.kpi-card .kpi-delta.neutral{color:var(--text-muted)}
 .kpi-card .kpi-icon{position:absolute;right:14px;top:14px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
-/* AI Bot Mesajı */
-.ai-insight-card{background:linear-gradient(135deg,rgba(79,70,229,.07) 0%,rgba(99,102,241,.04) 100%);border:1.5px solid rgba(79,70,229,.18);border-radius:var(--radius-lg);padding:18px;position:relative;overflow:hidden}
-[data-theme="dark"] .ai-insight-card{background:linear-gradient(135deg,rgba(99,102,241,.13) 0%,rgba(79,70,229,.06) 100%);border-color:rgba(99,102,241,.28)}
-.ai-insight-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(79,70,229,.12) 0%,transparent 70%);pointer-events:none}
-.ai-bot-row{display:flex;align-items:flex-start;gap:12px}
-.ai-bot-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(79,70,229,.3)}
-.ai-bot-avatar svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
-.ai-bot-bubble{flex:1;background:var(--bg-surface);border-radius:0 14px 14px 14px;padding:13px 15px;border:1px solid var(--border-light);font-size:14px;line-height:1.6;color:var(--text-main);position:relative}
-.ai-bot-bubble::before{content:'';position:absolute;left:-6px;top:10px;width:10px;height:10px;background:var(--bg-surface);border-left:1px solid var(--border-light);border-bottom:1px solid var(--border-light);transform:rotate(45deg);clip-path:polygon(0 0,100% 100%,0 100%)}
-.ai-bot-name{font-size:11px;font-weight:700;color:var(--brand-accent);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
-.ai-insight-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.ai-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700;background:rgba(79,70,229,.1);color:var(--brand-accent);border:1px solid rgba(79,70,229,.2)}
-.ai-tag.warn{background:var(--status-warn-bg);color:var(--status-warn);border-color:rgba(217,119,6,.2)}
-.ai-tag.success{background:var(--status-success-bg);color:var(--status-success);border-color:rgba(34,160,107,.2)}
-.ai-tag.danger{background:var(--status-danger-bg);color:var(--status-danger);border-color:rgba(229,83,75,.2)}
-/* Tahmin Kartı */
-.forecast-card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm)}
-.forecast-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-light)}
-.forecast-row:last-child{border-bottom:none}
-.forecast-label{font-size:14px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
-.forecast-val{font-family:var(--font-display);font-size:16px;font-weight:800;letter-spacing:-.02em}
-.forecast-conf{font-size:11px;color:var(--text-muted);font-weight:500;margin-top:1px;text-align:right}
-/* Tasarruf Skoru */
-.score-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
-.score-ring-wrap svg{width:110px;height:110px}
-.score-val{font-family:var(--font-display);font-size:25px;font-weight:800;fill:var(--text-main)}
-.score-label-txt{font-size:11px;fill:var(--text-muted);font-weight:600}
-.score-grade{font-size:13px;font-weight:700;padding:3px 12px;border-radius:var(--radius-full);margin-top:4px}
+
 
 /* Çizgi grafik */
 .sparkline-wrap{height:60px;width:100%;position:relative}
@@ -1508,65 +1480,16 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <!-- 4'lü KPI -->
       <div class="css-grid grid-cols-4 mb-5 stagger-1" id="analyticsSummary"></div>
 
-      <!-- SAGI Asistan Bot -->
-      <div class="ai-insight-card mb-5 stagger-2" id="aiInsightCard">
-        <div class="ai-bot-row">
-          <div class="ai-bot-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="8" width="18" height="12" rx="3"/>
-              <path d="M8 8V6a4 4 0 0 1 8 0v2"/>
-              <circle cx="9" cy="14" r="1.5" fill="white" stroke="none"/>
-              <circle cx="15" cy="14" r="1.5" fill="white" stroke="none"/>
-              <path d="M9 18h6" stroke-width="1.5"/>
-            </svg>
-          </div>
-          <div class="ai-bot-bubble">
-            <div class="ai-bot-name">SAGI Asistan</div>
-            <div id="aiInsightText" style="line-height:1.7" data-i18n="sagiAssistantLoading">Verileriniz analiz ediliyor...</div>
-            <div class="ai-insight-tags" id="aiInsightTags"></div>
-            <div id="aiInsightTips"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Aylık Karşılaştırma Kartları -->
-      <div class="card mb-5 stagger-2" id="sagiMonthlyCardsWrap">
-        <div id="sagiMonthlyCards"></div>
-      </div>
-
-      <!-- Trend Grafik + Tasarruf Skoru -->
-      <div class="css-grid grid-cols-2 mb-5 stagger-2">
-        <div class="card">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="card-title" data-i18n="trendTitle">Gelir / Gider Trendi</h2>
-            <div style="display:flex;gap:10px;font-size:12px;font-weight:600">
-              <span style="display:flex;align-items:center;gap:5px;color:var(--status-success)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-success);display:inline-block"></span><span data-i18n="trendIncome">Gelir</span></span>
-              <span style="display:flex;align-items:center;gap:5px;color:var(--status-danger)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-danger);display:inline-block"></span><span data-i18n="trendExpense">Gider</span></span>
-            </div>
-          </div>
-          <div class="bar-chart-wrap"><div id="trendBarChart"></div></div>
-        </div>
-        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
-          <h2 class="card-title mb-4" style="width:100%" data-i18n="savingsScoreTitle">Tasarruf Skoru</h2>
-          <div class="score-ring-wrap">
-            <div id="savingsScoreSvg"></div>
-            <div id="savingsScoreGrade" class="score-grade"></div>
-            <div style="font-size:12px;color:var(--text-muted);max-width:160px;margin-top:6px" id="savingsScoreDesc"></div>
-          </div>
-          <div id="sagiSavingsBreakdown" style="width:100%;text-align:left;margin-top:12px"></div>
-        </div>
-      </div>
-
-      <!-- Önümüzdeki Ay Tahmini -->
-      <div class="forecast-card mb-5 stagger-3" id="forecastCard">
+      <!-- Trend Grafik -->
+      <div class="card mb-5 stagger-2">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="card-title">
-            <svg class="nav-icon" style="width:18px;height:18px;color:var(--brand-accent)"><use href="#icon-chart"/></svg>
-            <span data-i18n="forecastTitle">Önümüzdeki Ay Tahmini</span>
-          </h2>
-          <span style="font-size:11px;color:var(--text-muted);font-weight:600;background:var(--bg-body);padding:4px 10px;border-radius:var(--radius-full);border:1px solid var(--border-light)" data-i18n="forecastBadge">Geçmişe Dayalı</span>
+          <h2 class="card-title" data-i18n="trendTitle">Gelir / Gider Trendi</h2>
+          <div style="display:flex;gap:10px;font-size:12px;font-weight:600">
+            <span style="display:flex;align-items:center;gap:5px;color:var(--status-success)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-success);display:inline-block"></span><span data-i18n="trendIncome">Gelir</span></span>
+            <span style="display:flex;align-items:center;gap:5px;color:var(--status-danger)"><span style="width:10px;height:10px;border-radius:3px;background:var(--status-danger);display:inline-block"></span><span data-i18n="trendExpense">Gider</span></span>
+          </div>
         </div>
-        <div id="forecastRows"></div>
+        <div class="bar-chart-wrap"><div id="trendBarChart"></div></div>
       </div>
 
       <!-- Gider Dağılımı + Kategoriler -->
@@ -3078,6 +3001,7 @@ const Notifications = {
   check(){
     if(!this.granted)return;
     if(Core.state.settings.notifMaster===false)return;
+    this.cleanOldKeys();
     const notifs=Core.state.settings.notifications||{};
     const now=new Date();
     const today=now.getDate();
@@ -3088,7 +3012,7 @@ const Notifications = {
       const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]');
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
-        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
+        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!localStorage.getItem(nk)){localStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
         if(diff===3)sendIfNew('3d',L().ui.notifRecurring3d(s.name,Core.Utils.formatMoney(s.amount)));
         else if(diff===1)sendIfNew('1d',L().ui.notifRecurring1d(s.name,Core.Utils.formatMoney(s.amount)));
         else if(diff===0)sendIfNew('0d',L().ui.notifRecurring0d(s.name,Core.Utils.formatMoney(s.amount)));
@@ -3103,8 +3027,8 @@ const Notifications = {
         const dd=new Date(d.date);
         if(dd>=now&&dd<=soon){
           const nk='sagi_nt_debt_'+d.id+'_'+now.getFullYear()+'_'+now.getMonth();
-          if(!sessionStorage.getItem(nk)){
-            sessionStorage.setItem(nk,'1');
+          if(!localStorage.getItem(nk)){
+            localStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
             const msg=diffD===0?L().ui.notifDebtMsg0(d.name,Core.Utils.formatMoney(d.amount)):L().ui.notifDebtMsgN(diffD,d.name,Core.Utils.formatMoney(d.amount));
             this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
@@ -3120,8 +3044,8 @@ const Notifications = {
         const debt=-(cc.balance||0);
         if(diff===3||diff===1||diff===0){
           const nk='sagi_nt_cc_'+cc.id+'_'+(diff)+'_'+now.getFullYear()+'_'+now.getMonth();
-          if(!sessionStorage.getItem(nk)){
-            sessionStorage.setItem(nk,'1');
+          if(!localStorage.getItem(nk)){
+            localStorage.setItem(nk,'1');
             const msg=diff===0?L().ui.notifCCMsg0(cc.name,Core.Utils.formatMoney(debt)):L().ui.notifCCMsgN(cc.name,diff,Core.Utils.formatMoney(debt));
             this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
           }
@@ -3138,8 +3062,8 @@ const Notifications = {
         [75,90].forEach(milestone=>{
           if(pct>=milestone){
             const nk='sagi_nt_goal_'+g.id+'_'+milestone+'_'+now.getFullYear();
-            if(!sessionStorage.getItem(nk)){
-              sessionStorage.setItem(nk,'1');
+            if(!localStorage.getItem(nk)){
+              localStorage.setItem(nk,'1');
               this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals:'+g.id,tag:'goal-'+g.id+'-'+milestone});
             }
           }
@@ -3150,8 +3074,8 @@ const Notifications = {
           const diffD=Math.ceil((dd-now)/(1000*3600*24));
           if(diffD>=0&&diffD<=3){
             const nk='sagi_nt_goaldate_'+g.id+'_'+now.getFullYear()+'_'+now.getMonth();
-            if(!sessionStorage.getItem(nk)){
-              sessionStorage.setItem(nk,'1');
+            if(!localStorage.getItem(nk)){
+              localStorage.setItem(nk,'1');
               this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals:'+g.id,tag:'goaldate-'+g.id});
             }
           }
@@ -3171,8 +3095,8 @@ const Notifications = {
             const amt=App.Money.toMain(tx);
             if(amt>avg*5){
               const nk='sagi_nt_big_'+tx.id;
-              if(!sessionStorage.getItem(nk)){
-                sessionStorage.setItem(nk,'1');
+              if(!localStorage.getItem(nk)){
+                localStorage.setItem(nk,'1');
                 this.sendNotif('SAGI — Büyük Harcama',`Normalin 5 katı harcama! ${tx.desc||tx.cat}: ${Core.Utils.formatMoney(amt)}`,{action:'analytics',tag:'big-'+tx.id});
               }
             }
@@ -3189,8 +3113,8 @@ const Notifications = {
         const change=Math.abs((current.TRY-cached.TRY)/cached.TRY*100);
         if(change>=3){
           const nk='sagi_nt_fx_'+now.getFullYear()+'_'+now.getMonth()+'_'+now.getDate();
-          if(!sessionStorage.getItem(nk)){
-            sessionStorage.setItem(nk,'1');
+          if(!localStorage.getItem(nk)){
+            localStorage.setItem(nk,'1');
             const dir=current.TRY>cached.TRY?'yükseldi':'düştü';
             this.sendNotif('SAGI — Döviz Kurları',`USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings:rates',tag:'fx-'+now.getDate()});
           }
@@ -3203,8 +3127,8 @@ const Notifications = {
     // 7. HAFTALIK ÖZET — Pazartesi
     if(notifs.haftalik&&now.getDay()===1){
       const nk='sagi_nt_weekly_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(today/7);
-      if(!sessionStorage.getItem(nk)){
-        sessionStorage.setItem(nk,'1');
+      if(!localStorage.getItem(nk)){
+        localStorage.setItem(nk,'1');
         const weekAgo=new Date(now.getTime()-7*24*3600*1000);
         const weekTx=Core.state.transactions.filter(tx=>new Date(tx.date)>=weekAgo);
         const income=weekTx.filter(tx=>tx.type==='income').reduce((s,tx)=>s+App.Money.toMain(tx),0);
@@ -3224,19 +3148,39 @@ const Notifications = {
         const perc=(spent/b.amount)*100;
         if(perc>=80&&perc<100){
           const nk='sagi_nt_budg_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(perc/10);
-          if(!sessionStorage.getItem(nk)){
-            sessionStorage.setItem(nk,'1');
+          if(!localStorage.getItem(nk)){
+            localStorage.setItem(nk,'1');
             this.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-'+b.id});
           }
         } else if(perc>=100){
           const nk='sagi_nt_budgover_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth();
-          if(!sessionStorage.getItem(nk)){
-            sessionStorage.setItem(nk,'1');
+          if(!localStorage.getItem(nk)){
+            localStorage.setItem(nk,'1');
             this.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-'+b.id});
           }
         }
       });
     }
+  },
+  // Eski bildirim key'lerini temizle (localStorage şişmesin)
+  cleanOldKeys(){
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const toDelete = [];
+    for(let i = 0; i < localStorage.length; i++){
+      const key = localStorage.key(i);
+      if(!key || !key.startsWith('sagi_nt_')) continue;
+      const m = key.match(/_(\d{4})_(\d{1,2})(?:_|$)/);
+      if(m){
+        const ky = parseInt(m[1]), km = parseInt(m[2]);
+        if(ky < currentYear || (ky === currentYear && km < currentMonth)){
+          toDelete.push(key);
+        }
+      }
+    }
+    toDelete.forEach(k => localStorage.removeItem(k));
+    if(toDelete.length) console.log('[Notif] Temizlendi:', toDelete.length, 'eski key');
   }
 };
 
@@ -4837,27 +4781,7 @@ const App = {
         this._renderDonut();
         this._renderCategoryList();
 
-        // ── Tasarruf Skoru ──
-        this._renderSavingsScore(savingsRate);
-
-        // ── Tahmin ──
-        this._renderForecast(months);
-
-        // ── SAGI Asistan (sagi-assistant.js) ──
-        if(window.SAGIAssistant){
-          SAGIAssistant.render({
-            totalInc, totalExp, net, savingsRate,
-            allTx, months,
-            period: this._period,
-            recurring: Core.state.recurring || [],
-            budgets: Core.state.budgets || [],
-            wallets: Core.state.wallets || [],
-            currency: mc,
-            fmt,
-            prevMonthInc: prevInc,
-            prevMonthExp: prevExp
-          });
-        }
+        // (SAGI Asistan, Tasarruf Skoru ve Tahmin SAGI Plus'a taşındı)
 
         App.Controllers.Budgets.render(this._monthlyExpenseCats());
       },
@@ -4916,108 +4840,6 @@ const App = {
         renderCatList(false);
       },
 
-      _renderSavingsScore(savingsRate) {
-    const wrap = document.getElementById('savingsScoreSvg');
-    const gradeEl = document.getElementById('savingsScoreGrade');
-    const descEl = document.getElementById('savingsScoreDesc');
-    if (!wrap) return;
-
-    const displayPct = Math.max(0, Math.min(100, savingsRate)); // 0-100 arası kısıtla
-    const score = displayPct;
-
-    const r = 42, cx = 55, cy = 55;
-    const circumference = 2 * Math.PI * r;
-    const dash = (score / 100) * circumference;
-    const gap = circumference - dash; // ← EKLENDİ
-
-    const colorHex = score >= 70 ? '#22a06b' : score >= 40 ? '#4f46e5' : score >= 20 ? '#d97706' : '#e5534b';
-    const grade = score >= 80 ? t('scoreGradeExcellent') : score >= 60 ? t('scoreGradeGood') : score >= 40 ? t('scoreGradeMid') : score >= 20 ? t('scoreGradeWarn') : t('scoreGradeCrit');
-    const desc = score >= 70 ? t('scoreDescExcellent') : 
-                score >= 40 ? t('scoreDescGood') : 
-                score >= 20 ? t('scoreDescMid') : 
-                t('scoreDescCrit');
-
-    wrap.innerHTML = `<svg viewBox="0 0 110 110">
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colorHex}" stroke-width="10"
-        stroke-dasharray="${dash} ${gap}"
-        stroke-dashoffset="0"
-        stroke-linecap="round"
-        transform="rotate(-90 ${cx} ${cy})" />
-      <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="23" font-weight="800" font-family="Outfit,sans-serif" fill="var(--text-main)">${displayPct.toFixed(0)}%</text>
-      <text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#9ca3af">${t('scoreSavingsLabel2')}</text>
-    </svg>`;
-
-    if (gradeEl) {
-        gradeEl.textContent = grade;
-        gradeEl.style.cssText = `background:${colorHex}22;color:${colorHex};border:1px solid ${colorHex}44;`;
-    }
-    if (descEl) descEl.textContent = desc;
-},
-
-      // ── Gelecek Ay Tahmini ──
-      _renderForecast(months){
-        const el = document.getElementById('forecastRows');
-        if(!el) return;
-        const mc = Core.state.settings.currency || 'TRY';
-        const fmt = v => Core.Utils.formatMoney(v, mc);
-
-        if(months.length < 2){ el.innerHTML = `<div style="color:var(--text-muted);font-size:14px;padding:12px 0">${t('forecastMinData')}</div>`; return; }
-
-        // Ağırlıklı ortalama: son ay 3x, önceki 2x, daha öncesi 1x ağırlık
-        const weights = months.map((_,i) => i+1);
-        const wSum = weights.reduce((s,w)=>s+w, 0);
-        const wAvgInc = months.reduce((s,m,i)=>s+m.inc*weights[i], 0) / wSum;
-        const wAvgExp = months.reduce((s,m,i)=>s+m.exp*weights[i], 0) / wSum;
-
-        // Trend (son 2 ayın farkından)
-        const last = months[months.length-1];
-        const prev = months[months.length-2];
-        const incTrend = last.inc - prev.inc;
-        const expTrend = last.exp - prev.exp;
-
-        // Blended forecast: %70 ağırlıklı ort. + %30 trend
-        const forecastInc = Math.max(0, wAvgInc * 0.7 + (last.inc + incTrend) * 0.3);
-        const forecastExp = Math.max(0, wAvgExp * 0.7 + (last.exp + expTrend) * 0.3);
-        const forecastNet = forecastInc - forecastExp;
-
-        // Tekrarlayan giderler (recurring)
-        const recBase = (Core.state.recurring || []).filter(r=>r.active!==false).reduce((s,r) => {
-          const cur = r.currency || mc;
-          return s + App.ExchangeRate.convert(r.amount || 0, cur, mc);
-        }, 0);
-
-        // Güven aralığı (varyans)
-        const incVars = months.map(m=>(m.inc-wAvgInc)**2);
-        const expVars = months.map(m=>(m.exp-wAvgExp)**2);
-        const incStd = Math.sqrt(incVars.reduce((s,v)=>s+v,0)/incVars.length);
-        const expStd = Math.sqrt(expVars.reduce((s,v)=>s+v,0)/expVars.length);
-        const confPct = Math.max(0, Math.min(95, 95 - (expStd/forecastExp*100)));
-
-        const now = new Date();
-        const nextMonth = new Date(now.getFullYear(), now.getMonth()+1, 1).toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
-
-        const row = (label, val, conf, icon, color, note='') => `
-          <div class="forecast-row">
-            <div class="forecast-label">
-              ${icon ? `<span style="font-size:18px">${icon}</span>` : ''}${label}
-            </div>
-            <div>
-              <div class="forecast-val" style="color:${color}">${val}</div>
-              ${conf ? `<div class="forecast-conf">%${conf.toFixed(0)} ${t('forecastConfidence')}</div>` : ''}
-              ${note ? `<div class="forecast-conf">${note}</div>` : ''}
-            </div>
-          </div>`;
-
-        el.innerHTML = `
-          <div style="font-size:13px;font-weight:600;color:var(--brand-accent);margin-bottom:12px;padding:8px 12px;background:rgba(79,70,229,.07);border-radius:var(--radius-sm)">
-            ${nextMonth} ${t('forecastLabel')}
-          </div>
-          ${row(t('forecastExpIncome'), fmt(forecastInc), confPct, '', 'var(--status-success)')}
-          ${row(t('forecastExpExpense'), fmt(forecastExp), confPct, '', 'var(--status-danger)')}
-          ${recBase > 0 ? row(t('forecastFixedCosts'), fmt(recBase), null, '', 'var(--status-warn)', t('forecastFixedNote')) : ''}
-          ${row(t('forecastNet'), fmt(forecastNet), null, '', forecastNet>=0?'var(--status-success)':'var(--status-danger)', forecastNet<0?t('forecastNetWarn'):'')}`;
-      },
 
       _catData:{expense:{},income:{}},
       _catSorted:[],
