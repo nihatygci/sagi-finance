@@ -5657,7 +5657,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       setAnim(val){
         Core.state.settings.anim=val;
         App.Controllers.Settings.applyTheme();
-        Core.save();
+        Core.DB.save();
       },
       savePreferences(){
         const oC=Core.state.settings.currency||'TRY';
@@ -5694,7 +5694,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           }
         }
         Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));
-        if(oC!==nC)setTimeout(()=>location.reload(),800);
+        setTimeout(()=>location.reload(),800);
       },
       exportJSON(){
         Core.state.settings.lastExport=Date.now();
