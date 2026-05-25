@@ -56,8 +56,15 @@
       if (this.isAvailable()) {
         console.log('[Cloud] Firebase polling: hazır, emit ediliyor.');
         if (Core.state.settings && Core.state.settings.syncKey && !this._unsubscribe) {
-          // Önce bir kez zorla pull yap, sonra listener'ı bağla
-          this._initialPull().then(() => this.attachListener());
+          // Önce pull yap — tamamlanınca listener'ı bağla
+          // Listener bağlanmadan önce pull bitmiş olacak, suppress race condition olmaz
+          this._initialPull().then(() => {
+            this.attachListener();
+            this._emitStatus('ok');
+          }).catch(() => {
+            // Pull hata verse bile listener'ı bağla
+            this.attachListener();
+          });
         } else {
           this._emitStatus('idle');
         }
@@ -96,13 +103,17 @@
           }, data.state.settings || {});
           Core.state.settings.syncKey = savedKey;
           localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          // Listener ilk snapshot'ı suppress etsin — biz zaten pull yaptık
+          // Listener ilk snapshot'ı suppress etsin — biz zaten aynı veriyi çektik
           this._suppressNextRemote = true;
           try { Core.emit('stateChanged', Core.state); } catch(e) {}
           try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
           this._rerenderActiveView();
-          this._emitStatus('ok');
+        } else if (localMod > remoteMod) {
+          // Yerel daha yeni — kapanışta push kaçmış olabilir, şimdi push yap
+          console.log('[Cloud] initialPull: yerel daha yeni, push yapılıyor.');
+          await this._doPush();
         }
+        // Eşitse bir şey yapma
       } catch(e) {
         console.warn('[Cloud] initialPull hatası:', e);
       }
@@ -533,6 +544,42 @@
   // hazır olduğunu garantilemek için listener'ı en erken aşamada kaydet.
   // 'capture: true' sayesinde bu handler, App.init()'i tetikleyen
   // bubble-phase listener'larından önce çalışır.
+  // ── Kapanışta & arka plana geçişte push ──────────────────────────
+  // beforeunload: bekleyen push varsa anında lastModified güncelle ve local'e yaz
+  // (Firestore async push'u tab kapanınca yarıda kalabilir — en azından local güncel olsun)
+  window.addEventListener('beforeunload', function() {
+    if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
+    if (Cloud._pushTimer) {
+      clearTimeout(Cloud._pushTimer);
+      Cloud._pushTimer = null;
+      Core.state.settings.lastModified = Date.now();
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+      // Firestore'a best-effort push (tarayıcı tamamlamasını beklemez ama dener)
+      try {
+        window._fbDB
+          .collection('users')
+          .doc(Cloud._docId(Core.state.settings.syncKey))
+          .set({ state: Core.state, lastModified: Core.state.settings.lastModified }, { merge: false });
+      } catch(e) {}
+    }
+  });
+
+  // visibilitychange: uygulama arka plandan öne gelince pull, arka plana gidince push
+  document.addEventListener('visibilitychange', function() {
+    if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
+    if (document.visibilityState === 'hidden') {
+      // Arka plana gidince bekleyen push'u hemen gönder
+      if (Cloud._pushTimer) {
+        clearTimeout(Cloud._pushTimer);
+        Cloud._pushTimer = null;
+        Cloud._doPush();
+      }
+    } else if (document.visibilityState === 'visible') {
+      // Öne gelince initialPull yap — başka cihazda değişiklik olmuş olabilir
+      Cloud._initialPull().catch(() => {});
+    }
+  });
+
   window.addEventListener('DOMContentLoaded', function() {
     if (typeof window.Core !== 'undefined') {
       window.Core.Cloud = Cloud;
