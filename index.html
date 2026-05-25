@@ -24,6 +24,7 @@
 <script src="./firebase-config.js"></script>
 <script src="./core.js"></script>
 <script src="./cloud-sync.js"></script>
+<script src="./plus.js"></script>
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
 window._swReg = null;
@@ -1952,7 +1953,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="modal-title-icon">
           <svg><use href="#icon-arrow-up"/></svg>
         </div>
-        <h3 class="modal-title">Yedek Yükle</h3>
+        <h3 class="modal-title" data-i18n="importModalTitle">Yedek Yükle</h3>
       </div>
       <button class="act-btn" onclick="App.Controllers.Settings._cancelImport()">
         <svg class="nav-icon"><use href="#icon-x"/></svg>
@@ -2752,7 +2753,7 @@ const UI = {
     },
     drawBarChart(id,data){
       const c=document.getElementById(id);if(!c)return;
-      if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">Veri yok</div>';return;}
+      if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">'+t('noData')+'</div>';return;}
       const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)),1);
       // Renk: CSS değişkenlerine bağlı olmayan sabit HEX — SVG fill= içinde CSS var() çalışmaz
       const INC_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-success').trim()||'#22a06b';
@@ -2865,18 +2866,19 @@ const Notifications = {
     var tag=opts.tag||('sagi-'+action+'-'+Date.now());
     // Her zaman inbox'a kaydet (izin olmasa da)
     if(!Array.isArray(Core.state.notifInbox)) Core.state.notifInbox=[];
-    // Aynı tag'li bildirim zaten varsa ne inbox'a ekle ne native gönder
-    if(Core.state.notifInbox.find(n=>n.tag===tag)) return;
-    Core.state.notifInbox.unshift({
-      id:'ni_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-      title, body, action, tag,
-      ts:Date.now(), read:false
-    });
-    // Max 50 kayıt tut
-    if(Core.state.notifInbox.length>50) Core.state.notifInbox.length=50;
-    Core.DB.save();
-    // Header badge güncelle
-    App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge();
+    // Aynı tag'li bildirim zaten varsa ekleme
+    if(!Core.state.notifInbox.find(n=>n.tag===tag)){
+      Core.state.notifInbox.unshift({
+        id:'ni_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        title, body, action, tag,
+        ts:Date.now(), read:false
+      });
+      // Max 50 kayıt tut
+      if(Core.state.notifInbox.length>50) Core.state.notifInbox.length=50;
+      Core.DB.save();
+      // Header badge güncelle
+      App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge();
+    }
     if(!this.granted)return;
     var notifOpts={body:body,tag:tag,icon:'./icon-192.png',badge:'./icon-192.png',vibrate:[180,80,180],requireInteraction:false,silent:opts.silent||false,data:{action:action,url:'./',ts:Date.now()}};
     var swReg=window._swReg;
@@ -3000,7 +3002,6 @@ const Notifications = {
   check(){
     if(!this.granted)return;
     if(Core.state.settings.notifMaster===false)return;
-    this.cleanOldKeys();
     const notifs=Core.state.settings.notifications||{};
     const now=new Date();
     const today=now.getDate();
@@ -3011,7 +3012,7 @@ const Notifications = {
       const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]');
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
-        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!localStorage.getItem(nk)){localStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
+        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!sessionStorage.getItem(nk)){sessionStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
         if(diff===3)sendIfNew('3d',L().ui.notifRecurring3d(s.name,Core.Utils.formatMoney(s.amount)));
         else if(diff===1)sendIfNew('1d',L().ui.notifRecurring1d(s.name,Core.Utils.formatMoney(s.amount)));
         else if(diff===0)sendIfNew('0d',L().ui.notifRecurring0d(s.name,Core.Utils.formatMoney(s.amount)));
@@ -3026,8 +3027,8 @@ const Notifications = {
         const dd=new Date(d.date);
         if(dd>=now&&dd<=soon){
           const nk='sagi_nt_debt_'+d.id+'_'+now.getFullYear()+'_'+now.getMonth();
-          if(!localStorage.getItem(nk)){
-            localStorage.setItem(nk,'1');
+          if(!sessionStorage.getItem(nk)){
+            sessionStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
             const msg=diffD===0?L().ui.notifDebtMsg0(d.name,Core.Utils.formatMoney(d.amount)):L().ui.notifDebtMsgN(diffD,d.name,Core.Utils.formatMoney(d.amount));
             this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
@@ -3043,8 +3044,8 @@ const Notifications = {
         const debt=-(cc.balance||0);
         if(diff===3||diff===1||diff===0){
           const nk='sagi_nt_cc_'+cc.id+'_'+(diff)+'_'+now.getFullYear()+'_'+now.getMonth();
-          if(!localStorage.getItem(nk)){
-            localStorage.setItem(nk,'1');
+          if(!sessionStorage.getItem(nk)){
+            sessionStorage.setItem(nk,'1');
             const msg=diff===0?L().ui.notifCCMsg0(cc.name,Core.Utils.formatMoney(debt)):L().ui.notifCCMsgN(cc.name,diff,Core.Utils.formatMoney(debt));
             this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
           }
@@ -3061,8 +3062,8 @@ const Notifications = {
         [75,90].forEach(milestone=>{
           if(pct>=milestone){
             const nk='sagi_nt_goal_'+g.id+'_'+milestone+'_'+now.getFullYear();
-            if(!localStorage.getItem(nk)){
-              localStorage.setItem(nk,'1');
+            if(!sessionStorage.getItem(nk)){
+              sessionStorage.setItem(nk,'1');
               this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals:'+g.id,tag:'goal-'+g.id+'-'+milestone});
             }
           }
@@ -3073,8 +3074,8 @@ const Notifications = {
           const diffD=Math.ceil((dd-now)/(1000*3600*24));
           if(diffD>=0&&diffD<=3){
             const nk='sagi_nt_goaldate_'+g.id+'_'+now.getFullYear()+'_'+now.getMonth();
-            if(!localStorage.getItem(nk)){
-              localStorage.setItem(nk,'1');
+            if(!sessionStorage.getItem(nk)){
+              sessionStorage.setItem(nk,'1');
               this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals:'+g.id,tag:'goaldate-'+g.id});
             }
           }
@@ -3094,8 +3095,8 @@ const Notifications = {
             const amt=App.Money.toMain(tx);
             if(amt>avg*5){
               const nk='sagi_nt_big_'+tx.id;
-              if(!localStorage.getItem(nk)){
-                localStorage.setItem(nk,'1');
+              if(!sessionStorage.getItem(nk)){
+                sessionStorage.setItem(nk,'1');
                 this.sendNotif('SAGI — Büyük Harcama',`Normalin 5 katı harcama! ${tx.desc||tx.cat}: ${Core.Utils.formatMoney(amt)}`,{action:'analytics',tag:'big-'+tx.id});
               }
             }
@@ -3112,8 +3113,8 @@ const Notifications = {
         const change=Math.abs((current.TRY-cached.TRY)/cached.TRY*100);
         if(change>=3){
           const nk='sagi_nt_fx_'+now.getFullYear()+'_'+now.getMonth()+'_'+now.getDate();
-          if(!localStorage.getItem(nk)){
-            localStorage.setItem(nk,'1');
+          if(!sessionStorage.getItem(nk)){
+            sessionStorage.setItem(nk,'1');
             const dir=current.TRY>cached.TRY?'yükseldi':'düştü';
             this.sendNotif('SAGI — Döviz Kurları',`USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings:rates',tag:'fx-'+now.getDate()});
           }
@@ -3126,8 +3127,8 @@ const Notifications = {
     // 7. HAFTALIK ÖZET — Pazartesi
     if(notifs.haftalik&&now.getDay()===1){
       const nk='sagi_nt_weekly_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(today/7);
-      if(!localStorage.getItem(nk)){
-        localStorage.setItem(nk,'1');
+      if(!sessionStorage.getItem(nk)){
+        sessionStorage.setItem(nk,'1');
         const weekAgo=new Date(now.getTime()-7*24*3600*1000);
         const weekTx=Core.state.transactions.filter(tx=>new Date(tx.date)>=weekAgo);
         const income=weekTx.filter(tx=>tx.type==='income').reduce((s,tx)=>s+App.Money.toMain(tx),0);
@@ -3147,39 +3148,19 @@ const Notifications = {
         const perc=(spent/b.amount)*100;
         if(perc>=80&&perc<100){
           const nk='sagi_nt_budg_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(perc/10);
-          if(!localStorage.getItem(nk)){
-            localStorage.setItem(nk,'1');
+          if(!sessionStorage.getItem(nk)){
+            sessionStorage.setItem(nk,'1');
             this.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-'+b.id});
           }
         } else if(perc>=100){
           const nk='sagi_nt_budgover_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth();
-          if(!localStorage.getItem(nk)){
-            localStorage.setItem(nk,'1');
+          if(!sessionStorage.getItem(nk)){
+            sessionStorage.setItem(nk,'1');
             this.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-'+b.id});
           }
         }
       });
     }
-  },
-  // Eski bildirim key'lerini temizle (localStorage şişmesin)
-  cleanOldKeys(){
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const toDelete = [];
-    for(let i = 0; i < localStorage.length; i++){
-      const key = localStorage.key(i);
-      if(!key || !key.startsWith('sagi_nt_')) continue;
-      const m = key.match(/_(\d{4})_(\d{1,2})(?:_|$)/);
-      if(m){
-        const ky = parseInt(m[1]), km = parseInt(m[2]);
-        if(ky < currentYear || (ky === currentYear && km < currentMonth)){
-          toDelete.push(key);
-        }
-      }
-    }
-    toDelete.forEach(k => localStorage.removeItem(k));
-    if(toDelete.length) console.log('[Notif] Temizlendi:', toDelete.length, 'eski key');
   }
 };
 
@@ -4125,14 +4106,14 @@ const App = {
         // Dates
         const cutoffEl=document.getElementById('cardDetailCutoff');
         const dueEl=document.getElementById('cardDetailDue');
-        if(cutoffEl)cutoffEl.textContent=cutoffDay?'Ayın '+cutoffDay+'. günü':'-';
-        if(dueEl){dueEl.textContent=dueDay?'Ayın '+dueDay+'. günü':'-';if(isDueUrgent)dueEl.style.color='var(--status-warn)';else dueEl.style.color='';}
+        if(cutoffEl)cutoffEl.textContent=cutoffDay?L().ui.ccDayOfMonth(cutoffDay):'-';
+        if(dueEl){dueEl.textContent=dueDay?L().ui.ccDayOfMonth(dueDay):'-';if(isDueUrgent)dueEl.style.color='var(--status-warn)';else dueEl.style.color='';}
         // Days left cell
         const daysCell=document.getElementById('cardDetailDaysCell');
         const daysEl=document.getElementById('cardDetailDaysLeft');
         if(daysCell&&dueDay>0&&ccDebt>0){
           daysCell.style.display='block';
-          if(daysEl)daysEl.textContent=daysUntilDue===0?'Bugün!':(daysUntilDue+' gün');
+          if(daysEl)daysEl.textContent=daysUntilDue===0?t('ccDueUrgentDay'):L().ui.ccDaysRemainingShort(daysUntilDue);
           daysCell.classList.toggle('alert-day',isDueUrgent);
         }else if(daysCell){daysCell.style.display='none';}
         // Due cell highlight
