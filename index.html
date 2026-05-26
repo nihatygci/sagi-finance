@@ -3692,8 +3692,7 @@ const App = {
           if(!Core.state.recurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
           else{
             const today=new Date().getDate(),now2=new Date();
-            const paidKey=now2.getFullYear()+'_'+now2.getMonth();
-            const paidSet=new Set((Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[]);
+            const paidSet=App.Controllers.Dashboard._getPaidSet();
             const unpaid=Core.state.recurring.filter(s=>!paidSet.has(s.id));
             const near=unpaid.filter(s=>{
               const now3=new Date();
@@ -3798,6 +3797,33 @@ const App = {
             return;
           }
         }
+      },
+      _getPaidSet(){
+        const now=new Date();
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        const fromState=new Set((Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[]);
+        // İşlemlerden de kontrol et — bu ay içinde abonelik adıyla eşleşen expense
+        const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString();
+        const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59).toISOString();
+        for(const s of Core.state.recurring){
+          if(fromState.has(s.id)) continue;
+          const found=Core.state.transactions.some(tx=>
+            tx.type==='expense' &&
+            tx.date>=monthStart && tx.date<=monthEnd &&
+            (tx.desc===t('subscriptionLabel',{name:s.name}) || tx.desc===s.name+' (Abonelik)' || (tx.desc&&tx.desc.includes(s.name)))
+          );
+          if(found){
+            fromState.add(s.id);
+            // paidMonths'a da yaz ki bir daha arama yapmasın
+            if(!Core.state.paidMonths) Core.state.paidMonths={};
+            if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
+            if(!Core.state.paidMonths[paidKey].includes(s.id)){
+              Core.state.paidMonths[paidKey].push(s.id);
+              Core.DB.save();
+            }
+          }
+        }
+        return fromState;
       },
       markPaid(recId){
         const now=new Date();
@@ -4914,8 +4940,7 @@ const App = {
         const g=document.getElementById('recurringGrid');
         if(!Core.state.recurring.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-repeat"/></svg></div><h3>${t('emptyRecTitle')}</h3><p>${t('emptyRecDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Recurring.openModal()">${t('addRecurring')}</button></div>`;return;}
         const now=new Date();
-        const paidKey=now.getFullYear()+'_'+now.getMonth();
-        const paidSet=new Set((Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[]);
+        const paidSet=App.Controllers.Dashboard._getPaidSet();
         g.innerHTML=Core.state.recurring.map(s=>{
           const isPaid=paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
