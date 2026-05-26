@@ -3765,13 +3765,22 @@ const App = {
           const mc=Core.state.settings.currency||'TRY';
           const txAmt=App.ExchangeRate.convert(s.amount,mc,wc);
           const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmt,amountCurrency:wc,desc:t('subscriptionLabel',{name:s.name}),cat:s.cat||'Abonelik',wallet:w.id,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
-          Core.state.transactions.push(tx);App.Money.applyTx(tx);Core.DB.save();
-          App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+          Core.state.transactions.push(tx);
+          App.Money.applyTx(tx);
         }
-        this.markPaid(recId);
+        // markPaid — işlemle aynı save'de birleştir
+        const now=new Date();
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        if(!Core.state.paidMonths) Core.state.paidMonths={};
+        if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
+        if(!Core.state.paidMonths[paidKey].includes(recId)) Core.state.paidMonths[paidKey].push(recId);
+        // Tek seferde kaydet — race condition yok
+        Core.DB.save();
         UI.Modals.close('modalPayConfirm');
         UI.Toasts.show(t('msgPayConfirmDone'));
+        App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
         if(App.Controllers.Recurring.render)App.Controllers.Recurring.render();
+        this.render();
       },
       unmarkPaidIfNeeded(txDesc){
         if(!txDesc)return;
