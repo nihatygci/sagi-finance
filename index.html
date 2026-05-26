@@ -3692,12 +3692,15 @@ const App = {
           if(!Core.state.recurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
           else{
             const today=new Date().getDate(),now2=new Date();
-            const paidKey='sagi_paid_'+now2.getFullYear()+'_'+now2.getMonth();
-            const paidSet=new Set(JSON.parse(localStorage.getItem(paidKey)||'[]'));
+            const paidKey=now2.getFullYear()+'_'+now2.getMonth();
+            const paidSet=new Set((Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[]);
             const unpaid=Core.state.recurring.filter(s=>!paidSet.has(s.id));
             const near=unpaid.filter(s=>{
-              const diff=s.day-today;
-              return (diff>=0&&diff<=7) || (diff<0&&diff>=-7);
+              const now3=new Date();
+              const daysInMonth=new Date(now3.getFullYear(),now3.getMonth()+1,0).getDate();
+              let diff=s.day-today;
+              if(diff<-15) diff+=daysInMonth; // Ay sonu geçişi: 28. günde 3. gün olan abonelik
+              return (diff>=0&&diff<=7)||(diff<0&&diff>=-3);
             });
             const showAll=this._upcomingShowAll===true;
             const list=showAll?unpaid:near;
@@ -3777,18 +3780,25 @@ const App = {
           const label2 = s.name + ' (Abonelik)';
           if(txDesc === label1 || txDesc === label2 || txDesc.includes(s.name)){
             const now=new Date();
-            const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
-            const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]').filter(id=>id!==s.id);
-            localStorage.setItem(paidKey,JSON.stringify(paidArr));
+            const paidKey=now.getFullYear()+'_'+now.getMonth();
+            if(!Core.state.paidMonths) Core.state.paidMonths={};
+            if(Core.state.paidMonths[paidKey]){
+              Core.state.paidMonths[paidKey]=Core.state.paidMonths[paidKey].filter(id=>id!==s.id);
+              Core.DB.save();
+            }
             return;
           }
         }
       },
       markPaid(recId){
         const now=new Date();
-        const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
-        const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]');
-        if(!paidArr.includes(recId)){paidArr.push(recId);localStorage.setItem(paidKey,JSON.stringify(paidArr));}
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        if(!Core.state.paidMonths) Core.state.paidMonths={};
+        if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
+        if(!Core.state.paidMonths[paidKey].includes(recId)){
+          Core.state.paidMonths[paidKey].push(recId);
+          Core.DB.save();
+        }
         this.render();
         if(App.Controllers.Recurring.render)App.Controllers.Recurring.render();
       },
@@ -4895,8 +4905,8 @@ const App = {
         const g=document.getElementById('recurringGrid');
         if(!Core.state.recurring.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-repeat"/></svg></div><h3>${t('emptyRecTitle')}</h3><p>${t('emptyRecDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Recurring.openModal()">${t('addRecurring')}</button></div>`;return;}
         const now=new Date();
-        const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
-        const paidSet=new Set(JSON.parse(localStorage.getItem(paidKey)||'[]'));
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        const paidSet=new Set((Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[]);
         g.innerHTML=Core.state.recurring.map(s=>{
           const isPaid=paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';

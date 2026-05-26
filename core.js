@@ -28,7 +28,8 @@
     goals: [],
     debts: [],
     categories: [],
-    notifInbox: []
+    notifInbox: [],
+    paidMonths: {}
   };
 
   // State'i localStorage'dan yükle
