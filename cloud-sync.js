@@ -36,7 +36,7 @@
 
     // Internal
     _pushTimer: null,
-    _pushDelay: 1500,
+    _pushDelay: 700,
     _unsubscribe: null,
     _suppressNextRemote: false,
 
@@ -547,6 +547,25 @@
   // ── Kapanışta & arka plana geçişte push ──────────────────────────
   // beforeunload: bekleyen push varsa anında lastModified güncelle ve local'e yaz
   // (Firestore async push'u tab kapanınca yarıda kalabilir — en azından local güncel olsun)
+  // pagehide: beforeunload'dan daha güvenilir, mobil Safari dahil çalışır
+  window.addEventListener('pagehide', function() {
+    if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
+    // Bekleyen push varsa lastModified güncelle ve local'e yaz
+    if (Cloud._pushTimer) {
+      clearTimeout(Cloud._pushTimer);
+      Cloud._pushTimer = null;
+      Core.state.settings.lastModified = Date.now();
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+    }
+    // Her kapanışta Firestore'a push dene (keepalive benzeri)
+    try {
+      window._fbDB
+        .collection('users')
+        .doc(Cloud._docId(Core.state.settings.syncKey))
+        .set({ state: Core.state, lastModified: Core.state.settings.lastModified || Date.now() }, { merge: false });
+    } catch(e) {}
+  });
+
   window.addEventListener('beforeunload', function() {
     if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
     if (Cloud._pushTimer) {
@@ -554,13 +573,6 @@
       Cloud._pushTimer = null;
       Core.state.settings.lastModified = Date.now();
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-      // Firestore'a best-effort push (tarayıcı tamamlamasını beklemez ama dener)
-      try {
-        window._fbDB
-          .collection('users')
-          .doc(Cloud._docId(Core.state.settings.syncKey))
-          .set({ state: Core.state, lastModified: Core.state.settings.lastModified }, { merge: false });
-      } catch(e) {}
     }
   });
 
