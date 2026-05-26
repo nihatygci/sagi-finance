@@ -5485,6 +5485,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       renderCloudBox(){
         const box = document.getElementById('cloudSyncBox');
         if(!box) return;
+        // Firebase henüz hazır değilse hazır olunca tekrar render et
+        if(Core.Cloud && Core.Cloud.status === 'idle' && Core.state.settings.syncKey){
+          setTimeout(()=>this.renderCloudBox(), 500);
+          return;
+        }
 
         // SDK hiç yüklenememişse özel mesaj göster
         if(!Core.Cloud || !Core.Cloud.isAvailable()){
