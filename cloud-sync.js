@@ -377,9 +377,14 @@
     },
 
     // ── Debounced push ────────────────────────────────────────────────
-    queuePush() {
+    queuePush(immediate) {
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       if (this._pushTimer) clearTimeout(this._pushTimer);
+      if (immediate) {
+        this._pushTimer = null;
+        this._doPush();
+        return;
+      }
       this._pushTimer = setTimeout(() => this._doPush(), this._pushDelay);
     },
 

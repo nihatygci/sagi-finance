@@ -3774,7 +3774,7 @@ const App = {
         if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
         if(!Core.state.paidMonths[paidKey].includes(recId)) Core.state.paidMonths[paidKey].push(recId);
         // Tek seferde kaydet — race condition yok
-        Core.DB.save();
+        Core.DB.saveNow();
         UI.Modals.close('modalPayConfirm');
         UI.Toasts.show(t('msgPayConfirmDone'));
         App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
@@ -3792,7 +3792,7 @@ const App = {
             if(!Core.state.paidMonths) Core.state.paidMonths={};
             if(Core.state.paidMonths[paidKey]){
               Core.state.paidMonths[paidKey]=Core.state.paidMonths[paidKey].filter(id=>id!==s.id);
-              Core.DB.save();
+              Core.DB.saveNow();
             }
             return;
           }
@@ -3819,7 +3819,7 @@ const App = {
             if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
             if(!Core.state.paidMonths[paidKey].includes(s.id)){
               Core.state.paidMonths[paidKey].push(s.id);
-              Core.DB.save();
+              Core.DB.saveNow();
             }
           }
         }
@@ -3832,7 +3832,7 @@ const App = {
         if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
         if(!Core.state.paidMonths[paidKey].includes(recId)){
           Core.state.paidMonths[paidKey].push(recId);
-          Core.DB.save();
+          Core.DB.saveNow();
         }
         this.render();
         if(App.Controllers.Recurring.render)App.Controllers.Recurring.render();
@@ -4216,7 +4216,7 @@ const App = {
         Core.state.transactions.push(outTx);App.Money.applyTx(outTx);
         const inTx={id:Core.Utils.generateId(),type:'income',amount:payAmt,amountCurrency:ccCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'Transfer',wallet:cardId,date:outTx.date,rateSnapshot:{...App.ExchangeRate.rates}};
         Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
-        Core.DB.save();UI.Modals.close('modalPayCard');
+        Core.DB.saveNow();UI.Modals.close('modalPayCard');
         this.render();App.Controllers.Dashboard.render();
         UI.Toasts.show(t('msgCcPaid',{amount:Core.Utils.formatMoney(payAmt,ccCur)}));
       }
@@ -4352,7 +4352,7 @@ const App = {
           });
           Core.state.transactions=Core.state.transactions.filter(tx=>!this._selected.has(tx.id));
           this._selected.clear();this._selectMode=false;
-          Core.DB.save();
+          Core.DB.saveNow();
           // Mobil temizlik
           const cont=document.getElementById('txCardContainer');
           if(cont)cont.classList.remove('tx-select-mode');
@@ -4615,7 +4615,7 @@ const App = {
           Core.state.transactions.push(p);
           App.Money.applyTx(p);
         }
-        Core.DB.save();
+        Core.DB.saveNow();
         if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-tx-'+b.id});});}
         App.Controllers.Dashboard.render();
         const keepOpen=document.getElementById('tx_keep_open').value==='1';
@@ -4641,7 +4641,7 @@ const App = {
             }
           }
           Core.state.transactions=Core.state.transactions.filter(t=>t.id!==id);
-          Core.DB.save();
+          Core.DB.saveNow();
           this.renderTable();
           App.Controllers.Dashboard.render();
           App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
@@ -4658,7 +4658,7 @@ const App = {
           });
           const ids=new Set(f.map(x=>x.id));
           Core.state.transactions=Core.state.transactions.filter(t=>!ids.has(t.id));
-          Core.DB.save();
+          Core.DB.saveNow();
           this.renderTable();
           App.Controllers.Dashboard.render();
           App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
@@ -5092,7 +5092,7 @@ const App = {
           const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }
-        Core.DB.save();UI.Modals.close('modalGoalAction');this.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();App.Controllers.Dashboard.render();UI.Toasts.show(t('msgActionDone'));
+        Core.DB.saveNow();UI.Modals.close('modalGoalAction');this.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();App.Controllers.Dashboard.render();UI.Toasts.show(t('msgActionDone'));
       },
       delete(id){UI.Confirm.show(t('confDelGoal'),()=>{Core.state.goals=Core.state.goals.filter(g=>g.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgGoalDeleted'));});}
     },
@@ -5198,7 +5198,7 @@ const App = {
           outTx.cat='Birikim';
         }
         Core.state.transactions.push(outTx);App.Money.applyTx(outTx);
-        Core.DB.save();UI.Modals.close('modalTransfer');UI.Toasts.show(t('msgTransferDone'));
+        Core.DB.saveNow();UI.Modals.close('modalTransfer');UI.Toasts.show(t('msgTransferDone'));
         App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
         App.Controllers.Dashboard.render();
         UI.Router.handleRoute();
@@ -5235,7 +5235,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const txId=Core.Utils.generateId();const tx={id:txId,type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:p.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);p.linkedTxId=txId;
           }
         }
-        Core.DB.save();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
+        Core.DB.saveNow();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
       },
       prepAction(id){Core.temp.debtId=id;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';UI.Modals.open('modalDebtAction');},
       executeAction(){
@@ -5273,9 +5273,9 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         }else{
           UI.Toasts.show(t('msgPayRecorded'));
         }
-        Core.DB.save();UI.Modals.close('modalDebtAction');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+        Core.DB.saveNow();UI.Modals.close('modalDebtAction');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
       },
-      delete(id){UI.Confirm.show(t('confDelDebt'),()=>{Core.state.debts=Core.state.debts.filter(d=>d.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgRecordDeleted'));});}
+      delete(id){UI.Confirm.show(t('confDelDebt'),()=>{Core.state.debts=Core.state.debts.filter(d=>d.id!==id);Core.DB.saveNow();this.render();UI.Toasts.show(t('msgRecordDeleted'));});}
     },
     NotifInbox:{
       _filter:'all',
@@ -5923,14 +5923,14 @@ _executeImport(){
         }
       });
     }
-    Core.DB.save();
+    Core.DB.saveNow();
     UI.Modals.close('modalImportChoice');
     UI.Toasts.show(t('msgImportDone'), 'success');
     setTimeout(() => location.reload(), 900);
 
   } else {
     Core.state = d;
-    Core.DB.save();
+    Core.DB.saveNow();
     UI.Modals.close('modalImportChoice');
     UI.Toasts.show(t('msgImportDone'), 'success');
     setTimeout(() => location.reload(), 900);
@@ -5997,7 +5997,7 @@ App.Controllers.QuickActions = {
   setActive(ids){
     const trimmed = ids.slice(0,6);
     Core.state.settings.qaItems = trimmed;
-    Core.DB.save();
+    Core.DB.saveNow();
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
     this.renderPanel();
     this.renderEditor();
@@ -6005,7 +6005,7 @@ App.Controllers.QuickActions = {
 
   reset(){
     Core.state.settings.qaItems = [...this.DEFAULT_IDS];
-    Core.DB.save();
+    Core.DB.saveNow();
     localStorage.removeItem(this.STORAGE_KEY);
     this.renderPanel();
     this.renderEditor();
@@ -6219,7 +6219,7 @@ App.Controllers.BottomBar = {
   setActive(ids){
     const trimmed = ids.slice(0,5);
     Core.state.settings.bnavItems = trimmed;
-    Core.DB.save();
+    Core.DB.saveNow();
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
     this.renderNav();
     this.renderEditor();
@@ -6227,7 +6227,7 @@ App.Controllers.BottomBar = {
 
   reset(){
     Core.state.settings.bnavItems = [...this.DEFAULT_IDS];
-    Core.DB.save();
+    Core.DB.saveNow();
     localStorage.removeItem(this.STORAGE_KEY);
     this.renderNav();
     this.renderEditor();
