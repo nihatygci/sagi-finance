@@ -711,7 +711,16 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 
 /* KPI */
 .kpi-value{font-family:var(--font-display);font-size:clamp(28px,7vw,30px);font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:6px}
-
+/* KPI CAROUSEL */
+.kpi-carousel{position:relative;overflow:hidden;height:44px;margin-top:6px;user-select:none}
+.kpi-slide{position:absolute;inset:0;display:flex;align-items:center;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s}
+.kpi-slide.active{transform:translateX(0);opacity:1}
+.kpi-slide.prev{transform:translateX(-50px);opacity:0;pointer-events:none}
+.kpi-slide.next{transform:translateX(50px);opacity:0;pointer-events:none}
+.kpi-slide-val{font-family:var(--font-display);font-size:clamp(24px,6vw,28px);font-weight:800;letter-spacing:-.04em;line-height:1}
+.kpi-dots{display:flex;gap:4px;margin-top:10px}
+.kpi-dot{width:5px;height:5px;border-radius:50%;background:var(--border-light);transition:background .2s,width .2s}
+.kpi-dot.active{width:14px;border-radius:3px;background:var(--brand-accent)}
 
 /* PAGE TITLE ROW */
 .page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
@@ -1316,10 +1325,26 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
       </div>
       <div class="css-grid grid-cols-4 mb-5 stagger-1">
-        <div class="card"><div class="text-caption mb-2" data-i18n="netWorth">Net Varlık</div><div class="kpi-value color-primary" id="kpiNetWorth">₺0</div></div>
-        <div class="card"><div class="text-caption mb-2" data-i18n="monthExpense">Bu Ay Gider</div><div class="kpi-value color-danger" id="kpiExpense">₺0</div></div>
-        <div class="card"><div class="text-caption mb-2" data-i18n="monthIncome">Bu Ay Gelir</div><div class="kpi-value color-success" id="kpiIncome">₺0</div></div>
-        <div class="card"><div class="text-caption mb-2" data-i18n="cashFlow">Aylık Nakit Akışı</div><div class="kpi-value color-warn" id="kpiFlow">₺0</div></div>
+        <div class="card" id="kpiCardNetWorth" style="cursor:pointer" onclick="KpiCarousel.next('netWorth')">
+          <div class="text-caption mb-1" data-i18n="netWorth">Net Varlık</div>
+          <div class="kpi-carousel" id="kpiCarouselNetWorth"></div>
+          <div class="kpi-dots" id="kpiDotsNetWorth"></div>
+        </div>
+        <div class="card" id="kpiCardExpense" style="cursor:pointer" onclick="KpiCarousel.next('expense')">
+          <div class="text-caption mb-1" data-i18n="monthExpense">Bu Ay Gider</div>
+          <div class="kpi-carousel" id="kpiCarouselExpense"></div>
+          <div class="kpi-dots" id="kpiDotsExpense"></div>
+        </div>
+        <div class="card" id="kpiCardIncome" style="cursor:pointer" onclick="KpiCarousel.next('income')">
+          <div class="text-caption mb-1" data-i18n="monthIncome">Bu Ay Gelir</div>
+          <div class="kpi-carousel" id="kpiCarouselIncome"></div>
+          <div class="kpi-dots" id="kpiDotsIncome"></div>
+        </div>
+        <div class="card" id="kpiCardFlow" style="cursor:pointer" onclick="KpiCarousel.next('flow')">
+          <div class="text-caption mb-1" data-i18n="cashFlow">Aylık Nakit Akışı</div>
+          <div class="kpi-carousel" id="kpiCarouselFlow"></div>
+          <div class="kpi-dots" id="kpiDotsFlow"></div>
+        </div>
       </div>
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
         <div class="card">
@@ -3680,10 +3705,83 @@ const App = {
         const exp=mTx.filter(t=>t.type==='expense').reduce((s,t)=>s+toMain(t.amount,t.wallet),0);
         const nw=Core.state.wallets.reduce((s,w)=>{const bal=w.currency&&w.currency!==mainCur?App.ExchangeRate.convert(w.balance,w.currency,mainCur):w.balance;return s+bal;},0);
         const flow=inc-exp;
-        document.getElementById('kpiNetWorth').textContent=Core.Utils.formatMoney(nw);
-        document.getElementById('kpiExpense').textContent=Core.Utils.formatMoney(exp);
-        const incEl=document.getElementById('kpiIncome');if(incEl)incEl.textContent=Core.Utils.formatMoney(inc);
-        const fEl=document.getElementById('kpiFlow');fEl.textContent=Core.Utils.formatMoney(flow);fEl.className='kpi-value color-warn';
+        const _kpiColors={netWorth:'color-primary',expense:'color-danger',income:'color-success',flow:'color-warn'};
+        const _kpiSymbols={TRY:'₺',USD:'$',EUR:'€',GBP:'£'};
+        function _getKpiCurrencies(mc){const all=['TRY','USD','EUR','GBP'];return[mc,...all.filter(c=>c!==mc)];}
+
+        window.KpiCarousel=window.KpiCarousel||{};
+        ['netWorth','expense','income','flow'].forEach(key=>{
+          if(!KpiCarousel[key])KpiCarousel[key]={idx:0,slides:[]};
+        });
+
+        window.KpiCarousel._go=function(key,dir){
+          const state=KpiCarousel[key];
+          if(!state||state.slides.length<2)return;
+          const prevIdx=state.idx;
+          state.idx=(state.idx+dir+state.slides.length)%state.slides.length;
+          const suffix=key.charAt(0).toUpperCase()+key.slice(1);
+          const carousel=document.getElementById('kpiCarousel'+suffix);
+          const dotsEl=document.getElementById('kpiDots'+suffix);
+          if(!carousel)return;
+          carousel.querySelectorAll('.kpi-slide').forEach((el,i)=>{
+            if(i===state.idx)el.className='kpi-slide active';
+            else if(i===prevIdx)el.className='kpi-slide '+(dir>0?'prev':'next');
+            else el.className='kpi-slide '+(i<state.idx?'prev':'next');
+          });
+          dotsEl.querySelectorAll('.kpi-dot').forEach((d,i)=>{d.className='kpi-dot'+(i===state.idx?' active':'');});
+        };
+        window.KpiCarousel.next=key=>KpiCarousel._go(key,1);
+        window.KpiCarousel.prev=key=>KpiCarousel._go(key,-1);
+
+        function _buildKpiSlides(key,valueInMain,mc){
+          const suffix=key.charAt(0).toUpperCase()+key.slice(1);
+          const carousel=document.getElementById('kpiCarousel'+suffix);
+          const dotsEl=document.getElementById('kpiDots'+suffix);
+          if(!carousel||!dotsEl)return;
+
+          const slides=_getKpiCurrencies(mc).map(c=>{
+            let val;
+            if(c===mc){val=valueInMain;}
+            else{try{val=App.ExchangeRate?App.ExchangeRate.convert(valueInMain,mc,c):null;}catch(e){val=null;}}
+            if(val===null||val===undefined||isNaN(val))return null;
+            const sym=_kpiSymbols[c]||c+' ';
+            const isPrivacy=Core.state.settings.privacy==='on';
+            return{cur:c,text:isPrivacy?sym+'***':(val<0?'-':'')+sym+Math.abs(val).toLocaleString('tr-TR',{maximumFractionDigits:0})};
+          }).filter(Boolean);
+
+          KpiCarousel[key].slides=slides;
+          KpiCarousel[key].idx=Math.min(KpiCarousel[key].idx,slides.length-1);
+          const cur=KpiCarousel[key].idx;
+
+          carousel.innerHTML=slides.map((s,i)=>`<div class="kpi-slide ${i===cur?'active':i<cur?'prev':'next'}"><span class="kpi-slide-val ${_kpiColors[key]}">${s.text}</span></div>`).join('');
+          dotsEl.innerHTML=slides.map((_,i)=>`<div class="kpi-dot${i===cur?' active':''}"></div>`).join('');
+
+          // swipe / drag
+          let sx=null;
+          const card=carousel.closest('.card');
+          if(card&&!card._kpiSwipe){
+            card._kpiSwipe=true;
+            card.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
+            card.addEventListener('touchend',e=>{
+              if(sx===null)return;
+              const dx=sx-e.changedTouches[0].clientX;
+              if(Math.abs(dx)>35){KpiCarousel._go(key,dx>0?1:-1);}
+              sx=null;
+            });
+            card.addEventListener('mousedown',e=>{sx=e.clientX;});
+            card.addEventListener('mouseup',e=>{
+              if(sx===null)return;
+              const dx=sx-e.clientX;
+              if(Math.abs(dx)>35){KpiCarousel._go(key,dx>0?1:-1);}
+              sx=null;
+            });
+          }
+        }
+
+        _buildKpiSlides('netWorth',nw,mainCur);
+        _buildKpiSlides('expense',exp,mainCur);
+        _buildKpiSlides('income',inc,mainCur);
+        _buildKpiSlides('flow',flow,mainCur);
 
         const dg=document.getElementById('dashGoals');
         if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const p=Math.min((g.current/g.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
