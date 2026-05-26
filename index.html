@@ -2612,9 +2612,18 @@ const Core = {
         Core.state.settings.lastModified = Date.now();
         localStorage.setItem(this.key,JSON.stringify(Core.state));
         Core.emit('stateChanged',Core.state);
-        // Cloud sync — yalnızca cloud-sync.js yüklendiyse ve anahtar varsa
         if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
           Core.Cloud.queuePush();
+        }
+      }catch(e){}
+    },
+    saveNow(){
+      try{
+        Core.state.settings.lastModified = Date.now();
+        localStorage.setItem(this.key,JSON.stringify(Core.state));
+        Core.emit('stateChanged',Core.state);
+        if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
+          Core.Cloud.queuePush(true);
         }
       }catch(e){}
     }
