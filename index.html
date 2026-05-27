@@ -254,7 +254,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 .grid-cols-4{grid-template-columns:repeat(4,1fr)}
 @media(max-width:1200px){.grid-cols-4{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:1023px){.grid-cols-3{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:640px){.grid-cols-2,.grid-cols-3,.grid-cols-4{grid-template-columns:1fr}}
+@media(max-width:640px){.grid-cols-2,.grid-cols-3{grid-template-columns:1fr}.grid-cols-4{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1024px){.css-grid{gap:22px}}
 
 /* CARDS */
@@ -2682,8 +2682,23 @@ const Core = {
       if(Core.state.settings.privacy==='on')return'***';
       const c=cur||Core.state.settings.currency||'TRY';
       const loc=c==='TRY'?'tr-TR':(c==='EUR'?'de-DE':'en-US');
-      try{return new Intl.NumberFormat(loc,{style:'currency',currency:c,minimumFractionDigits:0,maximumFractionDigits:2}).format(a||0);}
+      try{return new Intl.NumberFormat(loc,{style:'currency',currency:c,minimumFractionDigits:2,maximumFractionDigits:2}).format(a||0);}
       catch(e){return (a||0).toFixed(2)+' '+c;}
+    },
+    formatMoneyHTML:(a,cur)=>{
+      if(Core.state.settings.privacy==='on')return'***';
+      const c=cur||Core.state.settings.currency||'TRY';
+      const loc=c==='TRY'?'tr-TR':(c==='EUR'?'de-DE':'en-US');
+      try{
+        const full=new Intl.NumberFormat(loc,{style:'currency',currency:c,minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.abs(a||0));
+        // Tam sayı ve kuruş kısmını ayır
+        const sep=c==='TRY'||c==='EUR'?',':'.';
+        const idx=full.lastIndexOf(sep);
+        if(idx===-1)return(a<0?'-':'')+full;
+        const main=full.substring(0,idx);
+        const frac=full.substring(idx);
+        return`${a<0?'-':''}${main}<span style="font-size:.45em;font-weight:700;letter-spacing:0;opacity:.65;align-self:flex-end;margin-bottom:.1em;margin-left:1px">${frac}</span>`;
+      }catch(e){return(a||0).toFixed(2)+' '+c;}
     },
     formatDate:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}):'',
     formatDateTime:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+(new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):'',
@@ -3773,14 +3788,19 @@ const App = {
             if(val===null||val===undefined||isNaN(val))return null;
             const sym=_kpiSymbols[c]||c+' ';
             const isPrivacy=Core.state.settings.privacy==='on';
-            return{cur:c,text:isPrivacy?sym+'***':(val<0?'-':'')+sym+Math.abs(val).toLocaleString('tr-TR',{maximumFractionDigits:0})};
+            if(isPrivacy)return{cur:c,text:sym+'***'};
+            const absVal=Math.abs(val);
+            const whole=Math.floor(absVal).toLocaleString('tr-TR');
+            const cents=Math.round((absVal%1)*100).toString().padStart(2,'0');
+            const sign=val<0?'-':'';
+            return{cur:c,text:`${sign}${sym}${whole}<sup style="font-size:.45em;font-weight:700;letter-spacing:0;opacity:.7;vertical-align:super;margin-left:1px">,${cents}</sup>`};
           }).filter(Boolean);
 
           KpiCarousel[key].slides=slides;
           KpiCarousel[key].idx=Math.min(KpiCarousel[key].idx,slides.length-1);
           const cur=KpiCarousel[key].idx;
 
-          carousel.innerHTML=slides.map((s,i)=>`<div class="kpi-slide ${i===cur?'active':i<cur?'prev':'next'}"><span class="kpi-slide-val ${_kpiColors[key]}">${s.text}</span></div>`).join('');
+          carousel.innerHTML=slides.map((s,i)=>`<div class="kpi-slide ${i===cur?'active':i<cur?'prev':'next'}"><span class="kpi-slide-val ${_kpiColors[key]}" style="display:flex;align-items:baseline">${s.text}</span></div>`).join('');
           dotsEl.innerHTML=slides.map((_,i)=>`<div class="kpi-dot${i===cur?' active':''}"></div>`).join('');
 
           // swipe / drag
@@ -4094,8 +4114,8 @@ const App = {
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1">${Core.Utils.formatMoney(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent?`<div class="cc-status-badge overdue">${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}`
-            : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px">${Core.Utils.formatMoney(w.balance,w.currency)}</div>`;
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent?`<div class="cc-status-badge overdue">${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}`
+            : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
           const standardBtns=isCC
             ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>`
             : `<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>`;
@@ -4266,7 +4286,7 @@ const App = {
         const heroName=document.getElementById('cardDetailHeroName');
         if(heroName)heroName.textContent=cc.name;
         const heroDebt=document.getElementById('cardDetailHeroDebt');
-        if(heroDebt)heroDebt.textContent=Core.Utils.formatMoney(ccDebt,cc.currency);
+        if(heroDebt)heroDebt.innerHTML=Core.Utils.formatMoneyHTML(ccDebt,cc.currency);
         const heroPerc=document.getElementById('cardDetailHeroPerc');
         if(heroPerc)heroPerc.textContent='%'+Math.round(ccUsedPerc);
         const heroBar=document.getElementById('cardDetailHeroBar');
@@ -4275,8 +4295,8 @@ const App = {
         const dueBadge=document.getElementById('cardDetailDueBadge');
         if(dueBadge){if(isDueUrgent){dueBadge.style.display='block';dueBadge.textContent=daysUntilDue===0?t('ccDueToday'):L().ui.ccDaysRemaining(daysUntilDue);}else{dueBadge.style.display='none';}}
         // Stats
-        document.getElementById('cardDetailLimit').textContent=Core.Utils.formatMoney(ccLimit,cc.currency);
-        document.getElementById('cardDetailAvail').textContent=Core.Utils.formatMoney(ccAvail,cc.currency);
+        document.getElementById('cardDetailLimit').innerHTML=Core.Utils.formatMoneyHTML(ccLimit,cc.currency);
+        document.getElementById('cardDetailAvail').innerHTML=Core.Utils.formatMoneyHTML(ccAvail,cc.currency);
         document.getElementById('cardDetailPerc').textContent='%'+Math.round(ccUsedPerc);
         // Color the avail stat
         const availStat=document.getElementById('cardDetailAvail');
