@@ -25,7 +25,7 @@
 <script src="./core.js"></script>
 <script src="./cloud-sync.js"></script>
 <script src="./plus.js"></script>
-
+<script src="./plus-dev.js"></script>
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
 window._swReg = null;
@@ -2184,6 +2184,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <input type="number" min="1" max="31" class="form-control" id="wal_cc_due" value="10" placeholder="1-31">
             </div>
           </div>
+          <div class="form-group">
+            <label class="form-label">Asgari Ödeme Tutarı</label>
+            <input type="number" step="0.01" class="form-control" id="wal_cc_min_payment" placeholder="0,00" value="0">
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label"><span data-i18n="walletCurLabel">Hesap Para Birimi</span> <span style="font-size:12px;color:var(--text-muted)" data-i18n="walletCurHint">(Opsiyonel — TL dışı hesaplar için)</span></label>
@@ -2523,7 +2527,12 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div class="form-group">
           <label class="form-label" data-i18n="payAmount">Ödenecek Tutar</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button type="button" class="btn btn-outline btn-sm" id="payCardBtnMin" onclick="App.Controllers.Wallets.setCardPayAmount('min')" style="flex:1;font-size:12px">Asgari</button>
+            <button type="button" class="btn btn-outline btn-sm" id="payCardBtnFull" onclick="App.Controllers.Wallets.setCardPayAmount('full')" style="flex:1;font-size:12px">Tamamı</button>
+          </div>
           <input type="number" step="0.01" class="form-control" id="payCardAmount" placeholder="0,00" required>
+          <div id="payCardMinInfo" style="font-size:12px;color:var(--text-muted);margin-top:6px;display:none"></div>
         </div>
         <div class="form-group mb-0">
           <label class="form-label" data-i18n="payFromWhich">Hangi hesaptan ödenecek?</label>
@@ -2611,6 +2620,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="modal-footer">
       <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> <span data-i18n="ccAllTx">Tüm İşlemler</span></button>
       <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> <span data-i18n="ccPayNow">Ödeme Yap</span></button>
+      <div id="cardDetailPaidBadge" style="display:none;align-items:center;gap:6px;padding:10px 16px;background:var(--status-success-bg);border:1px solid rgba(34,160,107,.2);border-radius:var(--radius-md);font-size:13px;font-weight:700;color:var(--status-success)"><svg style="width:14px;height:14px;stroke:var(--status-success);fill:none;stroke-width:2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Bu Ay Ödendi</div>
     </div>
   </div>
 </div>
@@ -4069,16 +4079,31 @@ const App = {
       },
 
       renderCCAlerts(){
-        const ccWallets=Core.state.wallets.filter(w=>w.type==='Kredi Kartı'&&(-(w.balance||0))>0);
+        const now=new Date();
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        const paidSet=App.Controllers.Dashboard._getPaidSet?App.Controllers.Dashboard._getPaidSet():new Set((Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[]);
+        const ccWallets=Core.state.wallets.filter(w=>w.type==='Kredi Kartı'&&(-(w.balance||0))>0&&!paidSet.has(w.id));
         const container=document.getElementById('dashCCAlerts');
         if(!container)return;
         if(!ccWallets.length){container.innerHTML='';return;}
-        const today=new Date().getDate();
-        const monthDays=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+        const today=now.getDate();
+        const monthDays=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
         container.innerHTML=ccWallets.map(cc=>{
           const debt=Math.max(0,-(cc.balance||0));
           const dueDay=parseInt(cc.ccDueDay)||0;
-          const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+monthDays-today):null;
+          const now2=new Date();
+        const paidKey2=now2.getFullYear()+'_'+now2.getMonth();
+        const paidThisMonth2=(Core.state.paidMonths&&Core.state.paidMonths[paidKey2]||[]).includes(cardId);
+        let daysUntilDue;
+        if(dueDay<=0){
+          daysUntilDue=null;
+        } else if(paidThisMonth2){
+          // Bu ay ödendi — bir sonraki ayın son ödeme gününe kaç gün
+          const nextDue=new Date(new Date().getFullYear(),new Date().getMonth()+1,dueDay);
+          daysUntilDue=Math.ceil((nextDue-new Date())/(1000*60*60*24));
+        } else {
+          daysUntilDue=dueDay>=today?dueDay-today:dueDay+monthDays-today;
+        }
           const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5;
           const urgStyle=isDueUrgent?'border-color:var(--status-warn);background:var(--status-warn-bg);':'';
           const dueLabel=daysUntilDue===null?'':(daysUntilDue===0?'<span style="color:var(--status-danger);font-weight:700;font-size:11px">Bugün son ödeme!</span>':`<span style="color:var(--status-warn);font-size:11px;font-weight:600">${daysUntilDue} gün sonra son ödeme</span>`);
@@ -4116,7 +4141,7 @@ const App = {
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent?`<div class="cc-status-badge overdue">${daysUntilDue===0?'Bugün!':daysUntilDue+' gün'}</div>`:''}`
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent&&daysUntilDue===0?`<div class="cc-status-badge overdue">Bugün!</div>`:''}`
             : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
           const standardBtns=isCC
             ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>`
@@ -4198,6 +4223,7 @@ const App = {
         document.querySelectorAll('#walCurSeg .tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.cur===cur));
         const isCC=w.type==='Kredi Kartı';
         document.getElementById('wal_cc_limit').value=w.ccLimit||0;
+        document.getElementById('wal_cc_min_payment').value=w.ccMinPayment||0;
         document.getElementById('wal_cc_debt').value=isCC?Math.max(0,-(w.balance||0)):0;
         document.getElementById('wal_cc_cutoff').value=w.ccCutoffDay||1;
         document.getElementById('wal_cc_due').value=w.ccDueDay||10;
@@ -4238,6 +4264,7 @@ const App = {
           p.ccLimit=parseFloat(document.getElementById('wal_cc_limit').value)||0;
           p.ccCutoffDay=parseInt(document.getElementById('wal_cc_cutoff').value)||1;
           p.ccDueDay=parseInt(document.getElementById('wal_cc_due').value)||10;
+          p.ccMinPayment=parseFloat(document.getElementById('wal_cc_min_payment').value)||0;
         }
         if(id){const ix=Core.state.wallets.findIndex(x=>x.id===id);if(ix!==-1)Core.state.wallets[ix]=p;}
         else Core.state.wallets.push(p);
@@ -4277,7 +4304,10 @@ const App = {
         const cutoffDay=parseInt(cc.ccCutoffDay)||0;
         const monthDays=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
         const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+monthDays-today):null;
-        const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5&&ccDebt>0;
+        const now2=new Date();
+        const paidKey2=now2.getFullYear()+'_'+now2.getMonth();
+        const paidThisMonth=(Core.state.paidMonths&&Core.state.paidMonths[paidKey2]||[]).includes(cardId);
+        const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5&&ccDebt>0&&!paidThisMonth;
         // Header
         document.getElementById('cardDetailName').textContent=cc.name;
         const sub=document.getElementById('cardDetailSubtitle');
@@ -4320,14 +4350,19 @@ const App = {
         const dueCell=document.getElementById('cardDetailDueCell');
         if(dueCell)dueCell.classList.toggle('alert-day',isDueUrgent&&ccDebt>0);
         const payBtn=document.getElementById('cardDetailPayBtn');
-        if(ccDebt>0){
-          payBtn.style.display='inline-flex';
-          payBtn.onclick=()=>{
-            UI.Modals.close('modalCardDetail');
-            App.Controllers.Wallets.openCardPayment(cardId);
-          };
+        const paidBadge=document.getElementById('cardDetailPaidBadge');
+        if(paidThisMonth){
+          if(payBtn)payBtn.style.display='none';
+          if(paidBadge)paidBadge.style.display='inline-flex';
+        } else if(ccDebt>0){
+          if(payBtn){
+            payBtn.style.display='inline-flex';
+            payBtn.onclick=()=>{UI.Modals.close('modalCardDetail');App.Controllers.Wallets.openCardPayment(cardId);};
+          }
+          if(paidBadge)paidBadge.style.display='none';
         }else{
-          payBtn.style.display='none';
+          if(payBtn)payBtn.style.display='none';
+          if(paidBadge)paidBadge.style.display='none';
         }
         UI.Modals.open('modalCardDetail');
       },
@@ -4338,12 +4373,35 @@ const App = {
         document.getElementById('payCardName').textContent=cc.name;
         const ccDebt=Math.max(0,-(cc.balance||0));
         document.getElementById('payCardDebt').textContent=Core.Utils.formatMoney(ccDebt,cc.currency);
+        const minAmt=parseFloat(cc.ccMinPayment)||0;
         document.getElementById('payCardAmount').value=ccDebt.toFixed(2);
+        const minInfo=document.getElementById('payCardMinInfo');
+        if(minInfo&&minAmt>0&&ccDebt>0){
+          minInfo.style.display='block';
+          minInfo.textContent=`Tanımlı asgari ödeme: ${Core.Utils.formatMoney(minAmt,cc.currency)}`;
+        } else if(minInfo){minInfo.style.display='none';}
+        const btnMin=document.getElementById('payCardBtnMin');
+        const btnFull=document.getElementById('payCardBtnFull');
+        if(btnMin){btnMin.dataset.min=minAmt>0?minAmt:0;btnMin.classList.remove('active');btnMin.disabled=minAmt<=0;}
+        if(btnFull){btnFull.dataset.full=ccDebt;btnFull.classList.add('active');}
         const fromSel=document.getElementById('payCardFromWallet');
         const sources=Core.state.wallets.filter(w=>w.id!==cardWalletId);
         if(!sources.length){UI.Toasts.show(t('msgAccFirst'),'error');return;}
         fromSel.innerHTML=sources.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
         UI.Modals.open('modalPayCard');
+      },
+      setCardPayAmount(type){
+        const btnMin=document.getElementById('payCardBtnMin');
+        const btnFull=document.getElementById('payCardBtnFull');
+        const input=document.getElementById('payCardAmount');
+        if(!input)return;
+        if(type==='min'&&btnMin){
+          input.value=parseFloat(btnMin.dataset.min||0).toFixed(2);
+          btnMin.classList.add('active');if(btnFull)btnFull.classList.remove('active');
+        }else if(type==='full'&&btnFull){
+          input.value=parseFloat(btnFull.dataset.full||0).toFixed(2);
+          btnFull.classList.add('active');if(btnMin)btnMin.classList.remove('active');
+        }
       },
       updateColorPreview(){
         const c1 = document.getElementById('wal_c1_custom').value;
@@ -4372,6 +4430,12 @@ const App = {
         Core.state.transactions.push(outTx);App.Money.applyTx(outTx);
         const inTx={id:Core.Utils.generateId(),type:'income',amount:payAmt,amountCurrency:ccCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'Transfer',wallet:cardId,date:outTx.date,rateSnapshot:{...App.ExchangeRate.rates}};
         Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
+        // Bu ay ödendi olarak işaretle — yaklaşan ödemelerden düşer
+        const now=new Date();
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        if(!Core.state.paidMonths) Core.state.paidMonths={};
+        if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
+        if(!Core.state.paidMonths[paidKey].includes(cardId)) Core.state.paidMonths[paidKey].push(cardId);
         Core.DB.saveNow();UI.Modals.close('modalPayCard');
         this.render();App.Controllers.Dashboard.render();
         UI.Toasts.show(t('msgCcPaid',{amount:Core.Utils.formatMoney(payAmt,ccCur)}));
