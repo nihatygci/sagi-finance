@@ -396,6 +396,9 @@
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
       try {
         this._suppressNextRemote = true;
+        // FIX: suppress flag 5sn sonra otomatik sıfırla — listener gecikmeli
+        // bağlanırsa flag sonsuza kadar true kalmaz
+        setTimeout(() => { this._suppressNextRemote = false; }, 5000);
         await docRef.set(
           {
             state: Core.state,
@@ -403,6 +406,7 @@
           },
           { merge: false },
         );
+        this._suppressNextRemote = false; // başarılı push'ta hemen sıfırla
         this.lastError = "";
         this._emitStatus("ok");
       } catch (e) {
@@ -545,30 +549,21 @@
     console.log('[SAGI] Cloud Core\'a bağlandı. Durum:', Cloud.status);
   }
 
-  // DOMContentLoaded'da Cloud'u Core'a enjekte et ve App.init()'den ÖNCE
-  // hazır olduğunu garantilemek için listener'ı en erken aşamada kaydet.
-  // 'capture: true' sayesinde bu handler, App.init()'i tetikleyen
-  // bubble-phase listener'larından önce çalışır.
   // ── Kapanışta & arka plana geçişte push ──────────────────────────
-  // beforeunload: bekleyen push varsa anında lastModified güncelle ve local'e yaz
-  // (Firestore async push'u tab kapanınca yarıda kalabilir — en azından local güncel olsun)
-  // pagehide: beforeunload'dan daha güvenilir, mobil Safari dahil çalışır
+
+  // FIX: pagehide'da Firestore push'u kaldırıldı — tarayıcı async işlemi
+  // tamamlamadan sayfayı öldürür, push hiçbir zaman ulaşmıyordu.
+  // Güvence: visibilitychange:hidden'da push zaten gönderilir.
+  // Burada sadece senkron olan local kayıt yapılır.
   window.addEventListener('pagehide', function() {
-    if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
-    // Bekleyen push varsa lastModified güncelle ve local'e yaz
+    if (!Core.state.settings.syncKey) return;
     if (Cloud._pushTimer) {
       clearTimeout(Cloud._pushTimer);
       Cloud._pushTimer = null;
-      Core.state.settings.lastModified = Date.now();
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
     }
-    // Her kapanışta Firestore'a push dene (keepalive benzeri)
-    try {
-      window._fbDB
-        .collection('users')
-        .doc(Cloud._docId(Core.state.settings.syncKey))
-        .set({ state: Core.state, lastModified: Core.state.settings.lastModified || Date.now() }, { merge: false });
-    } catch(e) {}
+    // lastModified'ı güncelle ve local'e yaz — bu senkron, garantili çalışır
+    Core.state.settings.lastModified = Date.now();
+    localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
   });
 
   window.addEventListener('beforeunload', function() {
@@ -581,16 +576,23 @@
     }
   });
 
-  // visibilitychange: uygulama arka plandan öne gelince pull, arka plana gidince push
+  // FIX: visibilitychange:hidden — artık her zaman lastModified güncellenir
+  // ve push başlatılır (sadece bekleyen timer varsa değil, her zaman).
+  // Bu sayede telefon arka plana alındığında veri Firebase'e gider.
+  // visible — öne gelince pull yap, başka cihazda değişiklik olmuş olabilir.
   document.addEventListener('visibilitychange', function() {
     if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
     if (document.visibilityState === 'hidden') {
-      // Arka plana gidince bekleyen push'u hemen gönder
+      // Timer varsa iptal et
       if (Cloud._pushTimer) {
         clearTimeout(Cloud._pushTimer);
         Cloud._pushTimer = null;
-        Cloud._doPush();
       }
+      // lastModified'ı senkron güncelle ve local'e yaz
+      Core.state.settings.lastModified = Date.now();
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+      // Firestore push'u başlat — mobil hemen öldürmeyebilir, şansımız var
+      Cloud._doPush().catch(() => {});
     } else if (document.visibilityState === 'visible') {
       // Öne gelince initialPull yap — başka cihazda değişiklik olmuş olabilir
       Cloud._initialPull().catch(() => {});

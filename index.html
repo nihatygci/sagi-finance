@@ -24,6 +24,7 @@
 <script src="./firebase-config.js"></script>
 <script src="./core.js"></script>
 <script src="./cloud-sync.js"></script>
+<script src="./plus.js"></script>
 
 <script>
 // SW kaydını global değişkende tut — bildirim göndermek için kullanılacak
@@ -2741,6 +2742,7 @@ const UI = {
       const isSameView=currentActive===nextView;
       const doAfter=()=>{
         Core.emit('routeChanged',settingsSection?'/settings/'+settingsSection:hash);
+        if(typeof App!=='undefined'&&App.Ads) App.Ads.onScreenChange();
         if(settingsSection) App.Controllers.Settings._openSectionDirect(settingsSection);
         else if(hash==='/settings') App.Controllers.Settings._openSectionDirect(null);
         else if(hash==='/notifications') App.Controllers.NotifInbox.render();
@@ -4952,6 +4954,7 @@ const App = {
 
         // ── Trend Grafik ──
         const months = this._monthlyData(period);
+        this._months = months;
         UI.ChartEngine.drawBarChart('trendBarChart', months);
 
         // ── Donut ──
