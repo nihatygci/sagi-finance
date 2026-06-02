@@ -38,7 +38,7 @@
     _pushTimer: null,
     _pushDelay: 700,
     _unsubscribe: null,
-    _suppressNextRemote: false,
+    _lastPushId: null,
 
     // Firestore koleksiyon yolu
     _COLLECTION: "users",
@@ -193,17 +193,19 @@
 
       // Firestore'a yaz
       const docRef = this._doc(key);
-      this._suppressNextRemote = true;
+      const pushId = Math.random().toString(36).slice(2);
+      this._lastPushId = pushId;
       try {
         await docRef.set({
           state: Core.state,
           lastModified: Core.state.settings.lastModified,
+          pushId: pushId,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       } catch (e) {
         console.error('[Cloud] HATA DETAYI:', e.code, e.message, e);
         // Yazma başarısız: anahtar yerel state'te kalır ama bulutla bağlı değildir
-        this._suppressNextRemote = false;
+        this._lastPushId = null;
         this._emitStatus("error");
         this.lastError = (e && e.message) || "write-failed";
         throw e;
@@ -268,12 +270,6 @@
       const docRef = this._doc(Core.state.settings.syncKey);
       this._unsubscribe = docRef.onSnapshot(
         (snap) => {
-          // Suppress: kendi push'umuz geri geldi
-          if (this._suppressNextRemote) {
-            this._suppressNextRemote = false;
-            this._emitStatus("ok");
-            return;
-          }
           // İlk snapshot — bağlandık
           if (this.status !== "ok") this._emitStatus("ok");
 
@@ -281,10 +277,16 @@
           const data = snap.data();
           if (!data || !data.state) return;
 
+          // Kendi push'umuzu pushId ile tanı — boolean suppress yerine güvenli yöntem
+          if (data.pushId && data.pushId === this._lastPushId) {
+            this._lastPushId = null;
+            return;
+          }
+
           const remoteMod = data.lastModified || 0;
           const localMod =
             (Core.state.settings && Core.state.settings.lastModified) || 0;
-          if (remoteMod > localMod) {
+            if (remoteMod > localMod) {
             console.log("[Cloud] Uzak değişiklik alındı, yerel güncelleniyor.");
             const savedKey = Core.state.settings.syncKey;
             Core.state = data.state;
@@ -382,37 +384,41 @@
       if (this._pushTimer) clearTimeout(this._pushTimer);
       if (immediate) {
         this._pushTimer = null;
-        this._doPush();
-        return;
+        return this._doPush();
       }
-      this._pushTimer = setTimeout(() => this._doPush(), this._pushDelay);
+      this._pushTimer = setTimeout(() => {
+        this._pushTimer = null;
+        this._doPush();
+      }, this._pushDelay);
     },
 
     async _doPush() {
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       this._emitStatus("syncing");
       const docRef = this._doc(Core.state.settings.syncKey);
-      Core.state.settings.lastModified = Date.now();
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+      // pushId: bu push'a özgü ID — snapshot gelince kendi push'umuzu tanırız
+      const pushId = Math.random().toString(36).slice(2);
+      this._lastPushId = pushId;
+      // lastModified push ÖNCESINDE güncellenmez — push başarılı olunca güncellenir
+      const pushTimestamp = Date.now();
       try {
-        this._suppressNextRemote = true;
-        // FIX: suppress flag 5sn sonra otomatik sıfırla — listener gecikmeli
-        // bağlanırsa flag sonsuza kadar true kalmaz
-        setTimeout(() => { this._suppressNextRemote = false; }, 5000);
         await docRef.set(
           {
             state: Core.state,
-            lastModified: Core.state.settings.lastModified || Date.now(),
+            lastModified: pushTimestamp,
+            pushId: pushId,
           },
           { merge: false },
         );
-        this._suppressNextRemote = false; // başarılı push'ta hemen sıfırla
+        // Push başarılı — şimdi local'i güncelle
+        Core.state.settings.lastModified = pushTimestamp;
+        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
         this.lastError = "";
         this._emitStatus("ok");
       } catch (e) {
         console.error('[Cloud DEBUG] Push hatası — code:', e.code, '| message:', e.message);
         console.warn("[Cloud] Push hatası:", e);
-        this._suppressNextRemote = false;
+        this._lastPushId = null;
         this.lastError = (e && e.message) || "";
         this._emitStatus(navigator.onLine === false ? "offline" : "error");
       }
@@ -561,8 +567,8 @@
       clearTimeout(Cloud._pushTimer);
       Cloud._pushTimer = null;
     }
-    // lastModified'ı güncelle ve local'e yaz — bu senkron, garantili çalışır
-    Core.state.settings.lastModified = Date.now();
+    // NOT: lastModified burada güncellenmez — Firebase'e ulaşmadan kapanırsa
+    // sahte yeni timestamp local'de kalır ve sonraki açılışta eski veri push'lanır.
     localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
   });
 
