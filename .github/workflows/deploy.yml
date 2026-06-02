@@ -19,6 +19,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: sagi-plus checkout
+        uses: actions/checkout@v4
+        with:
+          repository: nihatygci/sagi-plus
+          token: ${{ secrets.PLUS_REPO_TOKEN }}
+          path: sagi-plus-temp
+
+      - name: plus.js kopyala
+        run: cp sagi-plus-temp/plus.js plus.js
+
       - name: firebase-config.js oluştur
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
