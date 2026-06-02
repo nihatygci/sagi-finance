@@ -2759,7 +2759,7 @@ window.Core = Core;
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
-    settingsSections:['personalization','notifications','rates','bottombar','cloud','data'],
+    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
       let hash=window.location.hash.replace('#','')||'/dashboard';
