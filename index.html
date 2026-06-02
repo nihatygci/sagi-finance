@@ -1701,6 +1701,21 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
+          <div onclick="App.Controllers.Settings.openSection('plus')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:linear-gradient(135deg,rgba(79,70,229,.15),rgba(99,102,241,.08));color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-star"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title">SAGI Plus</div>
+                  <div class="subtitle">Premium özellikler</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+
           <div onclick="App.Controllers.Settings.openSection('data')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
@@ -1716,6 +1731,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
         </div><!-- /settings-menu-panel -->
+
+        <!-- ── SAGI PLUS ── -->
+        <div class="settings-detail-panel" id="settingsDetail-plus">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title">SAGI Plus</div>
+          <div class="settings-detail-sub">Premium özellikler ve avantajlar</div>
+          <div id="settingsPlusContent"></div>
+        </div>
 
         <!-- ── KİŞİSELLEŞTİRME ── -->
         <div class="settings-detail-panel" id="settingsDetail-personalization">
