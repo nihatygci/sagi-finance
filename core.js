@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════
-//  SAGI Finance — CORE (Çakışmasız Senkronizasyon Desteği)
+//  SAGI Finance — CORE
 // ────────────────────────────────────────────────────────────────
 // Uygulamanın temel state yönetimi ve event sistemi
 // ════════════════════════════════════════════════════════════════
@@ -10,73 +10,38 @@
   // localStorage anahtarı
   const DB_KEY = 'sagi-state';
 
-  // Varsayılan state (genişletilmiş)
+  // Varsayılan state
   const DEFAULT_STATE = {
     settings: {
       syncKey: '',
       lastModified: Date.now(),
-      lastSyncVersion: 0,
       notifications: {
         abonelik: false,
         borc: false,
         butce: false,
-        haftalik: false,
-        krediKarti: false,
-        hedef: false,
-        buyukHarcama: false,
-        doviz: false
-      },
-      notifMaster: false,
-      theme: 'light',
-      lang: 'tr',
-      anim: 'on',
-      privacy: 'off',
-      currency: 'TRY',
-      cachedRates: null,
-      bnavItems: ['dashboard', 'wallets', 'transactions', 'settings'],
-      qaItems: ['addTx', 'addRecurring', 'addGoal', 'addDebt'],
-      name: '',
-      onboarded: false
+        haftalik: false
+      }
     },
     wallets: [],
     transactions: [],
     recurring: [],
     goals: [],
     debts: [],
-    budgets: [],
+    categories: [],
     notifInbox: [],
-    paidMonths: {},
-    _syncMeta: {
-      lastPull: 0,
-      lastPush: 0,
-      pendingChanges: false
-    }
+    paidMonths: {}
   };
 
-  // State'i localStorage'dan yükle (derin merge ile)
+  // State'i localStorage'dan yükle
   function loadState() {
     try {
       const saved = localStorage.getItem(DB_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Derin merge yap
-        const merged = JSON.parse(JSON.stringify(DEFAULT_STATE));
-        
-        // Settings merge
-        merged.settings = { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) };
-        if (parsed.settings?.notifications) {
-          merged.settings.notifications = { ...DEFAULT_STATE.settings.notifications, ...parsed.settings.notifications };
-        }
-        
-        // Ana array'leri merge et
-        ['wallets', 'transactions', 'recurring', 'goals', 'debts', 'budgets', 'notifInbox'].forEach(key => {
-          if (Array.isArray(parsed[key])) merged[key] = parsed[key];
+        return Object.assign({}, DEFAULT_STATE, parsed, {
+          settings: Object.assign({}, DEFAULT_STATE.settings, parsed.settings || {}),
+          notifInbox: Array.isArray(parsed.notifInbox) ? parsed.notifInbox : []
         });
-        
-        if (parsed.paidMonths) merged.paidMonths = parsed.paidMonths;
-        if (parsed._syncMeta) merged._syncMeta = parsed._syncMeta;
-        
-        return merged;
       }
     } catch(e) {
       console.warn('[Core] State yüklenemedi:', e);
@@ -113,49 +78,23 @@
     listeners[eventName] = listeners[eventName].filter(f => f !== fn);
   }
 
-  // Benzersiz ID üretici
-  function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
-  }
-
   // Core nesnesini oluştur
   window.Core = {
     state: loadState(),
-    
-    // Mevcut state'in kopyasını al (immutable işlemler için)
-    getState: function() {
-      return JSON.parse(JSON.stringify(this.state));
-    },
 
     DB: {
       key: DB_KEY,
       save: function() {
-        Core.state.settings.lastModified = Date.now();
-        Core.state._syncMeta = Core.state._syncMeta || { lastPull: 0, lastPush: 0, pendingChanges: true };
-        Core.state._syncMeta.pendingChanges = true;
-        Core.state._syncMeta.lastPush = Date.now();
         saveState();
-        emit('stateChanged', Core.state);
         if (Core.Cloud && Core.Cloud.isAvailable && Core.Cloud.isAvailable()) {
-          Core.Cloud.queuePush(false);
+          Core.Cloud.queuePush();
         }
       },
       saveNow: function() {
-        Core.state.settings.lastModified = Date.now();
-        Core.state._syncMeta = Core.state._syncMeta || { lastPull: 0, lastPush: 0, pendingChanges: true };
-        Core.state._syncMeta.pendingChanges = true;
-        Core.state._syncMeta.lastPush = Date.now();
         saveState();
-        emit('stateChanged', Core.state);
         if (Core.Cloud && Core.Cloud.isAvailable && Core.Cloud.isAvailable()) {
           Core.Cloud.queuePush(true);
         }
-      },
-      // Sadece local'e kaydet, cloud push tetikleme (bulut güncellemesi için)
-      saveLocalOnly: function() {
-        Core.state.settings.lastModified = Date.now();
-        saveState();
-        emit('stateChanged', Core.state);
       }
     },
 
@@ -167,37 +106,13 @@
     // State'i kaydet (Cloud modülü bunu kullanacak)
     save: function() {
       Core.state.settings.lastModified = Date.now();
-      Core.state._syncMeta = Core.state._syncMeta || { lastPull: 0, lastPush: 0, pendingChanges: true };
-      Core.state._syncMeta.pendingChanges = true;
       saveState();
       emit('stateChanged', Core.state);
-    },
-
-    // Yardımcı fonksiyonlar
-    Utils: {
-      generateId: generateId,
-      formatDate: function(d) {
-        return d ? new Date(d).toLocaleDateString('tr-TR') : '';
-      },
-      formatMoney: function(amount, currency) {
-        if (Core.state.settings.privacy === 'on') return '***';
-        const cur = currency || Core.state.settings.currency || 'TRY';
-        try {
-          return new Intl.NumberFormat(cur === 'TRY' ? 'tr-TR' : 'en-US', {
-            style: 'currency',
-            currency: cur,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }).format(amount || 0);
-        } catch(e) {
-          return (amount || 0).toFixed(2) + ' ' + cur;
-        }
-      }
     },
 
     // Cloud modülü buraya enjekte edilecek
     Cloud: null
   };
 
-  console.log('[SAGI] Core başlatıldı. SyncKey:', Core.state.settings.syncKey ? 'mevcut' : 'yok');
+  console.log('[SAGI] Core başlatıldı. State:', Core.state.settings.syncKey ? 'senkronize' : 'yeni');
 })();
