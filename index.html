@@ -3786,60 +3786,82 @@ const App = {
         window.KpiCarousel.next=key=>KpiCarousel._go(key,1);
         window.KpiCarousel.prev=key=>KpiCarousel._go(key,-1);
 
-        function _buildKpiSlides(key,valueInMain,mc){
+        function _buildKpiSlides(key, slidesData){
           const suffix=key.charAt(0).toUpperCase()+key.slice(1);
           const carousel=document.getElementById('kpiCarousel'+suffix);
           const dotsEl=document.getElementById('kpiDots'+suffix);
           if(!carousel||!dotsEl)return;
-
-          const slides=_getKpiCurrencies(mc).map(c=>{
-            let val;
-            if(c===mc){val=valueInMain;}
-            else{try{val=App.ExchangeRate?App.ExchangeRate.convert(valueInMain,mc,c):null;}catch(e){val=null;}}
-            if(val===null||val===undefined||isNaN(val))return null;
-            const sym=_kpiSymbols[c]||c+' ';
-            const isPrivacy=Core.state.settings.privacy==='on';
-            if(isPrivacy)return{cur:c,text:sym+'***'};
+          
+          const isPrivacy=Core.state.settings.privacy==='on';
+          const slides=slidesData.map(s=>{
+            if(isPrivacy)return{cur:s.cur,text:'***'};
+            const val=s.value;
+            const sym=s.cur==='TRY'?'₺':(s.cur==='USD'?'$':(s.cur==='EUR'?'€':'£'));
             const absVal=Math.abs(val);
             const whole=Math.floor(absVal).toLocaleString('tr-TR');
             const cents=Math.round((absVal%1)*100).toString().padStart(2,'0');
             const sign=val<0?'-':'';
-            return{cur:c,text:`${sign}${sym}${whole}<sup style="font-size:.45em;font-weight:700;letter-spacing:0;opacity:.7;vertical-align:super;margin-left:1px">,${cents}</sup>`};
-          }).filter(Boolean);
-
+            return{text:`${sign}${sym}${whole}<sup style="font-size:.45em;font-weight:700;letter-spacing:0;opacity:.7;vertical-align:super;margin-left:1px">,${cents}</sup>`};
+          }).filter(s=>s);
+          
+          if(!KpiCarousel[key])KpiCarousel[key]={idx:0,slides:[]};
           KpiCarousel[key].slides=slides;
           KpiCarousel[key].idx=Math.min(KpiCarousel[key].idx,slides.length-1);
-          const cur=KpiCarousel[key].idx;
-
-          carousel.innerHTML=slides.map((s,i)=>`<div class="kpi-slide ${i===cur?'active':i<cur?'prev':'next'}"><span class="kpi-slide-val ${_kpiColors[key]}" style="display:flex;align-items:baseline">${s.text}</span></div>`).join('');
-          dotsEl.innerHTML=slides.map((_,i)=>`<div class="kpi-dot${i===cur?' active':''}"></div>`).join('');
-
-          // swipe / drag
+          const curIdx=KpiCarousel[key].idx;
+          
+          // ESKI TASARIM - sadece değer, para birimi yazısı yok
+          carousel.innerHTML=slides.map((s,i)=>`<div class="kpi-slide ${i===curIdx?'active':(i<curIdx?'prev':'next')}"><span class="kpi-slide-val ${_kpiColors[key]}" style="display:flex;align-items:baseline">${s.text}</span></div>`).join('');
+          dotsEl.innerHTML=slides.map((_,i)=>`<div class="kpi-dot${i===curIdx?' active':''}"></div>`).join('');
+          
           let sx=null;
           const card=carousel.closest('.card');
           if(card&&!card._kpiSwipe){
             card._kpiSwipe=true;
             card.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
-            card.addEventListener('touchend',e=>{
-              if(sx===null)return;
-              const dx=sx-e.changedTouches[0].clientX;
-              if(Math.abs(dx)>35){KpiCarousel._go(key,dx>0?1:-1);}
-              sx=null;
-            });
+            card.addEventListener('touchend',e=>{if(sx!==null){const dx=sx-e.changedTouches[0].clientX;if(Math.abs(dx)>35)KpiCarousel._go(key,dx>0?1:-1);sx=null;}});
             card.addEventListener('mousedown',e=>{sx=e.clientX;});
-            card.addEventListener('mouseup',e=>{
-              if(sx===null)return;
-              const dx=sx-e.clientX;
-              if(Math.abs(dx)>35){KpiCarousel._go(key,dx>0?1:-1);}
-              sx=null;
-            });
+            card.addEventListener('mouseup',e=>{if(sx!==null){const dx=sx-e.clientX;if(Math.abs(dx)>35)KpiCarousel._go(key,dx>0?1:-1);sx=null;}});
           }
         }
+        // Net varlık hesaplama (TL, USD, EUR, GBP ayrı ayrı)
+        const currencyNetWorth = {TRY:0, USD:0, EUR:0, GBP:0};
+        Core.state.wallets.forEach(w => {
+          const cur = w.currency || 'TRY';
+          if(currencyNetWorth[cur] !== undefined) currencyNetWorth[cur] += (w.balance || 0);
+        });
 
-        _buildKpiSlides('netWorth',nw,mainCur);
-        _buildKpiSlides('expense',exp,mainCur);
-        _buildKpiSlides('income',inc,mainCur);
-        _buildKpiSlides('flow',flow,mainCur);
+        // Bu ayki gelir/gider (para birimine göre ayrıştır)
+        const monthlyIncome = {TRY:0, USD:0, EUR:0, GBP:0};
+        const monthlyExpense = {TRY:0, USD:0, EUR:0, GBP:0};
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        Core.state.transactions.forEach(tx => {
+          const txDate = new Date(tx.date);
+          if(txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear && tx.cat !== 'Transfer') {
+            const wallet = Core.state.wallets.find(w => w.id === tx.wallet);
+            const cur = (wallet && wallet.currency) || 'TRY';
+            if(tx.type === 'income' && monthlyIncome[cur] !== undefined) monthlyIncome[cur] += tx.amount;
+            if(tx.type === 'expense' && monthlyExpense[cur] !== undefined) monthlyExpense[cur] += tx.amount;
+          }
+        });
+
+        // Slayt verilerini hazırla
+        const netWorthSlides = [{cur:'TRY',value:currencyNetWorth.TRY},{cur:'USD',value:currencyNetWorth.USD},{cur:'EUR',value:currencyNetWorth.EUR},{cur:'GBP',value:currencyNetWorth.GBP}];
+        const expenseSlides = [{cur:'TRY',value:monthlyExpense.TRY},{cur:'USD',value:monthlyExpense.USD},{cur:'EUR',value:monthlyExpense.EUR},{cur:'GBP',value:monthlyExpense.GBP}];
+        const incomeSlides = [{cur:'TRY',value:monthlyIncome.TRY},{cur:'USD',value:monthlyIncome.USD},{cur:'EUR',value:monthlyIncome.EUR},{cur:'GBP',value:monthlyIncome.GBP}];
+        const flowSlides = [
+          {cur:'TRY',value:monthlyIncome.TRY - monthlyExpense.TRY},
+          {cur:'USD',value:monthlyIncome.USD - monthlyExpense.USD},
+          {cur:'EUR',value:monthlyIncome.EUR - monthlyExpense.EUR},
+          {cur:'GBP',value:monthlyIncome.GBP - monthlyExpense.GBP}
+        ];
+
+        _buildKpiSlides('netWorth', netWorthSlides);
+        _buildKpiSlides('expense', expenseSlides);
+        _buildKpiSlides('income', incomeSlides);
+        _buildKpiSlides('flow', flowSlides);
 
         const dg=document.getElementById('dashGoals');
         if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const p=Math.min((g.current/g.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
