@@ -46,7 +46,10 @@
     } catch(e) {
       console.warn('[Core] State yüklenemedi:', e);
     }
-    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    // Yeni cihaz — lastModified 0 yap ki cloud'dan pull yapılsın
+    const fresh = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    fresh.settings.lastModified = 0;
+    return fresh;
   }
 
   // State'i localStorage'a kaydet
