@@ -283,7 +283,7 @@
           if (!snap.exists) return;
           const data = snap.data();
           // forwardKey varsa — bu key plus'a yükseltildi, yeni key'e geç
-          if (data && data.forwardKey && !data.state) {
+          if (data && data.forwardKey) {
             const newKey = data.forwardKey;
             console.log('[Cloud] forwardKey alındı, yeni key:', newKey);
             this.detachListener();
