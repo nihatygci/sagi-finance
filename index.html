@@ -5934,16 +5934,18 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       _actionMeta(action){
         const page=(action||'').split(':')[0];
+        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#6366f1';
+        const acBg = acc + '22';
         const map={
-          recurring:{icon:'icon-repeat',   bg:'rgba(34,160,107,.12)', color:'var(--status-success)'},
-          debts:    {icon:'icon-briefcase', bg:'rgba(229,83,75,.12)',  color:'var(--status-danger)'},
-          goals:    {icon:'icon-target',    bg:'rgba(217,119,6,.12)',  color:'var(--status-warn)'},
-          wallets:  {icon:'icon-wallet',    bg:'rgba(99,102,241,.12)', color:'var(--brand-accent)'},
-          analytics:{icon:'icon-chart',     bg:'rgba(99,102,241,.12)', color:'var(--brand-accent)'},
-          settings: {icon:'icon-settings',  bg:'rgba(113,113,122,.12)',color:'var(--text-secondary)'},
-          dashboard:{icon:'icon-home',      bg:'rgba(99,102,241,.12)', color:'var(--brand-accent)'},
+          recurring:{icon:'icon-repeat',   bg:acBg, color:'var(--brand-accent)'},
+          debts:    {icon:'icon-briefcase', bg:acBg, color:'var(--brand-accent)'},
+          goals:    {icon:'icon-target',    bg:acBg, color:'var(--brand-accent)'},
+          wallets:  {icon:'icon-wallet',    bg:acBg, color:'var(--brand-accent)'},
+          analytics:{icon:'icon-chart',     bg:acBg, color:'var(--brand-accent)'},
+          settings: {icon:'icon-settings',  bg:acBg, color:'var(--brand-accent)'},
+          dashboard:{icon:'icon-home',      bg:acBg, color:'var(--brand-accent)'},
         };
-        return map[page]||{icon:'icon-bell',bg:'rgba(99,102,241,.12)',color:'var(--brand-accent)'};
+        return map[page]||{icon:'icon-bell',bg:acBg,color:'var(--brand-accent)'};
       },
       _timeAgo(ts){
         const diff=Date.now()-ts;
