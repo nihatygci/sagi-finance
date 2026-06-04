@@ -149,7 +149,7 @@
     normalizeKey(raw) {
       if (!raw) return "";
       const str = String(raw).trim();
-      // PLUS prefix'li key: PLUS-XXXX-XXXX-XXXX-XXXX veya PLUSXXXXXXXXXXXXXXXXXX
+      // PLUS prefix: PLUS-XXXX-XXXX-XXXX-XXXX veya PLUSXXXXXXXXXXXXXXXX
       const plusMatch = str.match(/^PLUS[-]?([0-9A-Fa-f-]{16,19})$/i);
       if (plusMatch) {
         const hex = plusMatch[1].replace(/[^0-9a-fA-F]/g, '').toUpperCase();
@@ -163,15 +163,12 @@
 
     isValidKey(key) {
       const k = key || "";
-      // Normal key
       if (/^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)) return true;
-      // PLUS key
       if (/^PLUS-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)) return true;
       return false;
     },
 
-    // Firestore doc ID'si — tireler kaldırılır
-    // Normal key: 16 char, PLUS key: PLUS + 16 char = 20 char
+    // Firestore doc ID'si — tireler kaldırılır (16 char)
     _docId(key) {
       return (key || "").replace(/-/g, "");
     },
@@ -285,6 +282,20 @@
 
           if (!snap.exists) return;
           const data = snap.data();
+          // forwardKey varsa — bu key plus'a yükseltildi, yeni key'e geç
+          if (data && data.forwardKey && !data.state) {
+            const newKey = data.forwardKey;
+            console.log('[Cloud] forwardKey alındı, yeni key:', newKey);
+            this.detachListener();
+            Core.state.settings.syncKey = newKey;
+            Core.state.settings.lastModified = 0; // pull zorla
+            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+            // Yeni key'den veri çek ve listener bağla
+            this.loginWithKey(newKey).then(() => {
+              setTimeout(() => window.location.reload(), 500);
+            }).catch(e => console.warn('[Cloud] forwardKey login hatası:', e));
+            return;
+          }
           if (!data || !data.state) return;
 
           // Kendi push'umuzu pushId ile tanı — boolean suppress yerine güvenli yöntem
