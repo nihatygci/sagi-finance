@@ -148,20 +148,30 @@
     // Kullanıcı girdisini normalize et: tire/boşluk temizle, büyült
     normalizeKey(raw) {
       if (!raw) return "";
-      const clean = String(raw)
-        .replace(/[^0-9a-fA-F]/g, "")
-        .toUpperCase();
-      if (clean.length !== 16) return "";
-      return clean.match(/.{4}/g).join("-");
+      const str = String(raw).trim();
+      // PLUS prefix'li key: PLUS-XXXX-XXXX-XXXX-XXXX veya PLUSXXXXXXXXXXXXXXXXXX
+      const plusMatch = str.match(/^PLUS[-]?([0-9A-Fa-f-]{16,19})$/i);
+      if (plusMatch) {
+        const hex = plusMatch[1].replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+        if (hex.length === 16) return 'PLUS-' + hex.match(/.{4}/g).join('-');
+      }
+      // Normal 16 haneli key
+      const clean = str.replace(/[^0-9a-fA-F]/g, "").toUpperCase();
+      if (clean.length === 16) return clean.match(/.{4}/g).join("-");
+      return "";
     },
 
     isValidKey(key) {
-      return /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(
-        key || "",
-      );
+      const k = key || "";
+      // Normal key
+      if (/^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)) return true;
+      // PLUS key
+      if (/^PLUS-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)) return true;
+      return false;
     },
 
-    // Firestore doc ID'si — tireler kaldırılır (16 char)
+    // Firestore doc ID'si — tireler kaldırılır
+    // Normal key: 16 char, PLUS key: PLUS + 16 char = 20 char
     _docId(key) {
       return (key || "").replace(/-/g, "");
     },
