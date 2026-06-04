@@ -752,10 +752,21 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .wallet-card-premium::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 55%);z-index:1;pointer-events:none}
 .wallet-card-premium::after{content:'';position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);z-index:1;pointer-events:none}
 .wallet-card-premium>*{position:relative;z-index:10}
-/* Chip: realistic EMV chip */
+/* Chip: realistic EMV chip – gold (kredi kartı) */
 .chip-icon{width:38px;height:28px;background:linear-gradient(135deg,#d4af37,#f5d980 35%,#c8a020 70%,#e8c84a);border-radius:6px;margin-bottom:14px;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,.15);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .chip-icon::before{content:'';position:absolute;inset:4px;background:linear-gradient(135deg,#b8922a,#e8c44a);border-radius:3px}
 .chip-icon::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.2);transform:translateY(-50%)}
+/* Chip: silver (diğer hesaplar) */
+.chip-icon-silver{width:38px;height:28px;background:linear-gradient(135deg,#9ca3af,#e5e7eb 35%,#6b7280 70%,#d1d5db);border-radius:6px;margin-bottom:14px;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.chip-icon-silver::before{content:'';position:absolute;inset:4px;background:linear-gradient(135deg,#6b7280,#d1d5db);border-radius:3px}
+.chip-icon-silver::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.15);transform:translateY(-50%)}
+/* Drag-and-drop wallet cards */
+.wallet-card-wrapper{cursor:grab;touch-action:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s,box-shadow .25s}
+.wallet-card-wrapper.drag-active{cursor:grabbing;opacity:.92;transform:scale(1.04) rotate(1.2deg)!important;box-shadow:0 24px 48px rgba(0,0,0,.32)!important;z-index:9999;transition:none}
+.wallet-card-wrapper.drag-over{transform:translateY(-6px) scale(1.01);box-shadow:0 0 0 2.5px rgba(99,102,241,.7),var(--shadow-md)}
+.wallet-card-wrapper.drag-placeholder{opacity:.35;transform:scale(.97)}
+@keyframes walletDropBounce{0%{transform:scale(1.04)}60%{transform:scale(.97)}100%{transform:scale(1)}}
+.wallet-card-wrapper.drop-bounce{animation:walletDropBounce .38s cubic-bezier(.16,1,.3,1) forwards}
 
 /* INSIGHT */
 .insight-card{background:var(--bg-surface);border:1px solid var(--border-light);padding:18px;border-radius:var(--radius-lg);margin-bottom:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
@@ -4139,6 +4150,7 @@ const App = {
         container.innerHTML=ccWallets.map(cc=>{
         const debt=Math.max(0,-(cc.balance||0));
         const dueDay=parseInt(cc.ccDueDay)||0;
+        const cutoffDay2=parseInt(cc.ccCutoffDay)||0;
         const now2=new Date();
         const paidKey2=now2.getFullYear()+'_'+now2.getMonth();
         const paidThisMonth2=(Core.state.paidMonths&&Core.state.paidMonths[paidKey2]||[]).includes(cc.id); 
@@ -4146,11 +4158,19 @@ const App = {
         if(dueDay<=0){
           daysUntilDue=null;
         } else if(paidThisMonth2){
-          // Bu ay ödendi — bir sonraki ayın son ödeme gününe kaç gün
-          const nextDue=new Date(new Date().getFullYear(),new Date().getMonth()+1,dueDay);
-          daysUntilDue=Math.ceil((nextDue-new Date())/(1000*60*60*24));
+          // Bu ay ödendi — bir sonraki dönemin son ödeme gününe kaç gün
+          const nextDue=new Date(now2.getFullYear(),now2.getMonth()+1,dueDay);
+          daysUntilDue=Math.ceil((nextDue-now2)/(1000*60*60*24));
         } else {
-          daysUntilDue=dueDay>=today?dueDay-today:dueDay+monthDays-today;
+          // Cutoff geçtiyse borç yeni döneme ait → due sonraki ayda
+          const cutoffPassed=cutoffDay2>0&&today>cutoffDay2;
+          if(cutoffPassed){
+            const nextDue=new Date(now2.getFullYear(),now2.getMonth()+1,dueDay);
+            daysUntilDue=Math.ceil((nextDue-now2)/(1000*60*60*24));
+          } else {
+            if(today<=dueDay){daysUntilDue=dueDay-today;}
+            else{const nextDue=new Date(now2.getFullYear(),now2.getMonth()+1,dueDay);daysUntilDue=Math.ceil((nextDue-now2)/(1000*60*60*24));}
+          }
         }
           const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5;
           const urgStyle=isDueUrgent?'border-color:var(--status-warn);background:var(--status-warn-bg);':'';
@@ -4182,21 +4202,37 @@ const App = {
           // CC due date urgency
           const dueDay=parseInt(w.ccDueDay)||0;
           const cutoffDay=parseInt(w.ccCutoffDay)||0;
-          const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+(new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate())-today):null;
+          const _now=new Date(),_td=_now.getDate(),_yr=_now.getFullYear(),_mo=_now.getMonth();
+          const _monthDays=new Date(_yr,_mo+1,0).getDate();
+          let daysUntilDue=null;
+          if(dueDay>0){
+            // cutoff geçtiyse (veya cutoff tanımsızsa) → borç yeni döneme ait → due sonraki ayda
+            const cutoffPassed=cutoffDay>0&&_td>cutoffDay;
+            if(cutoffPassed){
+              // due = sonraki ayın dueDay'i
+              const nextDue=new Date(_yr,_mo+1,dueDay);
+              daysUntilDue=Math.ceil((nextDue-_now)/(1000*60*60*24));
+            } else {
+              // due bu aydaki dueDay; eğer bu da geçtiyse sonraki aya sar
+              if(_td<=dueDay){daysUntilDue=dueDay-_td;}
+              else{const nextDue=new Date(_yr,_mo+1,dueDay);daysUntilDue=Math.ceil((nextDue-_now)/(1000*60*60*24));}
+            }
+          }
           const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=3&&ccDebt>0;
           const ccProgressClass=ccUsedPerc>=80?'danger':(ccUsedPerc>=50?'warn':'safe');
           // Masked card number (last 4 digits from id for visual flair)
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''} ${isDueUrgent&&daysUntilDue===0?`<div class="cc-status-badge overdue">Bugün!</div>`:''}`
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''}`
             : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
           const standardBtns=isCC
             ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>`
             : `<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>`;
-          return`<div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'})">
+          const chipHtml=isCC?'<div class="chip-icon"></div>':'<div class="chip-icon-silver"></div>';
+          return`<div class="wallet-card-wrapper" data-wallet-id="${w.id}"><div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'})">
             <div class="flex justify-between items-start">
-              <div class="chip-icon"></div>
+              ${chipHtml}
               <div class="flex gap-2">
                 <button class="act-btn" style="color:#fff" onclick="App.Controllers.Wallets.edit('${w.id}')"><svg class="nav-icon" style="width:17px;height:17px"><use href="#icon-edit"/></svg></button>
                 <button class="act-btn" style="color:#fff" onclick="App.Controllers.Wallets.delete('${w.id}')"><svg class="nav-icon" style="width:17px;height:17px"><use href="#icon-trash"/></svg></button>
@@ -4206,9 +4242,111 @@ const App = {
               ${mainAmount}
               ${standardBtns}
             </div>
-          </div>`;
+          </div></div>`;
         }).join('');
         this.upd();
+        this._initDrag();
+      },
+      _initDrag(){
+        const grid=document.getElementById('walletsGrid');
+        if(!grid)return;
+        const wrappers=()=>[...grid.querySelectorAll('.wallet-card-wrapper')];
+        let dragEl=null,startIdx=-1,longPressTimer=null,cloneEl=null,offX=0,offY=0,raf=null,lastOver=null;
+
+        const getIdx=el=>{const ws=wrappers();return ws.indexOf(el);}
+        const reorder=(fromIdx,toIdx)=>{
+          if(fromIdx===toIdx)return;
+          const wallets=Core.state.wallets;
+          const [item]=wallets.splice(fromIdx,1);
+          wallets.splice(toIdx,0,item);
+          Core.DB.save();
+        };
+
+        const beginDrag=(el,clientX,clientY)=>{
+          dragEl=el;
+          startIdx=getIdx(el);
+          const rect=el.getBoundingClientRect();
+          offX=clientX-rect.left;offY=clientY-rect.top;
+          // floating clone
+          cloneEl=el.cloneNode(true);
+          cloneEl.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;pointer-events:none;z-index:10000;transition:none;transform:scale(1.04) rotate(1.2deg);opacity:.92;box-shadow:0 24px 48px rgba(0,0,0,.32);border-radius:var(--radius-xl)`;
+          document.body.appendChild(cloneEl);
+          el.classList.add('drag-placeholder');
+          navigator.vibrate&&navigator.vibrate(40);
+        };
+
+        const moveClone=(clientX,clientY)=>{
+          if(!cloneEl)return;
+          cloneEl.style.left=(clientX-offX)+'px';
+          cloneEl.style.top=(clientY-offY)+'px';
+          // find drop target
+          cloneEl.style.display='none';
+          const elBelow=document.elementFromPoint(clientX,clientY);
+          cloneEl.style.display='';
+          const target=elBelow&&elBelow.closest('.wallet-card-wrapper');
+          if(target&&target!==dragEl){
+            if(lastOver&&lastOver!==target)lastOver.classList.remove('drag-over');
+            target.classList.add('drag-over');
+            lastOver=target;
+          } else if(lastOver&&(!target||target===dragEl)){
+            lastOver.classList.remove('drag-over');lastOver=null;
+          }
+        };
+
+        const endDrag=(clientX,clientY)=>{
+          if(!dragEl)return;
+          if(cloneEl){cloneEl.remove();cloneEl=null;}
+          dragEl.classList.remove('drag-placeholder');
+          if(lastOver){lastOver.classList.remove('drag-over');lastOver=null;}
+          // find final target
+          const elBelow=document.elementFromPoint(clientX,clientY);
+          const target=elBelow&&elBelow.closest('.wallet-card-wrapper');
+          const toIdx=target?getIdx(target):startIdx;
+          reorder(startIdx,toIdx);
+          dragEl.classList.add('drop-bounce');
+          dragEl.addEventListener('animationend',()=>dragEl&&dragEl.classList.remove('drop-bounce'),{once:true});
+          dragEl=null;startIdx=-1;
+          App.Controllers.Wallets.render();
+        };
+
+        const cancelDrag=()=>{
+          clearTimeout(longPressTimer);longPressTimer=null;
+          if(cloneEl){cloneEl.remove();cloneEl=null;}
+          if(dragEl){dragEl.classList.remove('drag-placeholder');dragEl=null;}
+          if(lastOver){lastOver.classList.remove('drag-over');lastOver=null;}
+        };
+
+        wrappers().forEach(el=>{
+          // Mouse
+          el.addEventListener('mousedown',e=>{
+            if(e.button!==0||e.target.closest('button'))return;
+            longPressTimer=setTimeout(()=>{beginDrag(el,e.clientX,e.clientY);},500);
+          });
+          // Touch
+          el.addEventListener('touchstart',e=>{
+            if(e.target.closest('button'))return;
+            const t0=e.touches[0];
+            longPressTimer=setTimeout(()=>{beginDrag(el,t0.clientX,t0.clientY);},500);
+          },{passive:true});
+        });
+
+        document.addEventListener('mousemove',e=>{
+          if(!dragEl){if(longPressTimer&&(Math.abs(e.movementX)>5||Math.abs(e.movementY)>5)){clearTimeout(longPressTimer);longPressTimer=null;}return;}
+          moveClone(e.clientX,e.clientY);
+        },{passive:true});
+        document.addEventListener('mouseup',e=>{
+          clearTimeout(longPressTimer);longPressTimer=null;
+          if(dragEl)endDrag(e.clientX,e.clientY);
+        });
+        document.addEventListener('touchmove',e=>{
+          if(!dragEl){clearTimeout(longPressTimer);longPressTimer=null;return;}
+          const t0=e.touches[0];moveClone(t0.clientX,t0.clientY);
+        },{passive:true});
+        document.addEventListener('touchend',e=>{
+          clearTimeout(longPressTimer);longPressTimer=null;
+          if(dragEl){const t0=e.changedTouches[0];endDrag(t0.clientX,t0.clientY);}
+        },{passive:true});
+        document.addEventListener('touchcancel',cancelDrag,{passive:true});
       },
       upd(){
         const wallets=Core.state.wallets;
@@ -4351,7 +4489,17 @@ const App = {
         const dueDay=parseInt(cc.ccDueDay)||0;
         const cutoffDay=parseInt(cc.ccCutoffDay)||0;
         const monthDays=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
-        const daysUntilDue=dueDay>0?(dueDay>=today?dueDay-today:dueDay+monthDays-today):null;
+        let daysUntilDue=null;
+        if(dueDay>0){
+          const cutoffPassed=cutoffDay>0&&today>cutoffDay;
+          if(cutoffPassed){
+            const nextDue=new Date(new Date().getFullYear(),new Date().getMonth()+1,dueDay);
+            daysUntilDue=Math.ceil((nextDue-new Date())/(1000*60*60*24));
+          } else {
+            if(today<=dueDay){daysUntilDue=dueDay-today;}
+            else{const nextDue=new Date(new Date().getFullYear(),new Date().getMonth()+1,dueDay);daysUntilDue=Math.ceil((nextDue-new Date())/(1000*60*60*24));}
+          }
+        }
         const now2=new Date();
         const paidKey2=now2.getFullYear()+'_'+now2.getMonth();
         const paidThisMonth=(Core.state.paidMonths&&Core.state.paidMonths[paidKey2]||[]).includes(cardId);
