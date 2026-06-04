@@ -98,6 +98,7 @@ if ('serviceWorker' in navigator) {
     ]
   };
 
+  window._sagiManifestBase = manifest;
   const manifestLink = document.createElement('link');
   manifestLink.rel = 'manifest';
   manifestLink.href = URL.createObjectURL(
@@ -833,6 +834,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 .brand-icon-dark  { display: none;  }
 [data-theme="dark"] .brand-icon-light { display: none;  }
 [data-theme="dark"] .brand-icon-dark  { display: block; }
+.brand-icon-bar { fill: var(--brand-accent); }
+.brand-icon-stroke { stroke: var(--brand-accent); fill: none; }
+[data-theme="dark"] .brand-icon-bar { fill: var(--brand-accent); }
+[data-theme="dark"] .brand-icon-stroke { stroke: var(--brand-accent); }
 
 /* PROGRESS */
 .progress-track{height:7px;background:var(--bg-body);border-radius:var(--radius-full);overflow:hidden}
@@ -1278,18 +1283,18 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <!-- LIGHT -->
       <svg class="brand-icon brand-icon-light" viewBox="0 0 192 192" fill="none">
         <circle cx="96" cy="96" r="96" fill="#FFFFFF"/>
-        <rect x="58" y="100" width="18" height="40" rx="4" fill="#6C4DFF"/>
-        <rect x="87" y="80" width="18" height="60" rx="4" fill="#6C4DFF"/>
-        <rect x="116" y="60" width="18" height="80" rx="4" fill="#6C4DFF"/>
-        <path d="M58 78 L58 58 L78 58" stroke="#6C4DFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect class="brand-icon-bar" x="58" y="100" width="18" height="40" rx="4"/>
+        <rect class="brand-icon-bar" x="87" y="80" width="18" height="60" rx="4"/>
+        <rect class="brand-icon-bar" x="116" y="60" width="18" height="80" rx="4"/>
+        <path class="brand-icon-stroke" d="M58 78 L58 58 L78 58" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <!-- DARK -->
       <svg class="brand-icon brand-icon-dark" viewBox="0 0 192 192" fill="none">
         <circle cx="96" cy="96" r="96" fill="#1E1E1E"/>
-        <rect x="58" y="100" width="18" height="40" rx="4" fill="#FFFFFF"/>
-        <rect x="87" y="80" width="18" height="60" rx="4" fill="#FFFFFF"/>
-        <rect x="116" y="60" width="18" height="80" rx="4" fill="#FFFFFF"/>
-        <path d="M58 78 L58 58 L78 58" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect class="brand-icon-bar" x="58" y="100" width="18" height="40" rx="4"/>
+        <rect class="brand-icon-bar" x="87" y="80" width="18" height="60" rx="4"/>
+        <rect class="brand-icon-bar" x="116" y="60" width="18" height="80" rx="4"/>
+        <path class="brand-icon-stroke" d="M58 78 L58 58 L78 58" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span>SAGI<span style="font-size:13px;font-weight:500;opacity:.55;letter-spacing:.01em;margin-left:4px;font-style:italic">Finance</span></span>
     </div>
@@ -1309,18 +1314,18 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <!-- LIGHT -->
         <svg class="brand-icon brand-icon-light" viewBox="0 0 192 192" fill="none">
           <circle cx="96" cy="96" r="96" fill="#FFFFFF"/>
-          <rect x="58" y="100" width="18" height="40" rx="4" fill="#6C4DFF"/>
-          <rect x="87" y="80" width="18" height="60" rx="4" fill="#6C4DFF"/>
-          <rect x="116" y="60" width="18" height="80" rx="4" fill="#6C4DFF"/>
-          <path d="M58 78 L58 58 L78 58" stroke="#6C4DFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect class="brand-icon-bar" x="58" y="100" width="18" height="40" rx="4"/>
+          <rect class="brand-icon-bar" x="87" y="80" width="18" height="60" rx="4"/>
+          <rect class="brand-icon-bar" x="116" y="60" width="18" height="80" rx="4"/>
+          <path class="brand-icon-stroke" d="M58 78 L58 58 L78 58" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <!-- DARK -->
         <svg class="brand-icon brand-icon-dark" viewBox="0 0 192 192" fill="none">
           <circle cx="96" cy="96" r="96" fill="#1E1E1E"/>
-          <rect x="58" y="100" width="18" height="40" rx="4" fill="#FFFFFF"/>
-          <rect x="87" y="80" width="18" height="60" rx="4" fill="#FFFFFF"/>
-          <rect x="116" y="60" width="18" height="80" rx="4" fill="#FFFFFF"/>
-          <path d="M58 78 L58 58 L78 58" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect class="brand-icon-bar" x="58" y="100" width="18" height="40" rx="4"/>
+          <rect class="brand-icon-bar" x="87" y="80" width="18" height="60" rx="4"/>
+          <rect class="brand-icon-bar" x="116" y="60" width="18" height="80" rx="4"/>
+          <path class="brand-icon-stroke" d="M58 78 L58 58 L78 58" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span>SAGI<span style="font-size:13px;font-weight:500;opacity:.55;letter-spacing:.01em;margin-left:4px;font-style:italic">Finance</span></span>
       </div>
