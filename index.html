@@ -1627,6 +1627,21 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p>
           </div>
 
+          <div onclick="App.Controllers.Settings.openSection('plus')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-star"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title">SAGI Plus</div>
+                  <div class="subtitle">Premium özellikler</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+
           <div onclick="App.Controllers.Settings.openSection('personalization')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
@@ -1645,7 +1660,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('notifications')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(251,191,36,.12);color:#d97706">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-bell"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1660,7 +1675,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('rates')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(217,119,6,.1);color:var(--status-warn)">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-transfer"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1690,7 +1705,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('cloud')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(108,77,255,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-cloud"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1702,25 +1717,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('plus')">
-            <div class="settings-menu-row">
-              <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:linear-gradient(135deg,rgba(79,70,229,.15),rgba(99,102,241,.08));color:var(--brand-accent)">
-                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-star"/></svg>
-                </div>
-                <div class="settings-menu-row-text">
-                  <div class="title">SAGI Plus</div>
-                  <div class="subtitle">Premium özellikler</div>
-                </div>
-              </div>
-              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
-            </div>
-          </div>
-
           <div onclick="App.Controllers.Settings.openSection('data')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(229,83,75,.1);color:var(--status-danger)">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-trash"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -3552,7 +3552,7 @@ const App = {
   processRecurring(){
     const tStr=new Date().toDateString();
     if(Core.state.settings.lastProcessedDate===tStr)return;
-    const t=new Date(),cD=t.getDate();let add=0;
+    const now=new Date(),cD=now.getDate();let add=0;
     Core.state.recurring.forEach(s=>{
       if(cD===s.day){
         // Otomatik ödeme talimatı yoksa otomatik işlem oluşturma
@@ -3563,7 +3563,7 @@ const App = {
         const desc = (typeof window.t === 'function')
           ? t('subscriptionLabel',{name:s.name})
           : (s.name + ' (Abonelik)');
-        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:t.toISOString(),autoProcessed:true};
+        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:now.toISOString(),autoProcessed:true};
         Core.state.transactions.push(tx);
         App.Money.applyTx(tx);
         add++;
