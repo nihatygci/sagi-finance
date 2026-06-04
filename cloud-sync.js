@@ -58,11 +58,11 @@
         if (Core.state.settings && Core.state.settings.syncKey && !this._unsubscribe) {
           // Önce pull yap — tamamlanınca listener'ı bağla
           // Listener bağlanmadan önce pull bitmiş olacak, suppress race condition olmaz
-          this._initialPull().then(() => {
+          this._initialPull().then((forwarded) => {
+            if (forwarded) return; // forwardKey ile geçiş yapıldı, listener bağlama
             this.attachListener();
             this._emitStatus('ok');
           }).catch(() => {
-            // Pull hata verse bile listener'ı bağla
             this.attachListener();
           });
         } else {
@@ -95,7 +95,7 @@
           this.loginWithKey(newKey).then(() => {
             setTimeout(() => window.location.reload(), 300);
           }).catch(e => console.warn('[Cloud] forwardKey login hatası:', e));
-          return;
+          return true; // forwarded
         }
         if (!data || !data.state) return;
 
