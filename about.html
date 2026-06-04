@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SAGI Finance · Hakkımızda / About</title>
+<meta name="description" content="SAGI Finance hakkında — gizlilik odaklı, yerel-önce kişisel finans uygulaması.">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+:root{
+  --brand:#6257f0;--brand2:#6C4DFF;
+  --brand-soft:rgba(98,87,240,0.1);--brand-border:rgba(98,87,240,0.2);
+  --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
+  --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
+  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--shadow:none;}
+}
+body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(108,77,255,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(98,87,240,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
+.wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
+
+/* HEADER */
+.app-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+@media(prefers-color-scheme:dark){.app-header{background:rgba(9,9,11,0.88);}}
+.header-inner{height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.brand-logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.01em;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(98,87,240,0.15);flex-shrink:0;}
+.brand-logo small{font-size:12px;opacity:.45;font-style:italic;font-weight:600;margin-left:1px;}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
+.lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
+.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(98,87,240,0.3);}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
+.back-btn:hover{background:var(--brand-soft);}
+.back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* HERO */
+.hero{padding:44px 0 28px;}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);margin-bottom:20px;}
+.hero-badge svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.hero h1{font-family:var(--font-display);font-size:clamp(28px,6vw,40px);font-weight:800;line-height:1.15;letter-spacing:-.03em;margin-bottom:14px;}
+.hero p{font-size:16px;color:var(--text2);max-width:560px;line-height:1.75;}
+.hero-meta{margin-top:14px;font-size:12px;color:var(--muted);font-weight:500;}
+
+/* SECTIONS */
+.sections{margin-top:14px;display:flex;flex-direction:column;gap:10px;padding-bottom:10px;}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;box-shadow:var(--shadow);transition:border-color .2s;}
+.section:hover{border-color:var(--brand-border);}
+.section h2{font-family:var(--font-display);font-size:17px;font-weight:700;display:flex;align-items:center;gap:11px;margin-bottom:14px;}
+.sec-icon{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--brand-soft);flex-shrink:0;}
+.sec-icon svg{width:16px;height:16px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.section p{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:10px;}
+.section p:last-child{margin-bottom:0;}
+
+/* VALUES GRID */
+.values-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;padding-bottom:4px;}
+.value-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;box-shadow:var(--shadow);transition:border-color .2s,transform .2s;}
+.value-card:hover{border-color:var(--brand-border);transform:translateY(-2px);}
+.value-icon{width:42px;height:42px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.value-icon svg{width:20px;height:20px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.value-card h3{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;}
+.value-card p{font-size:12px;color:var(--text2);line-height:1.6;}
+
+/* HIGHLIGHT */
+.highlight-card{margin-top:20px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
+.highlight-icon{width:46px;height:46px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.highlight-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.highlight-card h3{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--brand);margin-bottom:6px;}
+.highlight-card p{font-size:14px;color:var(--text2);line-height:1.7;}
+
+/* STACK PILLS */
+.stack-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);}
+
+/* ── PLUS CARD ── */
+.plus-section{
+  background:linear-gradient(135deg,rgba(79,70,229,0.08) 0%,rgba(99,102,241,0.03) 100%);
+  border:2px solid rgba(99,102,241,0.22);border-radius:var(--radius);padding:26px;
+}
+.plus-top-badge{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border-radius:999px;
+  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;margin-bottom:18px;
+  box-shadow:0 3px 12px rgba(79,70,229,0.35);
+}
+.plus-top-badge svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.5;}
+.plus-section h2{font-family:var(--font-display);font-size:21px;font-weight:800;letter-spacing:-.02em;margin-bottom:8px;}
+.plus-desc{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:22px;}
+
+.plus-feats{display:flex;flex-direction:column;gap:9px;margin-bottom:22px;}
+.plus-feat{display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--surface);border-radius:14px;border:1px solid var(--border);transition:border-color .2s;}
+.plus-feat:hover{border-color:rgba(99,102,241,0.25);}
+.plus-feat-icon{width:34px;height:34px;border-radius:10px;background:rgba(79,70,229,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.plus-feat-icon svg{width:16px;height:16px;stroke:#4f46e5;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.plus-feat-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.plus-feat-sub{font-size:12px;color:var(--text2);}
+
+/* FREE vs PLUS comparison */
+.tier-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+.tier-card{border-radius:16px;padding:16px;border:1.5px solid var(--border);background:var(--surface);}
+.tier-card.plus-tier{border-color:rgba(99,102,241,0.35);background:rgba(79,70,229,0.04);}
+.tier-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.tier-card.plus-tier .tier-label{color:#4f46e5;}
+.tier-rows{display:flex;flex-direction:column;gap:7px;}
+.tier-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
+.tier-row svg{width:13px;height:13px;flex-shrink:0;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.tier-row.yes svg{stroke:#22a06b;}
+.tier-row.no svg{stroke:#9ca3af;}
+.tier-row.no{color:var(--muted);}
+
+.plus-pricing-box{text-align:center;padding:20px;background:var(--surface);border-radius:16px;border:1px solid var(--border);}
+.pricing-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.pricing-amount{font-family:var(--font-display);font-size:34px;font-weight:900;letter-spacing:-.04em;margin-bottom:4px;}
+.pricing-note{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:12px;}
+.pricing-soon{display:inline-block;padding:7px 20px;border-radius:999px;font-size:12px;font-weight:700;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 3px 12px rgba(79,70,229,0.3);}
+
+/* FOOTER */
+.site-footer{margin-top:32px;padding:24px 16px 40px;text-align:center;font-size:12px;color:var(--muted);font-weight:500;border-top:1px solid var(--border);}
+.footer-links{display:flex;justify-content:center;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:color .2s;}
+.footer-links a:hover{color:var(--brand);}
+
+/* LANG */
+[data-lang] .t-tr,[data-lang] .t-en{display:none;}
+[data-lang="tr"] .t-tr{display:block;}[data-lang="tr"] .t-tr-i{display:inline;}
+[data-lang="en"] .t-en{display:block;}[data-lang="en"] .t-en-i{display:inline;}
+
+@media(max-width:600px){
+  .header-inner{height:auto;padding:10px 0;flex-wrap:wrap;gap:8px;}
+  .header-actions{width:100%;justify-content:space-between;}
+  .lang-switcher{flex:1;justify-content:center;}.back-btn{flex:1;justify-content:center;}
+  .hero{padding:28px 0 16px;}.hero h1{font-size:26px;}
+  .highlight-card{flex-direction:column;gap:14px;padding:18px;}
+  .section,.plus-section{padding:18px;border-radius:18px;}
+  .tier-compare{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body data-lang="tr">
+
+<header class="app-header">
+<div class="wrapper"><div class="header-inner">
+  <a href="./" class="brand-logo"><div class="brand-dot"></div>SAGI <small>Finance</small></a>
+  <div class="header-actions">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="./" class="back-btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      <span class="t-tr">Uygulamaya Dön</span><span class="t-en">Back to App</span>
+    </a>
+  </div>
+</div></div>
+</header>
+
+<main class="wrapper">
+  <section class="hero">
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="t-tr">Hakkımızda</span><span class="t-en">About</span>
+    </div>
+    <h1><span class="t-tr">Paranız. Cihazınız. Kontrolünüz.</span><span class="t-en">Your money. Your device. Your control.</span></h1>
+    <p class="t-tr">SAGI Finance, reklam, veri satışı veya gizli ücret olmadan finansal özgürlüğünüzü desteklemek için tasarlandı.</p>
+    <p class="t-en">SAGI Finance is built to support your financial freedom — no ads, no data sold, no hidden fees.</p>
+    <div class="hero-meta">v0.9.86 · 2026</div>
+
+    <div class="highlight-card">
+      <div class="highlight-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div>
+        <h3 class="t-tr">Gizlilik önce — her zaman</h3>
+        <h3 class="t-en">Privacy first — always</h3>
+        <p class="t-tr">Hiçbir kişisel veri toplamıyoruz. Tüm verileriniz yalnızca tarayıcınızda saklanır; sunucuya, reklam ağına veya üçüncü taraflara hiçbir şey gönderilmez.</p>
+        <p class="t-en">We collect zero personal data. All your data lives only in your browser — nothing sent to servers, ad networks, or third parties.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEĞERLER -->
+  <div class="values-grid">
+    <div class="value-card">
+      <div class="value-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+      <h3 class="t-tr">Yerel-Önce</h3><h3 class="t-en">Local-First</h3>
+      <p class="t-tr">Verileriniz varsayılan olarak yalnızca cihazınızda saklanır.</p>
+      <p class="t-en">Your data lives on your device by default.</p>
+    </div>
+    <div class="value-card">
+      <div class="value-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+      <h3 class="t-tr">Plus'ta Sıfır Reklam</h3><h3 class="t-en">Zero Ads on Plus</h3>
+      <p class="t-tr">Plus kullanıcılarında hiçbir reklam gösterilmez.</p>
+      <p class="t-en">Plus users see absolutely no ads.</p>
+    </div>
+    <div class="value-card">
+      <div class="value-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <h3 class="t-tr">Temel Ücretsiz</h3><h3 class="t-en">Free Core</h3>
+      <p class="t-tr">Temel özellikler her zaman ücretsiz, sınırsız.</p>
+      <p class="t-en">Core features always free, always unlimited.</p>
+    </div>
+    <div class="value-card">
+      <div class="value-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <h3 class="t-tr">Açık Kaynak Ruhu</h3><h3 class="t-en">Open Source Spirit</h3>
+      <p class="t-tr">Şeffaf, denetlenebilir, topluluk odaklı.</p>
+      <p class="t-en">Transparent, auditable, community-minded.</p>
+    </div>
+  </div>
+
+  <div class="sections">
+
+    <!-- ═══ SAGI PLUS ═══ -->
+    <div class="plus-section">
+      <div class="plus-top-badge">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="white" stroke="none"/></svg>
+        SAGI Plus
+      </div>
+      <h2 class="t-tr">Tam finansal kontrol için SAGI Plus</h2>
+      <h2 class="t-en">SAGI Plus for full financial control</h2>
+      <p class="plus-desc t-tr">SAGI Finance güçlü bir ücretsiz katmanla gelir. SAGI Plus ile AI asistan, gelişmiş analiz ve reklamsız deneyimi açarsınız — tek seferlik ödemeyle, ömür boyu.</p>
+      <p class="plus-desc t-en">SAGI Finance comes with a powerful free tier. SAGI Plus unlocks the AI assistant, advanced analytics, and an ad-free experience — one-time payment, lifetime access.</p>
+
+      <!-- Özellik listesi -->
+      <div class="plus-feats">
+        <div class="plus-feat">
+          <div class="plus-feat-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/><circle cx="9" cy="14" r="1.5" fill="#4f46e5" stroke="none"/><circle cx="15" cy="14" r="1.5" fill="#4f46e5" stroke="none"/><path d="M9 18h6" stroke-width="1.5"/></svg>
+          </div>
+          <div>
+            <div class="plus-feat-name">SAGI Asistan / SAGI Assistant</div>
+            <div class="plus-feat-sub t-tr">Verilerinizi analiz eden AI finansal asistanınız. Ücretsiz 4 günlük deneme dahil.</div>
+            <div class="plus-feat-sub t-en">AI financial assistant that analyses your data. Includes a free 4-day trial.</div>
+          </div>
+        </div>
+        <div class="plus-feat">
+          <div class="plus-feat-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+          <div>
+            <div class="plus-feat-name t-tr">Gelişmiş Analiz</div>
+            <div class="plus-feat-name t-en">Advanced Analytics</div>
+            <div class="plus-feat-sub t-tr">Tasarruf skoru, gelecek ay tahmini ve aylık karşılaştırma kartları.</div>
+            <div class="plus-feat-sub t-en">Savings score, next-month forecast, and monthly comparison cards.</div>
+          </div>
+        </div>
+        <div class="plus-feat">
+          <div class="plus-feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+          <div>
+            <div class="plus-feat-name t-tr">Reklamsız Deneyim</div>
+            <div class="plus-feat-name t-en">Ad-Free Experience</div>
+            <div class="plus-feat-sub t-tr">Ücretsiz katmanda her 15 ekran geçişinde reklam görünür; Plus'ta hiç yok.</div>
+            <div class="plus-feat-sub t-en">Free tier shows ads every 15 screen changes; Plus has none.</div>
+          </div>
+        </div>
+        <div class="plus-feat">
+          <div class="plus-feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+          <div>
+            <div class="plus-feat-name t-tr">Tema &amp; Font Kişiselleştirme</div>
+            <div class="plus-feat-name t-en">Theme &amp; Font Personalization</div>
+            <div class="plus-feat-sub t-tr">8 renk teması (Indigo, Violet, Mavi, Cyan, Yeşil, Pembe, Amber, Slate) ve özel yazı tipleri.</div>
+            <div class="plus-feat-sub t-en">8 color themes (Indigo, Violet, Blue, Cyan, Emerald, Rose, Amber, Slate) and custom fonts.</div>
+          </div>
+        </div>
+        <div class="plus-feat">
+          <div class="plus-feat-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div>
+            <div class="plus-feat-name">CSV Export</div>
+            <div class="plus-feat-sub t-tr">Tüm işlemlerinizi CSV formatında dışa aktarın.</div>
+            <div class="plus-feat-sub t-en">Export all your transactions in CSV format.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ücretsiz vs Plus karşılaştırma -->
+      <div class="tier-compare">
+        <div class="tier-card">
+          <div class="tier-label t-tr">Ücretsiz</div>
+          <div class="tier-label t-en">Free</div>
+          <div class="tier-rows">
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Sınırsız işlem &amp; cüzdan</span><span class="t-en">Unlimited transactions &amp; wallets</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Çoklu döviz</span><span class="t-en">Multi-currency</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Abonelik takibi</span><span class="t-en">Subscription tracking</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Bulut sync (anonim)</span><span class="t-en">Cloud sync (anonymous)</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">JSON dışa aktar</span><span class="t-en">JSON export</span></div>
+            <div class="tier-row no"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span class="t-tr">AI Asistan</span><span class="t-en">AI Assistant</span></div>
+            <div class="tier-row no"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span class="t-tr">Gelişmiş Analiz</span><span class="t-en">Advanced Analytics</span></div>
+            <div class="tier-row no"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span class="t-tr">Reklamlar var</span><span class="t-en">Ads shown</span></div>
+          </div>
+        </div>
+        <div class="tier-card plus-tier">
+          <div class="tier-label">SAGI Plus</div>
+          <div class="tier-rows">
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Ücretsizin her şeyi</span><span class="t-en">Everything in Free</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">AI Asistan (sınırsız)</span><span class="t-en">AI Assistant (unlimited)</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Tasarruf Skoru</span><span class="t-en">Savings Score</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Gelecek Ay Tahmini</span><span class="t-en">Next-Month Forecast</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Aylık Karşılaştırma</span><span class="t-en">Monthly Comparison</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Reklamsız</span><span class="t-en">Ad-free</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Tema &amp; Font</span><span class="t-en">Theme &amp; Font</span></div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>CSV Export</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fiyat -->
+      <div class="plus-pricing-box">
+        <div class="pricing-eyebrow t-tr">Fiyatlandırma</div>
+        <div class="pricing-eyebrow t-en">Pricing</div>
+        <div class="pricing-amount t-tr">Yakında</div>
+        <div class="pricing-amount t-en">Coming Soon</div>
+        <div class="pricing-note t-tr">Ömür boyu erişim · Tek seferlik ödeme · Abonelik yok<br>Verileriniz her zaman gizli · Hesap açmanıza gerek yok</div>
+        <div class="pricing-note t-en">Lifetime access · One-time payment · No subscription<br>Your data always stays private · No account required</div>
+        <div class="pricing-soon t-tr">Erken erişim için takipte kalın</div>
+        <div class="pricing-soon t-en">Stay tuned for early access</div>
+      </div>
+    </div>
+
+    <!-- Hikaye -->
+    <div class="section">
+      <h2><div class="sec-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <span class="t-tr">Hikaye</span><span class="t-en">Story</span>
+      </h2>
+      <p class="t-tr">SAGI Finance, kişisel finans takibini gerçekten özel tutmanın mümkün olduğunu kanıtlamak için başlatıldı. Çoğu fintech uygulaması verilerinizi reklam gelirine dönüştürür; biz tam tersini yapıyoruz: sıfır veri toplama, sıfır profilleme, sıfır satış.</p>
+      <p class="t-en">SAGI Finance was started to prove that personal finance tracking can be genuinely private. Most fintech apps monetize your data through ads; we do the opposite: zero data collection, zero profiling, zero selling.</p>
+      <p class="t-tr">Uygulama, tek bir HTML dosyasında çalışan bir PWA olarak tasarlandı — hafif, hızlı ve çevrimdışı çalışabilen bir yapı. Ücretsiz katman yalnızca localStorage kullanır; Plus katmanında ise anonim 16 haneli anahtar ile isteğe bağlı Firestore sync mevcuttur.</p>
+      <p class="t-en">The app is architected as a single-file PWA — lightweight, fast, offline-capable. The free tier uses only localStorage; the Plus tier adds optional Firestore sync via an anonymous 16-digit key.</p>
+    </div>
+
+    <!-- Teknoloji -->
+    <div class="section">
+      <h2><div class="sec-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <span class="t-tr">Teknoloji</span><span class="t-en">Technology</span>
+      </h2>
+      <p class="t-tr">Çerçeve bağımlılığı olmayan saf HTML, CSS ve JavaScript ile inşa edilmiştir. Yükleme süresi milisaniyeler, kurulum sıfır.</p>
+      <p class="t-en">Built with vanilla HTML, CSS, and JavaScript — no framework dependency. Load time is milliseconds, setup is zero.</p>
+      <div class="stack-pills">
+        <span class="pill">HTML / CSS / JS</span>
+        <span class="pill">PWA + Service Worker</span>
+        <span class="pill">localStorage</span>
+        <span class="pill">Firestore (Plus)</span>
+        <span class="pill">Cloudflare Workers (AI)</span>
+        <span class="pill">GitHub Pages</span>
+      </div>
+    </div>
+
+    <!-- Geliştirici -->
+    <div class="section">
+      <h2><div class="sec-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="t-tr">Geliştirici</span><span class="t-en">Developer</span>
+      </h2>
+      <p class="t-tr">SAGI Finance bağımsız bir geliştirici tarafından, kişisel ihtiyaçtan doğarak, toplulukla paylaşılmak amacıyla üretildi. Katkı sağlamak veya hata bildirmek için GitHub'ı ziyaret edebilirsiniz.</p>
+      <p class="t-en">SAGI Finance was built by an independent developer, born from personal need and shared with the community. Visit GitHub to contribute or report issues.</p>
+      <p style="margin-top:12px;"><a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700;text-decoration:none;">github.com/nihatygci/sagi →</a></p>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <strong>SAGI Finance</strong> v0.9.86 · © 2026
+  <div class="footer-links">
+    <a href="./privacy.html" class="t-tr">Gizlilik</a><a href="./privacy.html" class="t-en">Privacy</a>
+    <a href="./terms.html" class="t-tr">Kullanım Şartları</a><a href="./terms.html" class="t-en">Terms</a>
+    <a href="./faq.html">FAQ</a>
+    <a href="./contact.html" class="t-tr">İletişim</a><a href="./contact.html" class="t-en">Contact</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const KEY='sagi_lang';
+  function applyLang(l){document.body.setAttribute('data-lang',l);localStorage.setItem(KEY,l);document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));document.documentElement.lang=l;}
+  window.setLang=applyLang;
+  const saved=localStorage.getItem(KEY);
+  if(saved==='tr'||saved==='en')applyLang(saved);
+  else{const bl=(navigator.language||'').toLowerCase();applyLang(bl.startsWith('en')&&!bl.startsWith('tr')?'en':'tr');}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SAGI Finance · İletişim / Contact</title>
+<meta name="description" content="SAGI Finance ile iletişime geçin. Geri bildirim, hata bildirimi, Plus soruları.">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+:root{
+  --brand:#6257f0;--brand2:#6C4DFF;
+  --brand-soft:rgba(98,87,240,0.1);--brand-border:rgba(98,87,240,0.2);
+  --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
+  --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
+  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--shadow:none;}
+}
+body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(108,77,255,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(98,87,240,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
+.wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
+.app-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+@media(prefers-color-scheme:dark){.app-header{background:rgba(9,9,11,0.88);}}
+.header-inner{height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.brand-logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.01em;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(98,87,240,0.15);flex-shrink:0;}
+.brand-logo small{font-size:12px;opacity:.45;font-style:italic;font-weight:600;margin-left:1px;}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
+.lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
+.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(98,87,240,0.3);}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
+.back-btn:hover{background:var(--brand-soft);}
+.back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.hero{padding:44px 0 32px;}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);margin-bottom:20px;}
+.hero-badge svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.hero h1{font-family:var(--font-display);font-size:clamp(28px,6vw,40px);font-weight:800;line-height:1.15;letter-spacing:-.03em;margin-bottom:14px;}
+.hero p{font-size:16px;color:var(--text2);max-width:560px;line-height:1.75;}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
+@media(max-width:520px){.contact-grid{grid-template-columns:1fr;}}
+.contact-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;box-shadow:var(--shadow);transition:border-color .2s,transform .2s;display:flex;flex-direction:column;align-items:flex-start;gap:12px;}
+.contact-card:hover{border-color:var(--brand-border);transform:translateY(-2px);}
+.card-icon{width:46px;height:46px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;}
+.card-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.contact-card h3{font-family:var(--font-display);font-size:16px;font-weight:700;}
+.contact-card p{font-size:13px;color:var(--text2);line-height:1.65;flex:1;}
+.card-link{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 3px 12px rgba(98,87,240,0.25);margin-top:4px;}
+.card-link:hover{opacity:.88;transform:scale(1.02);}
+.card-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;}
+.notice-card{margin-top:12px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
+.notice-icon{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.notice-icon svg{width:18px;height:18px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.notice-card h3{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;}
+.notice-card p{font-size:13px;color:var(--text2);line-height:1.7;}
+.topics{margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;box-shadow:var(--shadow);}
+.topics h2{font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.sec-icon{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--brand-soft);}
+.sec-icon svg{width:16px;height:16px;stroke:var(--brand);fill:none;stroke-width:2;}
+.topic-list{display:flex;flex-direction:column;gap:10px;}
+.topic-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);transition:border-color .2s;}
+.topic-item:hover{border-color:var(--brand-border);}
+.topic-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);opacity:.7;flex-shrink:0;margin-top:5px;}
+.topic-item p{font-size:14px;color:var(--text2);}
+.topic-item .plus-chip{display:inline-block;font-size:9px;font-weight:800;background:#4f46e5;color:#fff;padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle;}
+.site-footer{margin-top:32px;padding:24px 16px 40px;text-align:center;font-size:12px;color:var(--muted);font-weight:500;border-top:1px solid var(--border);}
+.footer-links{display:flex;justify-content:center;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:color .2s;}
+.footer-links a:hover{color:var(--brand);}
+[data-lang] .t-tr,[data-lang] .t-en{display:none;}
+[data-lang="tr"] .t-tr{display:block;}[data-lang="tr"] .t-tr-i{display:inline;}
+[data-lang="en"] .t-en{display:block;}[data-lang="en"] .t-en-i{display:inline;}
+@media(max-width:600px){
+  .header-inner{height:auto;padding:10px 0;flex-wrap:wrap;gap:8px;}
+  .header-actions{width:100%;justify-content:space-between;}
+  .lang-switcher{flex:1;justify-content:center;}.back-btn{flex:1;justify-content:center;}
+  .hero{padding:28px 0 20px;}.hero h1{font-size:26px;}
+  .notice-card{flex-direction:column;gap:12px;padding:18px;}
+  .topics{padding:18px;border-radius:18px;}
+}
+</style>
+</head>
+<body data-lang="tr">
+<header class="app-header">
+<div class="wrapper"><div class="header-inner">
+  <a href="./" class="brand-logo"><div class="brand-dot"></div>SAGI <small>Finance</small></a>
+  <div class="header-actions">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="./" class="back-btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      <span class="t-tr">Uygulamaya Dön</span><span class="t-en">Back to App</span>
+    </a>
+  </div>
+</div></div>
+</header>
+
+<main class="wrapper">
+  <section class="hero">
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="t-tr">İletişim</span><span class="t-en">Contact</span>
+    </div>
+    <h1><span class="t-tr">Görüşlerinizi duymaktan memnuniyet duyarız.</span><span class="t-en">We'd love to hear from you.</span></h1>
+    <p class="t-tr">Hata bildirimi, SAGI Plus soruları veya özellik önerileri için aşağıdaki kanalları kullanabilirsiniz.</p>
+    <p class="t-en">For bug reports, SAGI Plus questions, or feature suggestions, use the channels below.</p>
+  </section>
+
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div>
+      <h3>GitHub Issues</h3>
+      <p class="t-tr">Hata bildirimi, özellik isteği veya teknik sorular için tercih edilen kanaldır.</p>
+      <p class="t-en">The preferred channel for bug reports, feature requests, or technical questions.</p>
+      <a href="https://github.com/nihatygci/sagi/issues" target="_blank" rel="noopener" class="card-link">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <span class="t-tr">Issue Aç</span><span class="t-en">Open Issue</span>
+      </a>
+    </div>
+    <div class="contact-card">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div>
+      <h3 class="t-tr">GitHub Deposu</h3><h3 class="t-en">GitHub Repository</h3>
+      <p class="t-tr">Kaynak kodu incelemek veya katkıda bulunmak için ziyaret edin.</p>
+      <p class="t-en">Visit to explore the source code or contribute.</p>
+      <a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener" class="card-link">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <span class="t-tr">Depoya Git</span><span class="t-en">View Repo</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="notice-card">
+    <div class="notice-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div>
+      <h3 class="t-tr">Kişisel veri paylaşmayın</h3>
+      <h3 class="t-en">Don't share personal data</h3>
+      <p class="t-tr">Hata bildirirken finansal verilerinizi, bakiyelerinizi, Plus anahtarınızı veya kişisel bilgilerinizi paylaşmayın. Yalnızca sorunu veya öneriyi aktarın.</p>
+      <p class="t-en">When reporting issues, do not share your financial data, balances, Plus key, or personal information. Just describe the problem or suggestion.</p>
+    </div>
+  </div>
+
+  <div class="topics">
+    <h2>
+      <div class="sec-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+      <span class="t-tr">Ne hakkında yazabilirsiniz?</span><span class="t-en">What can you write about?</span>
+    </h2>
+    <div class="topic-list">
+      <div class="topic-item">
+        <div class="topic-dot"></div>
+        <p class="t-tr">Uygulamada karşılaştığınız hata veya beklenmeyen davranış</p>
+        <p class="t-en">A bug or unexpected behavior in the app</p>
+      </div>
+      <div class="topic-item">
+        <div class="topic-dot"></div>
+        <p>
+          <span class="t-tr">SAGI Plus ile ilgili sorular</span>
+          <span class="t-en">Questions about SAGI Plus</span>
+          <span class="plus-chip">Plus</span>
+        </p>
+      </div>
+      <div class="topic-item">
+        <div class="topic-dot"></div>
+        <p>
+          <span class="t-tr">AI Asistan hataları veya beklenmeyen yanıtlar</span>
+          <span class="t-en">AI Assistant errors or unexpected responses</span>
+          <span class="plus-chip">Plus</span>
+        </p>
+      </div>
+      <div class="topic-item">
+        <div class="topic-dot"></div>
+        <p class="t-tr">Yeni özellik önerileri veya iyileştirme fikirleri</p>
+        <p class="t-en">New feature suggestions or improvement ideas</p>
+      </div>
+      <div class="topic-item">
+        <div class="topic-dot"></div>
+        <p class="t-tr">Gizlilik politikası veya veri yönetimiyle ilgili sorular</p>
+        <p class="t-en">Questions about the privacy policy or data handling</p>
+      </div>
+      <div class="topic-item">
+        <div class="topic-dot"></div>
+        <p class="t-tr">Çeviri hataları veya dil desteği önerileri</p>
+        <p class="t-en">Translation errors or language support suggestions</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <strong>SAGI Finance</strong> v0.9.86 · © 2026
+  <div class="footer-links">
+    <a href="./privacy.html" class="t-tr">Gizlilik</a><a href="./privacy.html" class="t-en">Privacy</a>
+    <a href="./terms.html" class="t-tr">Kullanım Şartları</a><a href="./terms.html" class="t-en">Terms</a>
+    <a href="./about.html" class="t-tr">Hakkımızda</a><a href="./about.html" class="t-en">About</a>
+    <a href="./faq.html">FAQ</a>
+  </div>
+</footer>
+<script>
+(function(){
+  const KEY='sagi_lang';
+  function applyLang(l){document.body.setAttribute('data-lang',l);localStorage.setItem(KEY,l);document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));document.documentElement.lang=l;}
+  window.setLang=applyLang;
+  const saved=localStorage.getItem(KEY);
+  if(saved==='tr'||saved==='en')applyLang(saved);
+  else{const bl=(navigator.language||'').toLowerCase();applyLang(bl.startsWith('en')&&!bl.startsWith('tr')?'en':'tr');}
+})();
+</script>
+</body>
+</html>
