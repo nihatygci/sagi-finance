@@ -84,6 +84,19 @@
         const snap = await docRef.get();
         if (!snap.exists) return;
         const data = snap.data();
+        // forwardKey varsa — bu cihaz yeni key'e geçmeli
+        if (data && data.forwardKey) {
+          const newKey = data.forwardKey;
+          console.log('[Cloud] initialPull forwardKey:', newKey);
+          this.detachListener();
+          Core.state.settings.syncKey = newKey;
+          Core.state.settings.lastModified = 0;
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          this.loginWithKey(newKey).then(() => {
+            setTimeout(() => window.location.reload(), 300);
+          }).catch(e => console.warn('[Cloud] forwardKey login hatası:', e));
+          return;
+        }
         if (!data || !data.state) return;
 
         const remoteMod = data.lastModified || 0;
