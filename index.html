@@ -762,10 +762,10 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .chip-icon-silver::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.15);transform:translateY(-50%)}
 /* Drag-and-drop wallet cards */
 .wallet-card-wrapper{cursor:grab;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s}
-.wallet-card-wrapper.drag-placeholder{opacity:.3;transform:scale(.96);transition:opacity .2s,transform .2s}
-.wallet-card-wrapper.drag-over{transform:translateY(-5px) scale(1.02);transition:transform .18s}
-@keyframes walletDropBounce{0%{transform:scale(1.04)}60%{transform:scale(.98)}100%{transform:scale(1)}}
-.wallet-card-wrapper.drop-bounce{animation:walletDropBounce .32s cubic-bezier(.16,1,.3,1) forwards}
+.wallet-card-wrapper.drag-placeholder{opacity:.28;transform:scale(.95) translateY(4px);transition:opacity .2s,transform .2s}
+.wallet-card-wrapper.drag-over{transform:translateY(-6px) scale(1.02);transition:transform .18s}
+@keyframes walletDropBounce{0%{transform:scale(1.05)}55%{transform:scale(.97)}100%{transform:scale(1)}}
+.wallet-card-wrapper.drop-bounce{animation:walletDropBounce .35s cubic-bezier(.16,1,.3,1) forwards}
 
 /* INSIGHT */
 .insight-card{background:var(--bg-surface);border:1px solid var(--border-light);padding:18px;border-radius:var(--radius-lg);margin-bottom:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
@@ -4249,31 +4249,46 @@ const App = {
       _initDrag(){
         const grid=document.getElementById('walletsGrid');
         if(!grid)return;
-        // Temizle: önceki listener varsa kaldır
         if(this._dragCleanup)this._dragCleanup();
 
         const wrappers=()=>[...grid.querySelectorAll('.wallet-card-wrapper')];
         let dragEl=null,startIdx=-1,pressTimer=null,cloneEl=null;
         let offX=0,offY=0,startX=0,startY=0,lastOver=null,rafId=null,pendingX=0,pendingY=0;
+        let scrollRafId=null;
         const PRESS_MS=500,MOVE_THRESHOLD=8;
+        const SCROLL_ZONE=80,SCROLL_SPEED=10; // px from edge triggers scroll
 
         const getIdx=el=>wrappers().indexOf(el);
+
+        // ── Otomatik scroll: ekranın üst/alt %80px bölgesinde tetiklenir ──
+        const autoScroll=()=>{
+          if(!dragEl){scrollRafId=null;return;}
+          const vh=window.innerHeight;
+          const dy=pendingY<SCROLL_ZONE ? -(1-(pendingY/SCROLL_ZONE))*SCROLL_SPEED
+                  : pendingY>vh-SCROLL_ZONE ? (1-((vh-pendingY)/SCROLL_ZONE))*SCROLL_SPEED
+                  : 0;
+          if(dy!==0) window.scrollBy({top:dy,behavior:'instant'});
+          scrollRafId=requestAnimationFrame(autoScroll);
+        };
 
         const beginDrag=(el,cx,cy)=>{
           dragEl=el; startIdx=getIdx(el);
           const r=el.getBoundingClientRect();
           offX=cx-r.left; offY=cy-r.top;
+          // Clone
           cloneEl=el.cloneNode(true);
           cloneEl.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;`+
             `pointer-events:none;z-index:10000;will-change:transform;`+
             `transform:scale(1.05) rotate(1deg);opacity:.93;`+
-            `box-shadow:0 20px 40px rgba(0,0,0,.3);border-radius:20px;transition:none`;
+            `box-shadow:0 24px 48px rgba(0,0,0,.32);border-radius:20px;transition:none`;
           document.body.appendChild(cloneEl);
+          // Placeholder + öne çıkma animasyonu orijinal karta
           el.classList.add('drag-placeholder');
           navigator.vibrate&&navigator.vibrate(35);
+          // Otomatik scroll başlat
+          scrollRafId=requestAnimationFrame(autoScroll);
         };
 
-        // rAF tabanlı clone hareketi — reflow yok
         const scheduleMove=(cx,cy)=>{
           pendingX=cx; pendingY=cy;
           if(rafId)return;
@@ -4281,7 +4296,7 @@ const App = {
             rafId=null;
             if(!cloneEl)return;
             cloneEl.style.transform=`translate(${pendingX-offX-parseFloat(cloneEl.style.left)}px,${pendingY-offY-parseFloat(cloneEl.style.top)}px) scale(1.05) rotate(1deg)`;
-            // drop target — pointer-events none olduğu için visibility trick yerine koordinat karşılaştır
+            // Drop target — koordinat karşılaştır (reflow yok)
             const ws=wrappers();
             let found=null;
             for(const w of ws){
@@ -4299,6 +4314,7 @@ const App = {
 
         const endDrag=(cx,cy)=>{
           if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+          if(scrollRafId){cancelAnimationFrame(scrollRafId);scrollRafId=null;}
           if(cloneEl){cloneEl.remove();cloneEl=null;}
           if(!dragEl)return;
           dragEl.classList.remove('drag-placeholder');
@@ -4325,12 +4341,12 @@ const App = {
         const cancelDrag=()=>{
           clearTimeout(pressTimer); pressTimer=null;
           if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+          if(scrollRafId){cancelAnimationFrame(scrollRafId);scrollRafId=null;}
           if(cloneEl){cloneEl.remove();cloneEl=null;}
           if(dragEl){dragEl.classList.remove('drag-placeholder');dragEl=null;}
           if(lastOver){lastOver.classList.remove('drag-over');lastOver=null;}
         };
 
-        // ── Per-element listeners ──
         wrappers().forEach(el=>{
           el.addEventListener('mousedown',e=>{
             if(e.button!==0||e.target.closest('button'))return;
@@ -4344,12 +4360,9 @@ const App = {
           },{passive:true});
         });
 
-        // ── Global listeners — non-passive touchmove sadece drag aktifken ──
         const onMouseMove=e=>{
           if(!dragEl){
-            if(pressTimer&&(Math.abs(e.clientX-startX)>MOVE_THRESHOLD||Math.abs(e.clientY-startY)>MOVE_THRESHOLD)){
-              clearTimeout(pressTimer);pressTimer=null;
-            }
+            if(pressTimer&&(Math.abs(e.clientX-startX)>MOVE_THRESHOLD||Math.abs(e.clientY-startY)>MOVE_THRESHOLD)){clearTimeout(pressTimer);pressTimer=null;}
             return;
           }
           scheduleMove(e.clientX,e.clientY);
@@ -4359,24 +4372,20 @@ const App = {
         const onTouchMove=e=>{
           const t=e.touches[0];
           if(!dragEl){
-            if(pressTimer&&(Math.abs(t.clientX-startX)>MOVE_THRESHOLD||Math.abs(t.clientY-startY)>MOVE_THRESHOLD)){
-              clearTimeout(pressTimer);pressTimer=null;
-            }
-            return; // scroll serbest
+            if(pressTimer&&(Math.abs(t.clientX-startX)>MOVE_THRESHOLD||Math.abs(t.clientY-startY)>MOVE_THRESHOLD)){clearTimeout(pressTimer);pressTimer=null;}
+            return;
           }
-          e.preventDefault(); // sadece drag aktifken scroll engelle
+          e.preventDefault();
           scheduleMove(t.clientX,t.clientY);
         };
         const onTouchEnd=e=>{clearTimeout(pressTimer);pressTimer=null;if(dragEl){const t=e.changedTouches[0];endDrag(t.clientX,t.clientY);}};
 
         document.addEventListener('mousemove',onMouseMove,{passive:true});
         document.addEventListener('mouseup',onMouseUp);
-        // touchmove non-passive çünkü drag sırasında preventDefault lazım
         document.addEventListener('touchmove',onTouchMove,{passive:false});
         document.addEventListener('touchend',onTouchEnd,{passive:true});
         document.addEventListener('touchcancel',cancelDrag,{passive:true});
 
-        // Cleanup fonksiyonu — bir sonraki render'da çağrılır
         this._dragCleanup=()=>{
           cancelDrag();
           document.removeEventListener('mousemove',onMouseMove);
