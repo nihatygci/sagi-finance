@@ -234,6 +234,16 @@ const LANGS = {
       backupHint:'JSON — tüm veriler, geri yükleme için. CSV — işlem geçmişi, Excel\'de açılır.',
       backupHintHtml:'JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel\'de açılır.',
       restoreHint:'Sadece JSON yedek dosyaları desteklenir.',
+      legalTitle: 'Yasal Anlaşmalar',
+      legalHint: 'Gizlilik, şartlar, hakkında',
+      termsTitle: 'Kullanım Şartları',
+      termsHint: 'Kurallar & sorumluluk',
+      aboutTitle: 'Hakkımızda',
+      aboutHint: 'Proje & teknoloji',
+      faqHint: 'Sık sorulan sorular',
+      contactTitle: 'İletişim',
+      contactHint: 'Geri bildirim & destek',
+      privacyHint: 'Veri & güvenlik',
 
       // Onboarding
       obWelcome:'Tüm varlık ve harcamalarınızı tek ekrandan kolayca yönetin.',
@@ -714,7 +724,17 @@ const LANGS = {
       backupHint:'JSON — full data, for restore. CSV — transaction history, opens in Excel.',
       backupHintHtml:'JSON — full data, for restore.<br>CSV — transaction history, opens in Excel.',
       restoreHint:'Only JSON backup files are supported.',
-
+      legalTitle: 'Legal Agreements',
+      legalHint: 'Privacy, terms, about',
+      termsTitle: 'Terms of Service',
+      termsHint: 'Rules & liability',
+      aboutTitle: 'About',
+      aboutHint: 'Project & technology',
+      faqHint: 'Frequently asked questions',
+      contactTitle: 'Contact',
+      contactHint: 'Feedback & support',
+      privacyHint: 'Data & security',
+      
       // Onboarding
       obWelcome:'Easily manage all your assets and spending from one screen.',
       obStart:"Let's Get Started",

@@ -67,10 +67,15 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .topic-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);opacity:.7;flex-shrink:0;margin-top:5px;}
 .topic-item p{font-size:14px;color:var(--text2);}
 .topic-item .plus-chip{display:inline-block;font-size:9px;font-weight:800;background:#4f46e5;color:#fff;padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle;}
-.site-footer{margin-top:32px;padding:24px 16px 40px;text-align:center;font-size:12px;color:var(--muted);font-weight:500;border-top:1px solid var(--border);}
-.footer-links{display:flex;justify-content:center;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.site-footer{margin-top:40px;padding:28px 16px 44px;border-top:1px solid var(--border);}
+.footer-inner{max-width:720px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.footer-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;font-family:var(--font-display);color:var(--text);}
+.footer-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#6257f0,#6C4DFF);box-shadow:0 0 0 3px rgba(98,87,240,0.15);flex-shrink:0;}
+.footer-version{font-size:11px;font-weight:600;color:var(--muted);background:var(--brand-soft);border:1px solid var(--brand-border);padding:2px 8px;border-radius:999px;}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;}
 .footer-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:color .2s;}
 .footer-links a:hover{color:var(--brand);}
+.footer-copy{font-size:11px;color:var(--muted);font-weight:500;}
 [data-lang] .t-tr,[data-lang] .t-en{display:none;}
 [data-lang="tr"] .t-tr{display:block;}[data-lang="tr"] .t-tr-i{display:inline;}
 [data-lang="en"] .t-en{display:block;}[data-lang="en"] .t-en-i{display:inline;}
@@ -192,12 +197,20 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 </main>
 
 <footer class="site-footer">
-  <strong>SAGI Finance</strong> v0.9.86 · © 2026
-  <div class="footer-links">
-    <a href="./privacy.html" class="t-tr">Gizlilik</a><a href="./privacy.html" class="t-en">Privacy</a>
-    <a href="./terms.html" class="t-tr">Kullanım Şartları</a><a href="./terms.html" class="t-en">Terms</a>
-    <a href="./about.html" class="t-tr">Hakkımızda</a><a href="./about.html" class="t-en">About</a>
-    <a href="./faq.html">FAQ</a>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-dot"></span>
+      <strong>SAGI Finance</strong>
+      <span class="footer-version">v0.9.86</span>
+    </div>
+    <nav class="footer-links">
+      <a href="./privacy.html" data-i18n-tr="Gizlilik" data-i18n-en="Privacy">Gizlilik</a>
+      <a href="./terms.html" data-i18n-tr="Kullanım Şartları" data-i18n-en="Terms">Kullanım Şartları</a>
+      <a href="./about.html" data-i18n-tr="Hakkımızda" data-i18n-en="About">Hakkımızda</a>
+      <a href="./faq.html">FAQ</a>
+      <a href="./contact.html" data-i18n-tr="İletişim" data-i18n-en="Contact">İletişim</a>
+    </nav>
+    <div class="footer-copy">© 2026 · <span data-i18n-tr="Tüm hakları saklıdır" data-i18n-en="All rights reserved">Tüm hakları saklıdır</span></div>
   </div>
 </footer>
 <script>

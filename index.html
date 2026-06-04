@@ -222,6 +222,15 @@ table{width:100%;border-collapse:collapse}
 .settings-menu-row{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;transition:all .18s;gap:12px;user-select:none}
 .settings-menu-row:hover{background:var(--bg-surface-hover);transform:translateX(2px)}
 .settings-menu-row:active{transform:scale(.98)}
+.legal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.legal-card{display:flex;align-items:center;gap:12px;padding:14px 15px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.legal-card:hover{background:var(--bg-surface-hover);border-color:var(--brand-accent);transform:translateY(-1px)}
+.legal-card:active{transform:scale(.97)}
+.legal-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(99,102,241,.1);color:var(--brand-accent)}
+.legal-card-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.legal-card-title{font-size:13px;font-weight:700;color:var(--text-main);line-height:1.2}
+.legal-card-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+@media(max-width:480px){.legal-grid{grid-template-columns:1fr}}
 .settings-menu-row-left{display:flex;align-items:center;gap:12px}
 .settings-menu-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .settings-menu-row-text .title{font-weight:600;font-size:15px;color:var(--text-main)}
@@ -1339,10 +1348,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <a href="#/debts" class="nav-link" data-route="/debts"><svg class="nav-icon"><use href="#icon-briefcase"/></svg>Borç & Alacak</a>
     </div>
     <div class="nav-section" style="margin-top:auto;padding-bottom:16px">
-      <a href="./privacy.html" target="_blank" rel="noopener" class="nav-link">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span data-i18n="privacyPolicy">Gizlilik Politikası</span>
-      </a>
       <a href="#/settings" class="nav-link" data-route="/settings"><svg class="nav-icon"><use href="#icon-settings"/></svg><span data-i18n="settings">Ayarlar</span></a>
     </div>
   </aside>
@@ -1741,7 +1746,85 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
             </div>
           </div>
+
+          <div onclick="App.Controllers.Settings.openSection('legal')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="legalTitle">Yasal Anlaşmalar</div>
+                  <div class="subtitle" data-i18n="legalHint">Gizlilik, şartlar, hakkında</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
         </div><!-- /settings-menu-panel -->
+
+        <!-- ── YASAL ANLAŞMALAR ── -->
+        <div class="settings-detail-panel" id="settingsDetail-legal">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span data-i18n="settings">Ayarlar</span>
+          </button>
+          <div class="settings-detail-title" data-i18n="legalTitle">Yasal Anlaşmalar</div>
+          <div class="settings-detail-sub" data-i18n="legalHint">Gizlilik, şartlar ve uygulama hakkında</div>
+          <div class="card">
+            <div class="legal-grid">
+              <div class="legal-card" onclick="window.open('./privacy.html','_blank')">
+                <div class="legal-card-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <div class="legal-card-title" data-i18n="privacyPolicy">Gizlilik Politikası</div>
+                  <div class="legal-card-sub" data-i18n="privacyHint">Veri &amp; güvenlik</div>
+                </div>
+              </div>
+              <div class="legal-card" onclick="window.open('./terms.html','_blank')">
+                <div class="legal-card-icon">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div>
+                  <div class="legal-card-title" data-i18n="termsTitle">Kullanım Şartları</div>
+                  <div class="legal-card-sub" data-i18n="termsHint">Kurallar &amp; sorumluluk</div>
+                </div>
+              </div>
+              <div class="legal-card" onclick="window.open('./about.html','_blank')">
+                <div class="legal-card-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div>
+                  <div class="legal-card-title" data-i18n="aboutTitle">Hakkımızda</div>
+                  <div class="legal-card-sub" data-i18n="aboutHint">Proje &amp; teknoloji</div>
+                </div>
+              </div>
+              <div class="legal-card" onclick="window.open('./faq.html','_blank')">
+                <div class="legal-card-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div>
+                  <div class="legal-card-title">FAQ / SSS</div>
+                  <div class="legal-card-sub" data-i18n="faqHint">Sık sorulan sorular</div>
+                </div>
+              </div>
+              <div class="legal-card" onclick="window.open('./contact.html','_blank')" style="grid-column:1/-1">
+                <div class="legal-card-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div>
+                  <div class="legal-card-title" data-i18n="contactTitle">İletişim</div>
+                  <div class="legal-card-sub" data-i18n="contactHint">Geri bildirim &amp; destek</div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;color:var(--text-muted);font-weight:600">SAGI Finance</div>
+              <div style="font-size:12px;color:var(--text-muted)">v0.9.86</div>
+            </div>
+          </div>
+        </div><!-- /settingsDetail-legal -->
 
         <!-- ── SAGI PLUS ── -->
         <div class="settings-detail-panel" id="settingsDetail-plus">
@@ -2769,7 +2852,7 @@ window.Core = Core;
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
-    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus'],
+    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus','legal'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
       let hash=window.location.hash.replace('#','')||'/dashboard';
