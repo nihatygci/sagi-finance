@@ -761,12 +761,11 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .chip-icon-silver::before{content:'';position:absolute;inset:4px;background:linear-gradient(135deg,#6b7280,#d1d5db);border-radius:3px}
 .chip-icon-silver::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.15);transform:translateY(-50%)}
 /* Drag-and-drop wallet cards */
-.wallet-card-wrapper{cursor:grab;touch-action:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s,box-shadow .25s}
-.wallet-card-wrapper.drag-active{cursor:grabbing;opacity:.92;transform:scale(1.04) rotate(1.2deg)!important;box-shadow:0 24px 48px rgba(0,0,0,.32)!important;z-index:9999;transition:none}
-.wallet-card-wrapper.drag-over{transform:translateY(-6px) scale(1.01);box-shadow:0 0 0 2.5px rgba(99,102,241,.7),var(--shadow-md)}
-.wallet-card-wrapper.drag-placeholder{opacity:.35;transform:scale(.97)}
-@keyframes walletDropBounce{0%{transform:scale(1.04)}60%{transform:scale(.97)}100%{transform:scale(1)}}
-.wallet-card-wrapper.drop-bounce{animation:walletDropBounce .38s cubic-bezier(.16,1,.3,1) forwards}
+.wallet-card-wrapper{cursor:grab;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s}
+.wallet-card-wrapper.drag-placeholder{opacity:.3;transform:scale(.96);transition:opacity .2s,transform .2s}
+.wallet-card-wrapper.drag-over{transform:translateY(-5px) scale(1.02);transition:transform .18s}
+@keyframes walletDropBounce{0%{transform:scale(1.04)}60%{transform:scale(.98)}100%{transform:scale(1)}}
+.wallet-card-wrapper.drop-bounce{animation:walletDropBounce .32s cubic-bezier(.16,1,.3,1) forwards}
 
 /* INSIGHT */
 .insight-card{background:var(--bg-surface);border:1px solid var(--border-light);padding:18px;border-radius:var(--radius-lg);margin-bottom:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
@@ -4250,103 +4249,143 @@ const App = {
       _initDrag(){
         const grid=document.getElementById('walletsGrid');
         if(!grid)return;
+        // Temizle: önceki listener varsa kaldır
+        if(this._dragCleanup)this._dragCleanup();
+
         const wrappers=()=>[...grid.querySelectorAll('.wallet-card-wrapper')];
-        let dragEl=null,startIdx=-1,longPressTimer=null,cloneEl=null,offX=0,offY=0,raf=null,lastOver=null;
+        let dragEl=null,startIdx=-1,pressTimer=null,cloneEl=null;
+        let offX=0,offY=0,startX=0,startY=0,lastOver=null,rafId=null,pendingX=0,pendingY=0;
+        const PRESS_MS=500,MOVE_THRESHOLD=8;
 
-        const getIdx=el=>{const ws=wrappers();return ws.indexOf(el);}
-        const reorder=(fromIdx,toIdx)=>{
-          if(fromIdx===toIdx)return;
-          const wallets=Core.state.wallets;
-          const [item]=wallets.splice(fromIdx,1);
-          wallets.splice(toIdx,0,item);
-          Core.DB.save();
-        };
+        const getIdx=el=>wrappers().indexOf(el);
 
-        const beginDrag=(el,clientX,clientY)=>{
-          dragEl=el;
-          startIdx=getIdx(el);
-          const rect=el.getBoundingClientRect();
-          offX=clientX-rect.left;offY=clientY-rect.top;
-          // floating clone
+        const beginDrag=(el,cx,cy)=>{
+          dragEl=el; startIdx=getIdx(el);
+          const r=el.getBoundingClientRect();
+          offX=cx-r.left; offY=cy-r.top;
           cloneEl=el.cloneNode(true);
-          cloneEl.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;pointer-events:none;z-index:10000;transition:none;transform:scale(1.04) rotate(1.2deg);opacity:.92;box-shadow:0 24px 48px rgba(0,0,0,.32);border-radius:var(--radius-xl)`;
+          cloneEl.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;`+
+            `pointer-events:none;z-index:10000;will-change:transform;`+
+            `transform:scale(1.05) rotate(1deg);opacity:.93;`+
+            `box-shadow:0 20px 40px rgba(0,0,0,.3);border-radius:20px;transition:none`;
           document.body.appendChild(cloneEl);
           el.classList.add('drag-placeholder');
-          navigator.vibrate&&navigator.vibrate(40);
+          navigator.vibrate&&navigator.vibrate(35);
         };
 
-        const moveClone=(clientX,clientY)=>{
-          if(!cloneEl)return;
-          cloneEl.style.left=(clientX-offX)+'px';
-          cloneEl.style.top=(clientY-offY)+'px';
-          // find drop target
-          cloneEl.style.display='none';
-          const elBelow=document.elementFromPoint(clientX,clientY);
-          cloneEl.style.display='';
-          const target=elBelow&&elBelow.closest('.wallet-card-wrapper');
-          if(target&&target!==dragEl){
-            if(lastOver&&lastOver!==target)lastOver.classList.remove('drag-over');
-            target.classList.add('drag-over');
-            lastOver=target;
-          } else if(lastOver&&(!target||target===dragEl)){
-            lastOver.classList.remove('drag-over');lastOver=null;
-          }
+        // rAF tabanlı clone hareketi — reflow yok
+        const scheduleMove=(cx,cy)=>{
+          pendingX=cx; pendingY=cy;
+          if(rafId)return;
+          rafId=requestAnimationFrame(()=>{
+            rafId=null;
+            if(!cloneEl)return;
+            cloneEl.style.transform=`translate(${pendingX-offX-parseFloat(cloneEl.style.left)}px,${pendingY-offY-parseFloat(cloneEl.style.top)}px) scale(1.05) rotate(1deg)`;
+            // drop target — pointer-events none olduğu için visibility trick yerine koordinat karşılaştır
+            const ws=wrappers();
+            let found=null;
+            for(const w of ws){
+              if(w===dragEl)continue;
+              const r=w.getBoundingClientRect();
+              if(pendingX>=r.left&&pendingX<=r.right&&pendingY>=r.top&&pendingY<=r.bottom){found=w;break;}
+            }
+            if(found!==lastOver){
+              if(lastOver)lastOver.classList.remove('drag-over');
+              if(found)found.classList.add('drag-over');
+              lastOver=found;
+            }
+          });
         };
 
-        const endDrag=(clientX,clientY)=>{
-          if(!dragEl)return;
+        const endDrag=(cx,cy)=>{
+          if(rafId){cancelAnimationFrame(rafId);rafId=null;}
           if(cloneEl){cloneEl.remove();cloneEl=null;}
+          if(!dragEl)return;
           dragEl.classList.remove('drag-placeholder');
+          const ws=wrappers();
+          let toIdx=startIdx;
+          for(const w of ws){
+            if(w===dragEl)continue;
+            const r=w.getBoundingClientRect();
+            if(cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom){toIdx=ws.indexOf(w);break;}
+          }
           if(lastOver){lastOver.classList.remove('drag-over');lastOver=null;}
-          // find final target
-          const elBelow=document.elementFromPoint(clientX,clientY);
-          const target=elBelow&&elBelow.closest('.wallet-card-wrapper');
-          const toIdx=target?getIdx(target):startIdx;
-          reorder(startIdx,toIdx);
-          dragEl.classList.add('drop-bounce');
-          dragEl.addEventListener('animationend',()=>dragEl&&dragEl.classList.remove('drop-bounce'),{once:true});
-          dragEl=null;startIdx=-1;
+          if(toIdx!==startIdx){
+            const wallets=Core.state.wallets;
+            const [item]=wallets.splice(startIdx,1);
+            wallets.splice(toIdx,0,item);
+            Core.DB.save();
+          }
+          const captured=dragEl; dragEl=null; startIdx=-1;
+          captured.classList.add('drop-bounce');
+          captured.addEventListener('animationend',()=>captured.classList.remove('drop-bounce'),{once:true});
           App.Controllers.Wallets.render();
         };
 
         const cancelDrag=()=>{
-          clearTimeout(longPressTimer);longPressTimer=null;
+          clearTimeout(pressTimer); pressTimer=null;
+          if(rafId){cancelAnimationFrame(rafId);rafId=null;}
           if(cloneEl){cloneEl.remove();cloneEl=null;}
           if(dragEl){dragEl.classList.remove('drag-placeholder');dragEl=null;}
           if(lastOver){lastOver.classList.remove('drag-over');lastOver=null;}
         };
 
+        // ── Per-element listeners ──
         wrappers().forEach(el=>{
-          // Mouse
           el.addEventListener('mousedown',e=>{
             if(e.button!==0||e.target.closest('button'))return;
-            longPressTimer=setTimeout(()=>{beginDrag(el,e.clientX,e.clientY);},500);
+            startX=e.clientX; startY=e.clientY;
+            pressTimer=setTimeout(()=>beginDrag(el,e.clientX,e.clientY),PRESS_MS);
           });
-          // Touch
           el.addEventListener('touchstart',e=>{
             if(e.target.closest('button'))return;
-            const t0=e.touches[0];
-            longPressTimer=setTimeout(()=>{beginDrag(el,t0.clientX,t0.clientY);},500);
+            const t=e.touches[0]; startX=t.clientX; startY=t.clientY;
+            pressTimer=setTimeout(()=>beginDrag(el,t.clientX,t.clientY),PRESS_MS);
           },{passive:true});
         });
 
-        document.addEventListener('mousemove',e=>{
-          if(!dragEl){if(longPressTimer&&(Math.abs(e.movementX)>5||Math.abs(e.movementY)>5)){clearTimeout(longPressTimer);longPressTimer=null;}return;}
-          moveClone(e.clientX,e.clientY);
-        },{passive:true});
-        document.addEventListener('mouseup',e=>{
-          clearTimeout(longPressTimer);longPressTimer=null;
-          if(dragEl)endDrag(e.clientX,e.clientY);
-        });
-        document.addEventListener('touchmove',e=>{
-          if(!dragEl){clearTimeout(longPressTimer);longPressTimer=null;return;}
-          const t0=e.touches[0];moveClone(t0.clientX,t0.clientY);
-        },{passive:true});
-        document.addEventListener('touchend',e=>{
-          clearTimeout(longPressTimer);longPressTimer=null;
-          if(dragEl){const t0=e.changedTouches[0];endDrag(t0.clientX,t0.clientY);}
-        },{passive:true});
+        // ── Global listeners — non-passive touchmove sadece drag aktifken ──
+        const onMouseMove=e=>{
+          if(!dragEl){
+            if(pressTimer&&(Math.abs(e.clientX-startX)>MOVE_THRESHOLD||Math.abs(e.clientY-startY)>MOVE_THRESHOLD)){
+              clearTimeout(pressTimer);pressTimer=null;
+            }
+            return;
+          }
+          scheduleMove(e.clientX,e.clientY);
+        };
+        const onMouseUp=e=>{clearTimeout(pressTimer);pressTimer=null;if(dragEl)endDrag(e.clientX,e.clientY);};
+
+        const onTouchMove=e=>{
+          const t=e.touches[0];
+          if(!dragEl){
+            if(pressTimer&&(Math.abs(t.clientX-startX)>MOVE_THRESHOLD||Math.abs(t.clientY-startY)>MOVE_THRESHOLD)){
+              clearTimeout(pressTimer);pressTimer=null;
+            }
+            return; // scroll serbest
+          }
+          e.preventDefault(); // sadece drag aktifken scroll engelle
+          scheduleMove(t.clientX,t.clientY);
+        };
+        const onTouchEnd=e=>{clearTimeout(pressTimer);pressTimer=null;if(dragEl){const t=e.changedTouches[0];endDrag(t.clientX,t.clientY);}};
+
+        document.addEventListener('mousemove',onMouseMove,{passive:true});
+        document.addEventListener('mouseup',onMouseUp);
+        // touchmove non-passive çünkü drag sırasında preventDefault lazım
+        document.addEventListener('touchmove',onTouchMove,{passive:false});
+        document.addEventListener('touchend',onTouchEnd,{passive:true});
         document.addEventListener('touchcancel',cancelDrag,{passive:true});
+
+        // Cleanup fonksiyonu — bir sonraki render'da çağrılır
+        this._dragCleanup=()=>{
+          cancelDrag();
+          document.removeEventListener('mousemove',onMouseMove);
+          document.removeEventListener('mouseup',onMouseUp);
+          document.removeEventListener('touchmove',onTouchMove);
+          document.removeEventListener('touchend',onTouchEnd);
+          document.removeEventListener('touchcancel',cancelDrag);
+          this._dragCleanup=null;
+        };
       },
       upd(){
         const wallets=Core.state.wallets;
