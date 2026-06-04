@@ -84,7 +84,7 @@
         const snap = await docRef.get();
         if (!snap.exists) return;
         const data = snap.data();
-        // forwardKey varsa — bu cihaz yeni key'e geçmeli
+        // forwardKey varsa — direkt geç
         if (data && data.forwardKey) {
           const newKey = data.forwardKey;
           console.log('[Cloud] initialPull forwardKey:', newKey);
@@ -95,9 +95,28 @@
           this.loginWithKey(newKey).then(() => {
             setTimeout(() => window.location.reload(), 300);
           }).catch(e => console.warn('[Cloud] forwardKey login hatası:', e));
-          return true; // forwarded
+          return true;
         }
         if (!data || !data.state) return;
+        // forwardKey yoksa — PLUS versiyonu var mı kontrol et
+        const currentKey = Core.state.settings.syncKey || '';
+        if (currentKey && !currentKey.startsWith('PLUS-')) {
+          const plusKey = 'PLUS-' + currentKey;
+          try {
+            const plusSnap = await this._doc(plusKey).get();
+            if (plusSnap.exists && plusSnap.data() && plusSnap.data().state) {
+              console.log('[Cloud] PLUS versiyonu bulundu, geçiliyor:', plusKey);
+              this.detachListener();
+              Core.state.settings.syncKey = plusKey;
+              Core.state.settings.lastModified = 0;
+              localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+              this.loginWithKey(plusKey).then(() => {
+                setTimeout(() => window.location.reload(), 300);
+              }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
+              return true;
+            }
+          } catch(e) {}
+        }
 
         const remoteMod = data.lastModified || 0;
         const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
