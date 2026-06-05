@@ -2454,8 +2454,21 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     </div>
     <div class="modal-body">
       <form id="goalActForm" onsubmit="event.preventDefault();App.Controllers.Goals.executeAction()">
-        <div class="form-group"><label class="form-label" data-i18n="fromWhichAccount">Hangi Hesaptan?</label><select class="form-control" id="goal_action_wallet" required></select></div>
-        <div class="form-group mb-0"><label class="form-label" data-i18n="amount">Tutar</label><input type="number" step="0.01" class="form-control" id="goal_action_amount" placeholder="0.00" required></div>
+        <div class="form-group"><label class="form-label" data-i18n="fromWhichAccount">Hangi Hesaptan?</label><select class="form-control" id="goal_action_wallet" required onchange="App.Controllers.Goals._onActionWalletChange()"></select></div>
+        <div class="form-group mb-0">
+          <label class="form-label" data-i18n="amount">Tutar</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" step="0.01" class="form-control" id="goal_action_amount" placeholder="0.00" required oninput="App.FxPreview.update('goal')" style="flex:1">
+            <select class="form-control" id="goal_action_cur" style="width:100px;flex-shrink:0" onchange="App.FxPreview.update('goal')"></select>
+          </div>
+        </div>
+        <div id="fx_preview_goal" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--text-muted)" id="fx_goal_label">Hedefe yansıyacak</span>
+            <span style="font-weight:800;font-family:var(--font-display);color:var(--brand-accent);font-size:15px" id="fx_goal_amount"></span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:500" id="fx_goal_rate"></div>
+        </div>
       </form>
     </div>
     <div class="modal-footer"><button type="submit" form="goalActForm" class="btn btn-primary w-full" id="goalActionBtn" data-i18n="approve">Onayla</button></div>
@@ -2527,8 +2540,21 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     </div>
     <div class="modal-body">
       <form id="debtActForm" onsubmit="event.preventDefault();App.Controllers.Debts.executeAction()">
-        <div class="form-group"><label class="form-label" data-i18n="accountOptional">Hesap (İsteğe Bağlı)</label><select class="form-control" id="debt_action_wallet"></select></div>
-        <div class="form-group mb-0"><label class="form-label" data-i18n="amount">Tutar</label><input type="number" step="0.01" class="form-control" id="debt_action_amount" placeholder="0.00" required></div>
+        <div class="form-group"><label class="form-label" data-i18n="accountOptional">Hesap (İsteğe Bağlı)</label><select class="form-control" id="debt_action_wallet" onchange="App.Controllers.Debts._onActionWalletChange()"></select></div>
+        <div class="form-group mb-0">
+          <label class="form-label" data-i18n="amount">Tutar</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" step="0.01" class="form-control" id="debt_action_amount" placeholder="0.00" required oninput="App.FxPreview.update('debt')" style="flex:1">
+            <select class="form-control" id="debt_action_cur" style="width:100px;flex-shrink:0" onchange="App.FxPreview.update('debt')"></select>
+          </div>
+        </div>
+        <div id="fx_preview_debt" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--text-muted)" id="fx_debt_label">Hesaptan düşülecek</span>
+            <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px" id="fx_debt_amount"></span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:500" id="fx_debt_rate"></div>
+        </div>
       </form>
     </div>
     <div class="modal-footer"><button type="submit" form="debtActForm" class="btn btn-primary w-full" id="debtActionBtn" data-i18n="approve">Onayla</button></div>
@@ -2550,7 +2576,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="form-group"><label class="form-label" data-i18n="transferTo">Nereye?</label><select class="form-control" id="trn_to" required onchange="App.Controllers.Transfer.updatePreview()"></select></div>
         <div class="form-group mb-0">
           <label class="form-label" id="trn_amount_label">Tutar</label>
-          <input type="number" step="0.01" class="form-control" id="trn_amount" placeholder="0.00" required oninput="App.Controllers.Transfer.updatePreview()">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" step="0.01" class="form-control" id="trn_amount" placeholder="0.00" required oninput="App.Controllers.Transfer.updatePreview()" style="flex:1">
+            <select class="form-control" id="trn_cur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Transfer.updatePreview()"></select>
+          </div>
         </div>
         <div id="trn_preview" style="display:none;margin-top:14px;padding:13px 16px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
@@ -2619,7 +2648,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
       <div class="form-group mb-0">
         <label class="form-label" data-i18n="payConfirmFrom">Hangi hesaptan ödensin?</label>
-        <select class="form-control" id="payConfirmWallet"></select>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="form-control" id="payConfirmWallet" onchange="App.Controllers.Dashboard._onPayWalletChange()" style="flex:1"></select>
+          <select class="form-control" id="payConfirmCur" style="width:100px;flex-shrink:0" onchange="App.FxPreview.update('pay')"></select>
+        </div>
+        <div id="fx_preview_pay" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--text-muted)">Hesaptan düşülecek</span>
+            <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px" id="fx_pay_amount"></span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:500" id="fx_pay_rate"></div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -3380,6 +3419,156 @@ const Notifications = {
 // ═══════════════════════════════════════
 const App = {
   Notifications,
+  CurrencySelect:{
+    OPTS:[
+      {v:'TRY',l:'₺ TRY'},{v:'USD',l:'$ USD'},{v:'EUR',l:'€ EUR'},{v:'GBP',l:'£ GBP'},
+    ],
+    html(selected){
+      return this.OPTS.map(o=>`<option value="${o.v}"${o.v===selected?' selected':''}>${o.l}</option>`).join('');
+    },
+    // selectId'ye doldur, walletCur'u default seç; yoksa mainCur
+    fill(selectId, walletCur){
+      const el=document.getElementById(selectId);
+      if(!el)return;
+      const def=walletCur||App.Money?.mainCur()||'TRY';
+      el.innerHTML=this.html(def);
+    },
+    get(selectId){
+      return document.getElementById(selectId)?.value||'TRY';
+    },
+  },
+  FxPreview:{
+    update(mode){
+      if(mode==='goal') this._goal();
+      else if(mode==='debt') this._debt();
+      else if(mode==='pay') this._pay();
+      else if(mode==='transfer') this._transfer();
+    },
+    _show(previewId, amountId, rateId, amountStr, rateStr, color){
+      const box=document.getElementById(previewId);
+      if(!box)return;
+      const aEl=document.getElementById(amountId);
+      const rEl=document.getElementById(rateId);
+      if(aEl){aEl.textContent=amountStr;if(color)aEl.style.color=color;}
+      if(rEl)rEl.textContent=rateStr;
+      box.style.display='block';
+    },
+    _hide(previewId){
+      const box=document.getElementById(previewId);
+      if(box)box.style.display='none';
+    },
+    _rateStr(fromCur,toCur){
+      if(fromCur===toCur)return 'Aynı para birimi · Kur uygulanmadı';
+      const rate=App.ExchangeRate.convert(1,fromCur,toCur);
+      return '1 '+fromCur+' = '+Core.Utils.formatMoney(rate,toCur)+' · Kur otomatik uygulandı';
+    },
+    // Kullanıcının girdiği tutar hangi dövizde → hesap dövizine çevir → önizle
+    _goal(){
+      const wId=document.getElementById('goal_action_wallet')?.value;
+      const a=parseFloat(document.getElementById('goal_action_amount')?.value);
+      const txCur=App.CurrencySelect.get('goal_action_cur');
+      if(!wId||!a||isNaN(a)||a<=0){this._hide('fx_preview_goal');return;}
+      const w=Core.state.wallets.find(x=>x.id===wId);
+      if(!w){this._hide('fx_preview_goal');return;}
+      const wc=App.Money.walletCur(wId);
+      const mc=App.Money.mainCur();
+      // txCur ile girdi → wc'ye çevir (hesaptan düşülecek), mc'ye de çevir (hedefe yansıyacak)
+      const deductedFromWallet=App.ExchangeRate.convert(a,txCur,wc);
+      const addedToGoal=App.ExchangeRate.convert(a,txCur,mc);
+      const isAdd=Core.temp.goalType==='add';
+      const lbl=document.getElementById('fx_goal_label');
+      const isSame=(txCur===wc);
+      if(isSame&&txCur===mc){this._hide('fx_preview_goal');return;}
+      // İki satır: hesaptan düşülecek + hedefe yansıyacak
+      const box=document.getElementById('fx_preview_goal');
+      if(!box)return;
+      let html='';
+      if(!isSame){
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--text-muted)">Hesaptan düşülecek (${wc})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
+        </div>`;
+      }
+      if(txCur!==mc||!isSame){
+        const goalAmt=isAdd?addedToGoal:App.ExchangeRate.convert(Math.min(addedToGoal,App.ExchangeRate.convert(Core.state.goals.find(x=>x.id===Core.temp.goalId)?.current||0,mc,mc)),mc,mc);
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${!isSame?'6px':'0'}">
+          <span style="font-size:12px;color:var(--text-muted)">${isAdd?'Hedefe yansıyacak':'Hedeften düşülecek'} (${mc})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:${isAdd?'var(--brand-accent)':'var(--status-danger)'};font-size:15px">${Core.Utils.formatMoney(addedToGoal,mc)}</span>
+        </div>`;
+      }
+      html+=`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500">${this._rateStr(txCur,wc)}</div>`;
+      box.innerHTML=html;
+      box.style.display='block';
+    },
+    _debt(){
+      const wId=document.getElementById('debt_action_wallet')?.value;
+      const a=parseFloat(document.getElementById('debt_action_amount')?.value);
+      const txCur=App.CurrencySelect.get('debt_action_cur');
+      if(!wId||wId==='none'||!a||isNaN(a)||a<=0){this._hide('fx_preview_debt');return;}
+      const w=Core.state.wallets.find(x=>x.id===wId);
+      if(!w){this._hide('fx_preview_debt');return;}
+      const wc=App.Money.walletCur(wId);
+      const mc=App.Money.mainCur();
+      const deductedFromWallet=App.ExchangeRate.convert(a,txCur,wc);
+      const amtInMain=App.ExchangeRate.convert(a,txCur,mc);
+      if(txCur===wc&&txCur===mc){this._hide('fx_preview_debt');return;}
+      const d=Core.state.debts.find(x=>x.id===Core.temp.debtId);
+      const isExpense=!d||d.dir==='borç';
+      const box=document.getElementById('fx_preview_debt');
+      if(!box)return;
+      let html='';
+      if(txCur!==wc){
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--text-muted)">${isExpense?'Hesaptan düşülecek':'Hesaba eklenecek'} (${wc})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:${isExpense?'var(--status-danger)':'var(--status-success)'};font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
+        </div>`;
+      }
+      if(txCur!==mc){
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${txCur!==wc?'6px':'0'}">
+          <span style="font-size:12px;color:var(--text-muted)">Kayıt tutarından düşülecek (${mc})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:var(--text-secondary);font-size:15px">${Core.Utils.formatMoney(amtInMain,mc)}</span>
+        </div>`;
+      }
+      html+=`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500">${this._rateStr(txCur,wc)}</div>`;
+      box.innerHTML=html;
+      box.style.display='block';
+    },
+    _pay(){
+      const wId=document.getElementById('payConfirmWallet')?.value;
+      const txCur=App.CurrencySelect.get('payConfirmCur');
+      if(!wId){this._hide('fx_preview_pay');return;}
+      const w=Core.state.wallets.find(x=>x.id===wId);
+      if(!w){this._hide('fx_preview_pay');return;}
+      const wc=App.Money.walletCur(wId);
+      const mc=App.Money.mainCur();
+      const recId=Core.temp._payRecId;
+      if(!recId){this._hide('fx_preview_pay');return;}
+      const s=Core.state.recurring.find(x=>x.id===recId);
+      if(!s){this._hide('fx_preview_pay');return;}
+      // abonelik tutarı mc cinsinden — önce mc→txCur, sonra txCur→wc
+      const amtInTxCur=App.ExchangeRate.convert(s.amount,mc,txCur);
+      const deductedFromWallet=App.ExchangeRate.convert(s.amount,mc,wc);
+      if(txCur===wc&&txCur===mc){this._hide('fx_preview_pay');return;}
+      const box=document.getElementById('fx_preview_pay');
+      if(!box)return;
+      let html='';
+      if(txCur!==mc){
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--text-muted)">İşlem dövizinde tutar (${txCur})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:var(--text-secondary);font-size:15px">${Core.Utils.formatMoney(amtInTxCur,txCur)}</span>
+        </div>`;
+      }
+      if(wc!==mc||txCur!==wc){
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${txCur!==mc?'6px':'0'}">
+          <span style="font-size:12px;color:var(--text-muted)">Hesaptan düşülecek (${wc})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
+        </div>`;
+      }
+      html+=`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500">${this._rateStr(mc,wc)}</div>`;
+      box.innerHTML=html;
+      box.style.display='block';
+    },
+  },
   ExchangeRate:{
     rates:{USD:1,EUR:0.92,GBP:0.78,TRY:38.5},
     _fetching:null,
@@ -4055,6 +4244,12 @@ const App = {
       },
       _upcomingShowAll:false,
       toggleUpcomingShowAll(){this._upcomingShowAll=!this._upcomingShowAll;this.render();},
+      _onPayWalletChange(){
+        const wId=document.getElementById('payConfirmWallet')?.value;
+        const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
+        App.CurrencySelect.fill('payConfirmCur',w?(w.currency||'TRY'):App.Money.mainCur());
+        App.FxPreview.update('pay');
+      },
       confirmPay(recId){
         const s=Core.state.recurring.find(x=>x.id===recId);if(!s)return;
         const mc=Core.state.settings.currency||'TRY';
@@ -4066,8 +4261,12 @@ const App = {
           const wSel=document.getElementById('payConfirmWallet');
           wSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
           if(s.wallet)wSel.value=s.wallet;
+          Core.temp._payRecId=recId;
+          const selW=Core.state.wallets.find(x=>x.id===wSel.value);
+          App.CurrencySelect.fill('payConfirmCur',selW?(selW.currency||mc):mc);
           document.getElementById('payConfirmBtn').onclick=()=>App.Controllers.Dashboard.executePay(recId);
           UI.Modals.open('modalPayConfirm');
+          App.FxPreview.update('pay');
         }else{
           this.markPaid(recId);
         }
@@ -4076,9 +4275,10 @@ const App = {
         const s=Core.state.recurring.find(x=>x.id===recId);if(!s)return;
         const wId=document.getElementById('payConfirmWallet')?.value;
         const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
+        const mc=Core.state.settings.currency||'TRY';
         if(w){
           const wc=App.Money.walletCur(w.id);
-          const mc=Core.state.settings.currency||'TRY';
+          // s.amount mc cinsinden, direkt wc'ye çevir
           const txAmt=App.ExchangeRate.convert(s.amount,mc,wc);
           const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmt,amountCurrency:wc,desc:t('subscriptionLabel',{name:s.name}),cat:s.cat||'Abonelik',wallet:w.id,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);
@@ -5630,24 +5830,35 @@ const App = {
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.originalTarget||g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');const gcEl=document.getElementById('goal_currency');if(gcEl)gcEl.value=g.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
-      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;document.getElementById('goal_action_amount').value='';document.getElementById('goal_action_wallet').innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');UI.Modals.open('modalGoalAction');},
+      _onActionWalletChange(){
+        const wId=document.getElementById('goal_action_wallet')?.value;
+        const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
+        App.CurrencySelect.fill('goal_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
+        App.FxPreview.update('goal');
+      },
+      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');UI.Modals.open('modalGoalAction');},
       executeAction(){
-        const a=parseFloat(document.getElementById('goal_action_amount').value),wId=document.getElementById('goal_action_wallet').value;
+        const a=parseFloat(document.getElementById('goal_action_amount').value);
+        const wId=document.getElementById('goal_action_wallet').value;
+        const txCur=App.CurrencySelect.get('goal_action_cur');
         if(isNaN(a)||a<=0)return;
         const g=Core.state.goals.find(x=>x.id===Core.temp.goalId),w=Core.state.wallets.find(x=>x.id===wId);
         if(!w||!g)return;
         const wc=App.Money.walletCur(wId);
         const mc=App.Money.mainCur();
-        const amountInMain=App.ExchangeRate.convert(a,wc,mc);
+        // txCur → wc: hesaptan düşülecek gerçek tutar
+        const deductFromWallet=App.ExchangeRate.convert(a,txCur,wc);
+        // txCur → mc: hedefe yansıyacak tutar
+        const amountInMain=App.ExchangeRate.convert(a,txCur,mc);
         if(Core.temp.goalType==='add'){
           g.current+=amountInMain;
-          const tx={id:Core.Utils.generateId(),type:'expense',amount:a,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]};
+          const tx={id:Core.Utils.generateId(),type:'expense',amount:deductFromWallet,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0],rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }else{
           const remMain=Math.min(g.current,amountInMain);
           g.current-=remMain;
           const backInWalletCur=App.ExchangeRate.convert(remMain,mc,wc);
-          const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0]};
+          const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0],rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }
         Core.DB.saveNow();UI.Modals.close('modalGoalAction');this.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();App.Controllers.Dashboard.render();UI.Toasts.show(t('msgActionDone'));
@@ -5672,13 +5883,16 @@ const App = {
         const fW=fId?Core.state.wallets.find(w=>w.id===fId):null;
         const fCur=fW?(fW.currency||'TRY'):'TRY';
         const lbl=document.getElementById('trn_amount_label');
-        if(lbl)lbl.textContent='Tutar ('+fCur+')';
+        if(lbl)lbl.textContent='Tutar';
+        // döviz select'ini hesabın dövizine ayarla (sadece ilk açılış / hesap değişiminde)
+        App.CurrencySelect.fill('trn_cur',fCur);
       },
       updatePreview(){
         this._updateAmountLabel();
         const fId=document.getElementById('trn_from')?.value;
         const tS=document.getElementById('trn_to')?.value||'';
         const a=parseFloat(document.getElementById('trn_amount')?.value);
+        const txCur=App.CurrencySelect.get('trn_cur');
         const prev=document.getElementById('trn_preview');
         if(!prev)return;
         if(!fId||!tS||!a||isNaN(a)){prev.style.display='none';return;}
@@ -5688,28 +5902,46 @@ const App = {
         const colonIdx=tS.indexOf(':');
         const tType=tS.substring(0,colonIdx);
         const tId=tS.substring(colonIdx+1);
-        let tCur=null,receiveAmt=null;
+        let tCur=null;
         if(tType==='w'){
           const tW=Core.state.wallets.find(w=>w.id===tId);
           if(!tW){prev.style.display='none';return;}
           tCur=tW.currency||'TRY';
-          receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
         }else if(tType==='g'){
           tCur=App.Money.mainCur();
-          receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
         }
-        if(receiveAmt===null){prev.style.display='none';return;}
+        if(!tCur){prev.style.display='none';return;}
+        // Giriş dövizi (txCur) → kaynak hesaptan düşülecek (fCur) + hedef hesaba yatacak (tCur)
+        const deductFromSource=App.ExchangeRate.convert(a,txCur,fCur);
+        const receiveAmt=App.ExchangeRate.convert(a,txCur,tCur);
         const amtSpan=document.getElementById('trn_preview_amount');
         const rateSpan=document.getElementById('trn_preview_rate');
-        if(amtSpan)amtSpan.textContent=Core.Utils.formatMoney(receiveAmt,tCur);
-        if(rateSpan){
-          if(fCur!==tCur){
-            const rate=App.ExchangeRate.convert(1,fCur,tCur);
-            rateSpan.textContent='1 '+fCur+' = '+Core.Utils.formatMoney(rate,tCur)+' · Kur otomatik uygulandı';
-          }else{
-            rateSpan.textContent='Aynı para birimi · Kur uygulanmadı';
-          }
+        // Preview alanını yeniden oluştur
+        const previewInner=prev.querySelector('.trn-preview-inner')||prev;
+        let html='';
+        if(txCur!==fCur){
+          html+=`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px">
+            <span style="color:var(--text-muted);font-weight:500">Hesaptan düşülecek (${fCur})</span>
+            <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:14px">${Core.Utils.formatMoney(deductFromSource,fCur)}</span>
+          </div>`;
         }
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+          <span style="color:var(--text-secondary);font-weight:500">Karşı hesaba yatacak</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px">${Core.Utils.formatMoney(receiveAmt,tCur)}</span>
+        </div>`;
+        // Kur bilgisi
+        let rateInfo='';
+        if(txCur!==fCur||fCur!==tCur){
+          const pairs=[];
+          if(txCur!==fCur)pairs.push('1 '+txCur+' = '+Core.Utils.formatMoney(App.ExchangeRate.convert(1,txCur,fCur),fCur));
+          if(fCur!==tCur&&txCur!==tCur)pairs.push('1 '+fCur+' = '+Core.Utils.formatMoney(App.ExchangeRate.convert(1,fCur,tCur),tCur));
+          else if(txCur!==tCur&&txCur===fCur)pairs.push('1 '+txCur+' = '+Core.Utils.formatMoney(App.ExchangeRate.convert(1,txCur,tCur),tCur));
+          rateInfo=pairs.join(' · ')+' · Kur otomatik uygulandı';
+        }else{
+          rateInfo='Aynı para birimi · Kur uygulanmadı';
+        }
+        html+=`<div style="font-size:11px;color:var(--text-muted);margin-top:5px;font-weight:500">${rateInfo}</div>`;
+        prev.innerHTML=html;
         prev.style.display='block';
       },
       updateToOptions(){
@@ -5724,11 +5956,14 @@ const App = {
           o+='</optgroup>';
         }
         tE.innerHTML=o;
+        this._updateAmountLabel();
+        this.updatePreview();
       },
       execute(){
         const fId=document.getElementById('trn_from').value;
         const tS=document.getElementById('trn_to').value;
         const a=parseFloat(document.getElementById('trn_amount').value);
+        const txCur=App.CurrencySelect.get('trn_cur');
         if(isNaN(a)||a<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
         if(!fId||!tS){UI.Toasts.show(t('msgAccReq'),'error');return;}
         const fW=Core.state.wallets.find(w=>w.id===fId);
@@ -5739,19 +5974,21 @@ const App = {
         const tType=tS.substring(0,colonIdx);
         const tId=tS.substring(colonIdx+1);
         if(fId===tId&&tType==='w'){UI.Toasts.show(t('msgSameWallet'),'error');return;}
-        const outTx={id:Core.Utils.generateId(),type:'expense',amount:a,amountCurrency:fCur,desc:'',cat:'Transfer',wallet:fW.id,date:new Date().toISOString()};
+        // txCur → fCur: kaynak hesaptan düşülecek gerçek tutar
+        const deductAmt=App.ExchangeRate.convert(a,txCur,fCur);
+        const outTx={id:Core.Utils.generateId(),type:'expense',amount:deductAmt,amountCurrency:fCur,desc:'',cat:'Transfer',wallet:fW.id,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
         if(tType==='w'){
           const tW=Core.state.wallets.find(w=>w.id===tId);
           if(!tW){UI.Toasts.show(t('msgAccReq'),'error');return;}
           const tCur=App.Money.walletCur(tW.id);
-          const receiveAmt=App.ExchangeRate.convert(a,fCur,tCur);
+          const receiveAmt=App.ExchangeRate.convert(a,txCur,tCur);
           outTx.desc=t('transferSent',{name:tW.name});
-          const inTx={id:Core.Utils.generateId(),type:'income',amount:receiveAmt,amountCurrency:tCur,desc:t('transferReceived',{name:fW.name}),cat:'Transfer',wallet:tW.id,date:outTx.date};
+          const inTx={id:Core.Utils.generateId(),type:'income',amount:receiveAmt,amountCurrency:tCur,desc:t('transferReceived',{name:fW.name}),cat:'Transfer',wallet:tW.id,date:outTx.date,rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
         }else if(tType==='g'){
           const g=Core.state.goals.find(x=>x.id===tId);
           if(!g){UI.Toasts.show(t('msgAccReq'),'error');return;}
-          g.current+=App.ExchangeRate.convert(a,fCur,mc);
+          g.current+=App.ExchangeRate.convert(a,txCur,mc);
           outTx.desc=t('transferToGoal',{name:g.name});
           outTx.cat='Birikim';
         }
@@ -5795,30 +6032,36 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         }
         Core.DB.saveNow();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
       },
-      prepAction(id){Core.temp.debtId=id;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';UI.Modals.open('modalDebtAction');},
+      _onActionWalletChange(){
+        const wId=document.getElementById('debt_action_wallet')?.value;
+        const w=(wId&&wId!=='none')?Core.state.wallets.find(x=>x.id===wId):null;
+        App.CurrencySelect.fill('debt_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
+        App.FxPreview.update('debt');
+      },
+      prepAction(id){Core.temp.debtId=id;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
       executeAction(){
         const a=parseFloat(document.getElementById('debt_action_amount').value);
         const wId=document.getElementById('debt_action_wallet').value;
+        const txCur=App.CurrencySelect.get('debt_action_cur');
         if(isNaN(a)||a<=0)return;
         const d=Core.state.debts.find(x=>x.id===Core.temp.debtId);
         if(!d)return;
         const mc=App.Money.mainCur();
-        let amtInMain;
-        if(wId!=='none'){
-          const wc=App.Money.walletCur(wId);
-          amtInMain=App.ExchangeRate.convert(a,wc,mc);
-        }else{
-          amtInMain=a;
-        }
+        // txCur → mc: borç kaydından düşülecek
+        const amtInMain=App.ExchangeRate.convert(a,txCur,mc);
         const overpayMain=Math.round((amtInMain-d.amount)*100)/100;
         d.amount=Math.max(0,d.amount-amtInMain);
         if(wId!=='none'){
           const w=Core.state.wallets.find(x=>x.id===wId);
           if(w){
             const wc=App.Money.walletCur(w.id);
+            // txCur → wc: hesaptan gerçekten düşülecek
+            const walletAmt=App.ExchangeRate.convert(a,txCur,wc);
             const tType=d.dir==='borç'?'expense':'income';
             const tDesc=d.dir==='borç'?t('debtPayment',{name:d.name}):t('debtCollection',{name:d.name});
-            const tx={id:Core.Utils.generateId(),type:tType,amount:a,amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:d.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);d.linkedTxId=tx.id;          }
+            const tx={id:Core.Utils.generateId(),type:tType,amount:walletAmt,amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:d.id,rateSnapshot:{...App.ExchangeRate.rates}};
+            Core.state.transactions.push(tx);App.Money.applyTx(tx);d.linkedTxId=tx.id;
+          }
         }
         if(overpayMain>0.01){
           const counterDir=d.dir==='borç'?'alacak':'borç';
@@ -6537,6 +6780,7 @@ const ALL_BNAV_ITEMS = [
   {id:'settings',       icon:'icon-settings',label:'Ayarlar',      labelEn:'Settings',      route:'/settings'},
   {id:'notifications',  icon:'icon-bell',    label:'Bildirimler',  labelEn:'Notifications', route:'/notifications'},
   {id:'sidebar',        icon:'icon-menu',    label:'Menü',          labelEn:'Menu',          route:'#'},
+  {id:'quickactions',   icon:'icon-plus',    label:'Hızlı',         labelEn:'Quick',         route:'#'},
 ];
 
 // ═══════════════════════════════════════
@@ -6766,7 +7010,7 @@ App.Controllers.QuickActions = {
 
 App.Controllers.BottomBar = {
   STORAGE_KEY: 'sagi_bnav_order',
-  DEFAULT_IDS: ['dashboard','wallets','transactions','settings'],
+  DEFAULT_IDS: ['dashboard','wallets','transactions','quickactions','settings'],
   _dragSrcIdx: null,
   _dragOverIdx: null,
   _touchSrcIdx: null,
@@ -6817,15 +7061,19 @@ App.Controllers.BottomBar = {
     if(!nav) return;
     const activeIds = this.getActive();
     const currentRoute = window.location.hash.replace('#','') || '/dashboard';
-    const fabBtn = `<div class="bnav-fab" id="qaBnavFab" onclick="App.Controllers.QuickActions.toggle()">
-      <svg class="nav-icon bnav-fab-rotate" style="width:20px;height:20px"><use href="#icon-plus"/></svg>
-      <span class="bnav-fab-text" data-i18n="quickActionsLabel">Hızlı</span>
-    </div>`;
     nav.innerHTML = activeIds.map((id, i) => {
       const item = ALL_BNAV_ITEMS.find(x => x.id === id);
       if(!item) return '';
 
-      // ── Sidebar butonu özel durumu ──
+      // ── Hızlı İşlem (+) butonu ──
+      if(item.id === 'quickactions'){
+        return `<div class="bnav-fab" id="qaBnavFab" onclick="App.Controllers.QuickActions.toggle()" style="animation-delay:${i*0.04}s">
+          <svg class="nav-icon bnav-fab-rotate" style="width:20px;height:20px"><use href="#icon-plus"/></svg>
+          <span class="bnav-fab-text" data-i18n="quickActionsLabel">Hızlı</span>
+        </div>`;
+      }
+
+      // ── Sidebar butonu ──
       if(item.id === 'sidebar'){
         return `<div class="bnav-link" style="animation-delay:${i*0.04}s; cursor:pointer;"
             onclick="event.preventDefault();
@@ -6842,7 +7090,7 @@ App.Controllers.BottomBar = {
         <svg class="nav-icon"><use href="#${item.icon}"/></svg>
         <span class="bnav-text">${this.getLabel(item)}</span>
       </a>`;
-    }).join('') + fabBtn;
+    }).join('');
 
     // Aktif rotayı işaretle
     document.querySelectorAll('.nav-link,.bnav-link').forEach(n => n.classList.remove('active'));
@@ -6870,7 +7118,7 @@ App.Controllers.BottomBar = {
         <div class="bnav-sort-drag-handle">
           <svg style="width:18px;height:18px;stroke:currentColor;fill:none" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="6" r="1.5" fill="currentColor"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="9" cy="18" r="1.5" fill="currentColor"/><circle cx="15" cy="18" r="1.5" fill="currentColor"/></svg>
         </div>
-        <div class="bnav-sort-icon"><svg class="nav-icon" style="width:18px;height:18px"><use href="#${item.icon}"/></svg></div>
+        <div class="bnav-sort-icon" style="${item.id==='quickactions'?'background:var(--brand-accent-subtle);color:var(--brand-accent)':''}"><svg class="nav-icon" style="width:18px;height:18px"><use href="#${item.icon}"/></svg></div>
         <span class="bnav-sort-label">${this.getLabel(item)}</span>
         <button class="bnav-sort-remove" onclick="App.Controllers.BottomBar.removeItem('${id}')" title="Kaldır">
           <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
