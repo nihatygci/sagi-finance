@@ -3219,8 +3219,8 @@ const Notifications = {
 
     // 1. ABONELİK — 3 gün önce, 1 gün önce, bugün, gecikmiş
     if(notifs.abonelik){
-      const paidKey='sagi_paid_'+now.getFullYear()+'_'+now.getMonth();
-      const paidArr=JSON.parse(localStorage.getItem(paidKey)||'[]');
+      const paidKey=now.getFullYear()+'_'+now.getMonth();
+      const paidArr=(Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[];
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
         const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!localStorage.getItem(nk)){localStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
@@ -3664,6 +3664,11 @@ const App = {
         const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:now.toISOString(),autoProcessed:true};
         Core.state.transactions.push(tx);
         App.Money.applyTx(tx);
+        // paidMonths güncelle — bildirim sistemi "ödenmedi" zannetmesin
+        if(!Core.state.paidMonths) Core.state.paidMonths={};
+        const paidKey=now.getFullYear()+'_'+now.getMonth();
+        if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
+        if(!Core.state.paidMonths[paidKey].includes(s.id)) Core.state.paidMonths[paidKey].push(s.id);
         add++;
       }
     });
