@@ -2308,9 +2308,22 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <input type="number" min="1" max="31" class="form-control" id="wal_cc_due" value="10" placeholder="1-31">
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Asgari Ödeme Tutarı</label>
-            <input type="number" step="0.01" class="form-control" id="wal_cc_min_payment" placeholder="0,00" value="0">
+          <div class="form-group" id="ccMinPayGroup">
+            <label class="form-label" data-i18n="ccMinPayLabel">Asgari Ödeme</label>
+            <div style="display:flex;gap:6px;margin-bottom:8px">
+              <button type="button" class="btn btn-outline btn-sm active" id="ccMinModeFixed" onclick="App.Controllers.Wallets.setMinPayMode('fixed')" style="flex:1;font-size:12px" data-i18n="ccMinModeFixed">Sabit Tutar</button>
+              <button type="button" class="btn btn-outline btn-sm" id="ccMinModeRate" onclick="App.Controllers.Wallets.setMinPayMode('rate')" style="flex:1;font-size:12px" data-i18n="ccMinModeRate">Oran (%)</button>
+            </div>
+            <div id="ccMinFixedWrap">
+              <input type="number" step="0.01" min="0" class="form-control" id="wal_cc_min_payment" placeholder="0,00" value="0">
+            </div>
+            <div id="ccMinRateWrap" style="display:none">
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" step="0.1" min="0" max="100" class="form-control" id="wal_cc_min_rate" placeholder="0,0" value="0" style="flex:1" oninput="App.Controllers.Wallets.updateMinRatePreview()">
+                <span style="font-size:15px;font-weight:700;color:var(--text-muted)">%</span>
+              </div>
+              <div id="ccMinRatePreview" style="font-size:12px;color:var(--text-muted);margin-top:5px;display:none"></div>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -2691,8 +2704,13 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="form-group">
           <label class="form-label" data-i18n="payAmount">Ödenecek Tutar</label>
           <div style="display:flex;gap:8px;margin-bottom:8px">
-            <button type="button" class="btn btn-outline btn-sm" id="payCardBtnMin" onclick="App.Controllers.Wallets.setCardPayAmount('min')" style="flex:1;font-size:12px">Asgari</button>
-            <button type="button" class="btn btn-outline btn-sm" id="payCardBtnFull" onclick="App.Controllers.Wallets.setCardPayAmount('full')" style="flex:1;font-size:12px">Tamamı</button>
+            <button type="button" class="btn btn-outline btn-sm" id="payCardBtnMin" onclick="App.Controllers.Wallets.setCardPayAmount('min')" style="flex:1;font-size:12px" data-i18n="payMinBtn">Asgari</button>
+            <button type="button" class="btn btn-outline btn-sm" id="payCardBtnFull" onclick="App.Controllers.Wallets.setCardPayAmount('full')" style="flex:1;font-size:12px" data-i18n="payFullBtn">Tamamı</button>
+          </div>
+          <div id="payCardRateRow" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--text-muted);white-space:nowrap" data-i18n="ccMinModeRate">Oran (%)</span>
+            <input type="number" step="0.1" min="0" max="100" class="form-control" id="payCardMinRate" placeholder="0,0" style="width:90px" oninput="App.Controllers.Wallets.recalcPayMin()">
+            <span style="font-size:12px;font-weight:600" id="payCardMinRateAmt"></span>
           </div>
           <input type="number" step="0.01" class="form-control" id="payCardAmount" placeholder="0,00" required>
           <div id="payCardMinInfo" style="font-size:12px;color:var(--text-muted);margin-top:6px;display:none"></div>
@@ -4751,6 +4769,9 @@ const App = {
         const isCC=w.type==='Kredi Kartı';
         document.getElementById('wal_cc_limit').value=w.ccLimit||0;
         document.getElementById('wal_cc_min_payment').value=w.ccMinPayment||0;
+        document.getElementById('wal_cc_min_rate').value=w.ccMinPaymentRate||0;
+        const minMode=w.ccMinPayMode||'fixed';
+        App.Controllers.Wallets.setMinPayMode(minMode,true);
         document.getElementById('wal_cc_debt').value=isCC?Math.max(0,-(w.balance||0)):0;
         document.getElementById('wal_cc_cutoff').value=w.ccCutoffDay||1;
         document.getElementById('wal_cc_due').value=w.ccDueDay||10;
@@ -4791,7 +4812,15 @@ const App = {
           p.ccLimit=parseFloat(document.getElementById('wal_cc_limit').value)||0;
           p.ccCutoffDay=parseInt(document.getElementById('wal_cc_cutoff').value)||1;
           p.ccDueDay=parseInt(document.getElementById('wal_cc_due').value)||10;
-          p.ccMinPayment=parseFloat(document.getElementById('wal_cc_min_payment').value)||0;
+          const minMode=document.getElementById('ccMinModeRate')&&document.getElementById('ccMinModeRate').classList.contains('active')?'rate':'fixed';
+          p.ccMinPayMode=minMode;
+          if(minMode==='rate'){
+            p.ccMinPayment=0;
+            p.ccMinPaymentRate=parseFloat(document.getElementById('wal_cc_min_rate').value)||0;
+          }else{
+            p.ccMinPayment=parseFloat(document.getElementById('wal_cc_min_payment').value)||0;
+            p.ccMinPaymentRate=0;
+          }
         }
         if(id){const ix=Core.state.wallets.findIndex(x=>x.id===id);if(ix!==-1)Core.state.wallets[ix]=p;}
         else Core.state.wallets.push(p);
@@ -4911,15 +4940,43 @@ const App = {
         const ccDebt=Math.max(0,-(cc.balance||0));
         document.getElementById('payCardDebt').textContent=Core.Utils.formatMoney(ccDebt,cc.currency);
         const minAmt=parseFloat(cc.ccMinPayment)||0;
+        const minRate=parseFloat(cc.ccMinPaymentRate)||0;
+        const minMode=cc.ccMinPayMode||'fixed';
+        const computedMin=minMode==='rate'&&minRate>0&&ccDebt>0
+          ? Math.round(ccDebt*minRate)/100
+          : minAmt;
         document.getElementById('payCardAmount').value=ccDebt.toFixed(2);
+        const rateRow=document.getElementById('payCardRateRow');
+        const rateInp=document.getElementById('payCardMinRate');
+        const rateAmtEl=document.getElementById('payCardMinRateAmt');
+        if(rateRow&&rateInp){
+          rateRow.dataset.debt=ccDebt;
+          rateRow.dataset.cur=cc.currency;
+          if(minMode==='rate'&&minRate>0){
+            rateInp.value=minRate;
+            rateRow.style.display='flex';
+            if(rateAmtEl)rateAmtEl.textContent=Core.Utils.formatMoney(computedMin,cc.currency);
+          }else{
+            rateInp.value='';
+            rateRow.style.display='none';
+            if(rateAmtEl)rateAmtEl.textContent='';
+          }
+        }
         const minInfo=document.getElementById('payCardMinInfo');
-        if(minInfo&&minAmt>0&&ccDebt>0){
+        if(minInfo&&computedMin>0&&ccDebt>0){
           minInfo.style.display='block';
-          minInfo.textContent=`Tanımlı asgari ödeme: ${Core.Utils.formatMoney(minAmt,cc.currency)}`;
+          const rateLabel=minMode==='rate'?` (%${minRate})`:'';
+          minInfo.textContent=t('payCardMinInfo',{amt:Core.Utils.formatMoney(computedMin,cc.currency),rate:rateLabel});
         } else if(minInfo){minInfo.style.display='none';}
         const btnMin=document.getElementById('payCardBtnMin');
         const btnFull=document.getElementById('payCardBtnFull');
-        if(btnMin){btnMin.dataset.min=minAmt>0?minAmt:0;btnMin.classList.remove('active');btnMin.disabled=minAmt<=0;}
+        if(btnMin){
+          btnMin.dataset.min=computedMin;
+          btnMin.classList.remove('active');
+          btnMin.disabled=false;
+          const rateTag=minMode==='rate'&&minRate>0?` %${minRate}`:'';
+          btnMin.textContent=t('payMinBtn')+rateTag;
+        }
         if(btnFull){btnFull.dataset.full=ccDebt;btnFull.classList.add('active');}
         const fromSel=document.getElementById('payCardFromWallet');
         const sources=Core.state.wallets.filter(w=>w.id!==cardWalletId);
@@ -4931,13 +4988,68 @@ const App = {
         const btnMin=document.getElementById('payCardBtnMin');
         const btnFull=document.getElementById('payCardBtnFull');
         const input=document.getElementById('payCardAmount');
+        const rateRow=document.getElementById('payCardRateRow');
         if(!input)return;
         if(type==='min'&&btnMin){
-          input.value=parseFloat(btnMin.dataset.min||0).toFixed(2);
+          // oran satirini ac; kayitli deger yoksa kullanici yazsin
+          if(rateRow){rateRow.style.display='flex';}
+          const minVal=parseFloat(btnMin.dataset.min||0);
+          if(minVal>0)input.value=minVal.toFixed(2);
           btnMin.classList.add('active');if(btnFull)btnFull.classList.remove('active');
         }else if(type==='full'&&btnFull){
+          if(rateRow){rateRow.style.display='none';}
           input.value=parseFloat(btnFull.dataset.full||0).toFixed(2);
           btnFull.classList.add('active');if(btnMin)btnMin.classList.remove('active');
+        }
+      },
+      recalcPayMin(){
+        const rateRow=document.getElementById('payCardRateRow');
+        const rateInp=document.getElementById('payCardMinRate');
+        const rateAmtEl=document.getElementById('payCardMinRateAmt');
+        const input=document.getElementById('payCardAmount');
+        const btnMin=document.getElementById('payCardBtnMin');
+        if(!rateRow||!rateInp||!input)return;
+        const rate=parseFloat(rateInp.value)||0;
+        const debt=parseFloat(rateRow.dataset.debt||0);
+        const cur=rateRow.dataset.cur||'TRY';
+        if(rate>0&&debt>0){
+          const amt=Math.round(debt*rate)/100;
+          input.value=amt.toFixed(2);
+          if(rateAmtEl)rateAmtEl.textContent=Core.Utils.formatMoney(amt,cur);
+          if(btnMin)btnMin.dataset.min=amt;
+        }else{
+          if(rateAmtEl)rateAmtEl.textContent='';
+        }
+      },
+      setMinPayMode(mode,silent){
+        const btnFixed=document.getElementById('ccMinModeFixed');
+        const btnRate=document.getElementById('ccMinModeRate');
+        const fixedWrap=document.getElementById('ccMinFixedWrap');
+        const rateWrap=document.getElementById('ccMinRateWrap');
+        if(!btnFixed)return;
+        if(mode==='rate'){
+          btnFixed.classList.remove('active');btnRate.classList.add('active');
+          fixedWrap.style.display='none';rateWrap.style.display='';
+          if(!silent)this.updateMinRatePreview();
+        }else{
+          btnRate.classList.remove('active');btnFixed.classList.add('active');
+          rateWrap.style.display='none';fixedWrap.style.display='';
+        }
+      },
+      updateMinRatePreview(){
+        const rateInput=document.getElementById('wal_cc_min_rate');
+        const preview=document.getElementById('ccMinRatePreview');
+        const debtInput=document.getElementById('wal_cc_debt');
+        if(!rateInput||!preview)return;
+        const rate=parseFloat(rateInput.value)||0;
+        const debt=parseFloat(debtInput&&debtInput.value)||0;
+        if(rate>0&&debt>0){
+          const amt=Math.round(debt*rate)/100;
+          const cur=document.getElementById('wal_currency')&&document.getElementById('wal_currency').value||'TRY';
+          preview.style.display='block';
+          preview.textContent=t('ccMinRatePreview',{rate,amt:Core.Utils.formatMoney(amt,cur)});
+        }else{
+          preview.style.display='none';
         }
       },
       updateColorPreview(){
