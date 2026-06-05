@@ -273,23 +273,26 @@
       if (!snap.exists) throw new Error("NOT_FOUND");
 
       const data = snap.data();
-      if (!data || !data.state) throw new Error("NOT_FOUND");
+      if (!data) throw new Error("NOT_FOUND");
 
-      // forwardKey varsa — bu key PLUS'a yükseltilmiş, gerçek key'e yönlendir
+      // ── PLUS yönlendirme — state kontrolünden ÖNCE yapılmalı ─────────
+      // 1) forwardKey: devActivate eski doc'a forwardKey yazıyor
+      //    state olmasa bile buraya bakılmalı — önce kontrol et
       if (data.forwardKey) {
-        const fwdKey = data.forwardKey;
+        const fwdKey = this.normalizeKey(data.forwardKey) || data.forwardKey;
         console.log('[Cloud] loginWithKey: forwardKey bulundu, yönlendiriliyor:', fwdKey);
-        // Recursive olarak gerçek key ile tekrar giriş yap
         return this.loginWithKey(fwdKey);
       }
-
-      // Doc'taki syncKey PLUS- ile başlıyorsa (devActivate sonrası durum)
-      // Kullanıcı eski normal key'i yazdı ama Firebase'deki state PLUS key içeriyor
+      // 2) state.settings.syncKey PLUS- ile başlıyorsa: eski normal key ile
+      //    giriş yapıldı ama hesap PLUS'a yükseltilmiş — PLUS doc'una geç
       const remoteSyncKey = data.state && data.state.settings && data.state.settings.syncKey;
       if (remoteSyncKey && remoteSyncKey !== key && remoteSyncKey.startsWith('PLUS-')) {
         console.log('[Cloud] loginWithKey: remote PLUS key bulundu, geçiliyor:', remoteSyncKey);
         return this.loginWithKey(remoteSyncKey);
       }
+      // ─────────────────────────────────────────────────────────────────
+
+      if (!data.state) throw new Error("NOT_FOUND");
 
       // Buluttaki state'i yerel state'in üzerine yaz
       Core.state = data.state;
@@ -305,6 +308,8 @@
         currency: 'TRY',
         cachedRates: null,
       }, data.state.settings || {});
+      // syncKey: girilen key'i yaz — PLUS doc'una redirect gelince
+      // recursive call'da key zaten PLUS key olacak, doğru yazılır
       Core.state.settings.syncKey = key;
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
 
@@ -341,6 +346,22 @@
             return;
           }
           if (!data || !data.state) return;
+
+          // remoteSyncKey PLUS- ile başlıyorsa: devActivate bu cihazda çalıştı ama
+          // bu cihaz başka bir cihazdan açık — PLUS doc'una geç
+          const _rsk = data.state.settings && data.state.settings.syncKey;
+          const _lk  = Core.state.settings.syncKey || '';
+          if (_rsk && _rsk !== _lk && _rsk.startsWith('PLUS-')) {
+            console.log('[Cloud] onSnapshot: remote PLUS key bulundu, geçiliyor:', _rsk);
+            this.detachListener();
+            Core.state.settings.syncKey = _rsk;
+            Core.state.settings.lastModified = 0;
+            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+            this.loginWithKey(_rsk).then(() => {
+              setTimeout(() => window.location.reload(), 500);
+            }).catch(e => console.warn('[Cloud] onSnapshot PLUS geçiş hatası:', e));
+            return;
+          }
 
           // Kendi push'umuzu pushId ile tanı — boolean suppress yerine güvenli yöntem
           if (data.pushId && data.pushId === this._lastPushId) {
