@@ -98,24 +98,20 @@
           return true;
         }
         if (!data || !data.state) return;
-        // forwardKey yoksa — PLUS versiyonu var mı kontrol et
+        // forwardKey yoksa — remote syncKey PLUS key mi?
+        // devActivate eski doc'taki syncKey'i PLUS key olarak güncelledi
+        const remoteSyncKey = data.state && data.state.settings && data.state.settings.syncKey;
         const currentKey = Core.state.settings.syncKey || '';
-        if (currentKey && !currentKey.startsWith('PLUS-')) {
-          const plusKey = 'PLUS-' + currentKey;
-          try {
-            const plusSnap = await this._doc(plusKey).get();
-            if (plusSnap.exists && plusSnap.data() && plusSnap.data().state) {
-              console.log('[Cloud] PLUS versiyonu bulundu, geçiliyor:', plusKey);
-              this.detachListener();
-              Core.state.settings.syncKey = plusKey;
-              Core.state.settings.lastModified = 0;
-              localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-              this.loginWithKey(plusKey).then(() => {
-                setTimeout(() => window.location.reload(), 300);
-              }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
-              return true;
-            }
-          } catch(e) {}
+        if (remoteSyncKey && remoteSyncKey !== currentKey && remoteSyncKey.startsWith('PLUS-')) {
+          console.log('[Cloud] Remote syncKey PLUS, geçiliyor:', remoteSyncKey);
+          this.detachListener();
+          Core.state.settings.syncKey = remoteSyncKey;
+          Core.state.settings.lastModified = 0;
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          this.loginWithKey(remoteSyncKey).then(() => {
+            setTimeout(() => window.location.reload(), 300);
+          }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
+          return true;
         }
 
         const remoteMod = data.lastModified || 0;
