@@ -113,6 +113,28 @@
           }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
           return true;
         }
+        // forwardKey ve remoteSyncKey yoksa — PLUS-{key} doc'u var mı proaktif kontrol
+        // devActivate forwardKey yazmayı başaramadıysa bu güvence yakalar
+        if (!currentKey.startsWith('PLUS-')) {
+          try {
+            const plusKey = 'PLUS-' + currentKey;
+            const plusSnap = await this._doc(plusKey).get();
+            if (plusSnap.exists && plusSnap.data() && plusSnap.data().state) {
+              console.log('[Cloud] initialPull: PLUS doc bulundu, geçiliyor:', plusKey);
+              try {
+                await this._doc(currentKey).set({ forwardKey: plusKey, lastModified: Date.now() }, { merge: true });
+              } catch(e) { console.warn('[Cloud] forwardKey yazılamadı:', e); }
+              this.detachListener();
+              Core.state.settings.syncKey = plusKey;
+              Core.state.settings.lastModified = 0;
+              localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+              this.loginWithKey(plusKey).then(() => {
+                setTimeout(() => window.location.reload(), 300);
+              }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
+              return true;
+            }
+          } catch(e) { console.warn('[Cloud] PLUS doc kontrol hatası:', e); }
+        }
 
         const remoteMod = data.lastModified || 0;
         const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
@@ -289,6 +311,23 @@
       if (remoteSyncKey && remoteSyncKey !== key && remoteSyncKey.startsWith('PLUS-')) {
         console.log('[Cloud] loginWithKey: remote PLUS key bulundu, geçiliyor:', remoteSyncKey);
         return this.loginWithKey(remoteSyncKey);
+      }
+      // 3) forwardKey ve remoteSyncKey yoksa — PLUS-{key} doc'u var mı proaktif kontrol et
+      //    devActivate forwardKey yazmayı başaramadıysa bu güvence yakalar
+      if (!key.startsWith('PLUS-')) {
+        try {
+          const plusKey = 'PLUS-' + key;
+          const plusSnap = await this._doc(plusKey).get();
+          if (plusSnap.exists && plusSnap.data() && plusSnap.data().state) {
+            console.log('[Cloud] loginWithKey: PLUS doc bulundu, geçiliyor:', plusKey);
+            // Eski doc'a forwardKey yaz — bir daha bu kontrolü yapmak zorunda kalmayalım
+            try {
+              await this._doc(key).set({ forwardKey: plusKey, lastModified: Date.now() }, { merge: true });
+              console.log('[Cloud] loginWithKey: forwardKey eski doc\'a yazıldı.');
+            } catch(e) { console.warn('[Cloud] forwardKey yazılamadı:', e); }
+            return this.loginWithKey(plusKey);
+          }
+        } catch(e) { console.warn('[Cloud] PLUS doc kontrol hatası:', e); }
       }
       // ─────────────────────────────────────────────────────────────────
 
