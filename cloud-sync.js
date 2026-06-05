@@ -275,6 +275,22 @@
       const data = snap.data();
       if (!data || !data.state) throw new Error("NOT_FOUND");
 
+      // forwardKey varsa — bu key PLUS'a yükseltilmiş, gerçek key'e yönlendir
+      if (data.forwardKey) {
+        const fwdKey = data.forwardKey;
+        console.log('[Cloud] loginWithKey: forwardKey bulundu, yönlendiriliyor:', fwdKey);
+        // Recursive olarak gerçek key ile tekrar giriş yap
+        return this.loginWithKey(fwdKey);
+      }
+
+      // Doc'taki syncKey PLUS- ile başlıyorsa (devActivate sonrası durum)
+      // Kullanıcı eski normal key'i yazdı ama Firebase'deki state PLUS key içeriyor
+      const remoteSyncKey = data.state && data.state.settings && data.state.settings.syncKey;
+      if (remoteSyncKey && remoteSyncKey !== key && remoteSyncKey.startsWith('PLUS-')) {
+        console.log('[Cloud] loginWithKey: remote PLUS key bulundu, geçiliyor:', remoteSyncKey);
+        return this.loginWithKey(remoteSyncKey);
+      }
+
       // Buluttaki state'i yerel state'in üzerine yaz
       Core.state = data.state;
       // Eksik settings alanlarını tamamla (eski sürüm uyumluluğu)
