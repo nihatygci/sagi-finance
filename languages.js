@@ -528,6 +528,72 @@ const LANGS = {
       notifLate:'{name} ödemesi {n} gün gecikti!',
       notifBudgetMsg:'{cat} kategorisinde bütçenizin %{perc}\'ini kullandınız.',
       notifDebtDue:'{name} — {date} tarihinde {amount} {dir} vadesi geliyor.',
+
+      // ── Recent Tx Modal — detay etiketleri ───────────────────────────
+      txDetailDate:'Tarih',
+      txDetailCategory:'Kategori',
+      txDetailAccount:'Hesap',
+      txDetailDescription:'Açıklama',
+      txDetailEdit:'Düzenle',
+
+      // ── Transfer / FX önizleme etiketleri ────────────────────────────
+      fxDeductedFromWallet:'Hesaptan düşülecek',
+      fxAddedToWallet:'Hesaba eklenecek',
+      fxAddedToGoal:'Hedefe yansıyacak',
+      fxDeductedFromGoal:'Hedeften düşülecek',
+      fxRecipientWallet:'Karşı hesaba yatacak',
+
+      // ── Kredi kartı — kart üzerindeki etiketler ──────────────────────
+      ccDebtBadge:'Borç',
+      ccRemainingLimit:'Kalan Limit',
+      ccCardDetailBtn:'Kart Detayı',
+      ccPaidThisMonthBadge:'Bu Ay Ödendi',
+      ccCreditDebtFallback:'Kredi Kartı Borcu',
+
+      // ── Hesap türü (kartlar, pill'ler ve seçim listeleri) ─────────────
+      walletTypeCash:'Nakit',
+      walletTypeBank:'Banka Hesabı',
+      walletTypeCredit:'Kredi Kartı',
+      walletTypeInvest:'Yatırım',
+
+      // ── İşlemler ekranı filtre göster / gizle ────────────────────────
+      filterShow:'Göster',
+      filterHide:'Gizle',
+
+      // ── Abonelikler — Otomatik Ödeme Talimatı ────────────────────────
+      autoPaySectionTitle:'Otomatik Ödeme Talimatı',
+      autoPayBtnDisabledTitle:'Otomatik ödeme aktif',
+
+      // ── Borç & Alacak — Tür etiketi ve yön butonları ─────────────────
+      debtTypeLabel:'Tür',
+      debtDirDebt:'Borç',
+      debtDirReceivable:'Alacak',
+
+      // ── Ayarlar ana listesi — SAGI Plus satırı ───────────────────────
+      sagiPlusTitle:'SAGI Plus',
+      sagiPlusSubtitle:'Premium özellikler',
+      sagiPlusSubtitleFull:'Premium özellikler ve avantajlar',
+
+      // ── Döviz Kurları — para birimi adları ve geçen süre ─────────────
+      curNameUSD:'Amerikan Doları',
+      curNameEUR:'Euro',
+      curNameGBP:'İngiliz Sterlini',
+      curNameTRY:'Türk Lirası',
+      curMainSuffix:'(Ana Para Birimi)',
+      ratesAgeJustNow:'Az önce',
+      ratesAgeMinutes:(m)=>`${m} dk önce`,
+      ratesAgeHours:(h)=>`${h} sa önce`,
+      ratesAgeDays:(d)=>`${d} gün önce`,
+
+      // ── Alt Menü Düzeni — sıfırla ve maksimum uyarıları ─────────────
+      bottombarReset:'Sıfırla',
+      quickActionsResetBtn:'Sıfırla',
+      msgBottombarReset:'Alt menü sıfırlandı.',
+      msgMaxItemsReached:(n)=>`Maksimum ${n} öğe eklenebilir.`,
+      bnavMaxWarn:(n)=>`Maksimum ${n} öğeye ulaşıldı. Eklemek için önce bir öğeyi kaldırın.`,
+
+      // ── Hesap yok (borç/alacak hesap dropdown) ───────────────────────
+      noWalletOption:'Hesap yok',
     }
   },
 
@@ -1024,6 +1090,72 @@ const LANGS = {
       importReplaceDesc:'All current data is deleted and only data from this file is loaded. Cannot be undone.',
       importReplaceWarn:'Your accounts, transactions and all data will be permanently deleted. This cannot be undone.',
       importActionBtn:'Load',
+
+      // ── Recent Tx Modal — detail labels ──────────────────────────────
+      txDetailDate:'Date',
+      txDetailCategory:'Category',
+      txDetailAccount:'Account',
+      txDetailDescription:'Description',
+      txDetailEdit:'Edit',
+
+      // ── Transfer / FX preview labels ─────────────────────────────────
+      fxDeductedFromWallet:'Deducted from account',
+      fxAddedToWallet:'Added to account',
+      fxAddedToGoal:'Reflected to goal',
+      fxDeductedFromGoal:'Deducted from goal',
+      fxRecipientWallet:'Deposited to recipient account',
+
+      // ── Credit card — on-card badge labels ───────────────────────────
+      ccDebtBadge:'Debt',
+      ccRemainingLimit:'Remaining Limit',
+      ccCardDetailBtn:'Card Detail',
+      ccPaidThisMonthBadge:'Paid This Month',
+      ccCreditDebtFallback:'Credit Card Debt',
+
+      // ── Wallet type (cards, pills and selection lists) ────────────────
+      walletTypeCash:'Cash',
+      walletTypeBank:'Bank Account',
+      walletTypeCredit:'Credit Card',
+      walletTypeInvest:'Investment',
+
+      // ── Transaction filter show / hide ────────────────────────────────
+      filterShow:'Show',
+      filterHide:'Hide',
+
+      // ── Recurring — Auto Payment section ─────────────────────────────
+      autoPaySectionTitle:'Auto Payment Instruction',
+      autoPayBtnDisabledTitle:'Auto payment active',
+
+      // ── Debts — Type label and direction buttons ──────────────────────
+      debtTypeLabel:'Type',
+      debtDirDebt:'Debt',
+      debtDirReceivable:'Receivable',
+
+      // ── Settings main list — SAGI Plus row ───────────────────────────
+      sagiPlusTitle:'SAGI Plus',
+      sagiPlusSubtitle:'Premium features',
+      sagiPlusSubtitleFull:'Premium features and benefits',
+
+      // ── Exchange Rates — currency names and time-ago strings ──────────
+      curNameUSD:'US Dollar',
+      curNameEUR:'Euro',
+      curNameGBP:'British Pound',
+      curNameTRY:'Turkish Lira',
+      curMainSuffix:'(Main Currency)',
+      ratesAgeJustNow:'Just now',
+      ratesAgeMinutes:(m)=>`${m}m ago`,
+      ratesAgeHours:(h)=>`${h}h ago`,
+      ratesAgeDays:(d)=>`${d}d ago`,
+
+      // ── Bottom Menu Layout — reset and max-items messages ─────────────
+      bottombarReset:'Reset',
+      quickActionsResetBtn:'Reset',
+      msgBottombarReset:'Bottom menu reset.',
+      msgMaxItemsReached:(n)=>`Maximum ${n} items can be added.`,
+      bnavMaxWarn:(n)=>`Maximum ${n} items reached. Remove one to add more.`,
+
+      // ── No wallet option (debt/goal wallet dropdown) ──────────────────
+      noWalletOption:'No accounts',
     }
   }
 };
