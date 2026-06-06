@@ -113,8 +113,13 @@ if ('serviceWorker' in navigator) {
    ══════════════════════════════════ */
 :root {
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
-  --border-light:rgba(0,0,0,0.07); --border-focus:rgba(79,70,229,0.28);
+  --border-light:rgba(0,0,0,0.07); --border-focus:rgba(98,87,240,0.28);
   --brand-primary:#111827; --brand-accent:#6257f0; --brand-accent-subtle:rgba(98,87,240,.07); --brand-accent-soft:rgba(98,87,240,.10); --brand-accent-medium:rgba(98,87,240,.15);
+  --brand-accent-glow-sm:0 0 0 3px rgba(98,87,240,.12);
+  --brand-accent-glow-md:0 4px 16px rgba(98,87,240,.28);
+  --brand-accent-glow-lg:0 8px 28px rgba(98,87,240,.38);
+  --brand-accent-glow-pulse-0:rgba(98,87,240,0);
+  --brand-accent-glow-pulse-50:rgba(98,87,240,.12);
   --text-main:#111827; --text-secondary:#4b5563; --text-muted:#9ca3af;
   --status-success:#1db87a; --status-success-bg:rgba(34,160,107,0.09);
   --status-danger:#f04040; --status-danger-bg:rgba(229,83,75,0.09);
@@ -130,6 +135,11 @@ if ('serviceWorker' in navigator) {
   --bg-body:#020203; --bg-surface:#090909; --bg-surface-hover:#101012;
   --border-light:rgba(255,255,255,0.07); --border-focus:rgba(99,102,241,0.45);
   --brand-primary:#f9fafb; --brand-accent:#6366f1; --brand-accent-subtle:rgba(99,102,241,.08); --brand-accent-soft:rgba(99,102,241,.12); --brand-accent-medium:rgba(99,102,241,.18);
+  --brand-accent-glow-sm:0 0 0 3px rgba(99,102,241,.18);
+  --brand-accent-glow-md:0 4px 16px rgba(99,102,241,.35);
+  --brand-accent-glow-lg:0 8px 28px rgba(99,102,241,.50);
+  --brand-accent-glow-pulse-0:rgba(99,102,241,0);
+  --brand-accent-glow-pulse-50:rgba(99,102,241,.18);
   --text-main:#f9fafb; --text-secondary:#a1a1aa; --text-muted:#71717a;
   --status-danger-bg:rgba(229,83,75,0.14); --status-success-bg:rgba(34,160,107,0.13);
   --status-warn-bg:rgba(217,119,6,0.13);
@@ -227,7 +237,7 @@ table{width:100%;border-collapse:collapse}
 .legal-card{display:flex;align-items:center;gap:12px;padding:14px 15px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
 .legal-card:hover{background:var(--bg-surface-hover);border-color:var(--brand-accent);transform:translateY(-1px)}
 .legal-card:active{transform:scale(.97)}
-.legal-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(99,102,241,.1);color:var(--brand-accent)}
+.legal-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--brand-accent-subtle);color:var(--brand-accent)}
 .legal-card-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .legal-card-title{font-size:13px;font-weight:700;color:var(--text-main);line-height:1.2}
 .legal-card-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
@@ -242,7 +252,7 @@ table{width:100%;border-collapse:collapse}
 .settings-back-btn:hover{opacity:.75}
 .settings-detail-title{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-main);margin-bottom:4px;letter-spacing:-.025em}
 .settings-detail-sub{font-size:14px;color:var(--text-secondary);margin-bottom:22px}
-@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(79,70,229,0)}50%{box-shadow:0 0 0 6px rgba(79,70,229,.12)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 var(--brand-accent-glow-pulse-0)}50%{box-shadow:0 0 0 6px var(--brand-accent-glow-pulse-50)}}
 /* Wave animations for onboarding */
 @keyframes waveTop{0%{transform:translateX(-50%) scaleY(1)}50%{transform:translateX(-40%) scaleY(1.12)}100%{transform:translateX(-50%) scaleY(1)}}
 @keyframes waveBottom{0%{transform:translateX(-50%) scaleY(1) scaleX(-1)}50%{transform:translateX(-45%) scaleY(1.1) scaleX(-1)}100%{transform:translateX(-50%) scaleY(1) scaleX(-1)}}
@@ -301,7 +311,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 .form-group{margin-bottom:16px}
 .form-label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:7px;letter-spacing:.01em}
 .form-control{width:100%;padding:13px 15px;background:var(--bg-body);border:1.5px solid transparent;border-radius:var(--radius-md);color:var(--text-main);font-size:16px;font-weight:500;transition:all .22s}
-.form-control:focus{background:var(--bg-surface);border-color:var(--brand-accent);box-shadow:0 0 0 3px var(--border-focus),0 2px 8px rgba(79,70,229,.08);outline:none}
+.form-control:focus{background:var(--bg-surface);border-color:var(--brand-accent);box-shadow:var(--brand-accent-glow-sm),0 2px 8px rgba(0,0,0,.06);outline:none}
 .form-control::placeholder{color:var(--text-muted);font-weight:400}
 
 /* CUSTOM SELECT */
@@ -315,7 +325,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 .custom-select-dropdown.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;transition:opacity .2s cubic-bezier(.16,1,.3,1),transform .2s cubic-bezier(.16,1,.3,1)}
 .custom-select-option{padding:14px 18px;cursor:pointer;font-size:15px;font-weight:500;transition:background .15s}
 .custom-select-option:hover{background:var(--bg-surface-hover)}
-.custom-select-option.selected{color:var(--brand-accent);font-weight:600;background:rgba(79,70,229,.06)}
+.custom-select-option.selected{color:var(--brand-accent);font-weight:600;background:var(--brand-accent-subtle)}
 
 /* CUSTOM RADIO GROUP */
 .radio-group{display:flex;flex-direction:column;gap:10px}
@@ -462,7 +472,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 }
 
 .modal-title-row{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-.modal-title-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(79,70,229,.1);color:var(--brand-accent)}
+.modal-title-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--brand-accent-subtle);color:var(--brand-accent)}
 .modal-title-icon svg{width:20px;height:20px;stroke-width:2}
 .modal-title-icon.success{background:var(--status-success-bg);color:var(--status-success)}
 .modal-title-icon.danger{background:var(--status-danger-bg);color:var(--status-danger)}
@@ -512,7 +522,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .bnav-sort-item.drag-over{border-color:var(--brand-accent);background:var(--brand-accent-subtle);transform:scale(1.01)}
 .bnav-sort-item.dragging{opacity:.45;transform:scale(.97)}
 .bnav-sort-drag-handle{color:var(--text-muted);display:flex;align-items:center;flex-shrink:0;touch-action:none}
-.bnav-sort-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand-accent)}
+.bnav-sort-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--brand-accent-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand-accent)}
 .bnav-sort-label{flex:1;font-size:15px;font-weight:600;color:var(--text-main)}
 .bnav-sort-remove{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:8px;display:flex;align-items:center;transition:all .18s}
 .bnav-sort-remove:hover{color:var(--status-danger);background:var(--status-danger-bg)}
@@ -552,9 +562,9 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .bnav-link:nth-child(3){animation-delay:.10s}.bnav-link:nth-child(4){animation-delay:.14s}
 .bnav-link:nth-child(5){animation-delay:.18s}
 /* Auto-pay UI */
-.autopay-info-box{padding:14px;background:rgba(79,70,229,.06);border-radius:var(--radius-md);border:1px solid rgba(79,70,229,.15);margin-top:12px}
+.autopay-info-box{padding:14px;background:var(--brand-accent-subtle);border-radius:var(--radius-md);border:1px solid var(--brand-accent-medium);margin-top:12px}
 .autopay-warn-box{margin-top:10px;padding:10px 12px;background:var(--status-warn-bg);border-radius:var(--radius-sm);border:1px solid rgba(217,119,6,.2);font-size:12px;color:var(--status-warn);font-weight:600;line-height:1.5}
-.autopay-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-full);background:rgba(79,70,229,.1);color:var(--brand-accent);font-size:11px;font-weight:700;border:1px solid rgba(79,70,229,.18)}
+.autopay-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-full);background:var(--brand-accent-subtle);color:var(--brand-accent);font-size:11px;font-weight:700;border:1px solid var(--brand-accent-medium)}
 .badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:var(--radius-full);font-size:12px;font-weight:600;background:var(--bg-body);color:var(--text-secondary)}
 
 /* SELECT MODE */
@@ -665,7 +675,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .notif-inbox-item{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;position:relative}
 .notif-inbox-item:last-child{border-bottom:none}
 .notif-inbox-item:hover,.notif-inbox-item:active{background:var(--bg-surface-hover)}
-.notif-inbox-item.unread{background:rgba(99,102,241,.035)}
+.notif-inbox-item.unread{background:var(--brand-accent-subtle)}
 .notif-inbox-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand-accent);border-radius:0 2px 2px 0}
 .notif-inbox-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .notif-inbox-body{flex:1;min-width:0}
@@ -780,8 +790,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* INSIGHT */
 .insight-card{background:var(--bg-surface);border:1px solid var(--border-light);padding:18px;border-radius:var(--radius-lg);margin-bottom:18px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
 .insight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand-accent)}
-.insight-icon{width:40px;height:40px;background:rgba(79,70,229,.08);color:var(--brand-accent);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-[data-theme="dark"] .insight-icon{background:rgba(99,102,241,.12)}
+.insight-icon{width:40px;height:40px;background:var(--brand-accent-soft);color:var(--brand-accent);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+[data-theme="dark"] .insight-icon{background:var(--brand-accent-soft)}
 
 /* CHARTS */
 .chart-container{position:relative;width:100%;max-width:240px;margin:0 auto;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
@@ -810,9 +820,9 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* ONBOARDING */
 .onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
-.mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,rgba(79,70,229,.18),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,rgba(79,70,229,.06),transparent 70%);background-color:var(--bg-body);
+.mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
-[data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,rgba(99,102,241,.22),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,rgba(99,102,241,.08),transparent 70%);background-color:#000;filter:blur(3px);}
+[data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-soft),transparent 70%);background-color:#000;filter:blur(3px);}
 @keyframes meshDrift{0%{transform:translate(0,0) rotate(0deg) scale(1);}15%{transform:translate(3%,-4%) rotate(22deg) scale(1.04);}30%{transform:translate(-5%,2%) rotate(55deg) scale(1.08);}45%{transform:translate(4%,6%) rotate(100deg) scale(1.03);}60%{transform:translate(-3%,-5%) rotate(160deg) scale(1.07);}75%{transform:translate(6%,3%) rotate(220deg) scale(1.02);}90%{transform:translate(-2%,5%) rotate(310deg) scale(1.05);}100%{transform:translate(0,0) rotate(360deg) scale(1);}}
 
 /* Wave elements for onboarding */
@@ -847,7 +857,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 .wallet-card-premium:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.14) inset}
 
 /* INSIGHT LEFT BAR */
-.insight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--brand-accent),rgba(79,70,229,.4))}
+.insight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--brand-accent),var(--brand-accent-medium))}
 
 /* ─── MOBİL İŞLEM KART LİSTESİ ─── */
 #txMobileList{display:none}
@@ -885,7 +895,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   padding:14px 18px;
   background:var(--brand-accent);
   border-radius:var(--radius-lg);
-  box-shadow:0 8px 28px rgba(79,70,229,.40);
+  box-shadow:var(--brand-accent-glow-lg);
   align-items:center;
   justify-content:space-between;
   gap:12px;
@@ -977,14 +987,14 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 }
 .import-choice-card:hover {
   border-color: var(--brand-accent);
-  background: rgba(79,70,229,.04);
+  background: var(--brand-accent-subtle);
 }
 .import-choice-card.selected {
   border-color: var(--brand-accent);
-  background: rgba(79,70,229,.07);
+  background: var(--brand-accent-soft);
 }
 [data-theme="dark"] .import-choice-card.selected {
-  background: rgba(99,102,241,.11);
+  background: var(--brand-accent-soft);
 }
 .import-choice-card.selected-danger {
   border-color: var(--status-danger);
@@ -1079,7 +1089,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
 <div id="appLoader">
   <div class="loader-brand">
-    <img src="./icon-192.png" alt="SAGI" style="width:44px;height:44px;border-radius:25px;box-shadow:0 4px 16px rgba(108,77,255,.3)">
+    <img src="./icon-192.png" alt="SAGI" style="width:44px;height:44px;border-radius:25px;box-shadow:var(--brand-accent-glow-md)">
     SAGI
   </div>
   <div class="loader-progress-wrap"><div class="loader-progress-fill" id="loaderBar"></div></div>
@@ -1103,7 +1113,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     </svg>
   </div>
   <div class="onboarding-card card active" id="ob_step_1">
-    <div class="ob-icon-wrap" style="background:transparent;box-shadow:none"><img src="./icon-192.png" alt="SAGI" style="width:68px;height:68px;border-radius:50%;box-shadow:0 6px 24px rgba(108,77,255,.35)"></div>
+    <div class="ob-icon-wrap" style="background:transparent;box-shadow:none"><img src="./icon-192.png" alt="SAGI" style="width:68px;height:68px;border-radius:50%;box-shadow:var(--brand-accent-glow-lg)"></div>
     <h1 class="text-h1 mb-3">SAGI Finance</h1>
     <p class="text-subtitle mb-8" data-i18n="obWelcome">Tüm varlık ve harcamalarınızı tek ekrandan kolayca yönetin.</p>
     <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obStart" onclick="App.Controllers.Onboarding.nextStep('key')">Hadi Başlayalım</button>
@@ -1650,7 +1660,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('plus')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-star"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1665,7 +1675,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('personalization')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-settings"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1680,7 +1690,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('notifications')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-bell"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1695,7 +1705,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('rates')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-transfer"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1710,7 +1720,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('bottombar')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-menu"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1725,7 +1735,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('cloud')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-cloud"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1740,7 +1750,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('data')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-trash"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1755,7 +1765,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div onclick="App.Controllers.Settings.openSection('legal')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:rgba(99,102,241,.1);color:var(--brand-accent)">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
                   <svg class="nav-icon" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
@@ -1921,7 +1931,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               </div>
               <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
             </div>
-            <div id="notifPermBox" style="background:rgba(79,70,229,.07);border:1px solid rgba(79,70,229,.2);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
+            <div id="notifPermBox" style="background:var(--brand-accent-subtle);border:1px solid var(--brand-accent-medium);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
               <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
               <button class="btn btn-primary btn-sm w-full" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
             </div>
@@ -1999,7 +2009,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="card" style="margin-top:16px">
             <div class="flex justify-between items-center mb-4">
               <div>
-                <div class="font-bold"><span data-i18n="quickActionsTitle">Hızlı İşlemler</span> <span style="font-size:11px;font-weight:600;color:var(--brand-accent);background:rgba(99,102,241,.1);padding:2px 8px;border-radius:99px;margin-left:6px">+</span></div>
+                <div class="font-bold"><span data-i18n="quickActionsTitle">Hızlı İşlemler</span> <span style="font-size:11px;font-weight:600;color:var(--brand-accent);background:var(--brand-accent-subtle);padding:2px 8px;border-radius:99px;margin-left:6px">+</span></div>
                 <div style="font-size:12px;color:var(--text-muted);margin-top:3px" data-i18n="quickActionsDesc">Sağdaki + butonundan erişilen hızlı aksiyonlar</div>
               </div>
               <button class="btn btn-outline btn-sm" onclick="App.Controllers.QuickActions.reset()">Sıfırla</button>
@@ -2020,7 +2030,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </button>
           <div class="settings-detail-title" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</div>
           <div class="settings-detail-sub" data-i18n="cloudSyncDesc">Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın.</div>
-          <div class="card" style="border-color:rgba(108,77,255,.18)">
+          <div class="card" style="border-color:var(--brand-accent-medium)">
             <div id="cloudSyncBox"><!-- JS render eder --></div>
           </div>
         </div>
@@ -2037,7 +2047,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <!-- Yedek Al -->
             <div style="padding:18px 20px;border-bottom:1px solid var(--border-light)">
               <div class="flex items-center gap-2 mb-2">
-                <div style="width:32px;height:32px;border-radius:8px;background:rgba(79,70,229,.1);color:var(--brand-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--brand-accent-subtle);color:var(--brand-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-arrow-down"/></svg>
                 </div>
                 <div class="font-bold" style="font-size:15px" data-i18n="backup">Yedek Al</div>
@@ -2733,7 +2743,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   <div class="modal-content modal-lg">
     <div class="modal-header" style="padding-bottom:12px">
       <div class="modal-title-row">
-        <div class="modal-title-icon" style="background:rgba(108,77,255,.12);color:#6C4DFF"><svg><use href="#icon-wallet"/></svg></div>
+        <div class="modal-title-icon"><svg><use href="#icon-wallet"/></svg></div>
         <div>
           <h3 class="modal-title" id="cardDetailName" style="font-size:18px" data-i18n="ccCardDetail">Kart Detayı</h3>
           <div id="cardDetailSubtitle" style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px"></div>
@@ -5661,7 +5671,7 @@ const App = {
             <div class="kpi-delta ${net>=0?'up':'down'}" style="font-size:11px">Gelirin %${Math.abs(savingsRate).toFixed(0)}'${Math.abs(savingsRate)===1?'i':'u'}</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-icon" style="background:rgba(79,70,229,.1);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-chart"/></svg></div>
+            <div class="kpi-icon" style="background:var(--brand-accent-soft);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-chart"/></svg></div>
             <div class="kpi-label">Günlük Ort. Gider</div>
             <div class="kpi-val">${fmt(totalExp / (period * 30))}</div>
             <div class="kpi-delta neutral">${period * 30} ${t('periodDayAvg')}</div>
@@ -5819,7 +5829,7 @@ const App = {
           const autoPayBadge=s.autoPay?`<span class="autopay-badge">${t('autoPayLabel')}</span>`:'';
           const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:(!isPaid&&s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;opacity:.55;cursor:default" disabled title="Otomatik ödeme aktif">Oto</button>`:'');
           const dayLabel=t('onDayOfMonth',{day:s.day});
-          return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:rgba(79,70,229,.22)"':''}>
+          return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:var(--brand-accent-medium)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
               <div style="min-width:0;flex:1">
                 <div class="font-bold" style="font-size:17px">${s.name}</div>
@@ -6443,7 +6453,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             }).join('');
             const isMain=idx===0;
             const headerStyle=isMain
-              ?'display:flex;align-items:center;gap:8px;padding:10px 15px;background:rgba(79,70,229,.08);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--brand-accent)'
+              ?'display:flex;align-items:center;gap:8px;padding:10px 15px;background:var(--brand-accent-soft);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--brand-accent)'
               :'display:flex;align-items:center;gap:8px;padding:10px 15px;background:var(--bg-surface-hover);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--text-secondary);margin-top:8px';
             return `<div style="border:1px solid var(--border-light);border-radius:var(--radius-md);overflow:hidden;${idx>0?'margin-top:8px':''}">
               <div style="${headerStyle}">${curFlag[from]} <span>${from}</span> <span style="font-weight:400;opacity:.7;font-size:12px">— ${curLabel[from]||from}${isMain?' (Ana Para Birimi)':''}</span></div>
@@ -6906,11 +6916,11 @@ const ALL_BNAV_ITEMS = [
 // QUICK ACTIONS — Hızlı İşlem Tanımları
 // ═══════════════════════════════════════
 const ALL_QUICK_ACTIONS = [
-  {id:'addTx',       label:'İşlem Ekle',     labelEn:'Add Transaction', icon:'icon-plus',      color:'rgba(99,102,241,.12)',  iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Transactions.openModal()},
+  {id:'addTx',       label:'İşlem Ekle',     labelEn:'Add Transaction', icon:'icon-plus',      color:'var(--brand-accent-subtle)',  iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Transactions.openModal()},
   {id:'addRecurring',label:'Abonelik Ekle',  labelEn:'Add Subscription',icon:'icon-repeat',    color:'rgba(34,160,107,.12)', iconColor:'var(--status-success)', action:()=>App.Controllers.Recurring.openModal()},
   {id:'addGoal',     label:'Hedef Ekle',     labelEn:'Add Goal',        icon:'icon-target',    color:'rgba(217,119,6,.12)',  iconColor:'var(--status-warn)',    action:()=>App.Controllers.Goals.openModal()},
   {id:'addDebt',     label:'Borç/Alacak',    labelEn:'Add Debt',        icon:'icon-briefcase', color:'rgba(229,83,75,.12)',  iconColor:'var(--status-danger)',  action:()=>App.Controllers.Debts.openModal()},
-  {id:'addWallet',   label:'Hesap Ekle',     labelEn:'Add Account',     icon:'icon-wallet',    color:'rgba(99,102,241,.12)', iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Wallets.openModal()},
+  {id:'addWallet',   label:'Hesap Ekle',     labelEn:'Add Account',     icon:'icon-wallet',    color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Wallets.openModal()},
   {id:'transfer',    label:'Para Aktar',     labelEn:'Transfer',        icon:'icon-transfer',  color:'rgba(34,160,107,.12)', iconColor:'var(--status-success)', action:()=>App.Controllers.Transfer.openModal()},
 ];
 
