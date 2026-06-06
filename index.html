@@ -1194,10 +1194,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="form-group" style="text-align:left">
       <label class="form-label" data-i18n="currency">Para Birimi</label>
       <select class="form-control" id="ob_currency" style="font-size:16px;padding:15px">
-        <option value="TRY">Türk Lirası (₺)</option>
-        <option value="USD">Amerikan Doları ($)</option>
-        <option value="EUR">Euro (€)</option>
-        <option value="GBP">İngiliz Sterlini (£)</option>
+        <option value="TRY" data-i18n-content="curNameTRY">Türk Lirası (₺)</option>
+        <option value="USD" data-i18n-content="curNameUSD">Amerikan Doları ($)</option>
+        <option value="EUR" data-i18n-content="curNameEUR">Euro (€)</option>
+        <option value="GBP" data-i18n-content="curNameGBP">İngiliz Sterlini (£)</option>
       </select>
     </div>
     <div class="form-group mb-8" style="text-align:left">
@@ -1276,7 +1276,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     </div>
     <div class="tx-detail-actions">
       <button class="btn btn-primary" onclick="App.Controllers.Transactions._detailAction('edit')">
-        <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg> Düzenle
+        <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg> <span data-i18n="txDetailEdit">Düzenle</span>
       </button>
       <button class="btn btn-danger" style="flex:0;padding:0 16px" onclick="App.Controllers.Transactions._detailAction('del')">
         <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-trash"/></svg>
@@ -1465,7 +1465,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <span data-i18n="filterToggle">Filtrele</span>
           </div>
           <button class="tx-filter-toggle-btn" id="txFilterToggleBtn" onclick="App.Controllers.Transactions.toggleFilter()">
-            <span id="txFilterToggleLabel" style="font-size:12px">Gizle</span>
+            <span id="txFilterToggleLabel" style="font-size:12px" data-i18n="filterHide">Gizle</span>
             <span class="toggle-chevron">
               <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-down"/></svg>
             </span>
@@ -1664,8 +1664,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                   <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-star"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
-                  <div class="title">SAGI Plus</div>
-                  <div class="subtitle">Premium özellikler</div>
+                  <div class="title" data-i18n="sagiPlusTitle">SAGI Plus</div>
+                  <div class="subtitle" data-i18n="sagiPlusSubtitle">Premium özellikler</div>
                 </div>
               </div>
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
@@ -1847,8 +1847,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
             <span data-i18n="settings">Ayarlar</span>
           </button>
-          <div class="settings-detail-title">SAGI Plus</div>
-          <div class="settings-detail-sub">Premium özellikler ve avantajlar</div>
+          <div class="settings-detail-title" data-i18n="sagiPlusTitle">SAGI Plus</div>
+          <div class="settings-detail-sub" data-i18n="sagiPlusSubtitleFull">Premium özellikler ve avantajlar</div>
           <div id="settingsPlusContent"></div>
         </div>
 
@@ -1998,7 +1998,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="card">
             <div class="flex justify-between items-center mb-4">
               <div class="font-bold" data-i18n="bottombarActive">Aktif Öğeler</div>
-              <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()">Sıfırla</button>
+              <button class="btn btn-outline btn-sm" onclick="App.Controllers.BottomBar.reset()" data-i18n="bottombarReset">Sıfırla</button>
             </div>
             <div id="bnavActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
             <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
@@ -2012,7 +2012,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 <div class="font-bold"><span data-i18n="quickActionsTitle">Hızlı İşlemler</span> <span style="font-size:11px;font-weight:600;color:var(--brand-accent);background:var(--brand-accent-subtle);padding:2px 8px;border-radius:99px;margin-left:6px">+</span></div>
                 <div style="font-size:12px;color:var(--text-muted);margin-top:3px" data-i18n="quickActionsDesc">Sağdaki + butonundan erişilen hızlı aksiyonlar</div>
               </div>
-              <button class="btn btn-outline btn-sm" onclick="App.Controllers.QuickActions.reset()">Sıfırla</button>
+              <button class="btn btn-outline btn-sm" onclick="App.Controllers.QuickActions.reset()" data-i18n="quickActionsResetBtn">Sıfırla</button>
             </div>
             <div id="qaActiveList" style="display:flex;flex-direction:column;gap:8px;min-height:60px"></div>
             <div style="height:1px;background:var(--border-light);margin:16px 0"></div>
@@ -2410,7 +2410,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div style="margin-top:18px;padding-top:18px;border-top:1px dashed var(--border-light)">
           <div class="toggle-row" id="recAutoPayRow" onclick="App.Controllers.Recurring.toggleAutoPay()">
             <div>
-              <div class="font-bold" style="font-size:15px">Otomatik Ödeme Talimatı</div>
+              <div class="font-bold" style="font-size:15px" data-i18n="autoPaySectionTitle">Otomatik Ödeme Talimatı</div>
               <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="autoPayDesc">Ödeme günü geldiğinde hesaptan otomatik çekilsin</div>
             </div>
             <div class="toggle-track" id="recAutoPayTrack"><div class="toggle-thumb"></div></div>
@@ -2487,7 +2487,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div id="fx_preview_goal" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12px;color:var(--text-muted)" id="fx_goal_label">Hedefe yansıyacak</span>
+            <span style="font-size:12px;color:var(--text-muted)" id="fx_goal_label" data-i18n="fxAddedToGoal">Hedefe yansıyacak</span>
             <span style="font-weight:800;font-family:var(--font-display);color:var(--brand-accent);font-size:15px" id="fx_goal_amount"></span>
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:500" id="fx_goal_rate"></div>
@@ -2511,10 +2511,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <form id="debtForm" onsubmit="event.preventDefault();App.Controllers.Debts.save()">
         <input type="hidden" id="debt_dir" value="borç"><input type="hidden" id="debt_id">
         <div class="form-group">
-          <label class="form-label">Tür</label>
+          <label class="form-label" data-i18n="debtTypeLabel">Tür</label>
           <div class="tx-type-seg">
-            <button type="button" class="tx-type-btn active" data-debt-dir="borç" onclick="App.Controllers.Debts.setDir('borç',this)"><svg class="nav-icon" style="width:20px;height:20px;margin-bottom:4px"><use href="#icon-arrow-down"/></svg><span>Borç</span></button>
-            <button type="button" class="tx-type-btn" data-debt-dir="alacak" onclick="App.Controllers.Debts.setDir('alacak',this)"><svg class="nav-icon" style="width:20px;height:20px;margin-bottom:4px"><use href="#icon-arrow-up"/></svg><span>Alacak</span></button>  
+            <button type="button" class="tx-type-btn active" data-debt-dir="borç" onclick="App.Controllers.Debts.setDir('borç',this)"><svg class="nav-icon" style="width:20px;height:20px;margin-bottom:4px"><use href="#icon-arrow-down"/></svg><span data-i18n="debtDirDebt">Borç</span></button>
+            <button type="button" class="tx-type-btn" data-debt-dir="alacak" onclick="App.Controllers.Debts.setDir('alacak',this)"><svg class="nav-icon" style="width:20px;height:20px;margin-bottom:4px"><use href="#icon-arrow-up"/></svg><span data-i18n="debtDirReceivable">Alacak</span></button>  
           </div>
         </div>
         <div class="form-group"><label class="form-label" data-i18n="personOrInst">Kişi veya Kurum Adı</label><input type="text" class="form-control" id="debt_name" data-i18n-ph="personPh" placeholder="Kime / Kimden?" required autocomplete="off"></div>
@@ -2573,7 +2573,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div id="fx_preview_debt" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12px;color:var(--text-muted)" id="fx_debt_label">Hesaptan düşülecek</span>
+            <span style="font-size:12px;color:var(--text-muted)" id="fx_debt_label" data-i18n="fxDeductedFromWallet">Hesaptan düşülecek</span>
             <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px" id="fx_debt_amount"></span>
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:500" id="fx_debt_rate"></div>
@@ -2606,8 +2606,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div id="trn_preview" style="display:none;margin-top:14px;padding:13px 16px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
-            <span style="color:var(--text-secondary);font-weight:500">Karşı hesaba yatacak</span>
-            <span id="trn_preview_amount" style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px"></span>
+            <span style="color:var(--text-secondary);font-weight:500" data-i18n="fxRecipientWallet">Karşı hesaba yatacak</span> style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px"></span>
           </div>
           <div id="trn_preview_rate" style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500"></div>
         </div>
@@ -2677,7 +2676,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div id="fx_preview_pay" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12px;color:var(--text-muted)">Hesaptan düşülecek</span>
+            <span style="font-size:12px;color:var(--text-muted)" data-i18n="fxDeductedFromWallet">Hesaptan düşülecek</span>
             <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px" id="fx_pay_amount"></span>
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:500" id="fx_pay_rate"></div>
@@ -2811,7 +2810,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="modal-footer">
       <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> <span data-i18n="ccAllTx">Tüm İşlemler</span></button>
       <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> <span data-i18n="ccPayNow">Ödeme Yap</span></button>
-      <div id="cardDetailPaidBadge" style="display:none;align-items:center;gap:6px;padding:10px 16px;background:var(--status-success-bg);border:1px solid rgba(34,160,107,.2);border-radius:var(--radius-md);font-size:13px;font-weight:700;color:var(--status-success)"><svg style="width:14px;height:14px;stroke:var(--status-success);fill:none;stroke-width:2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Bu Ay Ödendi</div>
+      <div id="cardDetailPaidBadge" style="display:none;align-items:center;gap:6px;padding:10px 16px;background:var(--status-success-bg);border:1px solid rgba(34,160,107,.2);border-radius:var(--radius-md);font-size:13px;font-weight:700;color:var(--status-success)"><svg style="width:14px;height:14px;stroke:var(--status-success);fill:none;stroke-width:2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="ccPaidThisMonthBadge">Bu Ay Ödendi</span></div>
     </div>
   </div>
 </div>
@@ -2879,6 +2878,11 @@ const Core = {
   },
   Utils:{
     generateId:()=>Date.now().toString(36)+Math.random().toString(36).substr(2),
+    // Hesap türünü aktif dile çevirir (veri TR olarak saklanır)
+    walletTypeLabel:(type)=>{
+      const map={'Nakit':'walletTypeCash','Banka Hesabı':'walletTypeBank','Kredi Kartı':'walletTypeCredit','Yatırım':'walletTypeInvest'};
+      return typeof t==='function'&&map[type]?t(map[type]):type;
+    },
     formatMoney:(a,cur)=>{
       if(typeof App!=='undefined'&&App.Money&&App.Money.format)return App.Money.format(a,cur);
       if(Core.state.settings.privacy==='on')return'***';
@@ -3513,14 +3517,14 @@ const App = {
       let html='';
       if(!isSame){
         html+=`<div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--text-muted)">Hesaptan düşülecek (${wc})</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t('fxDeductedFromWallet')} (${wc})</span>
           <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
         </div>`;
       }
       if(txCur!==mc||!isSame){
         const goalAmt=isAdd?addedToGoal:App.ExchangeRate.convert(Math.min(addedToGoal,App.ExchangeRate.convert(Core.state.goals.find(x=>x.id===Core.temp.goalId)?.current||0,mc,mc)),mc,mc);
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${!isSame?'6px':'0'}">
-          <span style="font-size:12px;color:var(--text-muted)">${isAdd?'Hedefe yansıyacak':'Hedeften düşülecek'} (${mc})</span>
+          <span style="font-size:12px;color:var(--text-muted)">${isAdd?t('fxAddedToGoal'):t('fxDeductedFromGoal')} (${mc})</span>
           <span style="font-weight:800;font-family:var(--font-display);color:${isAdd?'var(--brand-accent)':'var(--status-danger)'};font-size:15px">${Core.Utils.formatMoney(addedToGoal,mc)}</span>
         </div>`;
       }
@@ -3547,13 +3551,13 @@ const App = {
       let html='';
       if(txCur!==wc){
         html+=`<div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--text-muted)">${isExpense?'Hesaptan düşülecek':'Hesaba eklenecek'} (${wc})</span>
+          <span style="font-size:12px;color:var(--text-muted)">${isExpense?t('fxDeductedFromWallet'):t('fxAddedToWallet')} (${wc})</span>
           <span style="font-weight:800;font-family:var(--font-display);color:${isExpense?'var(--status-danger)':'var(--status-success)'};font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
         </div>`;
       }
       if(txCur!==mc){
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${txCur!==wc?'6px':'0'}">
-          <span style="font-size:12px;color:var(--text-muted)">Kayıt tutarından düşülecek (${mc})</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t('fxRecordDeducted')} (${mc})</span>
           <span style="font-weight:800;font-family:var(--font-display);color:var(--text-secondary);font-size:15px">${Core.Utils.formatMoney(amtInMain,mc)}</span>
         </div>`;
       }
@@ -3588,7 +3592,7 @@ const App = {
       }
       if(wc!==mc||txCur!==wc){
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${txCur!==mc?'6px':'0'}">
-          <span style="font-size:12px;color:var(--text-muted)">Hesaptan düşülecek (${wc})</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t('fxDeductedFromWallet')} (${wc})</span>
           <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
         </div>`;
       }
@@ -4500,7 +4504,7 @@ const App = {
           return`<div class="upcoming-item" style="${urgStyle}margin-bottom:8px">
             <div style="flex:1;min-width:0">
               <div class="font-bold" style="font-size:14px">${cc.name}</div>
-              <div class="text-caption" style="text-transform:none;margin-top:2px">${dueLabel||'Kredi Kartı Borcu'}</div>
+              <div class="text-caption" style="text-transform:none;margin-top:2px">${dueLabel||t('ccCreditDebtFallback')}</div>
             </div>
             <div class="upcoming-item-actions">
               <div class="font-display font-bold color-danger" style="font-size:14px;text-align:right">-${Core.Utils.formatMoney(debt,cc.currency)}</div>
@@ -4546,10 +4550,10 @@ const App = {
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Borç</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Kalan Limit</div></div>`:''}`
-            : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${t('ccDebtBadge')}</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">${t('ccRemainingLimit')}</div></div>`:''}`
+            : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
           const standardBtns=isCC
-            ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">Kart Detayı</button></div>`
+            ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">${t('ccCardDetailBtn')}</button></div>`
             : `<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>`;
           const chipHtml=isCC?'<div class="chip-icon"></div>':'<div class="chip-icon-silver"></div>';
           return`<div class="wallet-card-wrapper" data-wallet-id="${w.id}"><div class="wallet-card-premium" style="background:linear-gradient(135deg,${w.c1||'#111827'},${w.c2||'#312e81'})">
@@ -4771,7 +4775,7 @@ const App = {
         document.getElementById('wal_id').value=w.id;
         document.getElementById('wal_name').value=w.name;
         document.getElementById('wal_balance').value=w.balance;
-        document.getElementById('walTypeLabel').textContent=w.type;
+        document.getElementById('walTypeLabel').textContent=Core.Utils.walletTypeLabel(w.type);
         document.getElementById('wal_type').value=w.type;
         document.getElementById('wal_c1').value=w.c1||'#111827';
         document.getElementById('wal_c2').value=w.c2||'#374151';
@@ -5164,11 +5168,7 @@ const App = {
         const isOpen = !body.classList.contains('collapsed');
         body.classList.toggle('collapsed', isOpen);
         btn.classList.toggle('collapsed', isOpen);
-        // Label metni dile göre
-        const lang = (window.Core && Core.Data && Core.Data.load('lang')) || 'tr';
-        lbl.textContent = isOpen
-          ? (lang === 'tr' ? 'Göster' : 'Show')
-          : (lang === 'tr' ? 'Gizle'  : 'Hide');
+        lbl.textContent = isOpen ? t('filterShow') : t('filterHide');
       },
       _selectMode:false,
       _selected:new Set(),
@@ -5366,10 +5366,10 @@ const App = {
         if(rowsEl){
           const catColor=Core.Utils.getCatColor(tx.cat);
           rowsEl.innerHTML=`
-            <div class="tx-detail-row"><span class="tx-detail-label">Tarih</span><span class="tx-detail-value">${dateStr}${timeStr?' · '+timeStr:''}</span></div>
-            <div class="tx-detail-row"><span class="tx-detail-label">Kategori</span><span class="tx-detail-value" style="color:${catColor}">${tx.cat}</span></div>
-            <div class="tx-detail-row"><span class="tx-detail-label">Hesap</span><span class="tx-detail-value">${walletName}</span></div>
-            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">Açıklama</span><span class="tx-detail-value">${tx.desc}</span></div>`:''}
+            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailDate')}</span><span class="tx-detail-value">${dateStr}${timeStr?' · '+timeStr:''}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailCategory')}</span><span class="tx-detail-value" style="color:${catColor}">${tx.cat}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailAccount')}</span><span class="tx-detail-value">${walletName}</span></div>
+            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailDescription')}</span><span class="tx-detail-value">${tx.desc}</span></div>`:''}
           `;
         }
         if(modal){
@@ -5827,7 +5827,7 @@ const App = {
           const isPaid=paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
           const autoPayBadge=s.autoPay?`<span class="autopay-badge">${t('autoPayLabel')}</span>`:'';
-          const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:(!isPaid&&s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;opacity:.55;cursor:default" disabled title="Otomatik ödeme aktif">Oto</button>`:'');
+          const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:(!isPaid&&s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;opacity:.55;cursor:default" disabled title="${t('autoPayBtnDisabledTitle')}">Oto</button>`:'');
           const dayLabel=t('onDayOfMonth',{day:s.day});
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:var(--brand-accent-medium)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
@@ -6049,12 +6049,12 @@ const App = {
         let html='';
         if(txCur!==fCur){
           html+=`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px">
-            <span style="color:var(--text-muted);font-weight:500">Hesaptan düşülecek (${fCur})</span>
+            <span style="color:var(--text-muted);font-weight:500">${t('fxDeductedFromWallet')} (${fCur})</span>
             <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:14px">${Core.Utils.formatMoney(deductFromSource,fCur)}</span>
           </div>`;
         }
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
-          <span style="color:var(--text-secondary);font-weight:500">Karşı hesaba yatacak</span>
+          <span style="color:var(--text-secondary);font-weight:500">${t('fxRecipientWallet')}</span>
           <span style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px">${Core.Utils.formatMoney(receiveAmt,tCur)}</span>
         </div>`;
         // Kur bilgisi
@@ -6239,9 +6239,9 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const todayStart=new Date();todayStart.setHours(0,0,0,0);
         const weekStart=new Date(todayStart);weekStart.setDate(weekStart.getDate()-6);
         const groups=[
-          {key:'today',  label:LANG==='en'?'Today':'Bugün',          items:inbox.filter(n=>n.ts>=todayStart.getTime())},
-          {key:'week',   label:LANG==='en'?'This Week':'Bu Hafta',    items:inbox.filter(n=>n.ts<todayStart.getTime()&&n.ts>=weekStart.getTime())},
-          {key:'older',  label:LANG==='en'?'Earlier':'Daha Önce',     items:inbox.filter(n=>n.ts<weekStart.getTime())},
+          {key:'today',  label:t('notifGroupToday'),  items:inbox.filter(n=>n.ts>=todayStart.getTime())},
+          {key:'week',   label:t('notifGroupWeek'),   items:inbox.filter(n=>n.ts<todayStart.getTime()&&n.ts>=weekStart.getTime())},
+          {key:'older',  label:t('notifGroupOlder'),  items:inbox.filter(n=>n.ts<weekStart.getTime())},
         ].filter(g=>g.items.length>0);
 
         const renderItem=n=>{
@@ -6348,10 +6348,10 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const m=Math.floor(diff/60000);
         const h=Math.floor(m/60);
         const d=Math.floor(h/24);
-        if(m<1)return LANG==='en'?'Just now':'Az önce';
-        if(m<60)return LANG==='en'?`${m}m ago`:`${m} dk önce`;
-        if(h<24)return LANG==='en'?`${h}h ago`:`${h} sa önce`;
-        return LANG==='en'?`${d}d ago`:`${d} gün önce`;
+        if(m<1)return t('ratesAgeJustNow');
+        if(m<60)return t('ratesAgeMinutes')(m);
+        if(h<24)return t('ratesAgeHours')(h);
+        return t('ratesAgeDays')(d);
       }
     },
     Settings:{
@@ -6438,12 +6438,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           const last=s.lastRateUpdate?new Date(s.lastRateUpdate).toLocaleString(loc,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):t('ratesNotUpdated');
           const src=s.lastRateSource||'—';
           const ageMs=s.lastRateUpdate?(Date.now()-s.lastRateUpdate):null;
-          const ageStr=ageMs===null?'—':ageMs<3600000?(Math.round(ageMs/60000)+' dk önce'):(Math.round(ageMs/3600000)+' sa önce');
+          const _ageM=ageMs===null?null:Math.floor(ageMs/60000);
+          const _ageH=_ageM===null?null:Math.floor(_ageM/60);
+          const ageStr=ageMs===null?'—':_ageM<1?t('ratesAgeJustNow'):_ageH<1?t('ratesAgeMinutes')(_ageM):t('ratesAgeHours')(_ageH);
           const allCurs=['USD','EUR','GBP','TRY'];
           const mainCur=Core.state.settings.currency||'TRY';
           // Ana para birimini başa al, kalanlar sıralı
           const orderedCurs=[mainCur,...allCurs.filter(c=>c!==mainCur)];
-          const curLabel={'USD':'Amerikan Doları','EUR':'Euro','GBP':'İngiliz Sterlini','TRY':'Türk Lirası'};
+          const curLabel={'USD':t('curNameUSD'),'EUR':t('curNameEUR'),'GBP':t('curNameGBP'),'TRY':t('curNameTRY')};
           const curFlag={'USD':'','EUR':'','GBP':'','TRY':''};
           const groupsHtml=orderedCurs.map((from,idx)=>{
             const others=orderedCurs.filter(c=>c!==from);
@@ -6456,7 +6458,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
               ?'display:flex;align-items:center;gap:8px;padding:10px 15px;background:var(--brand-accent-soft);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--brand-accent)'
               :'display:flex;align-items:center;gap:8px;padding:10px 15px;background:var(--bg-surface-hover);border-bottom:1px solid var(--border-light);font-weight:700;font-size:13px;color:var(--text-secondary);margin-top:8px';
             return `<div style="border:1px solid var(--border-light);border-radius:var(--radius-md);overflow:hidden;${idx>0?'margin-top:8px':''}">
-              <div style="${headerStyle}">${curFlag[from]} <span>${from}</span> <span style="font-weight:400;opacity:.7;font-size:12px">— ${curLabel[from]||from}${isMain?' (Ana Para Birimi)':''}</span></div>
+              <div style="${headerStyle}">${curFlag[from]} <span>${from}</span> <span style="font-weight:400;opacity:.7;font-size:12px">— ${curLabel[from]||from}${isMain?' '+t('curMainSuffix'):''}</span></div>
               ${rows}
             </div>`;
           }).join('');
@@ -6560,11 +6562,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           const result = await Core.Cloud.forceSync();
           this.renderCloudBox();
           if(result === 'pulled'){
-            UI.Toasts.show(LANG==='tr' ? 'Buluttan güncellendi ✓' : 'Updated from cloud ✓','success');
+            UI.Toasts.show(t('cloudUpdatedFromCloud'),'success');
           } else if(result === 'in-sync'){
-            UI.Toasts.show(LANG==='tr' ? 'Zaten güncel ✓' : 'Already up to date ✓','success');
+            UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
           } else {
-            UI.Toasts.show(LANG==='tr' ? 'Buluta gönderildi ✓' : 'Pushed to cloud ✓','success');
+            UI.Toasts.show(t('cloudPushedToCloud'),'success');
           }
         } catch(e) {
           UI.Toasts.show(t('cloudInitFail'),'error');
@@ -7178,7 +7180,7 @@ App.Controllers.BottomBar = {
     localStorage.removeItem(this.STORAGE_KEY);
     this.renderNav();
     this.renderEditor();
-    UI.Toasts.show('Alt menü sıfırlandı.');
+    UI.Toasts.show(t('msgBottombarReset'));
   },
 
   getLabel(item){
@@ -7271,7 +7273,7 @@ App.Controllers.BottomBar = {
 
     // --- Eklenebilecek liste ---
     if(activeIds.length>=5){
-      availList.innerHTML = `<div class="bnav-max-warn" style="width:100%">Maksimum 5 öğeye ulaşıldı. Eklemek için önce bir öğeyi kaldırın.</div>`;
+      availList.innerHTML = `<div class="bnav-max-warn" style="width:100%">${t('bnavMaxWarn')(5)}</div>`;
     } else if(availIds.length===0){
       availList.innerHTML = `<span style="font-size:13px;color:var(--text-muted)">Tüm öğeler aktif.</span>`;
     } else {
@@ -7289,7 +7291,7 @@ App.Controllers.BottomBar = {
 
   addItem(id){
     const ids = this.getActive();
-    if(ids.length>=5){UI.Toasts.show('Maksimum 5 öğe eklenebilir.','error');return;}
+    if(ids.length>=5){UI.Toasts.show(t('msgMaxItemsReached')(5),'error');return;}
     if(ids.includes(id))return;
     ids.push(id);
     this.setActive(ids);

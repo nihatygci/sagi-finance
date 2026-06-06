@@ -594,6 +594,79 @@ const LANGS = {
 
       // ── Hesap yok (borç/alacak hesap dropdown) ───────────────────────
       noWalletOption:'Hesap yok',
+
+      // ── FX debt — kayıt tutarı (ana para birimi) ─────────────────────
+      fxRecordDeducted:'Kayıt tutarından düşülecek',
+
+      // ── SAGI Plus — durum ve onboarding metinleri ─────────────────────
+      plusStatusActive:'✓ Aktif',
+      plusStatusTrial:(n)=>`Deneme — ${n} gün kaldı`,
+      plusStatusNoPlan:'✕ Aktif plan yok',
+      plusDescActive:'Tüm premium özelliklere erişiminiz var.',
+      plusDescTrial:'Ücretsiz deneme sürümündesiniz.',
+      plusDescExpired:'Deneme süreniz doldu.',
+      plusGetBtn:"Plus'a Geç →",
+      plusObSub:'Tam finansal kontrol için ihtiyacınız olan her şey.',
+      plusObPriceAmt:'Yakında',
+      plusObPriceNote:'Ömür boyu erişim · Tek seferlik ödeme · Abonelik yok',
+      plusObCTA:'Plus Edin — Yakında',
+      plusObFine:'Verileriniz her zaman gizli kalır.<br>Hesap açmanıza gerek yok.',
+      plusAITitle:'AI Asistan',
+      plusAIDesc:'Yüzen butonu göster veya gizle.',
+      plusAIHideBtn:'Gizle',
+      plusAIShowBtn:'Göster',
+      plusChatBannerActive:'✦ SAGI Plus — Sınırsız AI Asistan',
+      plusChatBannerTrial:(n)=>`Deneme — ${n} gün kaldı`,
+      plusChatTrialStatus:'4 gün ücretsiz dene',
+      plusChatPlaceholder:'Bir şey sor...',
+      plusChatGetPlus:"Plus'a geç →",
+      plusChatDesc:'AI finansal asistanınız. Verilerinizi analiz eder, sorularınızı yanıtlar.',
+      plusChatStartTrial:'4 Gün Ücretsiz Dene',
+      plusChatNoCard:'Kredi kartı gerekmez',
+      plusTrialExpiredTitle:'Deneme Süresi Doldu',
+      plusTrialExpiredDesc:"Sınırsız erişim için SAGI Plus'a geçin.",
+      plusGetPlusBtn:"Plus'a Geç",
+      // ── SAGI Chat — komut yanıtları (chat bilingual) ─────────────────
+      chatWelcome:'Merhaba! Ben SAGI Asistan. Finansal verilerinizi analiz edebilir ve sorularınızı yanıtlayabilirim.',
+      chatWelcomeHint:'<br><br><span style="opacity:.55;font-size:12px">Komutlar için /help yaz</span>',
+      chatHelpText:'Kullanabileceğin komutlar:<br><br><b>/ozet</b> — Bu ayın kısa özeti<br><b>/gelir</b> — Gelirlerin kategorilere göre<br><b>/gider</b> — Giderlerin kategorilere göre<br><b>/analiz</b> — Yapay zeka finansal analizi<br><b>/hedefler</b> — Hedeflerinin durumu<br><b>/abonelikler</b> — Aktif aboneliklerin<br><b>/borclar</b> — Borç takibi<br><b>/clear</b> — Sohbet geçmişini temizle',
+      chatUnknownCmd:'Böyle bir komut yok. Tüm komutlar için /help yaz.',
+      chatLabelIncome:'Bu ay gelir',
+      chatLabelExpense:'Bu ay gider',
+      chatLabelOverview:'Aylık Özet',
+      chatLabelIncomeShort:'Gelir',
+      chatLabelExpenseShort:'Gider',
+      chatLabelAccounts:'Hesaplar',
+      chatLabelGoals:'Hedefler',
+      chatLabelNoGoals:'Henüz hedef yok.',
+      chatLabelSubscriptions:'Abonelikler',
+      chatLabelNoSubscriptions:'Abonelik yok.',
+      chatLabelTotal:(mc)=>`Toplam: ... ${mc}`,
+      chatLabelDebts:'Borçlar',
+      chatLabelNoDebts:'Borç yok.',
+      chatAnalyzePrompt:(inc,exp,mc,wals,goals,debts)=>`Tam analiz: bu ay gelir ${inc} ${mc}, gider ${exp} ${mc}. ${wals} hesap, toplam ... ${mc}. ${goals} hedef, ${debts} borç. Öngörüler ve 3 öneri ver.`,
+
+      // ── Plus Settings ekranı ──────────────────────────────────────────
+      plusFontTitle:'Yazı Tipi',
+      plusFontDesc:'Uygulama geneli yazı tipini seçin.',
+      plusColorTitle:'Vurgu Rengi',
+      plusColorDesc:'Tüm uygulamadaki vurgu rengini değiştirir.',
+      plusSaveApply:'Kaydet ve Uygula',
+      plusCustomColorLabel:'Özel:',
+
+      // ── SAGI Chat — AI sistem promptu ve hata mesajı ─────────────────
+      chatSysPrompt:(inc,exp,mc,wallets,recurring)=>`Sen SAGI Asistan'sın, SAGI Finance uygulamasındaki kişisel finans yapay zekasısın. Kısa ve samimi ol. Kullanıcı verileri: bu ay gelir: ${inc} ${mc}, gider: ${exp} ${mc}. Hesaplar: ${wallets}. Abonelikler: ${recurring}. Türkçe yanıtla.`,
+      chatErrConnection:'Bağlantı hatası. Tekrar deneyin.',
+
+      // ── Bildirim kutusu — grup başlıkları ────────────────────────────
+      notifGroupToday:'Bugün',
+      notifGroupWeek:'Bu Hafta',
+      notifGroupOlder:'Daha Önce',
+
+      // ── Bulut Senkron — toast mesajları ──────────────────────────────
+      cloudUpdatedFromCloud:'Buluttan güncellendi ✓',
+      cloudAlreadyUpToDate:'Zaten güncel ✓',
+      cloudPushedToCloud:'Buluta gönderildi ✓',
     }
   },
 
@@ -1156,6 +1229,79 @@ const LANGS = {
 
       // ── No wallet option (debt/goal wallet dropdown) ──────────────────
       noWalletOption:'No accounts',
+
+      // ── FX debt — record amount (main currency) ───────────────────────
+      fxRecordDeducted:'Deducted from record amount',
+
+      // ── SAGI Plus — status and onboarding texts ───────────────────────
+      plusStatusActive:'✓ Active',
+      plusStatusTrial:(n)=>`Trial — ${n} days left`,
+      plusStatusNoPlan:'✕ No active plan',
+      plusDescActive:'You have access to all premium features.',
+      plusDescTrial:'You are on a free trial.',
+      plusDescExpired:'Your trial has expired.',
+      plusGetBtn:'Get Plus →',
+      plusObSub:'Everything you need for full financial control.',
+      plusObPriceAmt:'Coming Soon',
+      plusObPriceNote:'Lifetime access · One-time payment · No subscription',
+      plusObCTA:'Get Plus — Coming Soon',
+      plusObFine:'Your data always stays private.<br>No account required.',
+      plusAITitle:'AI Assistant',
+      plusAIDesc:'Show or hide the floating button.',
+      plusAIHideBtn:'Hide',
+      plusAIShowBtn:'Show',
+      plusChatBannerActive:'✦ SAGI Plus — Unlimited AI Assistant',
+      plusChatBannerTrial:(n)=>`Trial — ${n} days left`,
+      plusChatTrialStatus:'4-day free trial',
+      plusChatPlaceholder:'Ask something...',
+      plusChatGetPlus:'Get Plus →',
+      plusChatDesc:'Your AI financial assistant. Analyzes your data and answers your questions.',
+      plusChatStartTrial:'Start 4-Day Free Trial',
+      plusChatNoCard:'No credit card required',
+      plusTrialExpiredTitle:'Trial Expired',
+      plusTrialExpiredDesc:'Continue with SAGI Plus for unlimited access.',
+      plusGetPlusBtn:'Get Plus',
+      // ── SAGI Chat — command responses (chat bilingual) ───────────────
+      chatWelcome:"Hi! I'm SAGI Assistant. I can analyze your financial data and answer your questions.",
+      chatWelcomeHint:'<br><br><span style="opacity:.55;font-size:12px">Type /help for commands</span>',
+      chatHelpText:'Available commands:<br><br><b>/ozet</b> — Monthly summary<br><b>/gelir</b> — Income by category<br><b>/gider</b> — Expenses by category<br><b>/analiz</b> — AI financial analysis<br><b>/hedefler</b> — Goal status<br><b>/abonelikler</b> — Active subscriptions<br><b>/borclar</b> — Debt tracking<br><b>/clear</b> — Clear chat history',
+      chatUnknownCmd:'Unknown command. Type /help for all commands.',
+      chatLabelIncome:'Income this month',
+      chatLabelExpense:'Expenses this month',
+      chatLabelOverview:'Monthly Overview',
+      chatLabelIncomeShort:'Income',
+      chatLabelExpenseShort:'Expense',
+      chatLabelAccounts:'Accounts',
+      chatLabelGoals:'Goals',
+      chatLabelNoGoals:'No goals yet.',
+      chatLabelSubscriptions:'Subscriptions',
+      chatLabelNoSubscriptions:'No subscriptions.',
+      chatLabelTotal:(mc)=>`Total: ... ${mc}`,
+      chatLabelDebts:'Debts',
+      chatLabelNoDebts:'No debts.',
+      chatAnalyzePrompt:(inc,exp,mc,wals,goals,debts)=>`Full analysis: income ${inc} ${mc}, expense ${exp} ${mc} this month. ${wals} accounts. ${goals} goals, ${debts} debts. Give insights and 3 action tips.`,
+
+      // ── Plus Settings screen ──────────────────────────────────────────
+      plusFontTitle:'Font',
+      plusFontDesc:'Choose a font for the entire app.',
+      plusColorTitle:'Accent Color',
+      plusColorDesc:'Changes the accent color throughout the app.',
+      plusSaveApply:'Save & Apply',
+      plusCustomColorLabel:'Custom:',
+
+      // ── SAGI Chat — AI system prompt and error message ───────────────
+      chatSysPrompt:(inc,exp,mc,wallets,recurring)=>`You are SAGI Assistant, a personal finance AI in the SAGI Finance app. Be concise and friendly. User data: income this month: ${inc} ${mc}, expense: ${exp} ${mc}. Accounts: ${wallets}. Subscriptions: ${recurring}. Answer in English.`,
+      chatErrConnection:'Connection error. Please try again.',
+
+      // ── Notification inbox — group labels ────────────────────────────
+      notifGroupToday:'Today',
+      notifGroupWeek:'This Week',
+      notifGroupOlder:'Earlier',
+
+      // ── Cloud Sync — toast messages ───────────────────────────────────
+      cloudUpdatedFromCloud:'Updated from cloud ✓',
+      cloudAlreadyUpToDate:'Already up to date ✓',
+      cloudPushedToCloud:'Pushed to cloud ✓',
     }
   }
 };
