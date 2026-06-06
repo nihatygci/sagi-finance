@@ -2472,7 +2472,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <label class="form-label" data-i18n="amount">Tutar</label>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" step="0.01" class="form-control" id="goal_action_amount" placeholder="0.00" required oninput="App.FxPreview.update('goal')" style="flex:1">
-            <select class="form-control" id="goal_action_cur" style="width:100px;flex-shrink:0" onchange="App.FxPreview.update('goal')"></select>
+            <select class="form-control" id="goal_action_cur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Goals._userPickedCur=true;App.FxPreview.update('goal')"></select>
           </div>
         </div>
         <div id="fx_preview_goal" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
@@ -2558,7 +2558,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <label class="form-label" data-i18n="amount">Tutar</label>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" step="0.01" class="form-control" id="debt_action_amount" placeholder="0.00" required oninput="App.FxPreview.update('debt')" style="flex:1">
-            <select class="form-control" id="debt_action_cur" style="width:100px;flex-shrink:0" onchange="App.FxPreview.update('debt')"></select>
+            <select class="form-control" id="debt_action_cur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Debts._userPickedCur=true;App.FxPreview.update('debt')"></select>
           </div>
         </div>
         <div id="fx_preview_debt" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
@@ -2591,7 +2591,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <label class="form-label" id="trn_amount_label">Tutar</label>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" step="0.01" class="form-control" id="trn_amount" placeholder="0.00" required oninput="App.Controllers.Transfer.updatePreview()" style="flex:1">
-            <select class="form-control" id="trn_cur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Transfer.updatePreview()"></select>
+            <select class="form-control" id="trn_cur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Transfer._userPickedCur=true;App.Controllers.Transfer.updatePreview()"></select>
           </div>
         </div>
         <div id="trn_preview" style="display:none;margin-top:14px;padding:13px 16px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
@@ -2663,7 +2663,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <label class="form-label" data-i18n="payConfirmFrom">Hangi hesaptan ödensin?</label>
         <div style="display:flex;gap:8px;align-items:center">
           <select class="form-control" id="payConfirmWallet" onchange="App.Controllers.Dashboard._onPayWalletChange()" style="flex:1"></select>
-          <select class="form-control" id="payConfirmCur" style="width:100px;flex-shrink:0" onchange="App.FxPreview.update('pay')"></select>
+          <select class="form-control" id="payConfirmCur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Dashboard._userPickedCur=true;App.FxPreview.update('pay')"></select>
         </div>
         <div id="fx_preview_pay" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -4262,10 +4262,11 @@ const App = {
       },
       _upcomingShowAll:false,
       toggleUpcomingShowAll(){this._upcomingShowAll=!this._upcomingShowAll;this.render();},
+      _userPickedCur: false,
       _onPayWalletChange(){
         const wId=document.getElementById('payConfirmWallet')?.value;
         const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
-        App.CurrencySelect.fill('payConfirmCur',w?(w.currency||'TRY'):App.Money.mainCur());
+        if(!this._userPickedCur)App.CurrencySelect.fill('payConfirmCur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('pay');
       },
       confirmPay(recId){
@@ -4280,6 +4281,7 @@ const App = {
           wSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
           if(s.wallet)wSel.value=s.wallet;
           Core.temp._payRecId=recId;
+          this._userPickedCur=false;
           const selW=Core.state.wallets.find(x=>x.id===wSel.value);
           App.CurrencySelect.fill('payConfirmCur',selW?(selW.currency||mc):mc);
           document.getElementById('payConfirmBtn').onclick=()=>App.Controllers.Dashboard.executePay(recId);
@@ -5942,13 +5944,14 @@ const App = {
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.originalTarget||g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');const gcEl=document.getElementById('goal_currency');if(gcEl)gcEl.value=g.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
+      _userPickedCur: false,
       _onActionWalletChange(){
         const wId=document.getElementById('goal_action_wallet')?.value;
         const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
-        App.CurrencySelect.fill('goal_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
+        if(!this._userPickedCur)App.CurrencySelect.fill('goal_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('goal');
       },
-      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');UI.Modals.open('modalGoalAction');},
+      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;this._userPickedCur=false;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');UI.Modals.open('modalGoalAction');},
       executeAction(){
         const a=parseFloat(document.getElementById('goal_action_amount').value);
         const wId=document.getElementById('goal_action_wallet').value;
@@ -5978,26 +5981,29 @@ const App = {
       delete(id){UI.Confirm.show(t('confDelGoal'),()=>{Core.state.goals=Core.state.goals.filter(g=>g.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgGoalDeleted'));});}
     },
     Transfer:{
+      _userPickedCur: false,
       openModal(){
         if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirstTransfer'),'error');
         const fromSel=document.getElementById('trn_from');
         fromSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
+        this._userPickedCur=false;
         this.updateToOptions();
         const amtInput=document.getElementById('trn_amount');
         if(amtInput)amtInput.value='';
         const prev=document.getElementById('trn_preview');
         if(prev)prev.style.display='none';
-        this._updateAmountLabel();
+        this._syncCurToWallet();
         UI.Modals.open('modalTransfer');
       },
-      _updateAmountLabel(){
+      _syncCurToWallet(){
+        if(this._userPickedCur)return;
         const fId=document.getElementById('trn_from')?.value;
         const fW=fId?Core.state.wallets.find(w=>w.id===fId):null;
-        const fCur=fW?(fW.currency||'TRY'):'TRY';
+        App.CurrencySelect.fill('trn_cur',fW?(fW.currency||'TRY'):'TRY');
+      },
+      _updateAmountLabel(){
         const lbl=document.getElementById('trn_amount_label');
         if(lbl)lbl.textContent='Tutar';
-        // döviz select'ini hesabın dövizine ayarla (sadece ilk açılış / hesap değişiminde)
-        App.CurrencySelect.fill('trn_cur',fCur);
       },
       updatePreview(){
         this._updateAmountLabel();
@@ -6068,7 +6074,7 @@ const App = {
           o+='</optgroup>';
         }
         tE.innerHTML=o;
-        this._updateAmountLabel();
+        this._syncCurToWallet();
         this.updatePreview();
       },
       execute(){
@@ -6144,13 +6150,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         }
         Core.DB.saveNow();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
       },
+      _userPickedCur: false,
       _onActionWalletChange(){
         const wId=document.getElementById('debt_action_wallet')?.value;
         const w=(wId&&wId!=='none')?Core.state.wallets.find(x=>x.id===wId):null;
-        App.CurrencySelect.fill('debt_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
+        if(!this._userPickedCur)App.CurrencySelect.fill('debt_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('debt');
       },
-      prepAction(id){Core.temp.debtId=id;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
+      prepAction(id){Core.temp.debtId=id;this._userPickedCur=false;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
       executeAction(){
         const a=parseFloat(document.getElementById('debt_action_amount').value);
         const wId=document.getElementById('debt_action_wallet').value;
