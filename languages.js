@@ -529,52 +529,85 @@ const LANGS = {
       notifBudgetMsg:'{cat} kategorisinde bütçenizin %{perc}\'ini kullandınız.',
       notifDebtDue:'{name} — {date} tarihinde {amount} {dir} vadesi geliyor.',
 
-      // ── Recent Tx Modal — detay etiketleri ───────────────────────────
-      txDetailDate:'Tarih',
-      txDetailCategory:'Kategori',
-      txDetailAccount:'Hesap',
-      txDetailDescription:'Açıklama',
-      txDetailEdit:'Düzenle',
+      // ── Bildirim — mesaj gövdeleri (title + body) ────────────────────
+      notifTitleSub:'SAGI — Abonelik',
+      notifTitleDebt:'SAGI — Borç/Vade',
+      notifTitleCC:'SAGI — Kredi Kartı',
+      notifTitleGoal:'SAGI — Birikim Hedefi',
+      notifTitleBigSpend:'SAGI — Büyük Harcama',
+      notifTitleFx:'SAGI — Döviz Kurları',
+      notifTitleWeekly:'SAGI — Haftalık Özet',
+      notifTitleBudgetWarn:'SAGI — Bütçe Uyarısı',
+      notifTitleBudgetOver:'SAGI — Bütçe Aşıldı!',
+      notifGoalMilestone:(name,pct)=>`${name} hedefine %${pct} ulaştın! Azıcık kaldı!`,
+      notifGoalDate:(name,diffD,pct)=>`${name} hedef tarihine ${diffD===0?'bugün':diffD+' gün'} kaldı. %${pct} tamamlandı.`,
+      notifBigSpendMsg:(desc,amt)=>`Normalin 5 katı harcama! ${desc}: ${amt}`,
+      notifFxRose:'yükseldi',
+      notifFxFell:'düştü',
+      notifFxMsg:(change,dir)=>`USD/TRY bugün %${change} ${dir}. Portföyünüzü kontrol edin.`,
+      notifWeeklyMsg:(inc,exp,sign,net)=>`Geçen hafta: ${inc} gelir, ${exp} gider. Net: ${sign}${net}`,
+      notifBudgetWarnMsg:(cat,perc)=>`${cat} bütçesinin %${perc}'ini kullandınız!`,
+      notifBudgetOverMsg:(cat,perc)=>`${cat} bütçesi aşıldı! (%${perc})`,
 
-      // ── Transfer / FX önizleme etiketleri ────────────────────────────
+      // ── Bildirim kutusu — grup başlıkları ────────────────────────────
+      notifGroupToday:'Bugün',
+      notifGroupWeek:'Bu Hafta',
+      notifGroupOlder:'Daha Önce',
+
+      // ── Analiz ekranı — hardcoded TR metinler ────────────────────────
+      analyticsPeriodIncome:(p)=>p===1?'Bu Ay':p===3?'3 Aylık':p===6?'6 Aylık':'Yıllık',
+      analyticsKpiIncome:'Gelir',
+      analyticsKpiExpense:'Gider',
+      analyticsKpiNet:'Net Birikim',
+      analyticsKpiDailyAvg:'Günlük Ort. Gider',
+      analyticsDeltaVsPrev:'geçen aya göre',
+      analyticsKpiSavingsOf:'Gelirin',
+      analyticsShowAllCats:(n)=>`Tümünü Gör (${n} daha)`,
+      analyticsMonthLocale:'tr-TR',
+
+      // ── Kart tipi label (walletTypeLabel helper için) ─────────────────
+      walletTypeCash:'Nakit',
+      walletTypeBank:'Banka Hesabı',
+      walletTypeCredit:'Kredi Kartı',
+      walletTypeInvest:'Yatırım',
+
+      // ── FX önizleme etiketleri (tüm modallarda) ──────────────────────
       fxDeductedFromWallet:'Hesaptan düşülecek',
       fxAddedToWallet:'Hesaba eklenecek',
       fxAddedToGoal:'Hedefe yansıyacak',
       fxDeductedFromGoal:'Hedeften düşülecek',
       fxRecipientWallet:'Karşı hesaba yatacak',
+      fxRecordDeducted:'Kayıt tutarından düşülecek',
 
-      // ── Kredi kartı — kart üzerindeki etiketler ──────────────────────
+      // ── Kredi kartı kart üzeri etiketler ─────────────────────────────
       ccDebtBadge:'Borç',
       ccRemainingLimit:'Kalan Limit',
       ccCardDetailBtn:'Kart Detayı',
       ccPaidThisMonthBadge:'Bu Ay Ödendi',
       ccCreditDebtFallback:'Kredi Kartı Borcu',
 
-      // ── Hesap türü (kartlar, pill'ler ve seçim listeleri) ─────────────
-      walletTypeCash:'Nakit',
-      walletTypeBank:'Banka Hesabı',
-      walletTypeCredit:'Kredi Kartı',
-      walletTypeInvest:'Yatırım',
-
-      // ── İşlemler ekranı filtre göster / gizle ────────────────────────
+      // ── İşlem filtresi göster/gizle ───────────────────────────────────
       filterShow:'Göster',
       filterHide:'Gizle',
 
-      // ── Abonelikler — Otomatik Ödeme Talimatı ────────────────────────
-      autoPaySectionTitle:'Otomatik Ödeme Talimatı',
-      autoPayBtnDisabledTitle:'Otomatik ödeme aktif',
+      // ── Bulut Senkron toastları ───────────────────────────────────────
+      cloudUpdatedFromCloud:'Buluttan güncellendi ✓',
+      cloudAlreadyUpToDate:'Zaten güncel ✓',
+      cloudPushedToCloud:'Buluta gönderildi ✓',
 
-      // ── Borç & Alacak — Tür etiketi ve yön butonları ─────────────────
-      debtTypeLabel:'Tür',
-      debtDirDebt:'Borç',
-      debtDirReceivable:'Alacak',
+      // ── Alt menü sıfırla / max ─────────────────────────────────────────
+      bottombarReset:'Sıfırla',
+      quickActionsResetBtn:'Sıfırla',
+      msgBottombarReset:'Alt menü sıfırlandı.',
+      msgMaxItemsReached:(n)=>`Maksimum ${n} öğe eklenebilir.`,
+      bnavMaxWarn:(n)=>`Maksimum ${n} öğeye ulaşıldı. Eklemek için önce bir öğeyi kaldırın.`,
 
-      // ── Ayarlar ana listesi — SAGI Plus satırı ───────────────────────
+      // ── Ayarlar — SAGI Plus satırı ────────────────────────────────────
       sagiPlusTitle:'SAGI Plus',
       sagiPlusSubtitle:'Premium özellikler',
       sagiPlusSubtitleFull:'Premium özellikler ve avantajlar',
 
-      // ── Döviz Kurları — para birimi adları ve geçen süre ─────────────
+      // ── Döviz kurları — para birimi adları ve süre ────────────────────
       curNameUSD:'Amerikan Doları',
       curNameEUR:'Euro',
       curNameGBP:'İngiliz Sterlini',
@@ -585,88 +618,22 @@ const LANGS = {
       ratesAgeHours:(h)=>`${h} sa önce`,
       ratesAgeDays:(d)=>`${d} gün önce`,
 
-      // ── Alt Menü Düzeni — sıfırla ve maksimum uyarıları ─────────────
-      bottombarReset:'Sıfırla',
-      quickActionsResetBtn:'Sıfırla',
-      msgBottombarReset:'Alt menü sıfırlandı.',
-      msgMaxItemsReached:(n)=>`Maksimum ${n} öğe eklenebilir.`,
-      bnavMaxWarn:(n)=>`Maksimum ${n} öğeye ulaşıldı. Eklemek için önce bir öğeyi kaldırın.`,
+      // ── Borç & Alacak modal ───────────────────────────────────────────
+      debtTypeLabel:'Tür',
+      debtDirDebt:'Borç',
+      debtDirReceivable:'Alacak',
 
-      // ── Hesap yok (borç/alacak hesap dropdown) ───────────────────────
+      // ── İşlem detay modal ─────────────────────────────────────────────
+      txDetailDate:'Tarih',
+      txDetailCategory:'Kategori',
+      txDetailAccount:'Hesap',
+      txDetailDescription:'Açıklama',
+      txDetailEdit:'Düzenle',
+
+      // ── Hesap dropdown fallback ───────────────────────────────────────
       noWalletOption:'Hesap yok',
-
-      // ── FX debt — kayıt tutarı (ana para birimi) ─────────────────────
-      fxRecordDeducted:'Kayıt tutarından düşülecek',
-
-      // ── SAGI Plus — durum ve onboarding metinleri ─────────────────────
-      plusStatusActive:'✓ Aktif',
-      plusStatusTrial:(n)=>`Deneme — ${n} gün kaldı`,
-      plusStatusNoPlan:'✕ Aktif plan yok',
-      plusDescActive:'Tüm premium özelliklere erişiminiz var.',
-      plusDescTrial:'Ücretsiz deneme sürümündesiniz.',
-      plusDescExpired:'Deneme süreniz doldu.',
-      plusGetBtn:"Plus'a Geç →",
-      plusObSub:'Tam finansal kontrol için ihtiyacınız olan her şey.',
-      plusObPriceAmt:'Yakında',
-      plusObPriceNote:'Ömür boyu erişim · Tek seferlik ödeme · Abonelik yok',
-      plusObCTA:'Plus Edin — Yakında',
-      plusObFine:'Verileriniz her zaman gizli kalır.<br>Hesap açmanıza gerek yok.',
-      plusAITitle:'AI Asistan',
-      plusAIDesc:'Yüzen butonu göster veya gizle.',
-      plusAIHideBtn:'Gizle',
-      plusAIShowBtn:'Göster',
-      plusChatBannerActive:'✦ SAGI Plus — Sınırsız AI Asistan',
-      plusChatBannerTrial:(n)=>`Deneme — ${n} gün kaldı`,
-      plusChatTrialStatus:'4 gün ücretsiz dene',
-      plusChatPlaceholder:'Bir şey sor...',
-      plusChatGetPlus:"Plus'a geç →",
-      plusChatDesc:'AI finansal asistanınız. Verilerinizi analiz eder, sorularınızı yanıtlar.',
-      plusChatStartTrial:'4 Gün Ücretsiz Dene',
-      plusChatNoCard:'Kredi kartı gerekmez',
-      plusTrialExpiredTitle:'Deneme Süresi Doldu',
-      plusTrialExpiredDesc:"Sınırsız erişim için SAGI Plus'a geçin.",
-      plusGetPlusBtn:"Plus'a Geç",
-      // ── SAGI Chat — komut yanıtları (chat bilingual) ─────────────────
-      chatWelcome:'Merhaba! Ben SAGI Asistan. Finansal verilerinizi analiz edebilir ve sorularınızı yanıtlayabilirim.',
-      chatWelcomeHint:'<br><br><span style="opacity:.55;font-size:12px">Komutlar için /help yaz</span>',
-      chatHelpText:'Kullanabileceğin komutlar:<br><br><b>/ozet</b> — Bu ayın kısa özeti<br><b>/gelir</b> — Gelirlerin kategorilere göre<br><b>/gider</b> — Giderlerin kategorilere göre<br><b>/analiz</b> — Yapay zeka finansal analizi<br><b>/hedefler</b> — Hedeflerinin durumu<br><b>/abonelikler</b> — Aktif aboneliklerin<br><b>/borclar</b> — Borç takibi<br><b>/clear</b> — Sohbet geçmişini temizle',
-      chatUnknownCmd:'Böyle bir komut yok. Tüm komutlar için /help yaz.',
-      chatLabelIncome:'Bu ay gelir',
-      chatLabelExpense:'Bu ay gider',
-      chatLabelOverview:'Aylık Özet',
-      chatLabelIncomeShort:'Gelir',
-      chatLabelExpenseShort:'Gider',
-      chatLabelAccounts:'Hesaplar',
-      chatLabelGoals:'Hedefler',
-      chatLabelNoGoals:'Henüz hedef yok.',
-      chatLabelSubscriptions:'Abonelikler',
-      chatLabelNoSubscriptions:'Abonelik yok.',
-      chatLabelTotal:(mc)=>`Toplam: ... ${mc}`,
-      chatLabelDebts:'Borçlar',
-      chatLabelNoDebts:'Borç yok.',
-      chatAnalyzePrompt:(inc,exp,mc,wals,goals,debts)=>`Tam analiz: bu ay gelir ${inc} ${mc}, gider ${exp} ${mc}. ${wals} hesap, toplam ... ${mc}. ${goals} hedef, ${debts} borç. Öngörüler ve 3 öneri ver.`,
-
-      // ── Plus Settings ekranı ──────────────────────────────────────────
-      plusFontTitle:'Yazı Tipi',
-      plusFontDesc:'Uygulama geneli yazı tipini seçin.',
-      plusColorTitle:'Vurgu Rengi',
-      plusColorDesc:'Tüm uygulamadaki vurgu rengini değiştirir.',
-      plusSaveApply:'Kaydet ve Uygula',
-      plusCustomColorLabel:'Özel:',
-
-      // ── SAGI Chat — AI sistem promptu ve hata mesajı ─────────────────
-      chatSysPrompt:(inc,exp,mc,wallets,recurring)=>`Sen SAGI Asistan'sın, SAGI Finance uygulamasındaki kişisel finans yapay zekasısın. Kısa ve samimi ol. Kullanıcı verileri: bu ay gelir: ${inc} ${mc}, gider: ${exp} ${mc}. Hesaplar: ${wallets}. Abonelikler: ${recurring}. Türkçe yanıtla.`,
-      chatErrConnection:'Bağlantı hatası. Tekrar deneyin.',
-
-      // ── Bildirim kutusu — grup başlıkları ────────────────────────────
-      notifGroupToday:'Bugün',
-      notifGroupWeek:'Bu Hafta',
-      notifGroupOlder:'Daha Önce',
-
-      // ── Bulut Senkron — toast mesajları ──────────────────────────────
-      cloudUpdatedFromCloud:'Buluttan güncellendi ✓',
-      cloudAlreadyUpToDate:'Zaten güncel ✓',
-      cloudPushedToCloud:'Buluta gönderildi ✓',
+      autoPaySectionTitle:'Otomatik Ödeme Talimatı',
+      autoPayBtnDisabledTitle:'Otomatik ödeme aktif',
     }
   },
 
@@ -1164,52 +1131,85 @@ const LANGS = {
       importReplaceWarn:'Your accounts, transactions and all data will be permanently deleted. This cannot be undone.',
       importActionBtn:'Load',
 
-      // ── Recent Tx Modal — detail labels ──────────────────────────────
-      txDetailDate:'Date',
-      txDetailCategory:'Category',
-      txDetailAccount:'Account',
-      txDetailDescription:'Description',
-      txDetailEdit:'Edit',
+      // ── Notifications — message bodies ───────────────────────────────
+      notifTitleSub:'SAGI — Subscription',
+      notifTitleDebt:'SAGI — Debt/Due',
+      notifTitleCC:'SAGI — Credit Card',
+      notifTitleGoal:'SAGI — Savings Goal',
+      notifTitleBigSpend:'SAGI — Large Expense',
+      notifTitleFx:'SAGI — Exchange Rates',
+      notifTitleWeekly:'SAGI — Weekly Summary',
+      notifTitleBudgetWarn:'SAGI — Budget Alert',
+      notifTitleBudgetOver:'SAGI — Budget Exceeded!',
+      notifGoalMilestone:(name,pct)=>`You reached ${pct}% of the ${name} goal! Almost there!`,
+      notifGoalDate:(name,diffD,pct)=>`${diffD===0?'Today':'In '+diffD+' days'} until the ${name} deadline. ${pct}% complete.`,
+      notifBigSpendMsg:(desc,amt)=>`5x above average! ${desc}: ${amt}`,
+      notifFxRose:'rose',
+      notifFxFell:'fell',
+      notifFxMsg:(change,dir)=>`USD/TRY ${dir} ${change}% today. Check your portfolio.`,
+      notifWeeklyMsg:(inc,exp,sign,net)=>`Last week: ${inc} income, ${exp} expenses. Net: ${sign}${net}`,
+      notifBudgetWarnMsg:(cat,perc)=>`You used ${perc}% of your ${cat} budget!`,
+      notifBudgetOverMsg:(cat,perc)=>`${cat} budget exceeded! (${perc}%)`,
 
-      // ── Transfer / FX preview labels ─────────────────────────────────
+      // ── Notification inbox — group labels ────────────────────────────
+      notifGroupToday:'Today',
+      notifGroupWeek:'This Week',
+      notifGroupOlder:'Earlier',
+
+      // ── Analytics screen ──────────────────────────────────────────────
+      analyticsPeriodIncome:(p)=>p===1?'This Month':p===3?'3-Month':p===6?'6-Month':'Yearly',
+      analyticsKpiIncome:'Income',
+      analyticsKpiExpense:'Expenses',
+      analyticsKpiNet:'Net Savings',
+      analyticsKpiDailyAvg:'Daily Avg. Expense',
+      analyticsDeltaVsPrev:'vs last month',
+      analyticsKpiSavingsOf:'Of income',
+      analyticsShowAllCats:(n)=>`Show All (${n} more)`,
+      analyticsMonthLocale:'en-US',
+
+      // ── Wallet type label ─────────────────────────────────────────────
+      walletTypeCash:'Cash',
+      walletTypeBank:'Bank Account',
+      walletTypeCredit:'Credit Card',
+      walletTypeInvest:'Investment',
+
+      // ── FX preview labels (all modals) ───────────────────────────────
       fxDeductedFromWallet:'Deducted from account',
       fxAddedToWallet:'Added to account',
       fxAddedToGoal:'Reflected to goal',
       fxDeductedFromGoal:'Deducted from goal',
       fxRecipientWallet:'Deposited to recipient account',
+      fxRecordDeducted:'Deducted from record amount',
 
-      // ── Credit card — on-card badge labels ───────────────────────────
+      // ── Credit card on-card labels ────────────────────────────────────
       ccDebtBadge:'Debt',
       ccRemainingLimit:'Remaining Limit',
       ccCardDetailBtn:'Card Detail',
       ccPaidThisMonthBadge:'Paid This Month',
       ccCreditDebtFallback:'Credit Card Debt',
 
-      // ── Wallet type (cards, pills and selection lists) ────────────────
-      walletTypeCash:'Cash',
-      walletTypeBank:'Bank Account',
-      walletTypeCredit:'Credit Card',
-      walletTypeInvest:'Investment',
-
-      // ── Transaction filter show / hide ────────────────────────────────
+      // ── Transaction filter show/hide ──────────────────────────────────
       filterShow:'Show',
       filterHide:'Hide',
 
-      // ── Recurring — Auto Payment section ─────────────────────────────
-      autoPaySectionTitle:'Auto Payment Instruction',
-      autoPayBtnDisabledTitle:'Auto payment active',
+      // ── Cloud sync toasts ─────────────────────────────────────────────
+      cloudUpdatedFromCloud:'Updated from cloud ✓',
+      cloudAlreadyUpToDate:'Already up to date ✓',
+      cloudPushedToCloud:'Pushed to cloud ✓',
 
-      // ── Debts — Type label and direction buttons ──────────────────────
-      debtTypeLabel:'Type',
-      debtDirDebt:'Debt',
-      debtDirReceivable:'Receivable',
+      // ── Bottom menu reset / max ───────────────────────────────────────
+      bottombarReset:'Reset',
+      quickActionsResetBtn:'Reset',
+      msgBottombarReset:'Bottom menu reset.',
+      msgMaxItemsReached:(n)=>`Maximum ${n} items can be added.`,
+      bnavMaxWarn:(n)=>`Maximum ${n} items reached. Remove one to add more.`,
 
-      // ── Settings main list — SAGI Plus row ───────────────────────────
+      // ── Settings — SAGI Plus row ──────────────────────────────────────
       sagiPlusTitle:'SAGI Plus',
       sagiPlusSubtitle:'Premium features',
       sagiPlusSubtitleFull:'Premium features and benefits',
 
-      // ── Exchange Rates — currency names and time-ago strings ──────────
+      // ── Exchange rates — currency names and time-ago ──────────────────
       curNameUSD:'US Dollar',
       curNameEUR:'Euro',
       curNameGBP:'British Pound',
@@ -1220,88 +1220,22 @@ const LANGS = {
       ratesAgeHours:(h)=>`${h}h ago`,
       ratesAgeDays:(d)=>`${d}d ago`,
 
-      // ── Bottom Menu Layout — reset and max-items messages ─────────────
-      bottombarReset:'Reset',
-      quickActionsResetBtn:'Reset',
-      msgBottombarReset:'Bottom menu reset.',
-      msgMaxItemsReached:(n)=>`Maximum ${n} items can be added.`,
-      bnavMaxWarn:(n)=>`Maximum ${n} items reached. Remove one to add more.`,
+      // ── Debt & Receivable modal ───────────────────────────────────────
+      debtTypeLabel:'Type',
+      debtDirDebt:'Debt',
+      debtDirReceivable:'Receivable',
 
-      // ── No wallet option (debt/goal wallet dropdown) ──────────────────
+      // ── Transaction detail modal ──────────────────────────────────────
+      txDetailDate:'Date',
+      txDetailCategory:'Category',
+      txDetailAccount:'Account',
+      txDetailDescription:'Description',
+      txDetailEdit:'Edit',
+
+      // ── Wallet dropdown fallback ──────────────────────────────────────
       noWalletOption:'No accounts',
-
-      // ── FX debt — record amount (main currency) ───────────────────────
-      fxRecordDeducted:'Deducted from record amount',
-
-      // ── SAGI Plus — status and onboarding texts ───────────────────────
-      plusStatusActive:'✓ Active',
-      plusStatusTrial:(n)=>`Trial — ${n} days left`,
-      plusStatusNoPlan:'✕ No active plan',
-      plusDescActive:'You have access to all premium features.',
-      plusDescTrial:'You are on a free trial.',
-      plusDescExpired:'Your trial has expired.',
-      plusGetBtn:'Get Plus →',
-      plusObSub:'Everything you need for full financial control.',
-      plusObPriceAmt:'Coming Soon',
-      plusObPriceNote:'Lifetime access · One-time payment · No subscription',
-      plusObCTA:'Get Plus — Coming Soon',
-      plusObFine:'Your data always stays private.<br>No account required.',
-      plusAITitle:'AI Assistant',
-      plusAIDesc:'Show or hide the floating button.',
-      plusAIHideBtn:'Hide',
-      plusAIShowBtn:'Show',
-      plusChatBannerActive:'✦ SAGI Plus — Unlimited AI Assistant',
-      plusChatBannerTrial:(n)=>`Trial — ${n} days left`,
-      plusChatTrialStatus:'4-day free trial',
-      plusChatPlaceholder:'Ask something...',
-      plusChatGetPlus:'Get Plus →',
-      plusChatDesc:'Your AI financial assistant. Analyzes your data and answers your questions.',
-      plusChatStartTrial:'Start 4-Day Free Trial',
-      plusChatNoCard:'No credit card required',
-      plusTrialExpiredTitle:'Trial Expired',
-      plusTrialExpiredDesc:'Continue with SAGI Plus for unlimited access.',
-      plusGetPlusBtn:'Get Plus',
-      // ── SAGI Chat — command responses (chat bilingual) ───────────────
-      chatWelcome:"Hi! I'm SAGI Assistant. I can analyze your financial data and answer your questions.",
-      chatWelcomeHint:'<br><br><span style="opacity:.55;font-size:12px">Type /help for commands</span>',
-      chatHelpText:'Available commands:<br><br><b>/ozet</b> — Monthly summary<br><b>/gelir</b> — Income by category<br><b>/gider</b> — Expenses by category<br><b>/analiz</b> — AI financial analysis<br><b>/hedefler</b> — Goal status<br><b>/abonelikler</b> — Active subscriptions<br><b>/borclar</b> — Debt tracking<br><b>/clear</b> — Clear chat history',
-      chatUnknownCmd:'Unknown command. Type /help for all commands.',
-      chatLabelIncome:'Income this month',
-      chatLabelExpense:'Expenses this month',
-      chatLabelOverview:'Monthly Overview',
-      chatLabelIncomeShort:'Income',
-      chatLabelExpenseShort:'Expense',
-      chatLabelAccounts:'Accounts',
-      chatLabelGoals:'Goals',
-      chatLabelNoGoals:'No goals yet.',
-      chatLabelSubscriptions:'Subscriptions',
-      chatLabelNoSubscriptions:'No subscriptions.',
-      chatLabelTotal:(mc)=>`Total: ... ${mc}`,
-      chatLabelDebts:'Debts',
-      chatLabelNoDebts:'No debts.',
-      chatAnalyzePrompt:(inc,exp,mc,wals,goals,debts)=>`Full analysis: income ${inc} ${mc}, expense ${exp} ${mc} this month. ${wals} accounts. ${goals} goals, ${debts} debts. Give insights and 3 action tips.`,
-
-      // ── Plus Settings screen ──────────────────────────────────────────
-      plusFontTitle:'Font',
-      plusFontDesc:'Choose a font for the entire app.',
-      plusColorTitle:'Accent Color',
-      plusColorDesc:'Changes the accent color throughout the app.',
-      plusSaveApply:'Save & Apply',
-      plusCustomColorLabel:'Custom:',
-
-      // ── SAGI Chat — AI system prompt and error message ───────────────
-      chatSysPrompt:(inc,exp,mc,wallets,recurring)=>`You are SAGI Assistant, a personal finance AI in the SAGI Finance app. Be concise and friendly. User data: income this month: ${inc} ${mc}, expense: ${exp} ${mc}. Accounts: ${wallets}. Subscriptions: ${recurring}. Answer in English.`,
-      chatErrConnection:'Connection error. Please try again.',
-
-      // ── Notification inbox — group labels ────────────────────────────
-      notifGroupToday:'Today',
-      notifGroupWeek:'This Week',
-      notifGroupOlder:'Earlier',
-
-      // ── Cloud Sync — toast messages ───────────────────────────────────
-      cloudUpdatedFromCloud:'Updated from cloud ✓',
-      cloudAlreadyUpToDate:'Already up to date ✓',
-      cloudPushedToCloud:'Pushed to cloud ✓',
+      autoPaySectionTitle:'Auto Payment Instruction',
+      autoPayBtnDisabledTitle:'Auto payment active',
     }
   }
 };

@@ -1194,10 +1194,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="form-group" style="text-align:left">
       <label class="form-label" data-i18n="currency">Para Birimi</label>
       <select class="form-control" id="ob_currency" style="font-size:16px;padding:15px">
-        <option value="TRY" data-i18n-content="curNameTRY">Türk Lirası (₺)</option>
-        <option value="USD" data-i18n-content="curNameUSD">Amerikan Doları ($)</option>
-        <option value="EUR" data-i18n-content="curNameEUR">Euro (€)</option>
-        <option value="GBP" data-i18n-content="curNameGBP">İngiliz Sterlini (£)</option>
+        <option value="TRY">Türk Lirası (₺)</option>
+        <option value="USD">Amerikan Doları ($)</option>
+        <option value="EUR">Euro (€)</option>
+        <option value="GBP">İngiliz Sterlini (£)</option>
       </select>
     </div>
     <div class="form-group mb-8" style="text-align:left">
@@ -2606,7 +2606,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div id="trn_preview" style="display:none;margin-top:14px;padding:13px 16px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
-            <span style="color:var(--text-secondary);font-weight:500" data-i18n="fxRecipientWallet">Karşı hesaba yatacak</span> style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px"></span>
+            <span style="color:var(--text-secondary);font-weight:500" data-i18n="fxRecipientWallet">Karşı hesaba yatacak</span>
+            <span id="trn_preview_amount" style="font-weight:800;font-family:var(--font-display);color:var(--status-success);font-size:16px"></span>
           </div>
           <div id="trn_preview_rate" style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500"></div>
         </div>
@@ -2878,11 +2879,7 @@ const Core = {
   },
   Utils:{
     generateId:()=>Date.now().toString(36)+Math.random().toString(36).substr(2),
-    // Hesap türünü aktif dile çevirir (veri TR olarak saklanır)
-    walletTypeLabel:(type)=>{
-      const map={'Nakit':'walletTypeCash','Banka Hesabı':'walletTypeBank','Kredi Kartı':'walletTypeCredit','Yatırım':'walletTypeInvest'};
-      return typeof t==='function'&&map[type]?t(map[type]):type;
-    },
+    walletTypeLabel:(type)=>{const map={'Nakit':'walletTypeCash','Banka Hesabı':'walletTypeBank','Kredi Kartı':'walletTypeCredit','Yatırım':'walletTypeInvest'};return typeof t==='function'&&map[type]?t(map[type]):type;},
     formatMoney:(a,cur)=>{
       if(typeof App!=='undefined'&&App.Money&&App.Money.format)return App.Money.format(a,cur);
       if(Core.state.settings.privacy==='on')return'***';
@@ -3294,7 +3291,7 @@ const Notifications = {
       const paidArr=(Core.state.paidMonths&&Core.state.paidMonths[paidKey])||[];
       Core.state.recurring.filter(s=>!paidArr.includes(s.id)).forEach(s=>{
         const diff=s.day-today;
-        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!localStorage.getItem(nk)){localStorage.setItem(nk,'1');this.sendNotif('SAGI — Abonelik',msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
+        const sendIfNew=(key,msg)=>{const nk='sagi_nt_'+s.id+'_'+key+'_'+now.getFullYear()+'_'+now.getMonth();if(!localStorage.getItem(nk)){localStorage.setItem(nk,'1');this.sendNotif(t('notifTitleSub'),msg,{action:'recurring:'+s.id,tag:'rec-'+s.id+'-'+key});}};
         if(diff===3)sendIfNew('3d',L().ui.notifRecurring3d(s.name,Core.Utils.formatMoney(s.amount)));
         else if(diff===1)sendIfNew('1d',L().ui.notifRecurring1d(s.name,Core.Utils.formatMoney(s.amount)));
         else if(diff===0)sendIfNew('0d',L().ui.notifRecurring0d(s.name,Core.Utils.formatMoney(s.amount)));
@@ -3313,7 +3310,7 @@ const Notifications = {
             localStorage.setItem(nk,'1');
             const diffD=Math.ceil((dd-now)/(1000*3600*24));
             const msg=diffD===0?L().ui.notifDebtMsg0(d.name,Core.Utils.formatMoney(d.amount)):L().ui.notifDebtMsgN(diffD,d.name,Core.Utils.formatMoney(d.amount));
-            this.sendNotif('SAGI — Borç/Vade',msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
+            this.sendNotif(t('notifTitleDebt'),msg,{action:'debts:'+d.id,tag:'debt-'+d.id});
           }
         }
       });
@@ -3329,7 +3326,7 @@ const Notifications = {
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
             const msg=diff===0?L().ui.notifCCMsg0(cc.name,Core.Utils.formatMoney(debt)):L().ui.notifCCMsgN(cc.name,diff,Core.Utils.formatMoney(debt));
-            this.sendNotif('SAGI — Kredi Kartı',msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
+            this.sendNotif(t('notifTitleCC'),msg,{action:'wallets:'+cc.id,tag:'cc-'+cc.id+'-'+diff});
           }
         }
       });
@@ -3346,7 +3343,7 @@ const Notifications = {
             const nk='sagi_nt_goal_'+g.id+'_'+milestone+'_'+now.getFullYear();
             if(!localStorage.getItem(nk)){
               localStorage.setItem(nk,'1');
-              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedefine %${milestone} ulaştın! Azıcık kaldı!`,{action:'goals:'+g.id,tag:'goal-'+g.id+'-'+milestone});
+              this.sendNotif(t('notifTitleGoal'),t('notifGoalMilestone')(g.name,milestone),{action:'goals:'+g.id,tag:'goal-'+g.id+'-'+milestone});
             }
           }
         });
@@ -3358,7 +3355,7 @@ const Notifications = {
             const nk='sagi_nt_goaldate_'+g.id+'_'+now.getFullYear()+'_'+now.getMonth();
             if(!localStorage.getItem(nk)){
               localStorage.setItem(nk,'1');
-              this.sendNotif('SAGI — Birikim Hedefi',`${g.name} hedef tarihine ${diffD===0?'bugün':''+diffD+' gün'} kaldı. %${pct} tamamlandı.`,{action:'goals:'+g.id,tag:'goaldate-'+g.id});
+              this.sendNotif(t('notifTitleGoal'),t('notifGoalDate')(g.name,diffD,pct),{action:'goals:'+g.id,tag:'goaldate-'+g.id});
             }
           }
         }
@@ -3379,7 +3376,7 @@ const Notifications = {
               const nk='sagi_nt_big_'+tx.id;
               if(!localStorage.getItem(nk)){
                 localStorage.setItem(nk,'1');
-                this.sendNotif('SAGI — Büyük Harcama',`Normalin 5 katı harcama! ${tx.desc||tx.cat}: ${Core.Utils.formatMoney(amt)}`,{action:'analytics',tag:'big-'+tx.id});
+                this.sendNotif(t('notifTitleBigSpend'),t('notifBigSpendMsg')(tx.desc||tx.cat,Core.Utils.formatMoney(amt)),{action:'analytics',tag:'big-'+tx.id});
               }
             }
           });
@@ -3397,8 +3394,8 @@ const Notifications = {
           const nk='sagi_nt_fx_'+now.getFullYear()+'_'+now.getMonth()+'_'+now.getDate();
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
-            const dir=current.TRY>cached.TRY?'yükseldi':'düştü';
-            this.sendNotif('SAGI — Döviz Kurları',`USD/TRY bugün %${change.toFixed(1)} ${dir}. Portföyünüzü kontrol edin.`,{action:'settings:rates',tag:'fx-'+now.getDate()});
+            const dir=current.TRY>cached.TRY?t('notifFxRose'):t('notifFxFell');
+            this.sendNotif(t('notifTitleFx'),t('notifFxMsg')(change.toFixed(1),dir),{action:'settings:rates',tag:'fx-'+now.getDate()});
           }
         }
       }
@@ -3417,7 +3414,7 @@ const Notifications = {
         const expense=weekTx.filter(tx=>tx.type==='expense').reduce((s,tx)=>s+App.Money.toMain(tx),0);
         const net=income-expense;
         const sign=net>=0?'+':'';
-        this.sendNotif('SAGI — Haftalık Özet',`Geçen hafta: ${Core.Utils.formatMoney(income)} gelir, ${Core.Utils.formatMoney(expense)} gider. Net: ${sign}${Core.Utils.formatMoney(net)}`,{action:'analytics',tag:'weekly-'+now.getMonth()+'-'+Math.floor(today/7)});
+        this.sendNotif(t('notifTitleWeekly'),t('notifWeeklyMsg')(Core.Utils.formatMoney(income),Core.Utils.formatMoney(expense),sign,Core.Utils.formatMoney(net)),{action:'analytics',tag:'weekly-'+now.getMonth()+'-'+Math.floor(today/7)});
       }
     }
 
@@ -3432,13 +3429,13 @@ const Notifications = {
           const nk='sagi_nt_budg_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(perc/10);
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
-            this.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-'+b.id});
+            this.sendNotif(t('notifTitleBudgetWarn'),t('notifBudgetWarnMsg')(b.cat,Math.round(perc)),{action:'analytics',tag:'budg-'+b.id});
           }
         } else if(perc>=100){
           const nk='sagi_nt_budgover_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth();
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
-            this.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-'+b.id});
+            this.sendNotif(t('notifTitleBudgetOver'),t('notifBudgetOverMsg')(b.cat,Math.round(perc)),{action:'analytics',tag:'budgover-'+b.id});
           }
         }
       });
@@ -5108,7 +5105,7 @@ const App = {
     },
     Transactions:{
       setType(type,btn){document.getElementById('tx_type_val').value=type;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');},
-      _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
+      _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id,wrapId,hiddenId){document.getElementById(hiddenId).value=id;document.querySelectorAll(`#${wrapId} .wallet-pill`).forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));this._updateAmountHint();},
       _updateAmountHint(){
         const wId=document.getElementById('tx_wallet')?.value;
@@ -5168,6 +5165,7 @@ const App = {
         const isOpen = !body.classList.contains('collapsed');
         body.classList.toggle('collapsed', isOpen);
         btn.classList.toggle('collapsed', isOpen);
+        // Label metni dile göre
         lbl.textContent = isOpen ? t('filterShow') : t('filterHide');
       },
       _selectMode:false,
@@ -5497,7 +5495,7 @@ const App = {
           App.Money.applyTx(p);
         }
         Core.DB.saveNow();
-        if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif('SAGI — Bütçe Uyarısı',`${b.cat} bütçesinin %${Math.round(perc)}'ini kullandınız!`,{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif('SAGI — Bütçe Aşıldı!',`${b.cat} bütçesi aşıldı! (%${Math.round(perc)})`,{action:'analytics',tag:'budgover-tx-'+b.id});});}
+        if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif(t('notifTitleBudgetWarn'),t('notifBudgetWarnMsg')(b.cat,Math.round(perc)),{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif(t('notifTitleBudgetOver'),t('notifBudgetOverMsg')(b.cat,Math.round(perc)),{action:'analytics',tag:'budgover-tx-'+b.id});});}
         App.Controllers.Dashboard.render();
         const keepOpen=document.getElementById('tx_keep_open').value==='1';
         if(keepOpen){const prevType=type;this.openModal();document.getElementById('tx_type_val').value=prevType;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===prevType));UI.Toasts.show(t('msgKeepGoing'));}
@@ -5590,7 +5588,7 @@ const App = {
         const months = [];
         for(let i = monthsBack - 1; i >= 0; i--){
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const label = d.toLocaleDateString('tr-TR', {month:'short'});
+          const label = d.toLocaleDateString(t('analyticsMonthLocale'), {month:'short'});
           const txs = Core.state.transactions.filter(tx => {
             if(tx.cat === 'Transfer') return false;
             const td = new Date(tx.date);
@@ -5646,33 +5644,33 @@ const App = {
           const positive = inverted ? !up : up;
           const arrow = up ? '↑' : '↓';
           const cls = positive ? 'up' : 'down';
-          return `<div class="kpi-delta ${cls}">${arrow} %${Math.abs(pct)} geçen aya göre</div>`;
+          return `<div class="kpi-delta ${cls}">${arrow} %${Math.abs(pct)} ${t('analyticsDeltaVsPrev')}</div>`;
         };
 
-        const periodLabel = period===1 ? 'Bu Ay' : period===3 ? '3 Aylık' : period===6 ? '6 Aylık' : 'Yıllık';
+        const periodLabel = t('analyticsPeriodIncome')(period);
         const aS = document.getElementById('analyticsSummary');
         if(aS) aS.innerHTML = `
           <div class="kpi-card">
             <div class="kpi-icon" style="background:rgba(34,160,107,.1);color:var(--status-success)"><svg class="nav-icon"><use href="#icon-wallet"/></svg></div>
-            <div class="kpi-label">${periodLabel} Gelir</div>
+            <div class="kpi-label">${periodLabel} ${t('analyticsKpiIncome')}</div>
             <div class="kpi-val color-success">${fmt(totalInc)}</div>
             ${period===1 ? delta(curInc, prevInc) : ''}
           </div>
           <div class="kpi-card">
             <div class="kpi-icon" style="background:rgba(229,83,75,.1);color:var(--status-danger)"><svg class="nav-icon"><use href="#icon-list"/></svg></div>
-            <div class="kpi-label">${periodLabel} Gider</div>
+            <div class="kpi-label">${periodLabel} ${t('analyticsKpiExpense')}</div>
             <div class="kpi-val color-danger">${fmt(totalExp)}</div>
             ${period===1 ? delta(curExp, prevExp, true) : ''}
           </div>
           <div class="kpi-card">
             <div class="kpi-icon" style="background:rgba(217,119,6,.1);color:var(--status-warn)"><svg class="nav-icon"><use href="#icon-target"/></svg></div>
-            <div class="kpi-label">Net Birikim</div>
+            <div class="kpi-label">${t('analyticsKpiNet')}</div>
             <div class="kpi-val ${net>=0?'color-success':'color-danger'}">${fmt(net)}</div>
-            <div class="kpi-delta ${net>=0?'up':'down'}" style="font-size:11px">Gelirin %${Math.abs(savingsRate).toFixed(0)}'${Math.abs(savingsRate)===1?'i':'u'}</div>
+            <div class="kpi-delta ${net>=0?'up':'down'}" style="font-size:11px">${t('analyticsKpiSavingsOf')} %${Math.abs(savingsRate).toFixed(0)}</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-icon" style="background:var(--brand-accent-soft);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-chart"/></svg></div>
-            <div class="kpi-label">Günlük Ort. Gider</div>
+            <div class="kpi-label">${t('analyticsKpiDailyAvg')}</div>
             <div class="kpi-val">${fmt(totalExp / (period * 30))}</div>
             <div class="kpi-delta neutral">${period * 30} ${t('periodDayAvg')}</div>
           </div>`;
@@ -5738,7 +5736,7 @@ const App = {
             return `<div class="mb-4" style="cursor:pointer" onclick="App.Controllers.Analytics.openCatModal('${nameEsc}')"><div class="flex justify-between items-center mb-2"><div class="font-medium flex items-center gap-3"><div style="width:10px;height:10px;border-radius:50%;background:${cc}"></div>${name}</div><div class="font-bold text-right" style="font-size:14px">${Core.Utils.formatMoney(val,mc)} <span class="color-muted" style="font-size:12px;font-weight:500">%${((val/tot)*100).toFixed(0)}</span></div></div><div class="progress-track"><div class="progress-fill" style="width:${(val/tot)*100}%;background:${cc}"></div></div></div>`;
           }).join('');
           if(!showAll && sorted.length > 5)
-            html += `<button class="btn btn-outline btn-sm w-full mt-2" onclick="App.Controllers.Analytics._showAllCats()" style="font-size:13px">Tümünü Gör (${sorted.length-5} daha)</button>`;
+            html += `<button class="btn btn-outline btn-sm w-full mt-2" onclick="App.Controllers.Analytics._showAllCats()" style="font-size:13px">${t('analyticsShowAllCats')(sorted.length-5)}</button>`;
           bl.innerHTML = html;
         };
         this._catSorted = sorted;
@@ -5816,7 +5814,7 @@ const App = {
       _renderCatPills(){const wrap=document.getElementById('recCatPills');if(!wrap)return;const cur=document.getElementById('rec_cat_val')?.value||'';const cats=['Kira','Elektrik','Su','Doğalgaz','Telefon','İnternet','Fatura','Abonelik','Sigorta','Ulaşım','Eğitim'];wrap.innerHTML=cats.map(c=>`<div class="cat-pill${c===cur?' selected':''}" onclick="App.Controllers.Recurring._pickCat('${c}')">${c}</div>`).join('');},
       _pickCat(name){document.getElementById('rec_cat_val').value=name;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.toggle('selected',p.textContent===name));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=name;lbl.style.display='inline';}const ci=document.getElementById('rec_cat_custom');if(ci)ci.value='';},
       setCatCustom(val){document.getElementById('rec_cat_val').value=val;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.remove('selected'));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=val||'';lbl.style.display=val?'inline':'none';}},
-      _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${w.type}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
+      _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id){document.getElementById('rec_wallet').value=id;document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));},
       render(){
         const g=document.getElementById('recurringGrid');
@@ -6438,9 +6436,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           const last=s.lastRateUpdate?new Date(s.lastRateUpdate).toLocaleString(loc,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):t('ratesNotUpdated');
           const src=s.lastRateSource||'—';
           const ageMs=s.lastRateUpdate?(Date.now()-s.lastRateUpdate):null;
-          const _ageM=ageMs===null?null:Math.floor(ageMs/60000);
-          const _ageH=_ageM===null?null:Math.floor(_ageM/60);
-          const ageStr=ageMs===null?'—':_ageM<1?t('ratesAgeJustNow'):_ageH<1?t('ratesAgeMinutes')(_ageM):t('ratesAgeHours')(_ageH);
+          const _ageM=ageMs===null?null:Math.floor(ageMs/60000);const _ageH=_ageM===null?null:Math.floor(_ageM/60);const ageStr=ageMs===null?'—':_ageM<1?t('ratesAgeJustNow'):_ageH<1?t('ratesAgeMinutes')(_ageM):t('ratesAgeHours')(_ageH);
           const allCurs=['USD','EUR','GBP','TRY'];
           const mainCur=Core.state.settings.currency||'TRY';
           // Ana para birimini başa al, kalanlar sıralı
