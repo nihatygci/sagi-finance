@@ -529,118 +529,113 @@ const LANGS = {
       notifBudgetMsg:'{cat} kategorisinde bütçenizin %{perc}\'ini kullandınız.',
       notifDebtDue:'{name} — {date} tarihinde {amount} {dir} vadesi geliyor.',
 
-      // ══════════════════════════════════════════════════════════════════
-      // SAGI Chat — Komut sistemi (TR)
-      // ══════════════════════════════════════════════════════════════════
+      // ── Döviz Kurları — para birimi adları ve zaman ───────────────────
+      curNameUSD:'Amerikan Doları',
+      curNameEUR:'Euro',
+      curNameGBP:'İngiliz Sterlini',
+      curNameTRY:'Türk Lirası',
+      curMainSuffix:'(Ana Para Birimi)',
+      ratesAgeJustNow:'Az önce',
+      ratesAgeMinutes:(m)=>`${m} dk önce`,
+      ratesAgeHours:(h)=>`${h} sa önce`,
+      ratesAgeDays:(d)=>`${d} gün önce`,
 
-      // Genel
-      chatWelcome:'Merhaba! Ben SAGI Asistan. Finansal verilerinizi analiz eder, sorularınızı yanıtlarım.',
-      chatWelcomeHint:'<br><br><span style="opacity:.55;font-size:12px">Komut listesi için <b>/help</b> yaz</span>',
-      chatUnknownCmd:'Böyle bir komut bulunamadı. Tüm komutlar için <b>/help</b> yaz.',
-      chatUnknownSub:(cmd)=>`<b>${cmd}</b> için böyle bir alt komut yok. Alt komutları görmek için <b>${cmd.split(' ')[0]} help</b> yaz.`,
-      chatConnErr:'Bağlantı hatası. Lütfen tekrar dene.',
+      // ── Hesap Türü ─────────────────────────────────────────────────────
+      walletTypeCash:'Nakit',
+      walletTypeBank:'Banka Hesabı',
+      walletTypeCredit:'Kredi Kartı',
+      walletTypeInvest:'Yatırım',
 
-      // /help
-      chatHelpTitle:'SAGI Asistan Komutları',
-      chatHelpGroups: [
-        {
-          group:'📊 Analiz',
-          cmds:[
-            {cmd:'/analiz ozet',     desc:'Bu ayın gelir/gider özeti ve tüm hesapların durumu'},
-            {cmd:'/analiz gelir',    desc:'Gelirlerin kategorilere göre dağılımı ve grafiği'},
-            {cmd:'/analiz gider',    desc:'Giderlerin kategorilere göre dağılımı ve grafiği'},
-            {cmd:'/analiz ai',       desc:'Yapay zeka destekli derin finansal analiz ve öneri'},
-          ]
-        },
-        {
-          group:'💳 Hesaplar',
-          cmds:[
-            {cmd:'/hesaplar',        desc:'Tüm hesapların bakiyesi ve toplam net varlık'},
-          ]
-        },
-        {
-          group:'🎯 Hedefler',
-          cmds:[
-            {cmd:'/hedefler',        desc:'Birikim hedeflerinin ilerleme durumu ve kalan süre'},
-          ]
-        },
-        {
-          group:'🔁 Abonelikler',
-          cmds:[
-            {cmd:'/abonelikler ozet',    desc:'Aktif aboneliklerin listesi ve aylık toplam maliyet'},
-            {cmd:'/abonelikler takvim',  desc:'Bu ay hangi abonelik hangi gün ödeniyor'},
-          ]
-        },
-        {
-          group:'📋 Borçlar',
-          cmds:[
-            {cmd:'/borclar',         desc:'Borç ve alacakların listesi, toplam bakiye'},
-          ]
-        },
-        {
-          group:'⚙️ Genel',
-          cmds:[
-            {cmd:'/help',            desc:'Bu yardım menüsünü göster'},
-            {cmd:'/clear',           desc:'Sohbet geçmişini temizle'},
-          ]
-        },
-      ],
-      chatHelpSubtitle:'Alt komutlar için ana komutu ve ardından <b>help</b> yaz. Örn: <b>/analiz help</b>',
+      // ── FX önizleme etiketleri ────────────────────────────────────────
+      fxDeductedFromWallet:'Hesaptan düşülecek',
+      fxAddedToWallet:'Hesaba eklenecek',
+      fxAddedToGoal:'Hedefe yansıyacak',
+      fxDeductedFromGoal:'Hedeften düşülecek',
+      fxRecipientWallet:'Karşı hesaba yatacak',
+      fxRecordDeducted:'Kayıt tutarından düşülecek',
 
-      // /analiz
-      chatAnalizHelpTitle:'/analiz — Alt Komutları',
-      chatAnalizSubs:[
-        {cmd:'ozet',  desc:'Bu ayın gelir/gider özeti ve hesap bakiyeleri'},
-        {cmd:'gelir', desc:'Gelir kategorileri ve grafiği'},
-        {cmd:'gider', desc:'Gider kategorileri ve grafiği'},
-        {cmd:'ai',    desc:'Yapay zeka ile derin analiz ve 3 öneri'},
-      ],
-      chatAnalizOzetTitle:'Aylık Özet',
-      chatAnalizOzetIncome:'Gelir',
-      chatAnalizOzetExpense:'Gider',
-      chatAnalizOzetNet:'Net',
-      chatAnalizOzetAccounts:'Hesaplar',
-      chatAnalizOzetNoTx:'Bu ay henüz işlem yok.',
-      chatAnalizGelirTitle:'Bu Ay Gelir',
-      chatAnalizGelirNone:'Bu ay gelir kaydı yok.',
-      chatAnalizGiderTitle:'Bu Ay Gider',
-      chatAnalizGiderNone:'Bu ay gider kaydı yok.',
-      chatAnalizAiPrompt:(inc,exp,mc,wallets,recurring,goals,debts)=>`Sen SAGI Asistan'sın. Kullanıcının bu ayki finansal durumu: Gelir: ${inc} ${mc}, Gider: ${exp} ${mc}. Hesaplar: ${wallets}. Abonelikler: ${recurring}. Hedefler: ${goals} adet. Borçlar: ${debts} adet. Detaylı finansal analiz yap, tasarruf oranını değerlendir ve 3 somut öneri ver. Türkçe yanıtla.`,
+      // ── Kredi kartı ────────────────────────────────────────────────────
+      ccDebtBadge:'Borç',
+      ccRemainingLimit:'Kalan Limit',
+      ccCardDetailBtn:'Kart Detayı',
+      ccPaidThisMonthBadge:'Bu Ay Ödendi',
+      ccCreditDebtFallback:'Kredi Kartı Borcu',
 
-      // /hesaplar
-      chatHesaplarTitle:'Hesaplar',
-      chatHesaplarTotal:'Toplam Net Varlık',
-      chatHesaplarNone:'Henüz hesap eklenmemiş.',
+      // ── İşlem detay modal ─────────────────────────────────────────────
+      txDetailDate:'Tarih',
+      txDetailCategory:'Kategori',
+      txDetailAccount:'Hesap',
+      txDetailDescription:'Açıklama',
+      txDetailEdit:'Düzenle',
 
-      // /hedefler
-      chatHedeflerTitle:'Birikim Hedefleri',
-      chatHedeflerNone:'Henüz birikim hedefi eklenmemiş.',
-      chatHedeflerRemaining:'kaldı',
-      chatHedeflerDeadline:'Son tarih',
-      chatHedeflerNoDate:'Süresiz',
-      chatHedeflerComplete:'Tamamlandı 🎉',
+      // ── Filtre göster/gizle ────────────────────────────────────────────
+      filterShow:'Göster',
+      filterHide:'Gizle',
 
-      // /abonelikler
-      chatAboneliklerOzetTitle:'Abonelikler — Özet',
-      chatAboneliklerOzetTotal:'Aylık Toplam',
-      chatAboneliklerNone:'Aktif abonelik yok.',
-      chatAboneliklerTakvimTitle:'Abonelikler — Ödeme Takvimi',
-      chatAboneliklerTakvimDay:(gun)=>`${gun}. gün`,
-      chatAboneliklerHelpTitle:'/abonelikler — Alt Komutları',
-      chatAboneliklerSubs:[
-        {cmd:'ozet',    desc:'Aboneliklerin listesi ve aylık toplam'},
-        {cmd:'takvim',  desc:'Bu ay ödemelerin tarih sırası'},
-      ],
+      // ── Borç & Alacak modal ───────────────────────────────────────────
+      debtTypeLabel:'Tür',
+      debtDirDebt:'Borç',
+      debtDirReceivable:'Alacak',
 
-      // /borclar
-      chatBorclarTitle:'Borç & Alacak',
-      chatBorclarNone:'Kayıtlı borç veya alacak yok.',
-      chatBorclarTotalDebt:'Toplam Borç',
-      chatBorclarTotalRec:'Toplam Alacak',
-      chatBorclarDue:'Vade',
-      chatBorclarNoDate:'Vade tarihi yok',
-      chatBorclarTypeDebt:'Borç',
-      chatBorclarTypeRec:'Alacak',
+      // ── Abonelik oto ödeme ────────────────────────────────────────────
+      autoPaySectionTitle:'Otomatik Ödeme Talimatı',
+      autoPayBtnDisabledTitle:'Otomatik ödeme aktif',
+
+      // ── Alt menü ──────────────────────────────────────────────────────
+      bottombarReset:'Sıfırla',
+      quickActionsResetBtn:'Sıfırla',
+      msgBottombarReset:'Alt menü sıfırlandı.',
+      msgMaxItemsReached:(n)=>`Maksimum ${n} öğe eklenebilir.`,
+      bnavMaxWarn:(n)=>`Maksimum ${n} öğeye ulaşıldı. Eklemek için önce bir öğeyi kaldırın.`,
+
+      // ── Ayarlar SAGI Plus satırı ──────────────────────────────────────
+      sagiPlusTitle:'SAGI Plus',
+      sagiPlusSubtitle:'Premium özellikler',
+      sagiPlusSubtitleFull:'Premium özellikler ve avantajlar',
+
+      // ── Bildirimler — inbox grup başlıkları ──────────────────────────
+      notifGroupToday:'Bugün',
+      notifGroupWeek:'Bu Hafta',
+      notifGroupOlder:'Daha Önce',
+
+      // ── Bildirimler — title'lar ───────────────────────────────────────
+      notifTitleSub:'SAGI — Abonelik',
+      notifTitleDebt:'SAGI — Borç/Vade',
+      notifTitleCC:'SAGI — Kredi Kartı',
+      notifTitleGoal:'SAGI — Birikim Hedefi',
+      notifTitleBigSpend:'SAGI — Büyük Harcama',
+      notifTitleFx:'SAGI — Döviz Kurları',
+      notifTitleWeekly:'SAGI — Haftalık Özet',
+      notifTitleBudgetWarn:'SAGI — Bütçe Uyarısı',
+      notifTitleBudgetOver:'SAGI — Bütçe Aşıldı!',
+      notifGoalMilestone:(name,pct)=>`${name} hedefine %${pct} ulaştın! Azıcık kaldı!`,
+      notifGoalDate:(name,diffD,pct)=>`${name} hedef tarihine ${diffD===0?'bugün':diffD+' gün'} kaldı. %${pct} tamamlandı.`,
+      notifBigSpendMsg:(desc,amt)=>`Normalin 5 katı harcama! ${desc}: ${amt}`,
+      notifFxRose:'yükseldi',
+      notifFxFell:'düştü',
+      notifFxMsg:(change,dir)=>`USD/TRY bugün %${change} ${dir}. Portföyünüzü kontrol edin.`,
+      notifWeeklyMsg:(inc,exp,sign,net)=>`Geçen hafta: ${inc} gelir, ${exp} gider. Net: ${sign}${net}`,
+      notifBudgetWarnMsg:(cat,perc)=>`${cat} bütçesinin %${perc}'ini kullandınız!`,
+      notifBudgetOverMsg:(cat,perc)=>`${cat} bütçesi aşıldı! (%${perc})`,
+
+      // ── Analiz ekranı ─────────────────────────────────────────────────
+      analyticsPeriodIncome:(p)=>p===1?'Bu Ay':p===3?'3 Aylık':p===6?'6 Aylık':'Yıllık',
+      analyticsKpiIncome:'Gelir',
+      analyticsKpiExpense:'Gider',
+      analyticsKpiNet:'Net Birikim',
+      analyticsKpiDailyAvg:'Günlük Ort. Gider',
+      analyticsDeltaVsPrev:'geçen aya göre',
+      analyticsKpiSavingsOf:'Gelirin',
+      analyticsShowAllCats:(n)=>`Tümünü Gör (${n} daha)`,
+      analyticsMonthLocale:'tr-TR',
+
+      // ── Bulut sync ────────────────────────────────────────────────────
+      cloudUpdatedFromCloud:'Buluttan güncellendi ✓',
+      cloudAlreadyUpToDate:'Zaten güncel ✓',
+      cloudPushedToCloud:'Buluta gönderildi ✓',
+
+      // ── Hesap dropdown fallback ───────────────────────────────────────
+      noWalletOption:'Hesap yok',
     }
   },
 
@@ -995,6 +990,114 @@ const LANGS = {
       notifBudgetMsg:'You used {perc}% of your budget in {cat}.',
       notifDebtDue:'{name} — {amount} {dir} due on {date}.',
 
+      // ── Exchange Rates — currency names and time-ago ──────────────────
+      curNameUSD:'US Dollar',
+      curNameEUR:'Euro',
+      curNameGBP:'British Pound',
+      curNameTRY:'Turkish Lira',
+      curMainSuffix:'(Main Currency)',
+      ratesAgeJustNow:'Just now',
+      ratesAgeMinutes:(m)=>`${m}m ago`,
+      ratesAgeHours:(h)=>`${h}h ago`,
+      ratesAgeDays:(d)=>`${d}d ago`,
+
+      // ── Wallet type ───────────────────────────────────────────────────
+      walletTypeCash:'Cash',
+      walletTypeBank:'Bank Account',
+      walletTypeCredit:'Credit Card',
+      walletTypeInvest:'Investment',
+
+      // ── FX preview labels ─────────────────────────────────────────────
+      fxDeductedFromWallet:'Deducted from account',
+      fxAddedToWallet:'Added to account',
+      fxAddedToGoal:'Reflected to goal',
+      fxDeductedFromGoal:'Deducted from goal',
+      fxRecipientWallet:'Deposited to recipient account',
+      fxRecordDeducted:'Deducted from record amount',
+
+      // ── Credit card ───────────────────────────────────────────────────
+      ccDebtBadge:'Debt',
+      ccRemainingLimit:'Remaining Limit',
+      ccCardDetailBtn:'Card Detail',
+      ccPaidThisMonthBadge:'Paid This Month',
+      ccCreditDebtFallback:'Credit Card Debt',
+
+      // ── Transaction detail modal ──────────────────────────────────────
+      txDetailDate:'Date',
+      txDetailCategory:'Category',
+      txDetailAccount:'Account',
+      txDetailDescription:'Description',
+      txDetailEdit:'Edit',
+
+      // ── Transaction filter show/hide ──────────────────────────────────
+      filterShow:'Show',
+      filterHide:'Hide',
+
+      // ── Debt & Receivable modal ───────────────────────────────────────
+      debtTypeLabel:'Type',
+      debtDirDebt:'Debt',
+      debtDirReceivable:'Receivable',
+
+      // ── Subscription auto payment ─────────────────────────────────────
+      autoPaySectionTitle:'Auto Payment Instruction',
+      autoPayBtnDisabledTitle:'Auto payment active',
+
+      // ── Bottom menu ───────────────────────────────────────────────────
+      bottombarReset:'Reset',
+      quickActionsResetBtn:'Reset',
+      msgBottombarReset:'Bottom menu reset.',
+      msgMaxItemsReached:(n)=>`Maximum ${n} items can be added.`,
+      bnavMaxWarn:(n)=>`Maximum ${n} items reached. Remove one to add more.`,
+
+      // ── Settings SAGI Plus row ────────────────────────────────────────
+      sagiPlusTitle:'SAGI Plus',
+      sagiPlusSubtitle:'Premium features',
+      sagiPlusSubtitleFull:'Premium features and benefits',
+
+      // ── Notifications — inbox group labels ────────────────────────────
+      notifGroupToday:'Today',
+      notifGroupWeek:'This Week',
+      notifGroupOlder:'Earlier',
+
+      // ── Notifications — titles ────────────────────────────────────────
+      notifTitleSub:'SAGI — Subscription',
+      notifTitleDebt:'SAGI — Debt/Due',
+      notifTitleCC:'SAGI — Credit Card',
+      notifTitleGoal:'SAGI — Savings Goal',
+      notifTitleBigSpend:'SAGI — Large Expense',
+      notifTitleFx:'SAGI — Exchange Rates',
+      notifTitleWeekly:'SAGI — Weekly Summary',
+      notifTitleBudgetWarn:'SAGI — Budget Alert',
+      notifTitleBudgetOver:'SAGI — Budget Exceeded!',
+      notifGoalMilestone:(name,pct)=>`You reached ${pct}% of the ${name} goal! Almost there!`,
+      notifGoalDate:(name,diffD,pct)=>`${diffD===0?'Today':'In '+diffD+' days'} until the ${name} deadline. ${pct}% complete.`,
+      notifBigSpendMsg:(desc,amt)=>`5x above average! ${desc}: ${amt}`,
+      notifFxRose:'rose',
+      notifFxFell:'fell',
+      notifFxMsg:(change,dir)=>`USD/TRY ${dir} ${change}% today. Check your portfolio.`,
+      notifWeeklyMsg:(inc,exp,sign,net)=>`Last week: ${inc} income, ${exp} expenses. Net: ${sign}${net}`,
+      notifBudgetWarnMsg:(cat,perc)=>`You used ${perc}% of your ${cat} budget!`,
+      notifBudgetOverMsg:(cat,perc)=>`${cat} budget exceeded! (${perc}%)`,
+
+      // ── Analytics ────────────────────────────────────────────────────
+      analyticsPeriodIncome:(p)=>p===1?'This Month':p===3?'3-Month':p===6?'6-Month':'Yearly',
+      analyticsKpiIncome:'Income',
+      analyticsKpiExpense:'Expenses',
+      analyticsKpiNet:'Net Savings',
+      analyticsKpiDailyAvg:'Daily Avg. Expense',
+      analyticsDeltaVsPrev:'vs last month',
+      analyticsKpiSavingsOf:'Of income',
+      analyticsShowAllCats:(n)=>`Show All (${n} more)`,
+      analyticsMonthLocale:'en-US',
+
+      // ── Cloud sync ────────────────────────────────────────────────────
+      cloudUpdatedFromCloud:'Updated from cloud ✓',
+      cloudAlreadyUpToDate:'Already up to date ✓',
+      cloudPushedToCloud:'Pushed to cloud ✓',
+
+      // ── Wallet dropdown fallback ──────────────────────────────────────
+      noWalletOption:'No accounts',
+
       // Settings menu hints
       personalizationHint:'Name, currency, theme, language',
       notifMenuHint:'Reminders and alerts',
@@ -1137,119 +1240,6 @@ const LANGS = {
       importReplaceDesc:'All current data is deleted and only data from this file is loaded. Cannot be undone.',
       importReplaceWarn:'Your accounts, transactions and all data will be permanently deleted. This cannot be undone.',
       importActionBtn:'Load',
-
-      // ══════════════════════════════════════════════════════════════════
-      // SAGI Chat — Command system (EN)
-      // ══════════════════════════════════════════════════════════════════
-
-      // General
-      chatWelcome:"Hi! I'm SAGI Assistant. I analyze your finances and answer your questions.",
-      chatWelcomeHint:'<br><br><span style="opacity:.55;font-size:12px">Type <b>/help</b> for the command list</span>',
-      chatUnknownCmd:'Command not found. Type <b>/help</b> for all commands.',
-      chatUnknownSub:(cmd)=>`No such sub-command for <b>${cmd}</b>. Type <b>${cmd.split(' ')[0]} help</b> to see sub-commands.`,
-      chatConnErr:'Connection error. Please try again.',
-
-      // /help
-      chatHelpTitle:'SAGI Assistant Commands',
-      chatHelpGroups: [
-        {
-          group:'📊 Analysis',
-          cmds:[
-            {cmd:'/analyze summary',   desc:'This month income/expense overview and all account balances'},
-            {cmd:'/analyze income',    desc:'Income breakdown by category with chart'},
-            {cmd:'/analyze expenses',  desc:'Expense breakdown by category with chart'},
-            {cmd:'/analyze ai',        desc:'AI-powered deep financial analysis with 3 action tips'},
-          ]
-        },
-        {
-          group:'💳 Accounts',
-          cmds:[
-            {cmd:'/accounts',          desc:'All account balances and total net worth'},
-          ]
-        },
-        {
-          group:'🎯 Goals',
-          cmds:[
-            {cmd:'/goals',             desc:'Savings goal progress and time remaining'},
-          ]
-        },
-        {
-          group:'🔁 Subscriptions',
-          cmds:[
-            {cmd:'/subscriptions summary',   desc:'Active subscriptions list and monthly total cost'},
-            {cmd:'/subscriptions calendar',  desc:'Which subscription is due on which day this month'},
-          ]
-        },
-        {
-          group:'📋 Debts',
-          cmds:[
-            {cmd:'/debts',             desc:'Debts and receivables list with total balance'},
-          ]
-        },
-        {
-          group:'⚙️ General',
-          cmds:[
-            {cmd:'/help',              desc:'Show this help menu'},
-            {cmd:'/clear',             desc:'Clear chat history'},
-          ]
-        },
-      ],
-      chatHelpSubtitle:'For sub-commands, type the main command followed by <b>help</b>. E.g. <b>/analyze help</b>',
-
-      // /analyze
-      chatAnalizHelpTitle:'/analyze — Sub-commands',
-      chatAnalizSubs:[
-        {cmd:'summary',  desc:'This month income/expense overview and account balances'},
-        {cmd:'income',   desc:'Income categories with chart'},
-        {cmd:'expenses', desc:'Expense categories with chart'},
-        {cmd:'ai',       desc:'AI-powered deep analysis with 3 tips'},
-      ],
-      chatAnalizOzetTitle:'Monthly Overview',
-      chatAnalizOzetIncome:'Income',
-      chatAnalizOzetExpense:'Expenses',
-      chatAnalizOzetNet:'Net',
-      chatAnalizOzetAccounts:'Accounts',
-      chatAnalizOzetNoTx:'No transactions this month yet.',
-      chatAnalizGelirTitle:'Income This Month',
-      chatAnalizGelirNone:'No income records this month.',
-      chatAnalizGiderTitle:'Expenses This Month',
-      chatAnalizGiderNone:'No expense records this month.',
-      chatAnalizAiPrompt:(inc,exp,mc,wallets,recurring,goals,debts)=>`You are SAGI Assistant. User's financial data this month: Income: ${inc} ${mc}, Expenses: ${exp} ${mc}. Accounts: ${wallets}. Subscriptions: ${recurring}. Goals: ${goals}. Debts: ${debts}. Provide a detailed financial analysis, evaluate the savings rate, and give 3 concrete actionable tips. Answer in English.`,
-
-      // /accounts
-      chatHesaplarTitle:'Accounts',
-      chatHesaplarTotal:'Total Net Worth',
-      chatHesaplarNone:'No accounts added yet.',
-
-      // /goals
-      chatHedeflerTitle:'Savings Goals',
-      chatHedeflerNone:'No savings goals added yet.',
-      chatHedeflerRemaining:'remaining',
-      chatHedeflerDeadline:'Deadline',
-      chatHedeflerNoDate:'No deadline',
-      chatHedeflerComplete:'Completed 🎉',
-
-      // /subscriptions
-      chatAboneliklerOzetTitle:'Subscriptions — Overview',
-      chatAboneliklerOzetTotal:'Monthly Total',
-      chatAboneliklerNone:'No active subscriptions.',
-      chatAboneliklerTakvimTitle:'Subscriptions — Payment Calendar',
-      chatAboneliklerTakvimDay:(day)=>`Day ${day}`,
-      chatAboneliklerHelpTitle:'/subscriptions — Sub-commands',
-      chatAboneliklerSubs:[
-        {cmd:'summary',   desc:'Subscription list and monthly total'},
-        {cmd:'calendar',  desc:'Payment dates in order this month'},
-      ],
-
-      // /debts
-      chatBorclarTitle:'Debts & Receivables',
-      chatBorclarNone:'No debts or receivables recorded.',
-      chatBorclarTotalDebt:'Total Debt',
-      chatBorclarTotalRec:'Total Receivable',
-      chatBorclarDue:'Due',
-      chatBorclarNoDate:'No due date',
-      chatBorclarTypeDebt:'Debt',
-      chatBorclarTypeRec:'Receivable',
     }
   }
 };
@@ -1280,7 +1270,7 @@ const CAT_GROUPS = () => L().cats.groups;
 // ─────────────────────────────────────────────────────────────────────
 // t(key, vars) — anahtardan çeviri çekme + {placeholder} ikamesi
 // ─────────────────────────────────────────────────────────────────────
-function t(key, vars) {
+function t(key, ...args) {
   const ui = L().ui;
   let s = ui[key];
   if (s === undefined) {
@@ -1289,9 +1279,15 @@ function t(key, vars) {
       if (code === LANG) continue;
       if (LANGS[code].ui[key] !== undefined) { s = LANGS[code].ui[key]; break; }
     }
-    if (s === undefined) s = key;  // hâlâ yoksa anahtarı geri ver
+    if (s === undefined) return key;  // hâlâ yoksa anahtarı geri ver
   }
-  if (vars && typeof s === 'string') {
+  // Değer bir fonksiyon ise argümanlarla çağır
+  if (typeof s === 'function') {
+    return args.length ? s(...args) : s;
+  }
+  // Değer string ise {var} placeholder'larını değiştir (eski uyumluluk)
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+    const vars = args[0];
     Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
   }
   return s;
@@ -1329,6 +1325,14 @@ function applyLang() {
   document.querySelectorAll('[data-i18n-aria]').forEach(el => {
     const key = el.dataset.i18nAria;
     if (u[key] !== undefined) el.setAttribute('aria-label', u[key]);
+  });
+  // <option data-i18n-option="key"> → option text (symbol korunur)
+  document.querySelectorAll('[data-i18n-option]').forEach(el => {
+    const key = el.dataset.i18nOption;
+    if (u[key] !== undefined) {
+      const sym = el.textContent.match(/[(（][^)）]+[)）]$/);
+      el.textContent = u[key] + (sym ? ' ' + sym[0] : '');
+    }
   });
 
   // Bottom-nav ve sidebar nav etiketleri
