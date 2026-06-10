@@ -2932,7 +2932,7 @@ window.Core = Core;
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
-    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus','assistant','legal'],
+    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus','plus/assistant','legal'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
       let hash=window.location.hash.replace('#','')||'/dashboard';
@@ -2952,7 +2952,10 @@ const UI = {
       const doAfter=()=>{
         Core.emit('routeChanged',settingsSection?'/settings/'+settingsSection:hash);
         if(typeof App!=='undefined'&&App.Ads) App.Ads.onScreenChange();
-        if(settingsSection) App.Controllers.Settings._openSectionDirect(settingsSection);
+        if(settingsSection==='plus/assistant'){
+          App.Controllers.Settings._openSectionDirect('plus');
+          setTimeout(()=>App.Controllers.Settings._openSectionDirect('assistant'),250);
+        } else if(settingsSection) App.Controllers.Settings._openSectionDirect(settingsSection);
         else if(hash==='/settings') App.Controllers.Settings._openSectionDirect(null);
         else if(hash==='/notifications') App.Controllers.NotifInbox.render();
         setTimeout(applyLang,50);
