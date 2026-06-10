@@ -4,10 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SAGI Finance · SSS / FAQ</title>
-<meta name="description" content="SAGI Finance ve SAGI Plus hakkında sıkça sorulan sorular.">
+<meta name="description" content="SAGI Finance ve SAGI Plus hakkında sıkça sorulan sorular. SAGI Asistan kullanımı da dahil.">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+(function(){
+  var KEY='sagi_lang';
+  var saved=localStorage.getItem(KEY);
+  var lang=(saved==='tr'||saved==='en')?saved:((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr');
+  document.documentElement.lang=lang;
+  document.documentElement.setAttribute('data-lang',lang);
+})();
+</script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
@@ -46,9 +55,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .cat-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
 .cat-tab{padding:7px 16px;border-radius:999px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .2s;}
 .cat-tab.active,.cat-tab:hover{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 3px 10px rgba(98,87,240,0.25);}
-
-/* PLUS badge on tab */
 .plus-tab-badge{font-size:9px;font-weight:800;background:#4f46e5;color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;}
+.ai-tab-badge{font-size:9px;font-weight:800;background:linear-gradient(135deg,#6257f0,#a855f7);color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;}
 
 /* ACCORDION */
 .faq-group{display:none;flex-direction:column;gap:8px;margin-bottom:8px;}
@@ -56,18 +64,28 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .faq-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:border-color .2s;}
 .faq-item:hover{border-color:var(--brand-border);}
 .faq-item.plus-item{border-left:3px solid rgba(99,102,241,0.4);}
+.faq-item.ai-item{border-left:3px solid rgba(168,85,247,0.4);}
 .faq-q{width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;text-align:left;}
 .faq-q-text{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);line-height:1.35;}
 .faq-icon{width:28px;height:28px;border-radius:9px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .25s,background .2s;}
 .faq-icon svg{width:14px;height:14px;stroke:var(--brand);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 .faq-item.open .faq-icon{transform:rotate(45deg);background:var(--brand);}
 .faq-item.open .faq-icon svg{stroke:#fff;}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 22px;}
-.faq-item.open .faq-a{max-height:500px;padding:0 22px 18px;}
-.faq-a p{font-size:14px;color:var(--text2);line-height:1.75;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s ease;padding:0 22px;}
+.faq-item.open .faq-a{max-height:800px;padding:0 22px 18px;}
+.faq-a p{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:8px;}
+.faq-a p:last-child{margin-bottom:0;}
 .faq-a a{color:var(--brand);font-weight:600;text-decoration:none;}
 .faq-a a:hover{text-decoration:underline;}
 .faq-a .plus-note{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:600;background:rgba(79,70,229,0.08);color:#4f46e5;border:1px solid rgba(79,70,229,0.15);}
+
+/* Command table */
+.cmd-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
+.cmd-table th{text-align:left;padding:7px 10px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.cmd-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.55;}
+.cmd-table tr:last-child td{border-bottom:none;}
+.cmd-table td:first-child{font-family:monospace;font-weight:700;color:var(--brand);white-space:nowrap;font-size:13px;}
+.cmd-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);margin-left:4px;vertical-align:middle;}
 
 /* CTA */
 .cta-card{margin-top:16px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:28px 24px;text-align:center;}
@@ -76,7 +94,6 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .cta-btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;font-size:14px;font-weight:700;padding:13px 28px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 16px rgba(98,87,240,0.3);}
 .cta-btn:hover{opacity:.88;transform:scale(1.02);}
 .cta-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
-
 .site-footer{margin-top:40px;padding:28px 16px 44px;border-top:1px solid var(--border);}
 .footer-inner{max-width:720px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .footer-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;font-family:var(--font-display);color:var(--text);}
@@ -86,11 +103,9 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .footer-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:color .2s;}
 .footer-links a:hover{color:var(--brand);}
 .footer-copy{font-size:11px;color:var(--muted);font-weight:500;}
-
 [data-lang] .t-tr,[data-lang] .t-en{display:none;}
 [data-lang="tr"] .t-tr{display:block;}[data-lang="tr"] .t-tr-i{display:inline;}
 [data-lang="en"] .t-en{display:block;}[data-lang="en"] .t-en-i{display:inline;}
-
 @media(max-width:600px){
   .header-inner{height:auto;padding:10px 0;flex-wrap:wrap;gap:8px;}
   .header-actions{width:100%;justify-content:space-between;}
@@ -98,17 +113,18 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
   .hero{padding:28px 0 16px;}.hero h1{font-size:26px;}
   .faq-q{padding:14px 16px;}.faq-item.open .faq-a{padding:0 16px 14px;}
   .faq-q-text{font-size:14px;}
+  .cmd-table{font-size:12px;}
 }
 </style>
 </head>
-<body data-lang="tr">
+<body>
 
 <header class="app-header">
 <div class="wrapper"><div class="header-inner">
   <a href="./" class="brand-logo"><div class="brand-dot"></div>SAGI <small>Finance</small></a>
   <div class="header-actions">
     <div class="lang-switcher">
-      <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
     </div>
     <a href="./" class="back-btn">
@@ -126,8 +142,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       <span class="t-tr">Sıkça Sorulan Sorular</span><span class="t-en">Frequently Asked Questions</span>
     </div>
     <h1><span class="t-tr">Merak ettikleriniz</span><span class="t-en">Common questions, answered</span></h1>
-    <p class="t-tr">SAGI Finance ve SAGI Plus hakkında en sık sorulan sorulara hızlı yanıtlar.</p>
-    <p class="t-en">Quick answers to the most common questions about SAGI Finance and SAGI Plus.</p>
+    <p class="t-tr">SAGI Finance, SAGI Plus ve SAGI Asistan hakkında en sık sorulan sorulara hızlı yanıtlar.</p>
+    <p class="t-en">Quick answers to the most common questions about SAGI Finance, SAGI Plus, and SAGI Assistant.</p>
   </section>
 
   <!-- TABS -->
@@ -135,9 +151,12 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <button class="cat-tab active" onclick="showCat('genel')" id="tab-genel">
       <span class="t-tr">Genel</span><span class="t-en">General</span>
     </button>
+    <button class="cat-tab" onclick="showCat('asistan')" id="tab-asistan">
+      SAGI <span class="t-tr-i">Asistan</span><span class="t-en-i">Assistant</span>
+      <span class="ai-tab-badge">AI</span>
+    </button>
     <button class="cat-tab" onclick="showCat('plus')" id="tab-plus">
-      <span class="t-tr">SAGI Plus</span><span class="t-en">SAGI Plus</span>
-      <span class="plus-tab-badge">★</span>
+      SAGI Plus <span class="plus-tab-badge">★</span>
     </button>
     <button class="cat-tab" onclick="showCat('gizlilik')" id="tab-gizlilik">
       <span class="t-tr">Gizlilik &amp; Veri</span><span class="t-en">Privacy &amp; Data</span>
@@ -157,8 +176,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">SAGI Finance, tarayıcınızda çalışan ücretsiz bir Progresif Web Uygulamasıdır (PWA). Kişisel bütçe, harcama takibi, çoklu döviz yönetimi ve finansal hedef belirleme için tasarlanmıştır. Kurulum gerekmez; ana ekrana eklenince yerel uygulama gibi çalışır.</p>
-        <p class="t-en">SAGI Finance is a free Progressive Web App (PWA) that runs in your browser. Designed for personal budgeting, expense tracking, multi-currency management, and financial goal setting. No installation required — when added to the home screen it works like a native app.</p>
+        <p class="t-tr">SAGI Finance, tarayıcınızda çalışan ücretsiz bir Progresif Web Uygulamasıdır (PWA). Kişisel bütçe, harcama takibi, çoklu döviz yönetimi ve finansal hedef belirleme için tasarlanmıştır. Kurulum gerekmez; ana ekrana eklenince yerel uygulama gibi tam ekranda çalışır.</p>
+        <p class="t-en">SAGI Finance is a free Progressive Web App (PWA) that runs in your browser. Designed for personal budgeting, expense tracking, multi-currency management, and financial goal setting. No installation required — when added to the home screen it runs full-screen like a native app.</p>
       </div>
     </div>
 
@@ -169,8 +188,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Ücretsiz katman son derece kapsamlıdır: sınırsız işlem ve cüzdan, çoklu döviz desteği, abonelik ve borç takibi, bütçe hedefleri, anonim bulut sync, JSON dışa aktarma, çevrimdışı çalışma ve bildirimler. Reklamlar her 15 ekran geçişinde gösterilir ve AI Asistan 4 günlük denemeyle sınırlıdır.</p>
-        <p class="t-en">The free tier is very comprehensive: unlimited transactions and wallets, multi-currency support, subscription and debt tracking, budget goals, anonymous cloud sync, JSON export, offline operation, and notifications. Ads appear every 15 screen changes and the AI Assistant is limited to a 4-day trial.</p>
+        <p class="t-tr">Ücretsiz katman son derece kapsamlıdır: sınırsız işlem ve cüzdan, çoklu döviz desteği, abonelik ve borç takibi, bütçe hedefleri, anonim bulut sync, JSON dışa aktarma, çevrimdışı çalışma ve bildirimler. Ücretsiz katmanda her 15 ekran geçişinde kısa bir reklam gösterilir ve SAGI Asistan 4 günlük denemeyle sınırlıdır.</p>
+        <p class="t-en">The free tier is very comprehensive: unlimited transactions and wallets, multi-currency support, subscription and debt tracking, budget goals, anonymous cloud sync, JSON export, offline operation, and notifications. The free tier shows a brief ad every 15 screen changes, and SAGI Assistant is limited to a 4-day trial.</p>
       </div>
     </div>
 
@@ -181,8 +200,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Evet. Service Worker sayesinde uygulama önbelleğe alınır ve çevrimdışı tam işlevsel çalışır. Döviz kuru güncellemeleri, bulut sync ve AI Asistan için internet gerekir; diğer tüm işlemler çevrimdışı yapılabilir.</p>
-        <p class="t-en">Yes. Thanks to the Service Worker, the app is cached and fully functional offline. An internet connection is needed for exchange rate updates, cloud sync, and the AI Assistant — all other operations work offline.</p>
+        <p class="t-tr">Evet. Service Worker sayesinde uygulama önbelleğe alınır ve çevrimdışı tam işlevsel çalışır. Döviz kuru güncellemeleri, bulut sync ve SAGI Asistan için internet gerekir; diğer tüm işlemler çevrimdışı yapılabilir.</p>
+        <p class="t-en">Yes. Thanks to the Service Worker, the app is cached and fully functional offline. An internet connection is needed for exchange rate updates, cloud sync, and SAGI Assistant — all other operations work offline.</p>
       </div>
     </div>
 
@@ -193,8 +212,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Modern tarayıcısı olan her platformda çalışır: iOS (Safari), Android (Chrome/Firefox), Windows, macOS ve Linux masaüstü. Ana ekrana eklenince tam ekran PWA modunda açılır.</p>
-        <p class="t-en">Works on any platform with a modern browser: iOS (Safari), Android (Chrome/Firefox), Windows, macOS, and Linux desktop. When added to the home screen it opens in full-screen PWA mode.</p>
+        <p class="t-tr">Modern tarayıcısı olan her platformda çalışır: iOS (Safari), Android (Chrome/Firefox), Windows, macOS ve Linux masaüstü. Android'de Google Play üzerinden de indirilebilir. Ana ekrana eklenince tam ekran PWA modunda açılır.</p>
+        <p class="t-en">Works on any platform with a modern browser: iOS (Safari), Android (Chrome/Firefox), Windows, macOS, and Linux desktop. Also available on Android via Google Play. When added to the home screen it opens in full-screen PWA mode.</p>
       </div>
     </div>
 
@@ -205,51 +224,182 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Ücretsiz katmanda her 15 ekran geçişinde (sayfa değişiminde) bir reklam gösterilir. Reklam, "Atla" veya "✕" tuşuyla kolayca kapatılabilir. SAGI Plus kullanıcılarında hiçbir reklam gösterilmez.</p>
-        <p class="t-en">In the free tier, an ad is shown every 15 screen changes (page navigations). The ad can be dismissed with the "Skip" or "✕" button. SAGI Plus users see no ads whatsoever.</p>
+        <p class="t-tr">Ücretsiz katmanda her 15 ekran geçişinde bir reklam gösterilir. Reklam "Atla" veya "✕" tuşuyla kolayca kapatılabilir. SAGI Plus kullanıcılarında hiçbir reklam gösterilmez.</p>
+        <p class="t-en">In the free tier, an ad is shown every 15 screen changes. The ad can be dismissed with the "Skip" or "✕" button. SAGI Plus users see no ads whatsoever.</p>
         <p class="plus-note t-tr">★ Plus'ta reklam yok</p>
-        <p class="plus-note t-en">★ No ads on Plus</p>
+        <p class="plus-note t-en">★ No ads in Plus</p>
       </div>
     </div>
 
   </div><!-- /genel -->
+
+  <!-- ═══ SAGI ASISTAN ═══ -->
+  <div class="faq-group" id="cat-asistan">
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">SAGI Asistan nedir?</span>
+        <span class="faq-q-text t-en">What is SAGI Assistant?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">SAGI Asistan, uygulama içinde açılan bir yapay zeka sohbet asistanıdır. Finansal verilerinizi anlayarak Türkçe sorularınızı yanıtlar, harcama alışkanlıklarınızı analiz eder ve kişisel önerilerde bulunur. Yanıtlar Cloudflare Workers üzerinden Google Gemini 2.0 Flash modeli aracılığıyla üretilir.</p>
+        <p class="t-en">SAGI Assistant is an AI chat assistant built into the app. It understands your financial data, answers questions in your language, analyses your spending habits, and offers personalised suggestions. Responses are generated via Cloudflare Workers using the Google Gemini 2.0 Flash model.</p>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Asistana nasıl ulaşırım?</span>
+        <span class="faq-q-text t-en">How do I access the Assistant?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Uygulamanın sağ alt köşesindeki mor yıldız (★) butonuna veya alt navigasyon çubuğundaki SAGI simgesine dokunun. Sohbet paneli sağdan kayarak açılır. Ücretsiz kullanıcılar deneme butonuna tıklayarak 4 günlük erişimi başlatabilir; kredi kartı gerekmez.</p>
+        <p class="t-en">Tap the purple star (★) button in the bottom-right corner of the app, or the SAGI icon in the bottom navigation bar. The chat panel slides in from the right. Free users can start the 4-day trial by tapping the trial button — no credit card required.</p>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Asistan hangi verileri görür?</span>
+        <span class="faq-q-text t-en">What data does the Assistant see?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Asistana yalnızca anonim finansal özetler iletilir. Bu özetler şunları içerir: bu ayki toplam gelir/gider, hesap bakiyeleri, abonelik tutarları, hedef ilerlemeleri ve kategori bazlı harcama toplamları. İşlem açıklamaları, alıcı/ödeyici isimleri veya herhangi bir kişisel tanımlayıcı bilgi asla gönderilmez.</p>
+        <p class="t-en">Only anonymous financial summaries are sent to the Assistant. These include: total income/expense for the current month, account balances, subscription amounts, goal progress, and category-level spending totals. Transaction descriptions, payee/payer names, or any personal identifiers are never transmitted.</p>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Komut sistemi nasıl çalışır?</span>
+        <span class="faq-q-text t-en">How does the command system work?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Mesaj kutusuna <strong>/</strong> yazarak komut otomatik tamamlama menüsünü açabilirsiniz. Komutlar, doğrudan verinizden anlık yanıt üretir; AI modeline gidip gelmeden çalışır. Tüm komutların listesi için <strong>/yardim</strong> veya <strong>/help</strong> komutunu kullanın.</p>
+        <p class="t-en">Type <strong>/</strong> in the message box to open the command autocomplete menu. Commands generate instant responses directly from your data without a round-trip to the AI model. Use <strong>/yardim</strong> or <strong>/help</strong> to see the full list of available commands.</p>
+        <table class="cmd-table">
+          <thead>
+            <tr>
+              <th><span class="t-tr">Komut</span><span class="t-en">Command</span></th>
+              <th><span class="t-tr">Ne yapar?</span><span class="t-en">What it does</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/ozet <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /summary</td>
+              <td><span class="t-tr">Bu ayki gelir, gider ve net bakiye özeti</span><span class="t-en">This month's income, expense, and net balance summary</span></td>
+            </tr>
+            <tr>
+              <td>/gelir <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /income</td>
+              <td><span class="t-tr">Bu ayki toplam gelir dökümü</span><span class="t-en">Breakdown of this month's total income</span></td>
+            </tr>
+            <tr>
+              <td>/gider <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /expenses</td>
+              <td><span class="t-tr">Bu ayki toplam gider dökümü</span><span class="t-en">Breakdown of this month's total expenses</span></td>
+            </tr>
+            <tr>
+              <td>/analiz</td>
+              <td><span class="t-tr">AI destekli harcama analizi ve öneriler</span><span class="t-en">AI-powered spending analysis and suggestions</span></td>
+            </tr>
+            <tr>
+              <td>/hedefler <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /goals</td>
+              <td><span class="t-tr">Tasarruf hedeflerinin ilerleme durumu</span><span class="t-en">Progress status of your savings goals</span></td>
+            </tr>
+            <tr>
+              <td>/abonelikler <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /subs</td>
+              <td><span class="t-tr">Aktif abonelikler ve aylık toplam</span><span class="t-en">Active subscriptions and monthly total</span></td>
+            </tr>
+            <tr>
+              <td>/borclar <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /debts</td>
+              <td><span class="t-tr">Borç bakiyeleri ve ödeme durumları</span><span class="t-en">Debt balances and payment statuses</span></td>
+            </tr>
+            <tr>
+              <td>/bugun <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /today</td>
+              <td><span class="t-tr">Bugünkü işlemler</span><span class="t-en">Today's transactions</span></td>
+            </tr>
+            <tr>
+              <td>/kategori [ad] <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /cat [name]</td>
+              <td><span class="t-tr">Belirli kategorinin bu ayki harcaması</span><span class="t-en">This month's spending for a specific category</span></td>
+            </tr>
+            <tr>
+              <td>/cuzdan [ad] <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /wallet [name]</td>
+              <td><span class="t-tr">Belirli cüzdanın bakiyesi ve son işlemleri</span><span class="t-en">Balance and recent transactions for a specific wallet</span></td>
+            </tr>
+            <tr>
+              <td>/yardim <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /help</td>
+              <td><span class="t-tr">Tüm komutların listesi</span><span class="t-en">Full list of all commands</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Asistana serbest soru sorabilir miyim?</span>
+        <span class="faq-q-text t-en">Can I ask the Assistant free-form questions?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Evet. Komutların yanı sıra doğal dilde de soru sorabilirsiniz. Örneğin: "Bu ay nerede fazla harcıyorum?", "Gelecek ay bütçemi nasıl planlamalıyım?", "En büyük gider kalemim ne?". Asistan finansal verilerinizi bağlam olarak kullanarak kişisel bir yanıt üretir.</p>
+        <p class="t-en">Yes. In addition to commands, you can ask questions in natural language. For example: "Where am I overspending this month?", "How should I plan my budget for next month?", "What is my largest expense category?". The Assistant uses your financial data as context to generate a personalised response.</p>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Asistan yanıtları ne kadar güvenilir?</span>
+        <span class="faq-q-text t-en">How reliable are the Assistant's responses?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Komut tabanlı yanıtlar (/ozet, /gelir vb.) doğrudan verilerinizden üretildiği için deterministiktir ve doğrudur. Serbest sohbet yanıtları ise AI modeli tarafından üretilir ve her zaman doğru olmayabilir. Asistan yanıtları bilgilendirme amaçlıdır; profesyonel finansal veya yatırım tavsiyesi yerine geçmez.</p>
+        <p class="t-en">Command-based responses (/ozet, /gelir, etc.) are generated directly from your data and are deterministic and accurate. Free-form chat responses are generated by the AI model and may not always be correct. Assistant responses are for informational purposes and do not substitute professional financial or investment advice.</p>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Asistanın erişim limitleri nelerdir?</span>
+        <span class="faq-q-text t-en">What are the Assistant's access limits?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Ücretsiz katmanda 4 günlük deneme süresi mevcuttur. Deneme süresi dolduğunda SAGI Plus satın alarak sınırsız erişim elde edebilirsiniz. Plus kullanıcıları için makul kullanım limitleri uygulanır; kötüye kullanımı engellemek amacıyla IP başına saatlik istek sınırı vardır.</p>
+        <p class="t-en">The free tier includes a 4-day trial period. After the trial expires, you can purchase SAGI Plus for unlimited access. For Plus users, fair-use limits apply; an hourly request limit per IP is in place to prevent abuse.</p>
+      </div>
+    </div>
+
+    <div class="faq-item ai-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Asistan geçmiş sohbetleri hatırlar mı?</span>
+        <span class="faq-q-text t-en">Does the Assistant remember past conversations?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Sohbet geçmişi yalnızca o oturum boyunca bellekte tutulur. Uygulama kapatıldığında veya panel yeniden açıldığında konuşma sıfırlanır. Asistan kişisel geçmişinizi sunucuda saklamaz.</p>
+        <p class="t-en">Chat history is kept in memory only for the duration of the session. When the app is closed or the panel is reopened, the conversation resets. The Assistant does not store your personal conversation history on any server.</p>
+      </div>
+    </div>
+
+  </div><!-- /asistan -->
 
   <!-- ═══ SAGI PLUS ═══ -->
   <div class="faq-group" id="cat-plus">
 
     <div class="faq-item plus-item">
       <button class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text t-tr">SAGI Plus nedir ve ne içerir?</span>
-        <span class="faq-q-text t-en">What is SAGI Plus and what does it include?</span>
+        <span class="faq-q-text t-tr">SAGI Plus'ta ne var?</span>
+        <span class="faq-q-text t-en">What's in SAGI Plus?</span>
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">SAGI Plus, ücretsiz katmanın üzerine şunları ekler: sınırsız AI Asistan erişimi, Tasarruf Skoru, Gelecek Ay Tahmini, Aylık Karşılaştırma kartları, reklamsız deneyim, 8 renk teması &amp; özel font seçimi ve CSV dışa aktarma.</p>
-        <p class="t-en">SAGI Plus adds on top of the free tier: unlimited AI Assistant access, Savings Score, Next-Month Forecast, Monthly Comparison cards, ad-free experience, 8 color themes &amp; custom font selection, and CSV export.</p>
-      </div>
-    </div>
-
-    <div class="faq-item plus-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text t-tr">SAGI Plus ne kadar? Abonelik var mı?</span>
-        <span class="faq-q-text t-en">How much does SAGI Plus cost? Is there a subscription?</span>
-        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-      </button>
-      <div class="faq-a">
-        <p class="t-tr">SAGI Plus tek seferlik bir ödemeyle ömür boyu erişim sağlar — aylık veya yıllık abonelik yoktur. Fiyat henüz açıklanmamıştır; erken erişim duyurusu için takipte kalın.</p>
-        <p class="t-en">SAGI Plus is a one-time payment for lifetime access — no monthly or annual subscription. The price has not been announced yet; stay tuned for the early access announcement.</p>
-      </div>
-    </div>
-
-    <div class="faq-item plus-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text t-tr">AI Asistan nasıl çalışır?</span>
-        <span class="faq-q-text t-en">How does the AI Assistant work?</span>
-        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-      </button>
-      <div class="faq-a">
-        <p class="t-tr">SAGI Asistan, finansal verilerinizi (bu ayki gelir/gider, hesap bakiyeleri, abonelikler) analiz ederek sorularınızı yanıtlar ve kişisel öneriler sunar. Cloudflare Workers üzerinden güvenli biçimde çalışır. Komutlar: <strong>/ozet</strong>, <strong>/gelir</strong>, <strong>/gider</strong>, <strong>/analiz</strong>, <strong>/hedefler</strong>, <strong>/abonelikler</strong>, <strong>/borclar</strong>.</p>
-        <p class="t-en">SAGI Assistant analyses your financial data (this month's income/expenses, account balances, subscriptions) to answer your questions and provide personal recommendations. It runs securely via Cloudflare Workers. Commands: <strong>/ozet</strong>, <strong>/gelir</strong>, <strong>/gider</strong>, <strong>/analiz</strong>, <strong>/hedefler</strong>, <strong>/abonelikler</strong>, <strong>/borclar</strong>.</p>
+        <p class="t-tr">Ücretsiz katmanın tüm özelliklerine ek olarak: sınırsız SAGI Asistan erişimi, Tasarruf Skoru, Gelecek Ay Tahmini, Aylık Karşılaştırma, CSV dışa aktarma, reklamsız deneyim ve tema/font kişiselleştirme.</p>
+        <p class="t-en">Everything in the free tier, plus: unlimited SAGI Assistant access, Savings Score, Next-Month Forecast, Monthly Comparison, CSV export, ad-free experience, and theme/font customisation.</p>
       </div>
     </div>
 
@@ -260,8 +410,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Evet. Uygulama içindeki SAGI Asistan butonuna tıklayınca 4 günlük ücretsiz deneme başlatabilirsiniz. Kredi kartı gerekmez. Deneme süresi dolduğunda Plus'a geçerek erişiminizi sürdürebilirsiniz.</p>
-        <p class="t-en">Yes. Tapping the SAGI Assistant button in the app lets you start a 4-day free trial. No credit card required. When the trial expires you can continue with Plus.</p>
+        <p class="t-tr">Evet. Uygulama içindeki SAGI Asistan butonuna dokunarak 4 günlük ücretsiz deneme başlatabilirsiniz. Kredi kartı veya hesap gerekmez. Deneme süresi dolduğunda Plus'a geçerek erişiminizi sürdürebilirsiniz.</p>
+        <p class="t-en">Yes. Tapping the SAGI Assistant button in the app lets you start a 4-day free trial. No credit card or account required. When the trial expires you can continue with Plus.</p>
       </div>
     </div>
 
@@ -272,8 +422,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Ödeme tamamlandığında mevcut bulut sync anahtarınız özel bir Plus anahtarına dönüştürülür. Bu anahtar tüm cihazlarınızda Plus özelliklerini açar. Hesap, e-posta veya kişisel bilgi gerekmez.</p>
-        <p class="t-en">When payment is completed, your existing cloud sync key is converted to a special Plus key. This key unlocks Plus features across all your devices. No account, email, or personal information required.</p>
+        <p class="t-tr">Ödeme tamamlandığında mevcut bulut sync anahtarınız özel bir Plus anahtarına (<strong>PLUS-</strong> ön ekli) dönüştürülür. Bu anahtar tüm cihazlarınızda Plus özelliklerini açar. Hesap, e-posta veya kişisel bilgi gerekmez. Anahtarı <em>Ayarlar → Bulut Senkronizasyonu</em> ekranına girebilirsiniz.</p>
+        <p class="t-en">When payment is completed, your existing cloud sync key is converted to a special Plus key (prefixed with <strong>PLUS-</strong>). This key unlocks Plus features across all your devices. No account, email, or personal information required. You can enter the key from the <em>Settings → Cloud Sync</em> screen.</p>
       </div>
     </div>
 
@@ -284,20 +434,20 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr"><strong>Tasarruf Skoru</strong>: Tasarruf oranı (%60 ağırlık) + Gelir-gider dengesi (%40 ağırlık), 100 üzerinden. <strong>Gelecek Ay Tahmini</strong>: Son aylara ağırlıklı ortalama + trend düzeltmesi uygulanır; sabit giderler (abonelikler) ayrıca gösterilir. Tüm hesaplamalar cihazınızda yerel olarak yapılır.</p>
-        <p class="t-en"><strong>Savings Score</strong>: Savings rate (60% weight) + Income-expense balance (40% weight), out of 100. <strong>Next-Month Forecast</strong>: Weighted average of recent months + trend correction; fixed costs (subscriptions) are shown separately. All calculations happen locally on your device.</p>
+        <p class="t-tr"><strong>Tasarruf Skoru</strong>: Tasarruf oranı (%60 ağırlık) + Gelir-gider dengesi (%40 ağırlık), 100 üzerinden hesaplanır. <strong>Gelecek Ay Tahmini</strong>: Son aylara ağırlıklı ortalama ve trend düzeltmesi uygulanır; sabit giderler (abonelikler) ayrıca gösterilir. Tüm hesaplamalar cihazınızda yerel olarak yapılır; hiçbir veri sunucuya gönderilmez.</p>
+        <p class="t-en"><strong>Savings Score</strong>: Savings rate (60% weight) + income-expense balance (40% weight), out of 100. <strong>Next-Month Forecast</strong>: Weighted average of recent months with trend correction; fixed costs (subscriptions) shown separately. All calculations run locally on your device — no data is sent to any server.</p>
       </div>
     </div>
 
     <div class="faq-item plus-item">
       <button class="faq-q" onclick="toggleFaq(this)">
         <span class="faq-q-text t-tr">Tema ve font kişiselleştirme nasıl çalışır?</span>
-        <span class="faq-q-text t-en">How do theme and font customization work?</span>
+        <span class="faq-q-text t-en">How do theme and font customisation work?</span>
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Plus kullanıcıları Ayarlar'dan 8 renk teması arasında seçim yapabilir: Indigo, Violet, Mavi, Cyan, Yeşil, Pembe, Amber ve Slate. Font seçenekleri: Varsayılan, Manrope, DM Sans, Lexend, Exo 2, Oswald ve daha fazlası. Seçimler bulut sync ile tüm cihazlarınıza yansır.</p>
-        <p class="t-en">Plus users can choose from 8 color themes in Settings: Indigo, Violet, Blue, Cyan, Emerald, Rose, Amber, and Slate. Font options include Default, Manrope, DM Sans, Lexend, Exo 2, Oswald, and more. Selections sync across all your devices via cloud sync.</p>
+        <p class="t-tr">Plus kullanıcıları Ayarlar'dan 8 renk teması arasında seçim yapabilir: Indigo, Violet, Mavi, Cyan, Yeşil, Pembe, Amber ve Slate. Font seçenekleri arasında Varsayılan, Manrope, DM Sans, Lexend, Exo 2 ve Oswald yer alır. Seçimler bulut sync ile tüm cihazlarınıza yansır.</p>
+        <p class="t-en">Plus users can choose from 8 colour themes in Settings: Indigo, Violet, Blue, Cyan, Emerald, Rose, Amber, and Slate. Font options include Default, Manrope, DM Sans, Lexend, Exo 2, and Oswald. Selections sync across all your devices via cloud sync.</p>
       </div>
     </div>
 
@@ -313,20 +463,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Tüm verileriniz varsayılan olarak yalnızca tarayıcınızın <strong>localStorage</strong> alanında saklanır. Sunucuya, reklam ağına veya üçüncü taraflara hiçbir şey gönderilmez. İsteğe bağlı bulut sync'i etkinleştirirseniz veriler anonim bir anahtarla Firestore'a da yazılır — ad, e-posta veya kimlik gerektirmez.</p>
+        <p class="t-tr">Tüm verileriniz varsayılan olarak yalnızca tarayıcınızın <strong>localStorage</strong> alanında saklanır. Sunucuya, reklam ağına veya üçüncü taraflara hiçbir şey gönderilmez. İsteğe bağlı bulut sync'i etkinleştirirseniz veriler anonim bir anahtarla Firestore'a da yazılır — ad, e-posta veya kimlik gerekmez.</p>
         <p class="t-en">All your data is stored by default only in your browser's <strong>localStorage</strong>. Nothing is sent to servers, ad networks, or third parties. If you enable optional cloud sync, data is also written to Firestore under an anonymous key — no name, email, or identity required.</p>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text t-tr">AI Asistan verilerimi görür mü?</span>
-        <span class="faq-q-text t-en">Does the AI Assistant see my data?</span>
-        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-      </button>
-      <div class="faq-a">
-        <p class="t-tr">AI Asistan'a yalnızca toplu ve anonim finansal özetler gönderilir: bu ayki toplam gelir/gider rakamları, hesap bakiyeleri ve abonelik tutarları. İşlem açıklamaları, isimler veya hassas kişisel veriler gönderilmez. İstekler Cloudflare Workers üzerinden iletilir.</p>
-        <p class="t-en">Only aggregated, anonymous financial summaries are sent to the AI Assistant: this month's total income/expense figures, account balances, and subscription amounts. Transaction descriptions, names, or sensitive personal data are not sent. Requests are proxied through Cloudflare Workers.</p>
       </div>
     </div>
 
@@ -338,7 +476,19 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       </button>
       <div class="faq-a">
         <p class="t-tr">Hayır, hiçbir zaman. SAGI Finance kişisel veri toplamaz; dolayısıyla satacak bir şey yoktur. Kullanıcı davranış analizi yapılmaz, reklam profili oluşturulmaz.</p>
-        <p class="t-en">No, never. SAGI Finance does not collect personal data, so there is nothing to sell. No user behavior analytics, no ad profiling.</p>
+        <p class="t-en">No, never. SAGI Finance does not collect personal data, so there is nothing to sell. No user behaviour analytics, no ad profiling.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">AI Asistan verilerimi görür mü?</span>
+        <span class="faq-q-text t-en">Does the AI Assistant see my data?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Asistana yalnızca toplu ve anonim finansal özetler gönderilir: bu ayki toplam gelir/gider rakamları, hesap bakiyeleri ve abonelik tutarları. İşlem açıklamaları, isimler veya kişisel tanımlayıcı herhangi bir veri gönderilmez. İstekler Cloudflare Workers üzerinden anonim biçimde iletilir.</p>
+        <p class="t-en">Only aggregated, anonymous financial summaries are sent to the Assistant: this month's total income/expense figures, account balances, and subscription amounts. Transaction descriptions, names, or any personal identifiers are not transmitted. Requests are proxied anonymously through Cloudflare Workers.</p>
       </div>
     </div>
 
@@ -366,8 +516,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Service Worker network-first stratejisiyle çalışır: internet bağlantısı varsa her zaman güncel sürümü yükler. Uygulama açıkken yeni sürüm hazırsa yenileme bildirimi görürsünüz.</p>
-        <p class="t-en">The Service Worker uses a network-first strategy: when online, it always loads the latest version. If a new version is ready while the app is open, you'll see a refresh notification.</p>
+        <p class="t-tr">Service Worker, network-first stratejisiyle çalışır: internet bağlantısı varsa her zaman güncel sürümü yükler. Uygulama açıkken yeni sürüm hazırsa ekranda yenileme bildirimi görürsünüz.</p>
+        <p class="t-en">The Service Worker uses a network-first strategy: when online, it always loads the latest version. If a new version is ready while the app is open, you'll see a refresh notification on screen.</p>
       </div>
     </div>
 
@@ -378,8 +528,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr"><em>Ayarlar → Bulut Senkronizasyonu</em>'ndan etkinleştirilir. İlk kullanımda 16 haneli anonim bir anahtar oluşturulur. Bu anahtarı farklı cihazlara girerek verilerinizi senkronize edebilirsiniz. Anahtarınızı güvende tutun — kaybedilirse veriye erişim güçleşebilir.</p>
-        <p class="t-en">Enabled from <em>Settings → Cloud Sync</em>. On first use, a 16-digit anonymous key is generated. Enter this key on other devices to sync your data. Keep your key safe — losing it may make data access difficult.</p>
+        <p class="t-tr"><em>Ayarlar → Bulut Senkronizasyonu</em>'ndan etkinleştirilir. İlk kullanımda 16 haneli anonim bir anahtar oluşturulur. Bu anahtarı farklı cihazlara girerek verilerinizi senkronize edebilirsiniz. Anahtarınızı güvende tutun — kaybedilirse bulut veriye erişim güçleşebilir.</p>
+        <p class="t-en">Enabled from <em>Settings → Cloud Sync</em>. On first use, a 16-digit anonymous key is generated. Enter this key on other devices to sync your data. Keep your key safe — losing it may make cloud data access difficult.</p>
       </div>
     </div>
 
@@ -390,8 +540,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Bildirimler Service Worker aracılığıyla cihazınızda yerel olarak tetiklenir — harici push sunucusu kullanılmaz. Abonelik ödeme tarihleri ve diğer hatırlatmalar için izin <em>Ayarlar → Bildirimler</em>'den yönetilir.</p>
-        <p class="t-en">Notifications are triggered locally on your device via the Service Worker — no external push server is used. Permission for subscription due dates and other reminders is managed from <em>Settings → Notifications</em>.</p>
+        <p class="t-tr">Bildirimler Service Worker aracılığıyla cihazınızda yerel olarak tetiklenir — harici push sunucusu kullanılmaz. Abonelik ödeme tarihleri ve diğer hatırlatmalar için bildirim izni <em>Ayarlar → Bildirimler</em>'den yönetilir.</p>
+        <p class="t-en">Notifications are triggered locally on your device via the Service Worker — no external push server is used. Notification permission for subscription due dates and other reminders is managed from <em>Settings → Notifications</em>.</p>
       </div>
     </div>
 
@@ -402,8 +552,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Evet, GitHub'da mevcuttur: <a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener">github.com/nihatygci/sagi</a>. Katkı sağlamak veya incelemek için davetlisiniz.</p>
-        <p class="t-en">Yes, available on GitHub: <a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener">github.com/nihatygci/sagi</a>. You're welcome to contribute or review.</p>
+        <p class="t-tr">Evet, ana uygulama GitHub'da mevcuttur: <a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener">github.com/nihatygci/sagi</a>. Katkı sağlamak veya incelemek için davetlisiniz. Not: SAGI Plus özelliklerini içeren <code>plus.js</code> modülü özel bir depoda tutulmaktadır.</p>
+        <p class="t-en">Yes, the main application is available on GitHub: <a href="https://github.com/nihatygci/sagi" target="_blank" rel="noopener">github.com/nihatygci/sagi</a>. You're welcome to contribute or review. Note: the <code>plus.js</code> module containing SAGI Plus features is kept in a private repository.</p>
       </div>
     </div>
 
@@ -427,38 +577,45 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <div class="footer-brand">
       <span class="footer-dot"></span>
       <strong>SAGI Finance</strong>
-      <span class="footer-version">v0.9.86</span>
+      <span class="footer-version">v0.9.9</span>
     </div>
     <nav class="footer-links">
-      <a href="./privacy.html" data-i18n-tr="Gizlilik" data-i18n-en="Privacy">Gizlilik</a>
-      <a href="./terms.html" data-i18n-tr="Kullanım Şartları" data-i18n-en="Terms">Kullanım Şartları</a>
-      <a href="./about.html" data-i18n-tr="Hakkımızda" data-i18n-en="About">Hakkımızda</a>
+      <a href="./privacy.html"><span class="t-tr">Gizlilik</span><span class="t-en">Privacy</span></a>
+      <a href="./terms.html"><span class="t-tr">Kullanım Şartları</span><span class="t-en">Terms</span></a>
+      <a href="./about.html"><span class="t-tr">Hakkımızda</span><span class="t-en">About</span></a>
       <a href="./faq.html">FAQ</a>
-      <a href="./contact.html" data-i18n-tr="İletişim" data-i18n-en="Contact">İletişim</a>
+      <a href="./contact.html"><span class="t-tr">İletişim</span><span class="t-en">Contact</span></a>
     </nav>
-    <div class="footer-copy">© 2026 · <span data-i18n-tr="Tüm hakları saklıdır" data-i18n-en="All rights reserved">Tüm hakları saklıdır</span></div>
+    <div class="footer-copy">© 2026 SAGI Finance · <span class="t-tr">Tüm hakları saklıdır</span><span class="t-en">All rights reserved</span></div>
   </div>
 </footer>
 
 <script>
 (function(){
-  const KEY='sagi_lang';
-  function applyLang(l){document.body.setAttribute('data-lang',l);localStorage.setItem(KEY,l);document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));document.documentElement.lang=l;}
+  'use strict';
+  var KEY='sagi_lang';
+  function applyLang(l){
+    document.documentElement.setAttribute('data-lang',l);
+    document.body.setAttribute('data-lang',l);
+    localStorage.setItem(KEY,l);
+    document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===l);});
+    document.documentElement.lang=l;
+  }
   window.setLang=applyLang;
-  const saved=localStorage.getItem(KEY);
-  if(saved==='tr'||saved==='en')applyLang(saved);
-  else{const bl=(navigator.language||'').toLowerCase();applyLang(bl.startsWith('en')&&!bl.startsWith('tr')?'en':'tr');}
+  var saved=localStorage.getItem(KEY);
+  if(saved==='tr'||saved==='en'){applyLang(saved);}
+  else{var bl=(navigator.language||'').toLowerCase();applyLang(bl.startsWith('en')?'en':'tr');}
 
   window.showCat=function(cat){
-    document.querySelectorAll('.faq-group').forEach(g=>g.classList.remove('visible'));
-    document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
-    const g=document.getElementById('cat-'+cat);if(g)g.classList.add('visible');
-    const t=document.getElementById('tab-'+cat);if(t)t.classList.add('active');
+    document.querySelectorAll('.faq-group').forEach(function(g){g.classList.remove('visible');});
+    document.querySelectorAll('.cat-tab').forEach(function(t){t.classList.remove('active');});
+    var g=document.getElementById('cat-'+cat);if(g)g.classList.add('visible');
+    var t=document.getElementById('tab-'+cat);if(t)t.classList.add('active');
   };
   window.toggleFaq=function(btn){
-    const item=btn.closest('.faq-item');
-    const isOpen=item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+    var item=btn.closest('.faq-item');
+    var isOpen=item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(function(i){i.classList.remove('open');});
     if(!isOpen)item.classList.add('open');
   };
 })();

@@ -4,10 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SAGI Finance · Kullanım Şartları / Terms of Service</title>
-<meta name="description" content="SAGI Finance Kullanım Şartları — SAGI Plus dahil.">
+<meta name="description" content="SAGI Finance Kullanım Koşulları — SAGI Plus dahil. Haziran 2026.">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+(function(){
+  var KEY='sagi_lang';
+  var saved=localStorage.getItem(KEY);
+  var lang=(saved==='tr'||saved==='en')?saved:((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr');
+  document.documentElement.lang=lang;
+  document.documentElement.setAttribute('data-lang',lang);
+})();
+</script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
@@ -42,24 +51,22 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .hero h1{font-family:var(--font-display);font-size:clamp(28px,6vw,40px);font-weight:800;line-height:1.15;letter-spacing:-.03em;margin-bottom:14px;}
 .hero p{font-size:16px;color:var(--text2);max-width:560px;line-height:1.75;}
 .hero-meta{margin-top:14px;font-size:12px;color:var(--muted);font-weight:500;}
+.highlight-card{margin-top:20px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
+.highlight-icon{width:46px;height:46px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.highlight-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.highlight-card h3{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--brand);margin-bottom:6px;}
+.highlight-card p{font-size:14px;color:var(--text2);line-height:1.7;}
 .sections{margin-top:14px;display:flex;flex-direction:column;gap:10px;padding-bottom:10px;}
 .section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;box-shadow:var(--shadow);transition:border-color .2s;}
 .section:hover{border-color:var(--brand-border);}
 .section.plus-section{border-left:3px solid rgba(99,102,241,0.4);}
 .section h2{font-family:var(--font-display);font-size:17px;font-weight:700;display:flex;align-items:center;gap:11px;margin-bottom:14px;}
-.sec-icon{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--brand-soft);flex-shrink:0;}
-.sec-icon svg{width:16px;height:16px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .sec-num{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--brand);background:var(--brand-soft);flex-shrink:0;}
 .section p{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:10px;}
 .section p:last-child{margin-bottom:0;}
 .section ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:8px;}
 .section li{font-size:14px;color:var(--text2);padding-left:20px;position:relative;line-height:1.65;}
 .section li::before{content:'';position:absolute;left:4px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--brand);opacity:.7;}
-.highlight-card{margin-top:20px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
-.highlight-icon{width:46px;height:46px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.highlight-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-.highlight-card h3{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--brand);margin-bottom:6px;}
-.highlight-card p{font-size:14px;color:var(--text2);line-height:1.7;}
 .site-footer{margin-top:40px;padding:28px 16px 44px;border-top:1px solid var(--border);}
 .footer-inner{max-width:720px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .footer-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;font-family:var(--font-display);color:var(--text);}
@@ -82,13 +89,14 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 }
 </style>
 </head>
-<body data-lang="tr">
+<body>
+
 <header class="app-header">
 <div class="wrapper"><div class="header-inner">
   <a href="./" class="brand-logo"><div class="brand-dot"></div>SAGI <small>Finance</small></a>
   <div class="header-actions">
     <div class="lang-switcher">
-      <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" data-lang="tr" onclick="setLang('tr')">TR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
     </div>
     <a href="./" class="back-btn">
@@ -103,102 +111,138 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
   <section class="hero">
     <div class="hero-badge">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span class="t-tr">Kullanım Şartları</span><span class="t-en">Terms of Service</span>
+      <span class="t-tr">Kullanım Koşulları</span><span class="t-en">Terms of Service</span>
     </div>
-    <h1><span class="t-tr">Basit, adil şartlar.</span><span class="t-en">Simple, fair terms.</span></h1>
-    <p class="t-tr">SAGI Finance'ı (ücretsiz veya Plus) kullanarak aşağıdaki şartları kabul etmiş sayılırsınız.</p>
-    <p class="t-en">By using SAGI Finance (free or Plus) you agree to the terms below.</p>
-    <div class="hero-meta">v0.9.86 · Haziran 2026 / June 2026</div>
+    <h1>
+      <span class="t-tr">Kullanım Koşulları</span>
+      <span class="t-en">Terms of Service</span>
+    </h1>
+    <p class="t-tr">SAGI Finance uygulamasını kullanarak ("Uygulama") aşağıdaki koşulları okuduğunuzu, anladığınızı ve bunlara uymayı kabul ettiğinizi beyan edersiniz. Koşulları kabul etmiyorsanız Uygulamayı kullanmayınız.</p>
+    <p class="t-en">By accessing or using the SAGI Finance application ("Application"), you acknowledge that you have read, understood, and agree to be bound by the following terms. If you do not agree, please discontinue use of the Application.</p>
+    <div class="hero-meta">
+      <span class="t-tr">Yürürlük tarihi: Haziran 2026 · v0.9.9</span>
+      <span class="t-en">Effective date: June 2026 · v0.9.9</span>
+    </div>
 
     <div class="highlight-card">
       <div class="highlight-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div>
         <h3 class="t-tr">Ücretsiz katman gerçekten ücretsiz</h3>
         <h3 class="t-en">The free tier is genuinely free</h3>
-        <p class="t-tr">Gizli ücret, abonelik planı veya premium duvar yoktur. Plus tek seferlik bir ödemeyle ömür boyu erişim sunar.</p>
-        <p class="t-en">No hidden fees, no subscription plans, no premium wall. Plus offers lifetime access with a one-time payment.</p>
+        <p class="t-tr">Gizli ücret, zorunlu abonelik veya premium engel yoktur. SAGI Plus, tek seferlik ödemeyle ömür boyu erişim sağlar.</p>
+        <p class="t-en">No hidden fees, no mandatory subscription, no paywall. SAGI Plus provides lifetime access with a one-time payment.</p>
       </div>
     </div>
   </section>
 
   <div class="sections">
 
+    <!-- 1 -->
     <div class="section">
-      <h2><div class="sec-num">1</div><span class="t-tr">Uygulamanın Amacı</span><span class="t-en">Purpose of the App</span></h2>
-      <p class="t-tr">SAGI Finance, kişisel bütçe, harcama ve finansal hedef takibi için tasarlanmış bir Progresif Web Uygulamasıdır (PWA). Uygulama finansal tavsiye vermez; yalnızca girdiğiniz verileri görselleştirir.</p>
-      <p class="t-en">SAGI Finance is a Progressive Web App (PWA) for personal budget, expense, and financial goal tracking. The app does not provide financial advice; it only visualises data you enter.</p>
+      <h2><div class="sec-num">1</div><span class="t-tr">Uygulamanın Tanımı ve Kapsamı</span><span class="t-en">Definition and Scope of the Application</span></h2>
+      <p class="t-tr">SAGI Finance, kişisel bütçe, harcama ve finansal hedef takibine yönelik bir Progresif Web Uygulamasıdır (PWA). Uygulama, kullanıcının girdiği verileri görselleştirir; hiçbir koşulda finansal, yatırım veya vergi tavsiyesi niteliği taşımaz.</p>
+      <p class="t-en">SAGI Finance is a Progressive Web Application (PWA) designed for personal budget, expense, and financial goal tracking. The Application visualises user-entered data and does not, under any circumstances, constitute financial, investment, or tax advice.</p>
     </div>
 
+    <!-- 2 -->
     <div class="section">
-      <h2><div class="sec-num">2</div><span class="t-tr">Ücretsiz Katman — Reklamlar</span><span class="t-en">Free Tier — Ads</span></h2>
-      <p class="t-tr">Ücretsiz katmanda her 15 ekran geçişinde bir reklam gösterilir. Reklamlar kolayca kapatılabilir. SAGI Plus satın alarak reklamları kalıcı olarak kaldırabilirsiniz.</p>
-      <p class="t-en">In the free tier, an ad is shown every 15 screen changes. Ads can be easily dismissed. By purchasing SAGI Plus you permanently remove ads.</p>
+      <h2><div class="sec-num">2</div><span class="t-tr">Ücretsiz Katman — Reklam Koşulları</span><span class="t-en">Free Tier — Advertising Terms</span></h2>
+      <p class="t-tr">Ücretsiz katmanda her 15 ekran geçişinde bir reklam gösterilir. Reklamlar kullanıcı tarafından kolayca kapatılabilir. Reklam içerikleri üçüncü taraf sağlayıcılar tarafından sunulabilir; bu içeriklerden SAGI Finance sorumlu tutulamaz.</p>
+      <p class="t-en">In the free tier, an advertisement is displayed every 15 screen transitions. Ads can be dismissed by the user. Ad content may be served by third-party providers; SAGI Finance bears no responsibility for such content.</p>
+      <p class="t-tr">SAGI Plus satın alarak reklamları kalıcı olarak devre dışı bırakabilirsiniz.</p>
+      <p class="t-en">Purchasing SAGI Plus permanently disables advertisements.</p>
     </div>
 
+    <!-- 3 -->
     <div class="section plus-section">
-      <h2><div class="sec-num">3</div><span class="t-tr">SAGI Plus — Satın Alma ve Erişim</span><span class="t-en">SAGI Plus — Purchase &amp; Access</span></h2>
-      <p class="t-tr">SAGI Plus, tek seferlik bir ödemeyle ömür boyu erişim sağlar. Satın alma tamamlandığında mevcut bulut sync anahtarınız özel bir <strong>PLUS-</strong> prefix'li anahtara dönüştürülür. Bu anahtar tüm cihazlarınızda Plus özelliklerini aktif eder.</p>
-      <p class="t-en">SAGI Plus provides lifetime access with a one-time payment. Upon purchase, your existing cloud sync key is converted to a special <strong>PLUS-</strong> prefixed key. This key activates Plus features across all your devices.</p>
+      <h2><div class="sec-num">3</div><span class="t-tr">SAGI Plus — Satın Alma ve Lisans</span><span class="t-en">SAGI Plus — Purchase &amp; License</span></h2>
+      <p class="t-tr">SAGI Plus, tek seferlik ödeme karşılığında ömür boyu bireysel kullanım lisansı verir. Ödeme tamamlandığında mevcut bulut sync anahtarınız özel bir <strong>PLUS-</strong> ön ekli anahtara dönüştürülür; bu anahtar tüm cihazlarınızda Plus özelliklerini etkinleştirir.</p>
+      <p class="t-en">SAGI Plus grants a lifetime individual-use license upon a one-time payment. Upon completion of payment, your existing cloud sync key is converted to a special <strong>PLUS-</strong> prefixed key, which activates Plus features across all your devices.</p>
       <ul>
-        <li class="t-tr">Plus anahtarınızı güvende tutun — anahtarın güvenliğinden siz sorumlusunuz</li>
-        <li class="t-en">Keep your Plus key safe — you are responsible for its security</li>
-        <li class="t-tr">Anahtarı başkalarıyla paylaşmak yasaktır</li>
-        <li class="t-en">Sharing the key with others is not permitted</li>
-        <li class="t-tr">Hesap silme (<em>Ayarlar → Bulut Senkronizasyonu → Hesabımı Sil</em>) geri alınamaz</li>
-        <li class="t-en">Account deletion (<em>Settings → Cloud Sync → Delete My Account</em>) is irreversible</li>
+        <li class="t-tr">Plus lisansı kişiye özeldir; devredilemez ve başkalarıyla paylaşılamaz</li>
+        <li class="t-en">The Plus license is personal, non-transferable, and may not be shared</li>
+        <li class="t-tr">Plus anahtarının güvenliğinden kullanıcı sorumludur</li>
+        <li class="t-en">The user is solely responsible for the security of the Plus key</li>
+        <li class="t-tr">Hesap silme (<em>Ayarlar → Bulut Senkronizasyonu → Hesabımı Sil</em>) işlemi geri alınamaz ve Plus lisansını sona erdirir</li>
+        <li class="t-en">Account deletion (<em>Settings → Cloud Sync → Delete My Account</em>) is irreversible and terminates the Plus license</li>
       </ul>
     </div>
 
+    <!-- 4 -->
     <div class="section plus-section">
       <h2><div class="sec-num">4</div><span class="t-tr">SAGI Plus — İade Politikası</span><span class="t-en">SAGI Plus — Refund Policy</span></h2>
-      <p class="t-tr">Plus fiyatı henüz açıklanmamıştır. İade koşulları satışın başlamasıyla birlikte bu sayfada yayımlanacaktır. Genel kural: ödeme tamamlandıktan sonra 14 gün içinde talepte bulunulabilir; ancak Plus anahtarı aktif olarak kullanılmışsa iade değerlendirmeye alınmayabilir.</p>
-      <p class="t-en">Plus pricing has not yet been announced. Refund terms will be published on this page when sales begin. General rule: a refund may be requested within 14 days of payment; however, if the Plus key has been actively used, the refund may not be granted.</p>
-    </div>
-
-    <div class="section">
-      <h2><div class="sec-num">5</div><span class="t-tr">Veri Sahipliği</span><span class="t-en">Data Ownership</span></h2>
-      <p class="t-tr">Uygulamaya girdiğiniz tüm veriler size aittir. SAGI Finance bu verilere herhangi bir hak talep etmez, satmaz ve üçüncü taraflarla paylaşmaz. Verilerinizi JSON veya CSV (Plus) formatında dışa aktarabilir ve dilediğinizde silebilirsiniz.</p>
-      <p class="t-en">All data you enter belongs to you. SAGI Finance makes no claim on that data, does not sell it, and does not share it with third parties. You can export your data as JSON or CSV (Plus) and delete it at any time.</p>
-    </div>
-
-    <div class="section">
-      <h2><div class="sec-num">6</div><span class="t-tr">AI Asistan Kullanımı</span><span class="t-en">AI Assistant Usage</span></h2>
-      <p class="t-tr">AI Asistan (SAGI Asistan), ücretsiz katmanda 4 günlük deneme; Plus katmanında sınırsız erişimle sunulur. Asistan, Cloudflare Workers üzerinden anonim finansal özetler göndererek yanıt üretir. Yanıtlar bilgilendirme amaçlıdır ve profesyonel finansal tavsiye niteliği taşımaz.</p>
-      <p class="t-en">The AI Assistant (SAGI Assistant) is available with a 4-day trial on the free tier and unlimited access on Plus. The assistant generates responses by sending anonymous financial summaries via Cloudflare Workers. Responses are informational and do not constitute professional financial advice.</p>
-    </div>
-
-    <div class="section">
-      <h2><div class="sec-num">7</div><span class="t-tr">Kabul Edilebilir Kullanım</span><span class="t-en">Acceptable Use</span></h2>
-      <p class="t-tr">Uygulamayı yalnızca yasal amaçlar ve kişisel kullanım için kullanmayı kabul edersiniz. Aşağıdakiler yasaktır:</p>
-      <p class="t-en">You agree to use the app only for lawful, personal purposes. The following are prohibited:</p>
+      <p class="t-tr">Plus fiyatlandırması henüz açıklanmamıştır; ayrıntılı iade koşulları satışın başlamasıyla birlikte bu sayfada yayımlanacaktır. Genel ilkeler şöyledir:</p>
+      <p class="t-en">Plus pricing has not yet been announced; detailed refund terms will be published on this page when sales commence. General principles are as follows:</p>
       <ul>
-        <li class="t-tr">Uygulama altyapısını bozmaya veya aşırı yüklemeye çalışmak</li>
-        <li class="t-en">Attempting to disrupt or overload app infrastructure</li>
-        <li class="t-tr">Yasadışı finansal faaliyetleri kaydetmek veya gizlemek için uygulamayı kullanmak</li>
-        <li class="t-en">Using the app to record or obscure illegal financial activity</li>
-        <li class="t-tr">Plus anahtarını başkalarıyla paylaşmak veya ticarileştirmek</li>
-        <li class="t-en">Sharing or commercialising the Plus key</li>
-        <li class="t-tr">Kaynak kodunu izin alınmadan ticari amaçla kullanmak</li>
-        <li class="t-en">Using the source code commercially without permission</li>
+        <li class="t-tr">Ödeme tarihinden itibaren 14 takvim günü içinde iade talebinde bulunulabilir</li>
+        <li class="t-en">Refund requests may be submitted within 14 calendar days of the payment date</li>
+        <li class="t-tr">Plus anahtarı aktif biçimde kullanılmışsa iade talebi değerlendirmeye alınmayabilir</li>
+        <li class="t-en">If the Plus key has been actively used, the refund request may not be approved</li>
+        <li class="t-tr">Google Play üzerinden yapılan satın almalara Google Play'in iade politikası uygulanır</li>
+        <li class="t-en">Purchases made through Google Play are subject to Google Play's refund policy</li>
       </ul>
     </div>
 
+    <!-- 5 -->
     <div class="section">
-      <h2><div class="sec-num">8</div><span class="t-tr">Sorumluluk Reddi</span><span class="t-en">Disclaimer of Liability</span></h2>
-      <p class="t-tr">SAGI Finance "olduğu gibi" sunulmaktadır. Finansal kayıp, veri kaybı veya herhangi bir zarardan dolayı hiçbir sorumluluk kabul edilmez. Döviz kurları gösterge niteliğindedir. AI Asistan yanıtları profesyonel tavsiye değildir.</p>
-      <p class="t-en">SAGI Finance is provided "as is." No liability is accepted for financial loss, data loss, or any damages. Exchange rates are indicative. AI Assistant responses are not professional advice.</p>
+      <h2><div class="sec-num">5</div><span class="t-tr">Veri Sahipliği ve Kullanım Hakları</span><span class="t-en">Data Ownership and Usage Rights</span></h2>
+      <p class="t-tr">Uygulamaya girdiğiniz tüm veriler münhasıran size aittir. SAGI Finance bu veriler üzerinde hiçbir hak talep etmez, söz konusu verileri satmaz ve üçüncü taraflarla paylaşmaz. Verilerinizi JSON (tüm kullanıcılar) veya CSV (Plus) formatında dışa aktarabilir ve dilediğiniz zaman kalıcı olarak silebilirsiniz.</p>
+      <p class="t-en">All data you enter into the Application belongs exclusively to you. SAGI Finance makes no claim over such data, does not sell it, and does not share it with third parties. You may export your data in JSON (all users) or CSV (Plus) format and permanently delete it at any time.</p>
     </div>
 
+    <!-- 6 -->
     <div class="section">
-      <h2><div class="sec-num">9</div><span class="t-tr">Şartlardaki Değişiklikler</span><span class="t-en">Changes to Terms</span></h2>
-      <p class="t-tr">Bu şartlar güncellenebilir. Güncel sürüm her zaman bu sayfada yayımlanır. Uygulamayı kullanmaya devam etmek, güncel şartları kabul ettiğiniz anlamına gelir.</p>
-      <p class="t-en">These terms may be updated. The current version is always published on this page. Continued use of the app constitutes acceptance of the updated terms.</p>
+      <h2><div class="sec-num">6</div><span class="t-tr">AI Asistan — Kullanım Koşulları ve Sınırlamalar</span><span class="t-en">AI Assistant — Terms of Use and Limitations</span></h2>
+      <p class="t-tr">AI Asistan (SAGI Asistan), ücretsiz katmanda 4 günlük deneme süresiyle, Plus katmanında ise sınırsız olarak sunulmaktadır. Asistan, Cloudflare Workers üzerinden anonim finansal özetler işleyerek yanıt üretir.</p>
+      <p class="t-en">The AI Assistant (SAGI Assistant) is available with a 4-day trial in the free tier and without limitation in the Plus tier. The Assistant generates responses by processing anonymous financial summaries via Cloudflare Workers.</p>
+      <ul>
+        <li class="t-tr">Asistan yanıtları bilgilendirme amaçlıdır; profesyonel finansal, yatırım veya hukuki tavsiye yerine geçmez</li>
+        <li class="t-en">Assistant responses are for informational purposes and do not substitute professional financial, investment, or legal advice</li>
+        <li class="t-tr">Asistana iletilen veriler anonimleştirilmiş toplu özetlerden ibarettir; kişisel tanımlayıcı bilgi aktarılmaz</li>
+        <li class="t-en">Data transmitted to the Assistant consists of anonymised aggregate summaries; no personal identifiers are sent</li>
+        <li class="t-tr">Asistan yanıtlarının doğruluğu ve güncelliği garanti edilmez</li>
+        <li class="t-en">The accuracy or currency of Assistant responses is not guaranteed</li>
+      </ul>
     </div>
 
+    <!-- 7 -->
     <div class="section">
-      <h2><div class="sec-num">10</div><span class="t-tr">Geçerli Hukuk</span><span class="t-en">Governing Law</span></h2>
-      <p class="t-tr">Bu şartlar Türkiye Cumhuriyeti yasaları kapsamında yorumlanır. Herhangi bir anlaşmazlıkta Türk mahkemeleri yetkilidir.</p>
-      <p class="t-en">These terms are governed by the laws of the Republic of Turkey. Turkish courts have jurisdiction in any dispute.</p>
+      <h2><div class="sec-num">7</div><span class="t-tr">Kabul Edilebilir Kullanım</span><span class="t-en">Acceptable Use</span></h2>
+      <p class="t-tr">Kullanıcı, Uygulamayı yalnızca hukuka uygun, kişisel amaçlarla kullanmayı kabul eder. Aşağıdaki eylemler kesinlikle yasaktır:</p>
+      <p class="t-en">The user agrees to use the Application only for lawful, personal purposes. The following actions are strictly prohibited:</p>
+      <ul>
+        <li class="t-tr">Uygulama altyapısını sekteye uğratmaya veya aşırı yüklemeye yönelik girişimler</li>
+        <li class="t-en">Any attempt to disrupt or overload the Application's infrastructure</li>
+        <li class="t-tr">Yasadışı finansal işlemleri kaydetmek veya gizlemek amacıyla Uygulamanın kullanılması</li>
+        <li class="t-en">Using the Application to record or conceal unlawful financial activity</li>
+        <li class="t-tr">Plus lisansının izinsiz olarak üçüncü şahıslarla paylaşılması, devredilmesi veya ticarileştirilmesi</li>
+        <li class="t-en">Sharing, transferring, or commercialising the Plus license without authorization</li>
+        <li class="t-tr">Kaynak kodunun yazılı izin alınmadan ticari amaçlarla kullanılması veya dağıtılması</li>
+        <li class="t-en">Using or distributing the source code for commercial purposes without prior written permission</li>
+      </ul>
+    </div>
+
+    <!-- 8 -->
+    <div class="section">
+      <h2><div class="sec-num">8</div><span class="t-tr">Sorumluluk Reddi ve Garanti Yok Beyanı</span><span class="t-en">Disclaimer of Warranties and Limitation of Liability</span></h2>
+      <p class="t-tr">SAGI Finance "olduğu gibi" (as-is) ve "mevcut haliyle" sunulmaktadır; açık veya zımni hiçbir garanti verilmemektedir. Uygulama geliştiricisi; finansal kayıp, veri kaybı, hizmet kesintisi veya Uygulamanın kullanımından ya da kullanılamamasından doğan doğrudan ya da dolaylı herhangi bir zarardan sorumlu tutulamaz.</p>
+      <p class="t-en">SAGI Finance is provided "as is" and "as available" without any express or implied warranties. The application developer shall not be liable for any direct or indirect damages arising from or relating to the use of, or inability to use, the Application, including but not limited to financial loss, data loss, or service interruption.</p>
+      <p class="t-tr" style="margin-top:10px">Döviz kurları yalnızca gösterge niteliğindedir. AI Asistan yanıtları profesyonel tavsiye değildir.</p>
+      <p class="t-en" style="margin-top:10px">Exchange rates are indicative only. AI Assistant responses do not constitute professional advice.</p>
+    </div>
+
+    <!-- 9 -->
+    <div class="section">
+      <h2><div class="sec-num">9</div><span class="t-tr">Koşullarda Değişiklik</span><span class="t-en">Amendments to Terms</span></h2>
+      <p class="t-tr">Bu koşullar önceden bildirim yapılmaksızın güncellenebilir. Önemli değişikliklerde uygulama içinde bildirim gösterilecektir. Güncel koşullar her zaman bu sayfada yayımlanır. Değişikliklerden sonra Uygulamayı kullanmaya devam etmek, güncel koşulları kabul ettiğiniz anlamına gelir.</p>
+      <p class="t-en">These terms may be updated without prior notice. For significant changes, an in-app notification will be displayed. The current version is always published on this page. Continued use of the Application following any amendment constitutes acceptance of the updated terms.</p>
+    </div>
+
+    <!-- 10 -->
+    <div class="section">
+      <h2><div class="sec-num">10</div><span class="t-tr">Uygulanacak Hukuk ve Yetki</span><span class="t-en">Governing Law and Jurisdiction</span></h2>
+      <p class="t-tr">Bu Kullanım Koşulları, Türkiye Cumhuriyeti yürürlükteki mevzuatına tabidir. İşbu koşullardan doğabilecek her türlü uyuşmazlıkta İzmir Mahkemeleri ve İcra Müdürlükleri münhasır yetkilidir.</p>
+      <p class="t-en">These Terms of Service are governed by and construed in accordance with the laws of the Republic of Turkey. The courts and enforcement offices of İzmir shall have exclusive jurisdiction over any dispute arising out of or in connection with these terms.</p>
     </div>
 
   </div>
@@ -209,27 +253,34 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <div class="footer-brand">
       <span class="footer-dot"></span>
       <strong>SAGI Finance</strong>
-      <span class="footer-version">v0.9.86</span>
+      <span class="footer-version">v0.9.9</span>
     </div>
     <nav class="footer-links">
-      <a href="./privacy.html" data-i18n-tr="Gizlilik" data-i18n-en="Privacy">Gizlilik</a>
-      <a href="./terms.html" data-i18n-tr="Kullanım Şartları" data-i18n-en="Terms">Kullanım Şartları</a>
-      <a href="./about.html" data-i18n-tr="Hakkımızda" data-i18n-en="About">Hakkımızda</a>
+      <a href="./privacy.html"><span class="t-tr">Gizlilik</span><span class="t-en">Privacy</span></a>
+      <a href="./terms.html"><span class="t-tr">Kullanım Şartları</span><span class="t-en">Terms</span></a>
+      <a href="./about.html"><span class="t-tr">Hakkımızda</span><span class="t-en">About</span></a>
       <a href="./faq.html">FAQ</a>
-      <a href="./contact.html" data-i18n-tr="İletişim" data-i18n-en="Contact">İletişim</a>
+      <a href="./contact.html"><span class="t-tr">İletişim</span><span class="t-en">Contact</span></a>
     </nav>
-    <div class="footer-copy">© 2026 · <span data-i18n-tr="Tüm hakları saklıdır" data-i18n-en="All rights reserved">Tüm hakları saklıdır</span></div>
+    <div class="footer-copy">© 2026 SAGI Finance · <span class="t-tr">Tüm hakları saklıdır</span><span class="t-en">All rights reserved</span></div>
   </div>
 </footer>
 
 <script>
 (function(){
-  const KEY='sagi_lang';
-  function applyLang(l){document.body.setAttribute('data-lang',l);localStorage.setItem(KEY,l);document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));document.documentElement.lang=l;}
+  'use strict';
+  var KEY='sagi_lang';
+  function applyLang(l){
+    document.documentElement.setAttribute('data-lang',l);
+    document.body.setAttribute('data-lang',l);
+    localStorage.setItem(KEY,l);
+    document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===l);});
+    document.documentElement.lang=l;
+  }
   window.setLang=applyLang;
-  const saved=localStorage.getItem(KEY);
-  if(saved==='tr'||saved==='en')applyLang(saved);
-  else{const bl=(navigator.language||'').toLowerCase();applyLang(bl.startsWith('en')&&!bl.startsWith('tr')?'en':'tr');}
+  var saved=localStorage.getItem(KEY);
+  if(saved==='tr'||saved==='en'){applyLang(saved);}
+  else{var bl=(navigator.language||'').toLowerCase();applyLang(bl.startsWith('en')?'en':'tr');}
 })();
 </script>
 </body>
