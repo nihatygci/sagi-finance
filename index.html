@@ -1852,6 +1852,13 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div id="settingsPlusContent"></div>
         </div>
 
+        <!-- ── SAGI ASİSTAN AYARLARI ── -->
+        <div class="settings-detail-panel" id="settingsDetail-assistant">
+          <div class="settings-detail-title">SAGI Asistan</div>
+          <div class="settings-detail-sub">AI asistan ayarları ve tercihleri</div>
+          <div class="settings-assistant-content"></div>
+        </div>
+
         <!-- ── KİŞİSELLEŞTİRME ── -->
         <div class="settings-detail-panel" id="settingsDetail-personalization">
           <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
@@ -2925,7 +2932,7 @@ window.Core = Core;
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
-    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus','legal'],
+    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus','assistant','legal'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
       let hash=window.location.hash.replace('#','')||'/dashboard';
