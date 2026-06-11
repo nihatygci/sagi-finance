@@ -1084,6 +1084,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -2119,6 +2120,22 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   </nav>
 </div>
 
+<!-- PDF DONEM SECIM MODAL -->
+<div class="modal-overlay" id="modalPDFPeriod" style="z-index:1100">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon"><svg><use href="#icon-file"/></svg></div>
+        <h3 class="modal-title" id="modalPDFTitle">PDF Raporu</h3>
+      </div>
+      <button class="act-btn" onclick="UI.Modals.close('modalPDFPeriod')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6" id="modalPDFDesc">Hangi dönemi indirmek istiyorsunuz?</p>
+      <div id="modalPDFPeriodList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
 <!-- MODALS -->
 <!-- BULUT BAĞLANTI MODAL — mevcut anahtarla giriş -->
 <div class="modal-overlay" id="modalCloudConnect">
