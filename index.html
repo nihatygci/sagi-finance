@@ -2059,13 +2059,19 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 </div>
                 <div class="font-bold" style="font-size:15px" data-i18n="backup">Yedek Al</div>
               </div>
-              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6" data-i18n-html="backupHintHtml">JSON — tüm veriler, geri yükleme için.<br>CSV — işlem geçmişi, Excel'de açılır.</div>
-              <div class="flex gap-2">
-                <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="App.Controllers.Settings.exportJSON()">
-                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg> JSON
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">JSON — tüm veriler, geri yükleme için. CSV &amp; PDF rapor — <span style="color:var(--brand-accent);font-weight:600">Plus</span>.</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Controllers.Settings.exportJSON()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg>
+                  JSON <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:4px">Ücretsiz</span>
                 </button>
-                <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="App.Controllers.Settings.exportCSV()">
-                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> CSV
+                <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Plus&&App.Plus.isPlusUser()?App.Controllers.Settings.exportCSVPlus():App.PlusOnboarding&&App.PlusOnboarding.show()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg>
+                  CSV <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
+                </button>
+                <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Plus&&App.Plus.isPlusUser()?App.Controllers.Settings.exportPDFPlus():App.PlusOnboarding&&App.PlusOnboarding.show()">
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-file"/></svg>
+                  PDF <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
                 </button>
               </div>
             </div>
