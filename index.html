@@ -1414,7 +1414,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
       <div class="css-grid grid-cols-2 mb-5 stagger-3">
         <div class="card" style="padding:0;padding-top:20px">
-          <div class="card-header px-6"><h2 class="card-title" data-i18n="recentTx">Son İşlemler</h2><a href="#/transactions" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
+          <div class="card-header px-6"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-list"/></svg><span data-i18n="recentTx">Son İşlemler</span></h2><a href="#/transactions" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
           <div id="dashRecentTxsList" style="display:flex;flex-direction:column"></div>
           <div id="dashRecentTxsMore" style="display:none;padding:10px 16px;border-top:1px solid var(--border-light)">
             <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Controllers.Dashboard._showMoreRecent()">
@@ -1424,7 +1424,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><h2 class="card-title color-warn"><svg class="nav-icon"><use href="#icon-bell"/></svg><span data-i18n="upcoming">Yaklaşan Ödemeler</span></h2></div>
+          <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-bell"/></svg><span data-i18n="upcoming">Yaklaşan Ödemeler</span></h2></div>
           <div id="dashCCAlerts"></div>
           <div id="dashUpcoming" class="flex flex-col gap-3"></div>
         </div>
@@ -6985,12 +6985,12 @@ const ALL_BNAV_ITEMS = [
 // QUICK ACTIONS — Hızlı İşlem Tanımları
 // ═══════════════════════════════════════
 const ALL_QUICK_ACTIONS = [
-  {id:'addTx',       label:'İşlem Ekle',     labelEn:'Add Transaction', icon:'icon-plus',      color:'var(--brand-accent-subtle)',  iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Transactions.openModal()},
-  {id:'addRecurring',label:'Abonelik Ekle',  labelEn:'Add Subscription',icon:'icon-repeat',    color:'rgba(34,160,107,.12)', iconColor:'var(--status-success)', action:()=>App.Controllers.Recurring.openModal()},
-  {id:'addGoal',     label:'Hedef Ekle',     labelEn:'Add Goal',        icon:'icon-target',    color:'rgba(217,119,6,.12)',  iconColor:'var(--status-warn)',    action:()=>App.Controllers.Goals.openModal()},
-  {id:'addDebt',     label:'Borç/Alacak',    labelEn:'Add Debt',        icon:'icon-briefcase', color:'rgba(229,83,75,.12)',  iconColor:'var(--status-danger)',  action:()=>App.Controllers.Debts.openModal()},
-  {id:'addWallet',   label:'Hesap Ekle',     labelEn:'Add Account',     icon:'icon-wallet',    color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)',   action:()=>App.Controllers.Wallets.openModal()},
-  {id:'transfer',    label:'Para Aktar',     labelEn:'Transfer',        icon:'icon-transfer',  color:'rgba(34,160,107,.12)', iconColor:'var(--status-success)', action:()=>App.Controllers.Transfer.openModal()},
+  {id:'addTx',       label:'İşlem Ekle',     labelEn:'Add Transaction', icon:'icon-plus',      color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)', action:()=>App.Controllers.Transactions.openModal()},
+  {id:'addRecurring',label:'Abonelik Ekle',  labelEn:'Add Subscription',icon:'icon-repeat',    color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)', action:()=>App.Controllers.Recurring.openModal()},
+  {id:'addGoal',     label:'Hedef Ekle',     labelEn:'Add Goal',        icon:'icon-target',    color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)', action:()=>App.Controllers.Goals.openModal()},
+  {id:'addDebt',     label:'Borç/Alacak',    labelEn:'Add Debt',        icon:'icon-briefcase', color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)', action:()=>App.Controllers.Debts.openModal()},
+  {id:'addWallet',   label:'Hesap Ekle',     labelEn:'Add Account',     icon:'icon-wallet',    color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)', action:()=>App.Controllers.Wallets.openModal()},
+  {id:'transfer',    label:'Para Aktar',     labelEn:'Transfer',        icon:'icon-transfer',  color:'var(--brand-accent-subtle)', iconColor:'var(--brand-accent)', action:()=>App.Controllers.Transfer.openModal()},
 ];
 
 App.Controllers.QuickActions = {
