@@ -2786,7 +2786,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="modal-title-icon"><svg><use href="#icon-wallet"/></svg></div>
         <div>
           <h3 class="modal-title" id="cardDetailName" style="font-size:18px" data-i18n="ccCardDetail">Kart Detayı</h3>
-          <div id="cardDetailSubtitle" style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px"></div>
         </div>
       </div>
       <button class="act-btn" onclick="UI.Modals.close('modalCardDetail')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
@@ -4932,8 +4931,7 @@ const App = {
         const isDueUrgent=daysUntilDue!==null&&daysUntilDue<=5&&ccDebt>0&&!paidThisMonth;
         // Header
         document.getElementById('cardDetailName').textContent=cc.name;
-        const sub=document.getElementById('cardDetailSubtitle');
-        if(sub)sub.textContent=cc.type+(cc.currency&&cc.currency!=='TRY'?' · '+cc.currency:'');
+
         // Hero
         const hero=document.getElementById('cardDetailHero');
         if(hero)hero.style.background=`linear-gradient(135deg,${cc.c1||'#1a1a2e'},${cc.c2||'#6366f1'})`;
