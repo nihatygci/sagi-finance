@@ -3144,12 +3144,11 @@ const UI = {
       const cur=document.getElementById(hiddenId)?.value||'';
       const body=document.getElementById('catPickerBody');
       if(!body)return;
-      body.innerHTML=CAT_GROUPS().map(g=>`<div class="cat-group-title">${g.g}</div>`+g.items.map(item=>`<div class="cat-list-item${item===cur?' selected':''}" onclick="UI.CatPicker.pick('${item.replace(/'/g,"\\'")}')"><span>${item}</span><div class="cat-check"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-check"/></svg></div></div>`).join('')).join('');
-      UI.Modals.open('modalCatPicker');
+      body.innerHTML=CAT_GROUPS().map(g=>`<div class="cat-group-title">${g.g}</div>`+g.items.map(item=>`<div class="cat-list-item${item===cur?' selected':''}\" onclick=\"UI.CatPicker.pick('${item.replace(/'/g,"\\'")}')\"><span>${window.catDisplay?window.catDisplay(item):item}</span><div class="cat-check"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-check"/></svg></div></div>`).join('')).join('');      UI.Modals.open('modalCatPicker');
     },
     pick(name){
       if(this._hiddenId)document.getElementById(this._hiddenId).value=name;
-      if(this._btnId){const btn=document.getElementById(this._btnId);if(btn){const lbl=btn.querySelector('.picker-btn-label');if(lbl)lbl.textContent=name;btn.classList.add('has-value');}}
+      if(this._btnId){const btn=document.getElementById(this._btnId);if(btn){const lbl=btn.querySelector('.picker-btn-label');if(lbl)lbl.textContent=window.catDisplay?window.catDisplay(name):name;btn.classList.add('has-value');}}
       UI.Modals.close('modalCatPicker');
     },
     close(){UI.Modals.close('modalCatPicker');}
@@ -3405,9 +3404,9 @@ const Notifications = {
     // 5. BÜYÜK HARCAMA — son 24 saatte ortalamanın 5 katı üzeri
     if(notifs.buyukHarcama){
       const yesterday=new Date(now.getTime()-24*3600*1000);
-      const recentTx=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&tx.cat!=='Birikim'&&new Date(tx.date)>=yesterday);
+      const recentTx=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&tx.cat!=='cat_transfer'&&tx.cat!=='Birikim'&&tx.cat!=='cat_savings'&&new Date(tx.date)>=yesterday);
       if(recentTx.length>0){
-        const amounts=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer').map(tx=>App.Money.toMain(tx));
+        const amounts=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&tx.cat!=='cat_transfer').map(tx=>App.Money.toMain(tx));
         if(amounts.length>5){
           const avg=amounts.reduce((a,b)=>a+b,0)/amounts.length;
           recentTx.forEach(tx=>{
@@ -3461,7 +3460,7 @@ const Notifications = {
     // 8. BÜTÇE kontrolü (check sırasında da)
     if(notifs.butce){
       const cats={};
-      Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now.getMonth()).forEach(tx=>cats[tx.cat]=(cats[tx.cat]||0)+App.Money.toMain(tx));
+      Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&tx.cat!=='cat_transfer'&&new Date(tx.date).getMonth()===now.getMonth()).forEach(tx=>cats[tx.cat]=(cats[tx.cat]||0)+App.Money.toMain(tx));
       Core.state.budgets.forEach(b=>{
         const spent=cats[b.cat]||0;
         const perc=(spent/b.amount)*100;
@@ -3469,13 +3468,13 @@ const Notifications = {
           const nk='sagi_nt_budg_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth()+'_'+Math.floor(perc/10);
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
-            this.sendNotif(t('notifTitleBudgetWarn'),t('notifBudgetWarnMsg',b.cat,Math.round(perc)),{action:'analytics',tag:'budg-'+b.id});
+            this.sendNotif(t('notifTitleBudgetWarn'),t('notifBudgetWarnMsg',window.catDisplay?window.catDisplay(b.cat):b.cat,Math.round(perc)),{action:'analytics',tag:'budg-'+b.id});
           }
         } else if(perc>=100){
           const nk='sagi_nt_budgover_'+b.id+'_'+now.getFullYear()+'_'+now.getMonth();
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
-            this.sendNotif(t('notifTitleBudgetOver'),t('notifBudgetOverMsg',b.cat,Math.round(perc)),{action:'analytics',tag:'budgover-'+b.id});
+            this.sendNotif(t('notifTitleBudgetOver'),t('notifBudgetOverMsg',window.catDisplay?window.catDisplay(b.cat):b.cat,Math.round(perc)),{action:'analytics',tag:'budgover-'+b.id});
           }
         }
       });
@@ -3788,6 +3787,7 @@ const App = {
     const loader=document.getElementById('appLoader'),lBar=document.getElementById('loaderBar');
     if(lBar)lBar.style.width='30%';
     Core.DB.load();
+    if(window.migrateCatKeys)setTimeout(window.migrateCatKeys,500);
     if(Core.state.settings&&Core.state.settings.lang)window.LANG=Core.state.settings.lang;
     if(Core.state.settings.theme)App.Controllers.Settings.applyTheme();
     setTimeout(()=>{
@@ -4119,7 +4119,7 @@ const App = {
     Dashboard:{
       generateInsights(){
         const now=new Date();
-        const mTx=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
+        const mTx=Core.state.transactions.filter(tx=>tx.type==='expense'&&tx.cat!=='Transfer'&&tx.cat!=='cat_transfer'&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
         let text=t('insightDefault');
         if(mTx.length>0){
           const cats={};mTx.forEach(tx=>cats[tx.cat]=(cats[tx.cat]||0)+App.Money.toMain(tx));
@@ -4351,7 +4351,7 @@ const App = {
           const wc=App.Money.walletCur(w.id);
           // s.amount mc cinsinden, direkt wc'ye çevir
           const txAmt=App.ExchangeRate.convert(s.amount,mc,wc);
-          const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmt,amountCurrency:wc,desc:t('subscriptionLabel',{name:s.name}),cat:s.cat||'Abonelik',wallet:w.id,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
+          const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmt,amountCurrency:wc,desc:t('subscriptionLabel',{name:s.name}),cat:window.catToKey?window.catToKey(s.cat||'cat_subscription'):(s.cat||'Abonelik'),wallet:w.id,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);
           App.Money.applyTx(tx);
         }
@@ -4451,7 +4451,7 @@ const App = {
             <div style="width:4px;height:36px;border-radius:2px;background:${color};flex-shrink:0"></div>
             <div class="dash-tx-row-left">
               <div class="dash-tx-row-title">${tx.desc || tx.cat}</div>
-              <div class="dash-tx-row-sub">${tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
+              <div class="dash-tx-row-sub">${window.catDisplay?window.catDisplay(tx.cat):tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
             </div>
             <div class="dash-tx-row-amount" style="color:${color}">${sign}${Core.Utils.formatMoney(tx.amount, txCur)}</div>
           </div>`;
@@ -4488,7 +4488,7 @@ const App = {
             <div style="width:4px;height:36px;border-radius:2px;background:${color};flex-shrink:0"></div>
             <div class="dash-tx-row-left">
               <div class="dash-tx-row-title">${tx.desc||tx.cat}</div>
-              <div class="dash-tx-row-sub">${tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
+              <div class="dash-tx-row-sub">${window.catDisplay?window.catDisplay(tx.cat):tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
             </div>
             <div class="dash-tx-row-amount" style="color:${color}">${sign}${Core.Utils.formatMoney(tx.amount,txCur)}</div>
           </div>`;
@@ -5127,9 +5127,9 @@ const App = {
         const ccCur=App.Money.walletCur(cardId);
         const fromCur=App.Money.walletCur(fromId);
         const fromAmount=App.ExchangeRate.convert(payAmt,ccCur,fromCur);
-        const outTx={id:Core.Utils.generateId(),type:'expense',amount:fromAmount,amountCurrency:fromCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'Transfer',wallet:fromId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
+        const outTx={id:Core.Utils.generateId(),type:'expense',amount:fromAmount,amountCurrency:fromCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'cat_transfer',wallet:fromId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
         Core.state.transactions.push(outTx);App.Money.applyTx(outTx);
-        const inTx={id:Core.Utils.generateId(),type:'income',amount:payAmt,amountCurrency:ccCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'Transfer',wallet:cardId,date:outTx.date,rateSnapshot:{...App.ExchangeRate.rates}};
+        const inTx={id:Core.Utils.generateId(),type:'income',amount:payAmt,amountCurrency:ccCur,desc:t('ccPaymentLabel',{name:cc.name}),cat:'cat_transfer',wallet:cardId,date:outTx.date,rateSnapshot:{...App.ExchangeRate.rates}};
         Core.state.transactions.push(inTx);App.Money.applyTx(inTx);
         // Bu ay ödendi olarak işaretle — yaklaşan ödemelerden düşer
         const now=new Date();
@@ -5292,7 +5292,7 @@ const App = {
         const dF=document.getElementById('filterTxDate')?.value||'all';
         const now=new Date();
         return Core.state.transactions.filter(x=>{
-          const mS=(x.desc||'').toLowerCase().includes(s)||(x.cat||'').toLowerCase().includes(s);
+          const mS=(x.desc||'').toLowerCase().includes(s)||(window.catDisplay?window.catDisplay(x.cat||''):x.cat||'').toLowerCase().includes(s);
           const mT=typ==='all'||x.type===typ;
           const mW=w==='all'||x.wallet===w;
           let mD=true;
@@ -5331,7 +5331,7 @@ const App = {
           const cbCol=sm?`<td style="padding-left:14px;width:36px"><input type="checkbox" class="tx-select-cb" data-id="${tx.id}" ${isSel?'checked':''} onclick="event.stopPropagation();App.Controllers.Transactions.toggleSelect('${tx.id}')"></td>`:'';
           const rowAttrs=sm?` data-tx-id="${tx.id}" onclick="App.Controllers.Transactions.toggleSelect('${tx.id}')" style="cursor:pointer;border-left:3px solid ${color}"`:` data-tx-id="${tx.id}" style="border-left:3px solid ${color}"`;
           const rowClass=isSel?' class="tx-row-selected"':'';
-          return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
+          return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${window.catDisplay?window.catDisplay(tx.cat):tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
         }).join('');
         // ── MOBİL KART LİSTESİ ──
         const ml=document.getElementById('txMobileList');
@@ -5399,7 +5399,7 @@ const App = {
         const titleEl=document.getElementById('txDetailTitle');
         if(titleEl)titleEl.textContent=tx.desc||tx.cat;
         if(amtEl){amtEl.textContent=sign+Core.Utils.formatMoney(tx.amount,txCurD);amtEl.style.color=color;}
-        if(subEl)subEl.textContent=typeLabel+' · '+tx.cat;
+        if(subEl)subEl.textContent=typeLabel+' · '+(window.catDisplay?window.catDisplay(tx.cat):tx.cat);
         if(rowsEl){
           const catColor=Core.Utils.getCatColor(tx.cat);
           rowsEl.innerHTML=`
@@ -5508,13 +5508,13 @@ const App = {
         const kr=document.getElementById('keepOpenRow');if(kr)kr.classList.remove('active');
         UI.Modals.open('modalTx');
       },
-      edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat||t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));UI.Modals.open('modalTx');},
+      edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat?(window.catDisplay?window.catDisplay(tx.cat):tx.cat):t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));UI.Modals.open('modalTx');},
       save(){
         const id=document.getElementById('tx_id').value;
         const type=document.getElementById('tx_type_val').value;
         const amount=parseFloat(document.getElementById('tx_amount').value);
         const wId=document.getElementById('tx_wallet').value;
-        const cat=document.getElementById('tx_cat_val').value||'Diğer';
+        const cat=window.catToKey?window.catToKey(document.getElementById('tx_cat_val').value||'cat_other'):(document.getElementById('tx_cat_val').value||'Diğer');
         const desc=document.getElementById('tx_desc').value.trim();
         const date=document.getElementById('tx_date').value;
         if(!amount||isNaN(amount)||amount<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
@@ -5534,7 +5534,7 @@ const App = {
           App.Money.applyTx(p);
         }
         Core.DB.saveNow();
-        if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif(t('notifTitleBudgetWarn'),t('notifBudgetWarnMsg',b.cat,Math.round(perc)),{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif(t('notifTitleBudgetOver'),t('notifBudgetOverMsg',b.cat,Math.round(perc)),{action:'analytics',tag:'budgover-tx-'+b.id});});}
+        if(Notifications.granted&&Core.state.settings.notifications?.butce){const now=new Date();const cats={};Core.state.transactions.filter(t=>t.type==='expense'&&t.cat!=='Transfer'&&new Date(t.date).getMonth()===now.getMonth()).forEach(t=>cats[t.cat]=(cats[t.cat]||0)+App.Money.toMain(t));Core.state.budgets.forEach(b=>{const spent=cats[b.cat]||0;const perc=(spent/b.amount)*100;if(perc>=80&&perc<100)Notifications.sendNotif(t('notifTitleBudgetWarn'),t('notifBudgetWarnMsg',window.catDisplay?window.catDisplay(b.cat):b.cat,Math.round(perc)),{action:'analytics',tag:'budg-tx-'+b.id+'-'+Math.floor(perc/10)});else if(perc>=100)Notifications.sendNotif(t('notifTitleBudgetOver'),t('notifBudgetOverMsg',window.catDisplay?window.catDisplay(b.cat):b.cat,Math.round(perc)),{action:'analytics',tag:'budgover-tx-'+b.id});});}
         App.Controllers.Dashboard.render();
         const keepOpen=document.getElementById('tx_keep_open').value==='1';
         if(keepOpen){const prevType=type;this.openModal();document.getElementById('tx_type_val').value=prevType;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===prevType));UI.Toasts.show(t('msgKeepGoing'));}
@@ -5612,7 +5612,7 @@ const App = {
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth() - (monthsBack - 1), 1);
         return Core.state.transactions.filter(tx => {
-          if(tx.cat === 'Transfer') return false;
+          if((tx.cat==='Transfer'||tx.cat==='cat_transfer')) return false;
           const d = new Date(tx.date);
           return d >= start;
         });
@@ -5629,7 +5629,7 @@ const App = {
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
           const label = d.toLocaleDateString(t('analyticsMonthLocale'), {month:'short'});
           const txs = Core.state.transactions.filter(tx => {
-            if(tx.cat === 'Transfer') return false;
+            if((tx.cat==='Transfer'||tx.cat==='cat_transfer')) return false;
             const td = new Date(tx.date);
             return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
           });
@@ -5792,7 +5792,7 @@ const App = {
       openCatModal(catName){
         const isIncome = this._donutType === 'income';
         const now=new Date();
-        const txs=Core.state.transactions.filter(tx=>tx.cat===catName&&tx.cat!=='Transfer'&&tx.type===(isIncome?'income':'expense')&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
+        const txs=Core.state.transactions.filter(tx=>tx.cat===catName&&tx.cat!=='Transfer'&&tx.cat!=='cat_transfer'&&tx.type===(isIncome?'income':'expense')&&new Date(tx.date).getMonth()===now.getMonth()&&new Date(tx.date).getFullYear()===now.getFullYear());
         const mainCur=Core.state.settings.currency||'TRY';
         const color=Core.Utils.getCatColor(catName);
         const total=txs.reduce((s,tx)=>s+App.Money.toMain(tx),0);
@@ -5850,7 +5850,7 @@ const App = {
       delete(id){UI.Confirm.show(t('confDelLimit'),()=>{Core.state.budgets=Core.state.budgets.filter(b=>b.id!==id);Core.DB.save();App.Controllers.Analytics.render();UI.Toasts.show(t('msgLimitRemoved'));});}
     },
     Recurring:{
-      _renderCatPills(){const wrap=document.getElementById('recCatPills');if(!wrap)return;const cur=document.getElementById('rec_cat_val')?.value||'';const cats=['Kira','Elektrik','Su','Doğalgaz','Telefon','İnternet','Fatura','Abonelik','Sigorta','Ulaşım','Eğitim'];wrap.innerHTML=cats.map(c=>`<div class="cat-pill${c===cur?' selected':''}" onclick="App.Controllers.Recurring._pickCat('${c}')">${c}</div>`).join('');},
+      _renderCatPills(){const wrap=document.getElementById('recCatPills');if(!wrap)return;const cur=document.getElementById('rec_cat_val')?.value||'';const cats=['cat_rent','cat_electricity','cat_water','cat_gas','cat_phone_bill','cat_internet','cat_bills','cat_subscription','cat_insurance','cat_public_transit','cat_courses'];wrap.innerHTML=cats.map(c=>`<div class="cat-pill${c===cur?' selected':''}" onclick="App.Controllers.Recurring._pickCat('${c}')">${window.catDisplay?window.catDisplay(c):c}</div>`).join('');},
       _pickCat(name){document.getElementById('rec_cat_val').value=name;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.toggle('selected',p.textContent===name));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=name;lbl.style.display='inline';}const ci=document.getElementById('rec_cat_custom');if(ci)ci.value='';},
       setCatCustom(val){document.getElementById('rec_cat_val').value=val;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.remove('selected'));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=val||'';lbl.style.display=val?'inline':'none';}},
       _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
@@ -5939,7 +5939,7 @@ const App = {
         const schedText=document.getElementById('recAutoPayScheduleText');
         if(schedText)schedText.innerHTML=L().ui.autoPaySchedule(dayVal);
       },
-      save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const rawAmount=parseFloat(document.getElementById('rec_amount').value);if(!rawAmount)return UI.Toasts.show(t('msgAmountReq'),'error');const recCurEl=document.getElementById('rec_currency');const recCur=recCurEl?recCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amount=App.ExchangeRate.convert(rawAmount,recCur,mc);const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';
+      save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const rawAmount=parseFloat(document.getElementById('rec_amount').value);if(!rawAmount)return UI.Toasts.show(t('msgAmountReq'),'error');const recCurEl=document.getElementById('rec_currency');const recCur=recCurEl?recCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amount=App.ExchangeRate.convert(rawAmount,recCur,mc);const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=window.catToKey?window.catToKey(cat||'cat_subscription'):(cat||'Abonelik');
         const recId=document.getElementById('rec_id').value;
         const autoPay=document.getElementById('rec_autopay')?.value==='1';
         const recObj={name,amount,originalAmount:rawAmount,currency:recCur,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1,autoPay};
@@ -6192,7 +6192,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const tType=dir==='borç'?'income':'expense';
             const tDesc=dir==='borç'?t('debtTaken',{name}):t('debtGiven',{name});
             const mc=App.Money.mainCur();
-            const txId=Core.Utils.generateId();const tx={id:txId,type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:p.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);p.linkedTxId=txId;
+            const txId=Core.Utils.generateId();const tx={id:txId,type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'cat_debt',wallet:wId,date:new Date().toISOString(),linkedDebtId:p.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);p.linkedTxId=txId;
           }
         }
         Core.DB.saveNow();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
@@ -6225,7 +6225,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const walletAmt=App.ExchangeRate.convert(a,txCur,wc);
             const tType=d.dir==='borç'?'expense':'income';
             const tDesc=d.dir==='borç'?t('debtPayment',{name:d.name}):t('debtCollection',{name:d.name});
-            const tx={id:Core.Utils.generateId(),type:tType,amount:walletAmt,amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:d.id,rateSnapshot:{...App.ExchangeRate.rates}};
+            const tx={id:Core.Utils.generateId(),type:tType,amount:walletAmt,amountCurrency:wc,desc:tDesc,cat:'cat_debt',wallet:wId,date:new Date().toISOString(),linkedDebtId:d.id,rateSnapshot:{...App.ExchangeRate.rates}};
             Core.state.transactions.push(tx);App.Money.applyTx(tx);d.linkedTxId=tx.id;
           }
         }
