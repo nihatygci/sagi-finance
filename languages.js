@@ -325,7 +325,7 @@ const LANGS = {
       dataMenuHint:'Yedek al, yükle, sıfırla',
       cloudConnectTitle:'Anahtarınızla Bağlan',
       cloudConnectDesc:'Başka cihazda oluşturduğunuz 16 haneli anahtarı girin. Mevcut yerel verileriniz silinir; bulutta kayıtlı veriler yüklenir.',
-      cloudInactive:'Bulut bağlı değil',
+      cloudInactive: 'Bulut bağlı değil',
 
       // Onboarding — anahtar adımı
       obKeyTitle:'Bulut Senkronizasyonu',
@@ -1109,6 +1109,8 @@ const LANGS = {
       cloudUpdatedFromCloud:'Updated from cloud ✓',
       cloudAlreadyUpToDate:'Already up to date ✓',
       cloudPushedToCloud:'Pushed to cloud ✓',
+      cloudInactive: 'Cloud not connected',
+      
 
       // ── Wallet dropdown fallback ──────────────────────────────────────
       noWalletOption:'No accounts',
