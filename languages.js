@@ -93,6 +93,8 @@ const LANGS = {
       walletNameLabel:'Hesap Adı', walletNamePh:'Örn: Akbank Vadesiz',
       balance:'Bakiye', accountType:'Hesap Türü',
       typeCash:'Nakit', typeBank:'Banka Hesabı', typeCredit:'Kredi Kartı', typeInvest:'Yatırım',
+      colorLabel1:'Renk 1', colorLabel2:'Renk 2',
+      bnavItemAdded:'Öğe eklendi.', bnavItemRemoved:'Öğe kaldırıldı.',
       walletCurLabel:'Hesap Para Birimi', walletCurHint:'(Opsiyonel — TL dışı hesaplar için)',
       cardColor:'Kart Rengi', custom:'Özel:',
       newWallet:'Yeni Hesap Ekle', editWallet:'Hesabı Düzenle',
@@ -354,6 +356,12 @@ const LANGS = {
 
       // Veri yönetimi
       restoreHintJson:'Sadece JSON yedek dosyaları desteklenir.',
+      backupHintPlus:'JSON — tüm veriler, geri yükleme için. CSV & PDF rapor — <span style="color:var(--brand-accent);font-weight:600">Plus</span>.',
+      restoreHintPlus:'JSON yedek dosyası veya <span style="color:var(--brand-accent);font-weight:600">SAGI Plus</span> ile dışa aktarılan CSV.',
+      selectJsonFile:'JSON Dosyası Seç',
+      selectCsvFile:'CSV Dosyası Seç',
+      confDeleteAccount:'Hesabınızı ve tüm verilerinizi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz. Firebase üzerindeki tüm hesap verileriniz ve cihazda kayıtlı yerel verileriniz tamamen silinecektir.',
+      accountDeleted:'Hesabınız silindi.',
 
       // Analiz sayfası — hardcoded
       forecastLabel:'Tahmini',
@@ -444,7 +452,6 @@ const LANGS = {
       // Veri yönetimi — eksik olanlar
       backupHintJson:'JSON — tüm veriler, geri yükleme için.',
       backupHintCsv:'CSV — işlem geçmişi, Excel\'de açılır.',
-      restoreHintJson:'Sadece JSON yedek dosyaları desteklenir.',
       deleteAccount:'Hesabı Sil',
 
       // Import modal
@@ -553,6 +560,9 @@ const LANGS = {
       fxDeductedFromGoal:'Hedeften düşülecek',
       fxRecipientWallet:'Karşı hesaba yatacak',
       fxRecordDeducted:'Kayıt tutarından düşülecek',
+      fxSameCurrency:'Aynı para birimi · Kur uygulanmadı',
+      fxRateApplied:'Kur otomatik uygulandı',
+      fxTxCurrencyAmount:'İşlem dövizinde tutar',
 
       // ── Kredi kartı ────────────────────────────────────────────────────
       ccDebtBadge:'Borç',
@@ -697,6 +707,8 @@ const LANGS = {
       walletNameLabel:'Account Name', walletNamePh:'e.g. Chase Checking',
       balance:'Balance', accountType:'Account Type',
       typeCash:'Cash', typeBank:'Bank Account', typeCredit:'Credit Card', typeInvest:'Investment',
+      colorLabel1:'Color 1', colorLabel2:'Color 2',
+      bnavItemAdded:'Item added.', bnavItemRemoved:'Item removed.',
       walletCurLabel:'Account Currency', walletCurHint:'(Optional — for non-default currencies)',
       cardColor:'Card Color', custom:'Custom:',
       newWallet:'New Account', editWallet:'Edit Account',
@@ -1014,6 +1026,9 @@ const LANGS = {
       fxDeductedFromGoal:'Deducted from goal',
       fxRecipientWallet:'Deposited to recipient account',
       fxRecordDeducted:'Deducted from record amount',
+      fxSameCurrency:'Same currency · No rate applied',
+      fxRateApplied:'Rate applied automatically',
+      fxTxCurrencyAmount:'Amount in transaction currency',
 
       // ── Credit card ───────────────────────────────────────────────────
       ccDebtBadge:'Debt',
@@ -1188,7 +1203,6 @@ const LANGS = {
       // Data management — missing
       backupHintJson:'JSON — full data, for restore.',
       backupHintCsv:'CSV — transaction history, opens in Excel.',
-      restoreHintJson:'Only JSON backup files are supported.',
       deleteAccount:'Delete Account',
 
       // Quick actions
@@ -1204,6 +1218,12 @@ const LANGS = {
 
       // Data management
       restoreHintJson:'Only JSON backup files are supported.',
+      backupHintPlus:'JSON — full data, for restore. CSV & PDF report — <span style="color:var(--brand-accent);font-weight:600">Plus</span>.',
+      restoreHintPlus:'JSON backup file or CSV exported with <span style="color:var(--brand-accent);font-weight:600">SAGI Plus</span>.',
+      selectJsonFile:'Select JSON File',
+      selectCsvFile:'Select CSV File',
+      confDeleteAccount:'Are you sure you want to permanently delete your account and all your data? This action cannot be undone. All your Firebase account data and locally stored data on this device will be completely removed.',
+      accountDeleted:'Your account has been deleted.',
 
       // Analytics page — hardcoded
       forecastLabel:'Forecast',

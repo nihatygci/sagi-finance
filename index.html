@@ -2062,12 +2062,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 </div>
                 <div class="font-bold" style="font-size:15px" data-i18n="backup">Yedek Al</div>
               </div>
-              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">JSON — tüm veriler, geri yükleme için. CSV &amp; PDF rapor — <span style="color:var(--brand-accent);font-weight:600">Plus</span>.</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6" data-i18n="backupHintPlus"></div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Controllers.Settings.exportJSON()">
-                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg>
-                  JSON <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:4px">Ücretsiz</span>
-                </button>
+                  <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg>JSON</button>
                 <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Plus&&App.Plus.isPlusUser()?App.Controllers.Settings.exportCSVPlus():App.PlusOnboarding&&App.PlusOnboarding.show()">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg>
                   CSV <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
@@ -2086,17 +2084,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 </div>
                 <div class="font-bold" style="font-size:15px" data-i18n="restore">Yedek Yükle</div>
               </div>
-              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">JSON yedek dosyası veya <span style="color:var(--brand-accent);font-weight:600">SAGI Plus</span> ile dışa aktarılan CSV.</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6" data-i18n="restoreHintPlus"></div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="App.Controllers.Settings.importData(event)">
                 <label for="importFile" class="btn btn-outline btn-sm cursor-pointer mb-0 w-full" style="justify-content:center">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-arrow-up"/></svg>
-                  JSON Dosyası Seç
+                  <span data-i18n="selectJsonFile">JSON Dosyası Seç</span>
                 </label>
                 <input type="file" id="importCSVFile" accept=".csv,text/csv" style="display:none" onchange="App.Controllers.Settings.importCSVData(event)">
                 <label for="importCSVFile" class="btn btn-outline btn-sm cursor-pointer mb-0 w-full" style="justify-content:center;position:relative" onclick="if(!(App.Plus&&App.Plus.isPlusUser())){event.preventDefault();App.PlusOnboarding&&App.PlusOnboarding.show();}">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg>
-                  CSV Dosyası Seç
+                  <span data-i18n="selectCsvFile">CSV Dosyası Seç</span>
                   <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
                 </label>
               </div>
@@ -2390,12 +2388,12 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <label class="form-label" data-i18n="cardColor">Kart Rengi</label>
           <div class="dual-color-picker">
             <div class="dual-color-item">
-              <span class="dual-color-label">Renk 1</span>
+              <span class="dual-color-label" data-i18n="colorLabel1">Renk 1</span>
               <input type="color" class="dual-color-input" id="wal_c1_custom" value="#111827"
                     oninput="App.Controllers.Wallets.updateColorPreview()">
             </div>
             <div class="dual-color-item">
-              <span class="dual-color-label">Renk 2</span>
+              <span class="dual-color-label" data-i18n="colorLabel2">Renk 2</span>
               <input type="color" class="dual-color-input" id="wal_c2_custom" value="#374151"
                     oninput="App.Controllers.Wallets.updateColorPreview()">
             </div>
@@ -3120,7 +3118,7 @@ const UI = {
     const drop=document.getElementById(dropId),btn=document.getElementById(btnId);
     drop.querySelectorAll('.custom-select-option').forEach(o=>o.classList.remove('selected'));
     el.classList.add('selected');
-    document.getElementById(labelId).textContent=el.dataset.value;
+    const i18nKey=el.dataset.i18n;document.getElementById(labelId).textContent=i18nKey&&typeof t==='function'?t(i18nKey):el.dataset.value;
     document.getElementById(hiddenId).value=el.dataset.value;
     drop.classList.remove('open');btn.classList.remove('open');
   },
@@ -3625,7 +3623,7 @@ const App = {
       let html='';
       if(txCur!==mc){
         html+=`<div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--text-muted)">İşlem dövizinde tutar (${txCur})</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t('fxTxCurrencyAmount')} (${txCur})</span>
           <span style="font-weight:800;font-family:var(--font-display);color:var(--text-secondary);font-size:15px">${Core.Utils.formatMoney(amtInTxCur,txCur)}</span>
         </div>`;
       }
@@ -6052,7 +6050,7 @@ const App = {
       },
       _updateAmountLabel(){
         const lbl=document.getElementById('trn_amount_label');
-        if(lbl)lbl.textContent='Tutar';
+        if(lbl)lbl.textContent=t('amount');
       },
       updatePreview(){
         this._updateAmountLabel();
@@ -6103,9 +6101,9 @@ const App = {
           if(txCur!==fCur)pairs.push('1 '+txCur+' = '+Core.Utils.formatMoney(App.ExchangeRate.convert(1,txCur,fCur),fCur));
           if(fCur!==tCur&&txCur!==tCur)pairs.push('1 '+fCur+' = '+Core.Utils.formatMoney(App.ExchangeRate.convert(1,fCur,tCur),tCur));
           else if(txCur!==tCur&&txCur===fCur)pairs.push('1 '+txCur+' = '+Core.Utils.formatMoney(App.ExchangeRate.convert(1,txCur,tCur),tCur));
-          rateInfo=pairs.join(' · ')+' · Kur otomatik uygulandı';
+          rateInfo=pairs.join(' · ')+' · '+t('fxRateApplied');
         }else{
-          rateInfo='Aynı para birimi · Kur uygulanmadı';
+          rateInfo=t('fxSameCurrency');
         }
         html+=`<div style="font-size:11px;color:var(--text-muted);margin-top:5px;font-weight:500">${rateInfo}</div>`;
         prev.innerHTML=html;
@@ -6620,9 +6618,9 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
 
       cloudDeleteAccount(){
-        UI.Confirm.show('Hesabınızı ve tüm verilerinizi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz. Firebase üzerindeki tüm hesap verileriniz ve cihazda kayıtlı yerel verileriniz tamamen silinecektir.', async ()=>{
+        UI.Confirm.show(t('confDeleteAccount'), async ()=>{
           await Core.Cloud.deleteAccount();
-          UI.Toasts.show('Hesabınız silindi.','success');
+          UI.Toasts.show(t('accountDeleted'),'success');
           setTimeout(()=>location.reload(), 800);
         });
       },
@@ -7121,14 +7119,14 @@ App.Controllers.QuickActions = {
     if(ids.includes(id))return;
     ids.push(id);
     this.setActive(ids);
-    UI.Toasts.show('Öğe eklendi.');
+    UI.Toasts.show(t('bnavItemAdded'));
   },
 
   removeItem(id){
     let ids = this.getActive().filter(x=>x!==id);
     if(!ids.length) ids=['addTx'];
     this.setActive(ids);
-    UI.Toasts.show('Öğe kaldırıldı.');
+    UI.Toasts.show(t('bnavItemRemoved'));
   },
 
   _dragSrcIdx:null, _dragOverIdx:null,
@@ -7360,14 +7358,14 @@ App.Controllers.BottomBar = {
     if(ids.includes(id))return;
     ids.push(id);
     this.setActive(ids);
-    UI.Toasts.show('Öğe eklendi.');
+    UI.Toasts.show(t('bnavItemAdded'));
   },
 
   removeItem(id){
     let ids = this.getActive().filter(x=>x!==id);
     if(ids.length===0)ids=['dashboard'];
     this.setActive(ids);
-    UI.Toasts.show('Öğe kaldırıldı.');
+    UI.Toasts.show(t('bnavItemRemoved'));
   },
 
   // ─── Desktop Drag & Drop ───
