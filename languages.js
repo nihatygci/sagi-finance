@@ -40,14 +40,14 @@ const LANGS = {
     appName: 'SAGI Finance',
     cats: {
       groups: [
-        { g: 'Günlük Harcamalar', items: ['cat_groceries','cat_food_delivery','cat_restaurant','cat_personal_care','cat_clothing','cat_home_goods','cat_electronics'] },
-        { g: 'Fatura & Kira',     items: ['cat_rent','cat_electricity','cat_water','cat_gas','cat_internet','cat_phone_bill','cat_hoa'] },
-        { g: 'Ulaşım',            items: ['cat_public_transit','cat_fuel','cat_parking','cat_vehicle_maintenance','cat_taxi'] },
-        { g: 'Sağlık',            items: ['cat_hospital','cat_pharmacy','cat_insurance','cat_fitness'] },
-        { g: 'Eğitim & Kültür',   items: ['cat_books','cat_courses','cat_cinema','cat_music','cat_gaming'] },
-        { g: 'Planlama',          items: ['cat_travel','cat_gift','cat_savings','cat_investment'] },
-        { g: 'Gelir',             items: ['cat_salary','cat_freelance','cat_rental_income','cat_interest','cat_bonus','cat_other_income'] },
-        { g: 'Diğer',             items: ['cat_transfer','cat_debt_received','cat_debt_given','cat_other'] },
+        { g: 'Günlük Harcamalar', items: ['Market','Yemek Siparişi','Restoran & Kafe','Kişisel Bakım','Giyim & Aksesuar','Ev Gereçleri','Elektronik'] },
+        { g: 'Fatura & Kira',     items: ['Kira','Elektrik','Su','Doğalgaz','İnternet','Telefon Faturası','Aidat'] },
+        { g: 'Ulaşım',            items: ['Toplu Taşıma','Yakıt','Otopark','Araç Bakım','Taksi & Servis'] },
+        { g: 'Sağlık',            items: ['Hastane & Klinik','Eczane','Sigorta','Spor & Fitness'] },
+        { g: 'Eğitim & Kültür',   items: ['Kitap & Kırtasiye','Kurs & Eğitim','Sinema & Tiyatro','Müzik & Yayın','Oyun'] },
+        { g: 'Planlama',          items: ['Tatil & Seyahat','Hediye','Birikim','Yatırım'] },
+        { g: 'Gelir',             items: ['Maaş','Serbest Meslek','Kira Geliri','Faiz & Temettü','İkramiye','Diğer Gelir'] },
+        { g: 'Diğer',             items: ['Transfer','Borç Alındı','Borç Verildi','Diğer'] },
       ]
     },
     ui: {
@@ -654,14 +654,14 @@ const LANGS = {
     appName: 'SAGI Finance',
     cats: {
       groups: [
-        { g: 'Daily Spending',     items: ['cat_groceries','cat_food_delivery','cat_restaurant','cat_personal_care','cat_clothing','cat_home_goods','cat_electronics'] },
-        { g: 'Bills & Rent',       items: ['cat_rent','cat_electricity','cat_water','cat_gas','cat_internet','cat_phone_bill','cat_hoa'] },
-        { g: 'Transportation',     items: ['cat_public_transit','cat_fuel','cat_parking','cat_vehicle_maintenance','cat_taxi'] },
-        { g: 'Health',             items: ['cat_hospital','cat_pharmacy','cat_insurance','cat_fitness'] },
-        { g: 'Education & Culture',items: ['cat_books','cat_courses','cat_cinema','cat_music','cat_gaming'] },
-        { g: 'Planning',           items: ['cat_travel','cat_gift','cat_savings','cat_investment'] },
-        { g: 'Income',             items: ['cat_salary','cat_freelance','cat_rental_income','cat_interest','cat_bonus','cat_other_income'] },
-        { g: 'Other',              items: ['cat_transfer','cat_debt_received','cat_debt_given','cat_other'] },
+        { g: 'Daily Spending',     items: ['Groceries','Food Delivery','Restaurant & Cafe','Personal Care','Clothing','Home Goods','Electronics'] },
+        { g: 'Bills & Rent',       items: ['Rent','Electricity','Water','Gas','Internet','Phone Bill','HOA Fees'] },
+        { g: 'Transportation',     items: ['Public Transit','Fuel','Parking','Vehicle Maintenance','Taxi & Ride Share'] },
+        { g: 'Health',             items: ['Hospital & Clinic','Pharmacy','Insurance','Sports & Fitness'] },
+        { g: 'Education & Culture',items: ['Books & Stationery','Courses','Cinema & Theater','Music & Streaming','Gaming'] },
+        { g: 'Planning',           items: ['Travel & Vacation','Gift','Savings','Investment'] },
+        { g: 'Income',             items: ['Salary','Freelance','Rental Income','Interest & Dividends','Bonus','Other Income'] },
+        { g: 'Other',              items: ['Transfer','Debt Received','Debt Given','Other'] },
       ]
     },
     ui: {
@@ -1286,122 +1286,6 @@ const L = () => LANGS[LANG] || LANGS.tr;
 // CATEGORIES & CAT_GROUPS yardımcıları (eski API uyumluluğu)
 const CATEGORIES = () => L().cats.groups.flatMap(g => g.items);
 const CAT_GROUPS = () => L().cats.groups;
-
-// Canonical cat key map — TR ve EN string → key
-const _CAT_KEY_MAP = {
-  // TR
-  'Market':'cat_groceries','Yemek Siparişi':'cat_food_delivery','Restoran & Kafe':'cat_restaurant',
-  'Kişisel Bakım':'cat_personal_care','Giyim & Aksesuar':'cat_clothing','Ev Gereçleri':'cat_home_goods','Elektronik':'cat_electronics',
-  'Kira':'cat_rent','Elektrik':'cat_electricity','Su':'cat_water','Doğalgaz':'cat_gas',
-  'İnternet':'cat_internet','Telefon Faturası':'cat_phone_bill','Aidat':'cat_hoa',
-  'Toplu Taşıma':'cat_public_transit','Yakıt':'cat_fuel','Otopark':'cat_parking',
-  'Araç Bakım':'cat_vehicle_maintenance','Taksi & Servis':'cat_taxi',
-  'Hastane & Klinik':'cat_hospital','Eczane':'cat_pharmacy','Sigorta':'cat_insurance','Spor & Fitness':'cat_fitness',
-  'Kitap & Kırtasiye':'cat_books','Kurs & Eğitim':'cat_courses','Sinema & Tiyatro':'cat_cinema',
-  'Müzik & Yayın':'cat_music','Oyun':'cat_gaming',
-  'Tatil & Seyahat':'cat_travel','Hediye':'cat_gift','Birikim':'cat_savings','Yatırım':'cat_investment',
-  'Maaş':'cat_salary','Serbest Meslek':'cat_freelance','Kira Geliri':'cat_rental_income',
-  'Faiz & Temettü':'cat_interest','İkramiye':'cat_bonus','Diğer Gelir':'cat_other_income',
-  'Transfer':'cat_transfer','Borç Alındı':'cat_debt_received','Borç Verildi':'cat_debt_given','Diğer':'cat_other','Borç/Alacak':'cat_debt',
-  // Recurring pill cats (TR)
-  'Fatura':'cat_bills','Abonelik':'cat_subscription',
-  // EN
-  'Groceries':'cat_groceries','Food Delivery':'cat_food_delivery','Restaurant & Cafe':'cat_restaurant',
-  'Personal Care':'cat_personal_care','Clothing':'cat_clothing','Home Goods':'cat_home_goods','Electronics':'cat_electronics',
-  'Rent':'cat_rent','Electricity':'cat_electricity','Water':'cat_water','Gas':'cat_gas',
-  'Internet':'cat_internet','Phone Bill':'cat_phone_bill','HOA Fees':'cat_hoa',
-  'Public Transit':'cat_public_transit','Fuel':'cat_fuel','Parking':'cat_parking',
-  'Vehicle Maintenance':'cat_vehicle_maintenance','Taxi & Ride Share':'cat_taxi',
-  'Hospital & Clinic':'cat_hospital','Pharmacy':'cat_pharmacy','Insurance':'cat_insurance','Sports & Fitness':'cat_fitness',
-  'Books & Stationery':'cat_books','Courses':'cat_courses','Cinema & Theater':'cat_cinema',
-  'Music & Streaming':'cat_music','Gaming':'cat_gaming',
-  'Travel & Vacation':'cat_travel','Gift':'cat_gift','Savings':'cat_savings','Investment':'cat_investment',
-  'Salary':'cat_salary','Freelance':'cat_freelance','Rental Income':'cat_rental_income',
-  'Interest & Dividends':'cat_interest','Bonus':'cat_bonus','Other Income':'cat_other_income',
-  'Transfer':'cat_transfer','Debt Received':'cat_debt_received','Debt Given':'cat_debt_given','Other':'cat_other',
-  'Bills':'cat_bills','Subscription':'cat_subscription',
-};
-
-// Key → aktif dildeki görünen isim
-const _CAT_DISPLAY_MAP = {
-  cat_groceries:         {tr:'Market',                en:'Groceries'},
-  cat_food_delivery:     {tr:'Yemek Siparişi',        en:'Food Delivery'},
-  cat_restaurant:        {tr:'Restoran & Kafe',        en:'Restaurant & Cafe'},
-  cat_personal_care:     {tr:'Kişisel Bakım',          en:'Personal Care'},
-  cat_clothing:          {tr:'Giyim & Aksesuar',       en:'Clothing'},
-  cat_home_goods:        {tr:'Ev Gereçleri',           en:'Home Goods'},
-  cat_electronics:       {tr:'Elektronik',             en:'Electronics'},
-  cat_rent:              {tr:'Kira',                   en:'Rent'},
-  cat_electricity:       {tr:'Elektrik',               en:'Electricity'},
-  cat_water:             {tr:'Su',                     en:'Water'},
-  cat_gas:               {tr:'Doğalgaz',               en:'Gas'},
-  cat_internet:          {tr:'İnternet',               en:'Internet'},
-  cat_phone_bill:        {tr:'Telefon Faturası',       en:'Phone Bill'},
-  cat_hoa:               {tr:'Aidat',                  en:'HOA Fees'},
-  cat_public_transit:    {tr:'Toplu Taşıma',           en:'Public Transit'},
-  cat_fuel:              {tr:'Yakıt',                  en:'Fuel'},
-  cat_parking:           {tr:'Otopark',                en:'Parking'},
-  cat_vehicle_maintenance:{tr:'Araç Bakım',            en:'Vehicle Maintenance'},
-  cat_taxi:              {tr:'Taksi & Servis',         en:'Taxi & Ride Share'},
-  cat_hospital:          {tr:'Hastane & Klinik',       en:'Hospital & Clinic'},
-  cat_pharmacy:          {tr:'Eczane',                 en:'Pharmacy'},
-  cat_insurance:         {tr:'Sigorta',                en:'Insurance'},
-  cat_fitness:           {tr:'Spor & Fitness',         en:'Sports & Fitness'},
-  cat_books:             {tr:'Kitap & Kırtasiye',      en:'Books & Stationery'},
-  cat_courses:           {tr:'Kurs & Eğitim',          en:'Courses'},
-  cat_cinema:            {tr:'Sinema & Tiyatro',       en:'Cinema & Theater'},
-  cat_music:             {tr:'Müzik & Yayın',          en:'Music & Streaming'},
-  cat_gaming:            {tr:'Oyun',                   en:'Gaming'},
-  cat_travel:            {tr:'Tatil & Seyahat',        en:'Travel & Vacation'},
-  cat_gift:              {tr:'Hediye',                 en:'Gift'},
-  cat_savings:           {tr:'Birikim',                en:'Savings'},
-  cat_investment:        {tr:'Yatırım',                en:'Investment'},
-  cat_salary:            {tr:'Maaş',                   en:'Salary'},
-  cat_freelance:         {tr:'Serbest Meslek',         en:'Freelance'},
-  cat_rental_income:     {tr:'Kira Geliri',            en:'Rental Income'},
-  cat_interest:          {tr:'Faiz & Temettü',         en:'Interest & Dividends'},
-  cat_bonus:             {tr:'İkramiye',               en:'Bonus'},
-  cat_other_income:      {tr:'Diğer Gelir',            en:'Other Income'},
-  cat_transfer:          {tr:'Transfer',               en:'Transfer'},
-  cat_debt_received:     {tr:'Borç Alındı',            en:'Debt Received'},
-  cat_debt_given:        {tr:'Borç Verildi',           en:'Debt Given'},
-  cat_other:             {tr:'Diğer',                  en:'Other'},
-  cat_debt:              {tr:'Borç/Alacak',             en:'Debt/Credit'},
-  cat_bills:             {tr:'Fatura',                 en:'Bills'},
-  cat_subscription:      {tr:'Abonelik',               en:'Subscription'},
-};
-
-// String → canonical key (bilinmiyorsa olduğu gibi döner)
-window.catToKey = (str) => _CAT_KEY_MAP[str] || str;
-
-// Key → aktif dilde görünen isim (key değilse olduğu gibi döner)
-window.catDisplay = (keyOrStr) => {
-  const lang = window.LANG === 'en' ? 'en' : 'tr';
-  if (_CAT_DISPLAY_MAP[keyOrStr]) return _CAT_DISPLAY_MAP[keyOrStr][lang];
-  // Eski string ise key'e çevirip tekrar dene
-  const key = _CAT_KEY_MAP[keyOrStr];
-  if (key && _CAT_DISPLAY_MAP[key]) return _CAT_DISPLAY_MAP[key][lang];
-  return keyOrStr; // bilinmeyen → olduğu gibi
-};
-
-// Migration: mevcut tüm string cat'leri key'e dönüştür
-window.migrateCatKeys = () => {
-  let changed = 0;
-  (Core.state.transactions || []).forEach(tx => {
-    const key = _CAT_KEY_MAP[tx.cat];
-    if (key) { tx.cat = key; changed++; }
-  });
-  (Core.state.recurring || []).forEach(r => {
-    const key = _CAT_KEY_MAP[r.cat];
-    if (key) { r.cat = key; changed++; }
-  });
-  (Core.state.budgets || []).forEach(b => {
-    const key = _CAT_KEY_MAP[b.cat];
-    if (key) { b.cat = key; changed++; }
-  });
-  if (changed > 0) Core.DB.save();
-  return changed;
-};
 
 // ─────────────────────────────────────────────────────────────────────
 // t(key, vars) — anahtardan çeviri çekme + {placeholder} ikamesi
