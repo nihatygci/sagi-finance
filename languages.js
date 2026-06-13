@@ -312,7 +312,7 @@ const LANGS = {
       confDelLimit:'Bu bütçe limiti kaldırılsın mı?',
       confFactory:'TÜM VERİLER SİLİNECEK! Bu işlem geri alınamaz. Devam etmek istiyor musunuz?',
       confNotifPerm:'SAGI Finance size abonelik, borç vadeleri ve bütçe uyarıları için bildirim gönderebilir. İzin vermek ister misiniz?',
-      confCloudCreate:'Mevcut yerel verileriniz buluta yüklenecek ve senkronizasyon başlayacak. Devam etmek istiyor musunuz?',
+      confCloudCreate:'Mevcut yerel verileriniz anonim bir anahtarla Firebase\'e yüklenecek ve senkronizasyon başlayacak.\n\n⚠️ Anahtarınızı kaydedin — kaybederseniz bulut verilerinize bir daha erişemezsiniz.\n\nGizlilik Politikamızda belirttiğimiz üzere kimlik bilgisi toplanmaz. Devam etmek istiyor musunuz?',
       confCloudSignOut:'Bu cihazdan bulut bağlantısı kesilecek. Verileriniz bu cihazda kalmaya devam eder. Devam?',
 
       // Ayarlar menü ipuçları
@@ -482,7 +482,7 @@ const LANGS = {
       cloudStatusError:'Bağlantı hatası',
       cloudStatusOffline:'Çevrim dışı',
       cloudSyncing:'Senkronizasyon başlatıldı.',
-      cloudCreated:'Hesap oluşturuldu! Anahtarınız: {key}',
+      cloudCreated:'Hesap oluşturuldu! Anahtarınız: {key} — Lütfen kaydedin, bir daha gösterilmeyecek.',
       cloudCreateFail:'Hesap oluşturulamadı. Lütfen tekrar deneyin.',
       cloudInitFail:'Bulut servisi kullanılamıyor.',
       cloudLoginOk:'Giriş başarılı, veriler senkronize edildi.',
@@ -648,11 +648,9 @@ const LANGS = {
       noWalletOption:'Hesap yok',
 
       // ── Yasal onay (onboarding) ───────────────────────────────────────
-      obConsentText:'Devam ederek',
       obConsentTerms:'Kullanım Şartları',
-      obConsentAnd:'ve',
       obConsentPrivacy:'Gizlilik Politikası',
-      obConsentSuffix:'kabul etmiş olursunuz.',
+      obConsentCheckbox:'\'nı ve \'nı okudum ve kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.',
     }
   },
 
@@ -933,7 +931,7 @@ const LANGS = {
       confDelLimit:'Remove this budget limit?',
       confFactory:'ALL DATA WILL BE DELETED! This cannot be undone. Continue?',
       confNotifPerm:'SAGI Finance can send reminders for subscriptions, debt deadlines, and budget alerts. Allow notifications?',
-      confCloudCreate:'Your local data will be uploaded to the cloud and sync will begin. Continue?',
+      confCloudCreate:'Your local data will be uploaded to Firebase under an anonymous key and sync will begin.\n\n⚠️ Save your key — if you lose it, you will not be able to access your cloud data again.\n\nAs stated in our Privacy Policy, no identity information is collected. Continue?',
       confCloudSignOut:'Cloud connection will be disconnected on this device. Your data will remain here. Continue?',
 
       // Cloud sync
@@ -955,7 +953,7 @@ const LANGS = {
       cloudStatusError:'Connection error',
       cloudStatusOffline:'Offline',
       cloudSyncing:'Sync started.',
-      cloudCreated:'Account created! Your key: {key}',
+      cloudCreated:'Account created! Your key: {key} — Save it now, it won\'t be shown again.',
       cloudCreateFail:'Could not create account. Please try again.',
       cloudInitFail:'Cloud service unavailable.',
       cloudLoginOk:'Login successful, data synced.',
@@ -1271,11 +1269,9 @@ const LANGS = {
       importActionBtn:'Load',
 
       // ── Legal consent (onboarding) ────────────────────────────────────
-      obConsentText:'By continuing you agree to the',
       obConsentTerms:'Terms of Service',
-      obConsentAnd:'and',
       obConsentPrivacy:'Privacy Policy',
-      obConsentSuffix:'.',
+      obConsentCheckbox:'I have read and accept the Terms of Service and Privacy Policy. I confirm I am at least 18 years old.',
     }
   }
 };

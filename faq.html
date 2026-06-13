@@ -451,6 +451,28 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       </div>
     </div>
 
+    <div class="faq-item plus-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">SAGI Plus ne kadar? Hangi planlar var?</span>
+        <span class="faq-q-text t-en">How much does SAGI Plus cost? What plans are available?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">SAGI Plus üç planla sunulmaktadır:</p>
+        <p class="t-en">SAGI Plus is available in three plans:</p>
+        <ul>
+          <li class="t-tr"><strong>Aylık — $4,99/ay:</strong> İstediğiniz zaman iptal edebilirsiniz.</li>
+          <li class="t-en"><strong>Monthly — $4.99/mo:</strong> Cancel anytime.</li>
+          <li class="t-tr"><strong>Yıllık — $39,99/yıl:</strong> Aylık plana göre %33 tasarruf. İstediğiniz zaman iptal edebilirsiniz.</li>
+          <li class="t-en"><strong>Yearly — $39.99/yr:</strong> 33% savings vs monthly. Cancel anytime.</li>
+          <li class="t-tr"><strong>Ömür Boyu — $99,99 (tek seferlik):</strong> Bir kez öde, sonsuza kadar kullan.</li>
+          <li class="t-en"><strong>Lifetime — $99.99 (one-time):</strong> Pay once, use forever.</li>
+        </ul>
+        <p class="t-tr" style="margin-top:8px">Fiyatlar bölgeye göre değişebilir. Satın alma Google Play üzerinden yapılır. İade koşulları için <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent)">Kullanım Şartları</a>'nı inceleyiniz.</p>
+        <p class="t-en" style="margin-top:8px">Prices may vary by region. Purchases are processed via Google Play. See <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent)">Terms of Service</a> for refund details.</p>
+      </div>
+    </div>
+
   </div><!-- /plus -->
 
   <!-- ═══ GİZLİLİK ═══ -->
@@ -492,6 +514,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       </div>
     </div>
 
+
     <div class="faq-item">
       <button class="faq-q" onclick="toggleFaq(this)">
         <span class="faq-q-text t-tr">Tarayıcı verilerimi temizlersem ne olur?</span>
@@ -501,6 +524,30 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       <div class="faq-a">
         <p class="t-tr">localStorage temizlemek uygulama verilerinizi siler. Bulut sync kullanıyorsanız anahtarınızı girerek verileri geri yükleyebilirsiniz. Kullanmıyorsanız <em>Ayarlar → Veri Yönetimi → Dışa Aktar</em> ile düzenli JSON yedek almanızı öneririz.</p>
         <p class="t-en">Clearing localStorage removes your app data. If you use cloud sync, you can restore data by entering your key. Otherwise we recommend regular JSON backups via <em>Settings → Data Management → Export</em>.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Kullanım Şartları ve Gizlilik Politikası'nı ne zaman kabul etmiş sayılırım?</span>
+        <span class="faq-q-text t-en">When am I considered to have accepted the Terms and Privacy Policy?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Uygulamayı ilk açtığınızda karşılama ekranını tamamlayıp "SAGI'yı Aç" butonuna bastığınızda geçerli Kullanım Şartları ve Gizlilik Politikası'nı kabul etmiş olursunuz. Bu kabul tarihi ve politika sürümü cihazınızda kaydedilir; Bulut Senkronizasyonu etkinse Firestore'a da yazılır. Politika önemli ölçüde güncellendiğinde uygulama içinde bildirim gösterilir.</p>
+        <p class="t-en">When you first open the app and complete the onboarding screen by tapping "Open SAGI", you are considered to have accepted the current Terms of Service and Privacy Policy. The acceptance date and policy version are stored on your device and, if Cloud Sync is enabled, in Firestore. An in-app notification is shown when the policy is significantly updated.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text t-tr">Verilerimin silinmesini nasıl talep edebilirim?</span>
+        <span class="faq-q-text t-en">How can I request deletion of my data?</span>
+        <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </button>
+      <div class="faq-a">
+        <p class="t-tr">Yerel veriler: <em>Ayarlar → Veri Yönetimi → Tüm Verileri Sil</em>. Firestore bulut verisi: <em>Ayarlar → Bulut Senkronizasyonu → Hesabımı Sil</em> — Firestore dokümanını kalıcı olarak siler. Yazılı silme talebi için GitHub üzerinden iletişime geçebilirsiniz; talepler en geç 30 gün içinde işleme alınır.</p>
+        <p class="t-en">Local data: <em>Settings → Data Management → Delete All Data</em>. Firestore cloud data: <em>Settings → Cloud Sync → Delete My Account</em> — permanently deletes your Firestore document. For a written deletion request, contact us via GitHub; requests are processed within 30 days.</p>
       </div>
     </div>
 
@@ -528,8 +575,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr"><em>Ayarlar → Bulut Senkronizasyonu</em>'ndan etkinleştirilir. İlk kullanımda 16 haneli anonim bir anahtar oluşturulur. Bu anahtarı farklı cihazlara girerek verilerinizi senkronize edebilirsiniz. Anahtarınızı güvende tutun — kaybedilirse bulut veriye erişim güçleşebilir.</p>
-        <p class="t-en">Enabled from <em>Settings → Cloud Sync</em>. On first use, a 16-digit anonymous key is generated. Enter this key on other devices to sync your data. Keep your key safe — losing it may make cloud data access difficult.</p>
+        <p class="t-tr"><em>Ayarlar → Bulut Senkronizasyonu</em>'ndan etkinleştirilir. İlk kullanımda 16 haneli anonim bir anahtar oluşturulur. Bu anahtarı farklı cihazlara girerek verilerinizi senkronize edebilirsiniz. Anahtarınızı güvenli bir yere not edin — uygulamayı kaldırırsanız veya tarayıcı verisini silerseniz yerel kopyanız silinir, ancak Firestore'daki veriye aynı anahtarla yeniden bağlanabilirsiniz.</p>
+        <p class="t-en">Enabled from <em>Settings → Cloud Sync</em>. On first use, a 16-digit anonymous key is generated. Enter this key on other devices to sync your data. Keep your key stored somewhere safe — if you uninstall the app or clear browser data, your local copy is removed, but you can reconnect to your Firestore data by re-entering the same key.</p>
       </div>
     </div>
 

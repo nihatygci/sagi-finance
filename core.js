@@ -28,6 +28,7 @@
       consentDate: null,
       consentVersion: null,
       consentLang: null,
+      consentMethod: null,  // 'checkbox' — onay yöntemi kanıtı
     },
     wallets: [],
     transactions: [],

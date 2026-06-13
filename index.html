@@ -1139,6 +1139,18 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="font-bold" data-i18n="obKeyInfoTitle">Cihazlar arası eşleşme</div>
         <div style="font-size:13px;color:var(--text-muted);line-height:1.5" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
       </div>
+      <!-- Anahtar kaybı uyarısı + gizlilik notu -->
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;min-width:16px;stroke:#d97706;fill:none;stroke-width:2;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
+          <span class="t-tr"><strong>Anahtarı kaydetmeyi unutmayın.</strong> Anahtarınızı kaybederseniz bulut verilerinize bir daha erişemezsiniz. Ekran görüntüsü alın veya güvenli bir yere not edin.</span>
+          <span class="t-en"><strong>Don't forget to save your key.</strong> If you lose it, you will not be able to access your cloud data again. Take a screenshot or write it down somewhere safe.</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:10px;line-height:1.6">
+        <span class="t-tr"><a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600">Gizlilik Politikamızda</a> belirttiğimiz üzere verileriniz yalnızca anonim anahtarınızla Firebase'de saklanır; kimlik bilgisi toplanmaz.</span>
+        <span class="t-en">As stated in our <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600">Privacy Policy</a>, your data is stored in Firebase under your anonymous key only — no identity is collected.</span>
+      </div>
       <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" id="ob_btn_create" data-i18n="obKeyCreateBtn" onclick="App.Controllers.Onboarding.createNewAccount()">Anahtar Oluştur</button>
       <div id="ob_create_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px;text-align:center"></div>
     </div>
@@ -1216,15 +1228,23 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <button type="button" class="tx-type-btn" id="ob_lang_en" onclick="App.Controllers.Onboarding.setLang('en',this)">English</button>
       </div>
     </div>
-    <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()">SAGI'yı Aç</button>
-    <!-- Yasal onay bildirimi — "Devam ederek Kullanım Şartları ve Gizlilik Politikası'nı kabul etmiş olursunuz." -->
-    <p id="ob_consent_notice" style="margin-top:14px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.6">
-      <span data-i18n="obConsentText">Devam ederek</span>
-      <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentTerms">Kullanım Şartları</a>
-      <span data-i18n="obConsentAnd">ve</span>
-      <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentPrivacy">Gizlilik Politikası</a>&#8217;nı
-      <span data-i18n="obConsentSuffix">kabul etmiş olursunuz.</span>
-    </p>
+    <!-- Zorunlu onay checkbox — işaretlenmeden buton aktif olmaz -->
+    <div id="ob_consent_box" style="margin-top:16px;background:var(--surface-alt,rgba(0,0,0,0.04));border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;">
+        <input type="checkbox" id="ob_consent_chk"
+          style="width:18px;height:18px;min-width:18px;margin-top:2px;accent-color:var(--brand-accent,#6257f0);cursor:pointer;"
+          onchange="App.Controllers.Onboarding.onConsentChange(this.checked)">
+        <span style="font-size:13px;color:var(--text-muted);line-height:1.6">
+          <span data-i18n="obConsentCheckbox">
+            <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent,#6257f0);font-weight:700;" data-i18n="obConsentTerms">Kullanım Şartları</a>&#8217;nı ve
+            <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent,#6257f0);font-weight:700;" data-i18n="obConsentPrivacy">Gizlilik Politikası</a>&#8217;nı okudum ve kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.
+          </span>
+        </span>
+      </label>
+    </div>
+    <button id="ob_finish_btn" class="btn btn-primary w-full" style="padding:16px;font-size:16px;margin-top:12px;opacity:0.45;cursor:not-allowed;" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()" disabled>SAGI'yı Aç</button>
+    <p style="margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;opacity:.7" class="t-tr">Bu onay tarihi, politika sürümü ve cihaz dil tercihinizle birlikte kayıt altına alınır.</p>
+    <p style="margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;opacity:.7" class="t-en">This consent is recorded along with the date, policy version, and your device language preference.</p>
   </div>
 </div>
 
@@ -4112,16 +4132,32 @@ const App = {
 
       setTheme(mode){Core.state.settings.theme=mode;App.Controllers.Settings.applyTheme();document.querySelectorAll('#ob_step_3 .theme-btn').forEach(b=>b.classList.remove('active'));document.getElementById('ob_tb_'+mode).classList.add('active');},
       setLang(lang,btn){window.LANG=lang;Core.state.settings.lang=lang;document.querySelectorAll('#ob_step_3 .tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyLang();},
+
+      // Checkbox değişince butonu aktif/pasif yap
+      onConsentChange(checked){
+        const btn = document.getElementById('ob_finish_btn');
+        if(!btn) return;
+        btn.disabled = !checked;
+        btn.style.opacity = checked ? '1' : '0.45';
+        btn.style.cursor  = checked ? 'pointer' : 'not-allowed';
+      },
+
       complete(){
+        // ── Checkbox guard: checkbox işaretli değilse devam etme ──────────
+        const chk = document.getElementById('ob_consent_chk');
+        if(!chk || !chk.checked) return;
+        // ─────────────────────────────────────────────────────────────────
         Core.state.settings.name=document.getElementById('ob_name').value.trim();
         Core.state.settings.currency=document.getElementById('ob_currency').value;
         Core.state.settings.lang=LANG;
         // ── Yasal onay kaydı ─────────────────────────────────────────────
-        // Kullanıcı "SAGI'yı Aç" butonuna bastığında consent_date, version ve dil kaydedilir.
+        // Kullanıcı checkbox'ı işaretleyip "SAGI'yı Aç" butonuna bastığında
+        // consent_date, version ve dil kaydedilir.
         // Bu bilgi Core.state içinde localStorage'a ve bulut sync aktifse Firestore'a gider.
         Core.state.settings.consentDate    = new Date().toISOString();
         Core.state.settings.consentVersion = '1.0'; // privacy.html / terms.html sürümü
         Core.state.settings.consentLang    = LANG;
+        Core.state.settings.consentMethod  = 'checkbox'; // kanıt türü
         // ─────────────────────────────────────────────────────────────────
         Core.state.settings.onboarded=true;Core.DB.save();
         // Onboarding bitti — geçici key'i temizle

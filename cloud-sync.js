@@ -258,6 +258,7 @@
         consentPayload.consentDate    = Core.state.settings.consentDate;
         consentPayload.consentVersion = Core.state.settings.consentVersion || null;
         consentPayload.consentLang    = Core.state.settings.consentLang || null;
+        consentPayload.consentMethod  = Core.state.settings.consentMethod || null;
       }
       try {
         await docRef.set({
@@ -540,6 +541,7 @@
         consentPayload.consentDate    = Core.state.settings.consentDate;
         consentPayload.consentVersion = Core.state.settings.consentVersion || null;
         consentPayload.consentLang    = Core.state.settings.consentLang || null;
+        consentPayload.consentMethod  = Core.state.settings.consentMethod || null;
       }
       try {
         await docRef.set(

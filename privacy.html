@@ -219,6 +219,24 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       <p class="t-en">The app uses Google Fonts CDN to load the <em>Outfit</em> and <em>Inter</em> typefaces. During this request, your IP address is transmitted to Google's servers. Google privacy policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--brand)">policies.google.com/privacy</a></p>
     </div>
 
+    <!-- 4b — Döviz Kuru API'leri -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <span class="t-tr">Döviz Kuru Servisleri</span>
+        <span class="t-en">Exchange Rate Services</span>
+        <span class="tag tag-warn">Harici / External</span>
+      </h2>
+      <p class="t-tr">Anlık döviz kurlarını almak için aşağıdaki üçüncü taraf servisler kullanılır. Bu istekler sırasında IP adresiniz söz konusu servislere iletilir; herhangi bir finansal veri gönderilmez, yalnızca kur verisi çekilir:</p>
+      <p class="t-en">The following third-party services are used to retrieve live exchange rates. During these requests, your IP address is transmitted to those services; no financial data is sent — only rate data is fetched:</p>
+      <ul>
+        <li><strong>ExchangeRate-API</strong> — <a href="https://www.exchangerate-api.com/privacy" target="_blank" rel="noopener" style="color:var(--brand)">exchangerate-api.com/privacy</a></li>
+        <li><strong>Frankfurter</strong> — <a href="https://www.frankfurter.app" target="_blank" rel="noopener" style="color:var(--brand)">frankfurter.app</a> (ECB verisi / ECB data)</li>
+      </ul>
+      <p class="t-tr" style="margin-top:10px">Döviz kurları yalnızca gösterge niteliğindedir; kesinlik garanti edilmez.</p>
+      <p class="t-en" style="margin-top:10px">Exchange rates are indicative only; accuracy is not guaranteed.</p>
+    </div>
+
     <!-- 5 — Bildirimler -->
     <div class="section">
       <h2>
@@ -277,8 +295,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <span class="t-tr">Çocukların Gizliliği</span>
         <span class="t-en">Children's Privacy</span>
       </h2>
-      <p class="t-tr">SAGI Finance 13 yaşın altındaki çocuklara yönelik değildir ve bu yaş grubundan bilerek kişisel veri toplamaz. Eğer 13 yaşın altında bir bireyin veri girdiğini düşünüyorsanız lütfen GitHub üzerinden bizimle iletişime geçin.</p>
-      <p class="t-en">SAGI Finance is not directed at children under 13 and does not knowingly collect personal data from this age group. If you believe a child under 13 has submitted data, please contact us via GitHub.</p>
+      <p class="t-tr">SAGI Finance 18 yaşın altındaki bireylere yönelik değildir ve bu yaş grubundan bilerek kişisel veri toplamaz. Finansal uygulamaların Türkiye'de reşit olmayanlara sunulması yasal kısıtlamalara tabidir. Uygulamayı kullanan kişi 18 yaşını doldurmuş olduğunu beyan etmiş sayılır. Eğer reşit olmayan birinin veri girdiğini düşünüyorsanız lütfen GitHub üzerinden bizimle iletişime geçin.</p>
+      <p class="t-en">SAGI Finance is not directed at individuals under 18 and does not knowingly collect personal data from this age group. Financial applications are subject to legal restrictions regarding minors in Turkey. By using the Application, you represent that you are at least 18 years of age. If you believe a minor has submitted data, please contact us via GitHub.</p>
     </div>
 
     <!-- 9 — Politika Güncellemeleri -->
@@ -290,6 +308,55 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       </h2>
       <p class="t-tr">Bu gizlilik politikası gerektiğinde güncellenebilir. Önemli değişikliklerde uygulama içinde bildirim gösterilir. Güncel politika her zaman bu sayfada yayımlanır.</p>
       <p class="t-en">This policy may be updated when necessary. For significant changes, an in-app notification will be shown. The current policy is always available on this page.</p>
+    </div>
+
+    <!-- 10 — KVKK Haklarınız -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <span class="t-tr">KVKK Kapsamındaki Haklarınız</span>
+        <span class="t-en">Your Rights Under KVKK / GDPR</span>
+      </h2>
+      <p class="t-tr">6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında aşağıdaki haklara sahipsiniz:</p>
+      <p class="t-en">Under the Turkish Personal Data Protection Law (KVKK, Law No. 6698) and applicable data protection regulations, you have the following rights:</p>
+      <ul>
+        <li class="t-tr"><strong>Bilgi edinme:</strong> Kişisel verilerinizin işlenip işlenmediğini öğrenme hakkı. Verileriniz cihazınızda saklandığından bu bilgiye doğrudan Ayarlar → Veri Yönetimi bölümünden erişebilirsiniz.</li>
+        <li class="t-en"><strong>Access:</strong> The right to learn whether your personal data is being processed. Since your data is stored on your own device, you can access it directly via Settings → Data Management.</li>
+        <li class="t-tr"><strong>Düzeltme:</strong> Yanlış veya eksik verilerin düzeltilmesini talep etme hakkı. Uygulamadaki tüm verileri düzenleyebilirsiniz.</li>
+        <li class="t-en"><strong>Rectification:</strong> The right to request correction of inaccurate or incomplete data. You can edit all data directly within the app.</li>
+        <li class="t-tr"><strong>Silme:</strong> Bulut senkronizasyonu etkinleştirdiyseniz Firestore'daki verilerinizin kalıcı olarak silinmesini talep etme hakkı. <em>Ayarlar → Bulut Senkronizasyonu → Hesabımı Sil</em> seçeneğini kullanabilirsiniz.</li>
+        <li class="t-en"><strong>Erasure:</strong> If you have enabled cloud sync, you may request permanent deletion of your Firestore data via <em>Settings → Cloud Sync → Delete My Account</em>.</li>
+        <li class="t-tr"><strong>İtiraz:</strong> Kişisel verilerinizin işlenmesine itiraz etme hakkı. Bulut sync'i her zaman devre dışı bırakabilir ve Firestore'daki verilerinizi silebilirsiniz.</li>
+        <li class="t-en"><strong>Object:</strong> The right to object to the processing of your data. You may disable cloud sync and delete Firestore data at any time.</li>
+      </ul>
+      <p class="t-tr" style="margin-top:12px">Bu haklarınızı kullanmak için GitHub üzerinden bizimle iletişime geçebilirsiniz. Talepten sonra en geç <strong>30 gün</strong> içinde yanıt verilir.</p>
+      <p class="t-en" style="margin-top:12px">To exercise these rights, please contact us via GitHub. Requests are responded to within <strong>30 days</strong>.</p>
+    </div>
+
+    <!-- 11 — Yasal Onay Kaydı -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="t-tr">Yasal Onay Kaydı</span>
+        <span class="t-en">Consent Record</span>
+      </h2>
+      <p class="t-tr">Uygulamayı ilk açtığınızda karşılama ekranını tamamlayarak bu Gizlilik Politikası'nı ve Kullanım Şartları'nı okuduğunuzu ve kabul ettiğinizi beyan etmiş olursunuz. Bu onay tarihi, politika sürümü ve dil bilgisi cihazınızda ve Bulut Senkronizasyonu etkinleştirdiyseniz Firebase'de kayıt altına alınır.</p>
+      <p class="t-en">By completing the onboarding screen when you first open the Application, you declare that you have read and accepted this Privacy Policy and the Terms of Service. The date, policy version, and language of this consent are recorded on your device and, if Cloud Sync is enabled, in Firebase.</p>
+      <p class="t-tr">Politika güncellendiğinde yeni kabul tarihi ayrıca kaydedilir.</p>
+      <p class="t-en">When the policy is updated, a new acceptance record is stored accordingly.</p>
+    </div>
+
+    <!-- 12 — Veri Sorumlusu / Data Controller -->
+    <div class="section">
+      <h2>
+        <div class="sec-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <span class="t-tr">Veri Sorumlusu Beyanı</span>
+        <span class="t-en">Data Controller Declaration</span>
+      </h2>
+      <p class="t-tr">6698 sayılı KVKK ve AB GDPR kapsamında veri sorumlusu, SAGI Finance uygulamasının bağımsız geliştiricisidir. Uygulama Türkiye merkezli bir bireysel geliştirici tarafından üretilmekte olup iletişim için GitHub adresi kullanılmaktadır. Bulut sync etkinleştirildiğinde veri işleme Google (Firestore, ABD merkezli) ve Cloudflare (Workers, küresel) altyapıları üzerinden de gerçekleşir; bu üçüncü tarafların kendi gizlilik politikaları geçerlidir.</p>
+      <p class="t-en">For the purposes of KVKK (Law No. 6698) and the EU General Data Protection Regulation (GDPR), the data controller is the independent developer of the SAGI Finance application, an individual developer based in Turkey. Contact is handled via GitHub. When cloud sync is enabled, data processing also occurs through Google (Firestore, US-based) and Cloudflare (Workers, global) infrastructure; those third parties' own privacy policies apply.</p>
+      <p class="t-tr" style="margin-top:10px"><strong>AB/AEA kullanıcıları için not:</strong> GDPR kapsamındaki haklarınız (Madde 15 erişim, Madde 16 düzeltme, Madde 17 silme, Madde 21 itiraz) yaşadığınız ülkedeki tüketici hakları mevzuatı çerçevesinde geçerliliğini korur. Bu haklarınızı kullanmak için GitHub üzerinden yazılı talepte bulunabilirsiniz.</p>
+      <p class="t-en" style="margin-top:10px"><strong>Note for EU/EEA users:</strong> Your rights under the GDPR — including Article 15 (access), Article 16 (rectification), Article 17 (erasure), and Article 21 (objection) — remain valid and are not overridden by the governing law clause in the Terms of Service. To exercise these rights, please submit a written request via GitHub.</p>
     </div>
 
     <!-- İletişim -->
