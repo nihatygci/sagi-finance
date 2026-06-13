@@ -1135,22 +1135,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- YENİ HESAP paneli -->
     <div id="ob_keypanel_new" style="display:block">
-      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:12px;padding:12px 14px">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:10px;padding:12px 14px">
         <div class="font-bold" data-i18n="obKeyInfoTitle">Cihazlar arası eşleşme</div>
         <div style="font-size:13px;color:var(--text-muted);line-height:1.5" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
       </div>
-      <!-- Anahtar kaybı uyarısı + gizlilik notu -->
-      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start">
-        <svg viewBox="0 0 24 24" style="width:16px;height:16px;min-width:16px;stroke:#d97706;fill:none;stroke-width:2;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
-          <span class="t-tr"><strong>Anahtarı kaydetmeyi unutmayın.</strong> Anahtarınızı kaybederseniz bulut verilerinize bir daha erişemezsiniz. Ekran görüntüsü alın veya güvenli bir yere not edin.</span>
-          <span class="t-en"><strong>Don't forget to save your key.</strong> If you lose it, you will not be able to access your cloud data again. Take a screenshot or write it down somewhere safe.</span>
-        </div>
+      <!-- Anahtar kaybı uyarısı -->
+      <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm,10px);padding:11px 13px;margin-bottom:10px">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;min-width:15px;stroke:#d97706;fill:none;stroke-width:2;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.55" data-i18n="obKeyLossWarn">Anahtarı kaydetmeyi unutmayın. Kaybederseniz bulut verilerinize bir daha erişemezsiniz.</div>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:10px;line-height:1.6">
-        <span class="t-tr"><a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600">Gizlilik Politikamızda</a> belirttiğimiz üzere verileriniz yalnızca anonim anahtarınızla Firebase'de saklanır; kimlik bilgisi toplanmaz.</span>
-        <span class="t-en">As stated in our <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600">Privacy Policy</a>, your data is stored in Firebase under your anonymous key only — no identity is collected.</span>
-      </div>
+      <!-- Gizlilik notu -->
+      <p style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.55;margin-bottom:12px" data-i18n="obKeyPrivacyNote">Verileriniz yalnızca anonim anahtarınızla Firebase'de saklanır; kimlik bilgisi toplanmaz. <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent)">Gizlilik Politikası</a></p>
       <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" id="ob_btn_create" data-i18n="obKeyCreateBtn" onclick="App.Controllers.Onboarding.createNewAccount()">Anahtar Oluştur</button>
       <div id="ob_create_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px;text-align:center"></div>
     </div>
@@ -1228,23 +1223,15 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <button type="button" class="tx-type-btn" id="ob_lang_en" onclick="App.Controllers.Onboarding.setLang('en',this)">English</button>
       </div>
     </div>
-    <!-- Zorunlu onay checkbox — işaretlenmeden buton aktif olmaz -->
-    <div id="ob_consent_box" style="margin-top:16px;background:var(--surface-alt,rgba(0,0,0,0.04));border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;">
-      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;">
-        <input type="checkbox" id="ob_consent_chk"
-          style="width:18px;height:18px;min-width:18px;margin-top:2px;accent-color:var(--brand-accent,#6257f0);cursor:pointer;"
-          onchange="App.Controllers.Onboarding.onConsentChange(this.checked)">
-        <span style="font-size:13px;color:var(--text-muted);line-height:1.6">
-          <span data-i18n="obConsentCheckbox">
-            <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent,#6257f0);font-weight:700;" data-i18n="obConsentTerms">Kullanım Şartları</a>&#8217;nı ve
-            <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent,#6257f0);font-weight:700;" data-i18n="obConsentPrivacy">Gizlilik Politikası</a>&#8217;nı okudum ve kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.
-          </span>
-        </span>
-      </label>
+    <!-- Zorunlu onay checkbox -->
+    <div id="ob_consent_box" class="settings-cell" style="flex-direction:row;align-items:flex-start;gap:12px;margin-top:16px;margin-bottom:0;padding:13px 14px;cursor:pointer" onclick="document.getElementById('ob_consent_chk').click()">
+      <input type="checkbox" id="ob_consent_chk"
+        style="width:17px;height:17px;min-width:17px;margin-top:1px;accent-color:var(--brand-accent);cursor:pointer;pointer-events:none;"
+        onchange="App.Controllers.Onboarding.onConsentChange(this.checked)">
+      <span style="font-size:13px;color:var(--text-muted);line-height:1.55" data-i18n="obConsentCheckbox"><a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" onclick="event.stopPropagation()" data-i18n="obConsentTerms">Kullanım Şartları</a>'nı ve <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" onclick="event.stopPropagation()" data-i18n="obConsentPrivacy">Gizlilik Politikası</a>'nı okudum, kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.</span>
     </div>
-    <button id="ob_finish_btn" class="btn btn-primary w-full" style="padding:16px;font-size:16px;margin-top:12px;opacity:0.45;cursor:not-allowed;" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()" disabled>SAGI'yı Aç</button>
-    <p style="margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;opacity:.7" class="t-tr">Bu onay tarihi, politika sürümü ve cihaz dil tercihinizle birlikte kayıt altına alınır.</p>
-    <p style="margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;opacity:.7" class="t-en">This consent is recorded along with the date, policy version, and your device language preference.</p>
+    <button id="ob_finish_btn" class="btn btn-primary w-full" style="padding:16px;font-size:16px;margin-top:10px;opacity:0.45;cursor:not-allowed;" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()" disabled>SAGI'yı Aç</button>
+    <p style="margin-top:8px;font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;opacity:.65" data-i18n="obConsentNote">Bu onay, tarih ve politika sürümüyle birlikte kayıt altına alınır.</p>
   </div>
 </div>
 

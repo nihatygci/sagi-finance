@@ -650,7 +650,10 @@ const LANGS = {
       // ── Yasal onay (onboarding) ───────────────────────────────────────
       obConsentTerms:'Kullanım Şartları',
       obConsentPrivacy:'Gizlilik Politikası',
-      obConsentCheckbox:'\'nı ve \'nı okudum ve kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.',
+      obConsentCheckbox:'Kullanım Şartları\'nı ve Gizlilik Politikası\'nı okudum, kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.',
+      obKeyLossWarn:'Anahtarı kaydetmeyi unutmayın. Kaybederseniz bulut verilerinize bir daha erişemezsiniz.',
+      obKeyPrivacyNote:'Verileriniz yalnızca anonim anahtarınızla Firebase\'de saklanır; kimlik bilgisi toplanmaz.',
+      obConsentNote:'Bu onay, tarih ve politika sürümüyle birlikte kayıt altına alınır.',
     }
   },
 
@@ -1272,6 +1275,9 @@ const LANGS = {
       obConsentTerms:'Terms of Service',
       obConsentPrivacy:'Privacy Policy',
       obConsentCheckbox:'I have read and accept the Terms of Service and Privacy Policy. I confirm I am at least 18 years old.',
+      obKeyLossWarn:'Don\'t forget to save your key. If you lose it, you will not be able to access your cloud data again.',
+      obKeyPrivacyNote:'Your data is stored in Firebase under your anonymous key only — no identity is collected.',
+      obConsentNote:'This consent is recorded with the date and policy version.',
     }
   }
 };
