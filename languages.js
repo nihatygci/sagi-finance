@@ -646,6 +646,13 @@ const LANGS = {
 
       // ── Hesap dropdown fallback ───────────────────────────────────────
       noWalletOption:'Hesap yok',
+
+      // ── Yasal onay (onboarding) ───────────────────────────────────────
+      obConsentText:'Devam ederek',
+      obConsentTerms:'Kullanım Şartları',
+      obConsentAnd:'ve',
+      obConsentPrivacy:'Gizlilik Politikası',
+      obConsentSuffix:'kabul etmiş olursunuz.',
     }
   },
 
@@ -1262,6 +1269,13 @@ const LANGS = {
       importReplaceDesc:'All current data is deleted and only data from this file is loaded. Cannot be undone.',
       importReplaceWarn:'Your accounts, transactions and all data will be permanently deleted. This cannot be undone.',
       importActionBtn:'Load',
+
+      // ── Legal consent (onboarding) ────────────────────────────────────
+      obConsentText:'By continuing you agree to the',
+      obConsentTerms:'Terms of Service',
+      obConsentAnd:'and',
+      obConsentPrivacy:'Privacy Policy',
+      obConsentSuffix:'.',
     }
   }
 };

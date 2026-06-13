@@ -20,7 +20,14 @@
         borc: false,
         butce: false,
         haftalik: false
-      }
+      },
+      // ── Yasal onay kaydı ─────────────────────────────────────────────
+      // consentDate    : ISO timestamp — kullanıcının onay verdiği an
+      // consentVersion : Kabul edilen politika sürümü (privacy.html/terms.html sürümü)
+      // consentLang    : Onay sırasında hangi dilde gösterildi
+      consentDate: null,
+      consentVersion: null,
+      consentLang: null,
     },
     wallets: [],
     transactions: [],

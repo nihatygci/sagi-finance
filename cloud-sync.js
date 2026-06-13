@@ -252,12 +252,20 @@
       const docRef = this._doc(key);
       const pushId = Math.random().toString(36).slice(2);
       this._lastPushId = pushId;
+      // ── Consent verisini Firestore top-level'a ekle (denetim kaydı) ──
+      const consentPayload = {};
+      if (Core.state.settings.consentDate) {
+        consentPayload.consentDate    = Core.state.settings.consentDate;
+        consentPayload.consentVersion = Core.state.settings.consentVersion || null;
+        consentPayload.consentLang    = Core.state.settings.consentLang || null;
+      }
       try {
         await docRef.set({
           state: Core.state,
           lastModified: Core.state.settings.lastModified,
           pushId: pushId,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          ...consentPayload,
         });
       } catch (e) {
         console.error('[Cloud] HATA DETAYI:', e.code, e.message, e);
@@ -526,12 +534,20 @@
       this._lastPushId = pushId;
       // lastModified push ÖNCESINDE güncellenmez — push başarılı olunca güncellenir
       const pushTimestamp = Date.now();
+      // ── Consent verisini Firestore top-level'a ekle (denetim kaydı) ──
+      const consentPayload = {};
+      if (Core.state.settings.consentDate) {
+        consentPayload.consentDate    = Core.state.settings.consentDate;
+        consentPayload.consentVersion = Core.state.settings.consentVersion || null;
+        consentPayload.consentLang    = Core.state.settings.consentLang || null;
+      }
       try {
         await docRef.set(
           {
             state: Core.state,
             lastModified: pushTimestamp,
             pushId: pushId,
+            ...consentPayload,
           },
           { merge: false },
         );
@@ -662,6 +678,9 @@
           anim: 'on',
           privacy: 'off',
           currency: 'TRY',
+          consentDate: null,
+          consentVersion: null,
+          consentLang: null,
         },
         wallets:[], transactions:[], recurring:[], goals:[], debts:[], categories:[]
       }));

@@ -1217,6 +1217,14 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
     </div>
     <button class="btn btn-primary w-full" style="padding:16px;font-size:16px" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()">SAGI'yı Aç</button>
+    <!-- Yasal onay bildirimi — "Devam ederek Kullanım Şartları ve Gizlilik Politikası'nı kabul etmiş olursunuz." -->
+    <p id="ob_consent_notice" style="margin-top:14px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.6">
+      <span data-i18n="obConsentText">Devam ederek</span>
+      <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentTerms">Kullanım Şartları</a>
+      <span data-i18n="obConsentAnd">ve</span>
+      <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentPrivacy">Gizlilik Politikası</a>&#8217;nı
+      <span data-i18n="obConsentSuffix">kabul etmiş olursunuz.</span>
+    </p>
   </div>
 </div>
 
@@ -2052,7 +2060,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <span data-i18n="settings">Ayarlar</span>
           </button>
           <div class="settings-detail-title" data-i18n="dataManagement">Veri Yönetimi</div>
-          <div class="settings-detail-sub" data-i18n="dataDesc">Verileriniz yalnızca bu cihazda saklanır. Düzenli yedek almanızı öneririz.</div>
+          <div class="settings-detail-sub" data-i18n="dataDesc">Verileriniz varsayılan olarak yalnızca bu cihazda saklanır; Bulut Senkronizasyonu etkinleştirilirse isteğe bağlı olarak Firebase'e yedeklenir. Düzenli yedek almanızı öneririz.</div>
           <div class="card" style="border-color:rgba(229,83,75,.18);display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
             <!-- Yedek Al -->
             <div style="padding:18px 20px;border-bottom:1px solid var(--border-light)">
@@ -4108,6 +4116,13 @@ const App = {
         Core.state.settings.name=document.getElementById('ob_name').value.trim();
         Core.state.settings.currency=document.getElementById('ob_currency').value;
         Core.state.settings.lang=LANG;
+        // ── Yasal onay kaydı ─────────────────────────────────────────────
+        // Kullanıcı "SAGI'yı Aç" butonuna bastığında consent_date, version ve dil kaydedilir.
+        // Bu bilgi Core.state içinde localStorage'a ve bulut sync aktifse Firestore'a gider.
+        Core.state.settings.consentDate    = new Date().toISOString();
+        Core.state.settings.consentVersion = '1.0'; // privacy.html / terms.html sürümü
+        Core.state.settings.consentLang    = LANG;
+        // ─────────────────────────────────────────────────────────────────
         Core.state.settings.onboarded=true;Core.DB.save();
         // Onboarding bitti — geçici key'i temizle
         try{ localStorage.removeItem('sagi_pending_key'); }catch(e){}
