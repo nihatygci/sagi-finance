@@ -1135,12 +1135,12 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
     <!-- YENİ HESAP paneli -->
     <div id="ob_keypanel_new" style="display:block">
-      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:10px;padding:12px 14px">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:center;text-align:center;gap:6px;margin-bottom:10px;padding:14px">
         <div class="font-bold" data-i18n="obKeyInfoTitle">Cihazlar arası eşleşme</div>
-        <div style="font-size:13px;color:var(--text-muted);line-height:1.5" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.55" data-i18n="obKeyInfoBody">Üretilen anahtarı saklayın. Bu anahtar, başka bir cihaza giriş yaparken size lazım olacak. Anahtar olmadan verilere ulaşılamaz.</div>
       </div>
       <!-- Anahtar kaybı uyarısı -->
-      <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm,10px);padding:11px 13px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm,10px);padding:11px 13px;margin-bottom:10px;text-align:left">
         <svg viewBox="0 0 24 24" style="width:15px;height:15px;min-width:15px;stroke:#d97706;fill:none;stroke-width:2;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <div style="font-size:12px;color:var(--text-muted);line-height:1.55" data-i18n="obKeyLossWarn">Anahtarı kaydetmeyi unutmayın. Kaybederseniz bulut verilerinize bir daha erişemezsiniz.</div>
       </div>
@@ -1148,29 +1148,32 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <p style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.55;margin-bottom:12px" data-i18n="obKeyPrivacyNote">Verileriniz yalnızca anonim anahtarınızla Firebase'de saklanır; kimlik bilgisi toplanmaz. <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent)">Gizlilik Politikası</a></p>
       <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" id="ob_btn_create" data-i18n="obKeyCreateBtn" onclick="App.Controllers.Onboarding.createNewAccount()">Anahtar Oluştur</button>
       <div id="ob_create_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px;text-align:center"></div>
+      <button class="btn btn-outline w-full" style="padding:14px;font-size:16px;margin-top:10px" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
     </div>
 
     <!-- MEVCUT ANAHTAR paneli -->
     <div id="ob_keypanel_have" style="display:none">
-      <div class="form-group" style="text-align:left">
+      <div class="form-group" style="text-align:center">
         <label class="form-label" data-i18n="obKeyLabel">16 Haneli Anahtar</label>
         <input type="text" class="form-control" id="ob_key_input"
                placeholder="XXXX-XXXX-XXXX-XXXX"
                autocomplete="off" autocapitalize="characters"
                style="font-family:'Outfit',sans-serif;font-size:18px;letter-spacing:2px;padding:16px;text-align:center;text-transform:uppercase"
                oninput="App.Controllers.Onboarding.formatKeyInput(this)">
-        <div id="ob_key_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px"></div>
+        <div id="ob_key_err" style="display:none;color:var(--status-danger);font-size:13px;margin-top:8px;text-align:center"></div>
       </div>
       <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" id="ob_btn_login" data-i18n="obKeyLoginBtn" onclick="App.Controllers.Onboarding.loginExisting()">Giriş Yap</button>
+      <button class="btn btn-outline w-full" style="padding:14px;font-size:16px;margin-top:10px" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
     </div>
 
     <!-- ATLA paneli -->
     <div id="ob_keypanel_skip" style="display:none">
-      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:12px;padding:12px 14px">
+      <div class="settings-cell" style="background:var(--bg-surface-hover);flex-direction:column;align-items:center;text-align:center;gap:6px;margin-bottom:12px;padding:14px">
         <div class="font-bold" data-i18n="obKeySkipTitle">Sadece bu cihazda kullan</div>
-        <div style="font-size:13px;color:var(--text-muted);line-height:1.5" data-i18n="obKeySkipDesc">Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar &rarr; Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.55" data-i18n="obKeySkipDesc">Verileriniz yalnızca bu cihazda saklanacak. İstediğiniz zaman Ayarlar → Bulut Senkronizasyonu bölümünden anahtar oluşturup bağlanabilirsiniz.</div>
       </div>
       <button class="btn btn-primary w-full" style="padding:14px;font-size:16px" data-i18n="obKeySkipBtn" onclick="App.Controllers.Onboarding.nextStep(2)">Devam Et (Çevrim Dışı)</button>
+      <button class="btn btn-outline w-full" style="padding:14px;font-size:16px;margin-top:10px" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
     </div>
 
     <!-- Üretilen anahtar gösterimi -->
@@ -1181,9 +1184,9 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.4" data-i18n="obKeyWarn">Bu anahtarı güvenli bir yere kaydedin. Kaybederseniz başka cihazdan verilerinize ulaşamazsınız.</div>
     </div>
 
-    <div class="flex gap-3 mt-3" id="ob_key_nav">
-      <button class="btn btn-outline" id="ob_btn_back" data-i18n="obBack" onclick="App.Controllers.Onboarding.nextStep(1)">Geri</button>
-      <button class="btn btn-primary w-full" id="ob_btn_keynext" style="display:none" data-i18n="obNext" onclick="App.Controllers.Onboarding.nextStep(2)">Devam</button>
+    <!-- eski nav satırı kaldırıldı — geri butonları her panelin içine taşındı -->
+    <div id="ob_key_nav" style="display:none">
+      <button class="btn btn-primary w-full" id="ob_btn_keynext" data-i18n="obNext" onclick="App.Controllers.Onboarding.nextStep(2)">Devam</button>
     </div>
   </div>
   <div class="onboarding-card card" id="ob_step_2">
@@ -1224,11 +1227,13 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
     </div>
     <!-- Zorunlu onay checkbox -->
-    <div id="ob_consent_box" class="settings-cell" style="flex-direction:row;align-items:flex-start;gap:12px;margin-top:16px;margin-bottom:0;padding:13px 14px;cursor:pointer" onclick="document.getElementById('ob_consent_chk').click()">
+    <div id="ob_consent_box" class="settings-cell" style="flex-direction:row;align-items:flex-start;gap:12px;margin-top:16px;margin-bottom:0;padding:13px 14px">
       <input type="checkbox" id="ob_consent_chk"
-        style="width:17px;height:17px;min-width:17px;margin-top:1px;accent-color:var(--brand-accent);cursor:pointer;pointer-events:none;"
+        style="width:17px;height:17px;min-width:17px;margin-top:2px;accent-color:var(--brand-accent);cursor:pointer;flex-shrink:0"
         onchange="App.Controllers.Onboarding.onConsentChange(this.checked)">
-      <span style="font-size:13px;color:var(--text-muted);line-height:1.55" data-i18n="obConsentCheckbox"><a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" onclick="event.stopPropagation()" data-i18n="obConsentTerms">Kullanım Şartları</a>'nı ve <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" onclick="event.stopPropagation()" data-i18n="obConsentPrivacy">Gizlilik Politikası</a>'nı okudum, kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.</span>
+      <label for="ob_consent_chk" style="font-size:13px;color:var(--text-muted);line-height:1.6;cursor:pointer;margin:0">
+        <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentTerms">Kullanım Şartları</a><span data-i18n="obConsentAnd">'nı ve </span><a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentPrivacy">Gizlilik Politikası</a><span data-i18n="obConsentSuffix">'nı okudum, kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.</span>
+      </label>
     </div>
     <button id="ob_finish_btn" class="btn btn-primary w-full" style="padding:16px;font-size:16px;margin-top:10px;opacity:0.45;cursor:not-allowed;" data-i18n="obFinish" onclick="App.Controllers.Onboarding.complete()" disabled>SAGI'yı Aç</button>
     <p style="margin-top:8px;font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;opacity:.65" data-i18n="obConsentNote">Bu onay, tarih ve politika sürümüyle birlikte kayıt altına alınır.</p>
