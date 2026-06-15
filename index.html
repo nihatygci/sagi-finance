@@ -1185,9 +1185,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     </div>
 
     <!-- eski nav satırı kaldırıldı — geri butonları her panelin içine taşındı -->
-    <div id="ob_key_nav" style="display:none">
-      <button class="btn btn-primary w-full" id="ob_btn_keynext" data-i18n="obNext" onclick="App.Controllers.Onboarding.nextStep(2)">Devam</button>
-    </div>
+    <div id="ob_key_nav" style="display:none"></div>
   </div>
   <div class="onboarding-card card" id="ob_step_2">
     <h1 class="text-h1 mb-2" data-i18n="obMeet">Sizi Tanıyalım</h1>
@@ -3913,7 +3911,7 @@ const App = {
                 if(modeSeg) modeSeg.style.display = 'none';
                 const createBtn = document.getElementById('ob_btn_create');
                 if(createBtn) createBtn.style.display = 'none';
-                document.getElementById('ob_btn_keynext').style.display = 'block';
+                var _knBtn=document.getElementById('ob_btn_keynext');if(_knBtn)_knBtn.style.display='block';
                 document.getElementById('ob_btn_back').style.display = 'none';
               }, 50);
             }
@@ -4056,7 +4054,7 @@ const App = {
           if(modeSeg) modeSeg.style.display = 'none';
           // Yeni butonu sakla, "Devam" butonunu göster
           btn.style.display = 'none';
-          document.getElementById('ob_btn_keynext').style.display = 'block';
+          var _knBtn=document.getElementById('ob_btn_keynext');if(_knBtn)_knBtn.style.display='block';
           document.getElementById('ob_btn_back').style.display = 'none';
         }catch(e){
           console.warn('[Onboarding] createAccount hatası:', e);

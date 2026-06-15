@@ -683,6 +683,7 @@
           consentDate: null,
           consentVersion: null,
           consentLang: null,
+          consentMethod: null,
         },
         wallets:[], transactions:[], recurring:[], goals:[], debts:[], categories:[]
       }));
