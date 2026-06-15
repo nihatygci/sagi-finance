@@ -754,20 +754,19 @@
   window.addEventListener('DOMContentLoaded', function() {
     if (typeof window.Core !== 'undefined') {
       window.Core.Cloud = Cloud;
-      console.log('[SAGI] Cloud DOMContentLoaded Core\'a re-enjekte edildi. Firebase:', window._fbReady);
     }
 
-    // Firebase hazırsa Cloud durumunu güncelle ve UI'yi bilgilendir
+    // Firebase bu noktada henüz hazır olmayabilir (persistence async).
+    // firebase-config.js'in .finally() bloğu hazır olunca listener'ı bağlıyor.
+    // Eğer _fbReady zaten true ise (nadir ama mümkün) burada da handle et.
     if (window.Core && window.Core.Cloud) {
       if (window._fbReady && window._fbDB) {
         window.Core.Cloud.status = 'idle';
-        // Kısa bir timeout ile App.init() tamamlandıktan sonra emit et;
-        // böylece Settings/Onboarding controller'ları listener'larını
-        // kaydetmiş olur ve cloudStatusChanged'i yakalarlar.
         setTimeout(function() {
           try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
         }, 0);
       }
+      // _fbReady false ise firebase-config.js .finally() bloğu devralır — burada bekleme yok
     }
   }, true /* capture — App.init()'in DOMContentLoaded'ından önce çalışır */);
 
