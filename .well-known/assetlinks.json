@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.sagifinance.twa",
+    "sha256_cert_fingerprints": [
+      "BURAYA_BUBBLEWRAP_SHA256_GELECEK"
+    ]
+  }
+}]
