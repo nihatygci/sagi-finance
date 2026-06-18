@@ -31,6 +31,9 @@ jobs:
       - name: plus.js kopyala
         run: cp sagi-plus-temp/plus.js plus.js
 
+      - name: operations.js kopyala
+        run: cp sagi-plus-temp/operations.js operations.js
+
       - name: firebase-config.js oluştur
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
