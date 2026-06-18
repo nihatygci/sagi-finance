@@ -30,7 +30,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="./firebase-config.js"></script>
-<script src="./core.js"></script>
 <script src="./cloud-sync.js"></script>
 <script src="operations.js"></script>
 <script src="plus.js"></script>
@@ -2914,16 +2913,84 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 // ═══════════════════════════════════════
 // CORE
 // ═══════════════════════════════════════
+// ── Merge sistemi — Tombstone bazlı array merge ─────────────────────────
+// Cihazlar günlerce offline kalıp değişiklik yapsa da, online'a dönünce
+// hiçbir taraf diğerinin verisini topyekûn ezmez. ID bazlı birleştirme +
+// silme kayıtları (tombstone) ile çalışır. Bkz. mergeState() açıklaması.
+const MERGEABLE_ARRAYS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
+let _prevIdSets = null;
+function _collectIdSet(state){
+  const sets = {};
+  MERGEABLE_ARRAYS.forEach(key=>{
+    const arr = state[key];
+    sets[key] = new Set(Array.isArray(arr) ? arr.map(x=>x&&x.id).filter(Boolean) : []);
+  });
+  return sets;
+}
+function _updateTombstones(state){
+  const currentSets = _collectIdSet(state);
+  if(_prevIdSets){
+    const now = Date.now();
+    MERGEABLE_ARRAYS.forEach(key=>{
+      const prevSet = _prevIdSets[key], currSet = currentSets[key];
+      prevSet.forEach(id=>{
+        if(!currSet.has(id)){
+          if(!state._tombstones) state._tombstones = {};
+          state._tombstones[id] = now;
+        }
+      });
+    });
+  }
+  _prevIdSets = currentSets;
+}
+function mergeState(localState, remoteState){
+  const merged = JSON.parse(JSON.stringify(localState));
+  const localTomb = localState._tombstones || {};
+  const remoteTomb = remoteState._tombstones || {};
+  const allTomb = Object.assign({}, localTomb, remoteTomb);
+  Object.keys(remoteTomb).forEach(id=>{
+    if(localTomb[id] && remoteTomb[id]) allTomb[id] = Math.max(localTomb[id], remoteTomb[id]);
+  });
+  merged._tombstones = allTomb;
+  MERGEABLE_ARRAYS.forEach(key=>{
+    const localArr = Array.isArray(localState[key]) ? localState[key] : [];
+    const remoteArr = Array.isArray(remoteState[key]) ? remoteState[key] : [];
+    const byId = new Map();
+    remoteArr.forEach(item=>{ if(item && item.id) byId.set(item.id, item); });
+    localArr.forEach(item=>{
+      if(!item || !item.id) return;
+      const existing = byId.get(item.id);
+      if(!existing){ byId.set(item.id, item); }
+      else {
+        const localTs = item._updatedAt||0, remoteTs = existing._updatedAt||0;
+        byId.set(item.id, localTs>=remoteTs ? item : existing);
+      }
+    });
+    const result = [];
+    byId.forEach((item,id)=>{ if(!allTomb[id]) result.push(item); });
+    merged[key] = result;
+  });
+  const localMod = (localState.settings&&localState.settings.lastModified)||0;
+  const remoteMod = (remoteState.settings&&remoteState.settings.lastModified)||0;
+  merged.settings = remoteMod>localMod
+    ? Object.assign({}, localState.settings, remoteState.settings, {syncKey: localState.settings.syncKey})
+    : Object.assign({}, remoteState.settings, localState.settings);
+  merged.notifInbox = localState.notifInbox || remoteState.notifInbox || [];
+  merged.paidMonths = Object.assign({}, remoteState.paidMonths||{}, localState.paidMonths||{});
+  return merged;
+}
 const Core = {
   events:{},temp:{},
   on(e,l){if(!this.events[e])this.events[e]=[];this.events[e].push(l)},
   emit(e,d){if(this.events[e])this.events[e].forEach(l=>l(d))},
-  state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,syncKey:'',notifications:{abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false}}},
+  state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],categories:[],_tombstones:{},settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,syncKey:'',notifications:{abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false}}},
+  mergeState: mergeState,
   DB:{
     key:'sagi_v1_data',
-    load(){try{const d=localStorage.getItem(this.key);if(d){const p=JSON.parse(d);Core.state={...Core.state,...p};if(!Core.state.settings.notifications)Core.state.settings.notifications={abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};const n=Core.state.settings.notifications;if(n.krediKarti===undefined)n.krediKarti=false;if(n.hedef===undefined)n.hedef=false;if(n.buyukHarcama===undefined)n.buyukHarcama=false;if(n.doviz===undefined)n.doviz=false;if(Core.state.wallets.length>0)Core.state.settings.onboarded=true;if(Core.state.settings.lang)window.LANG=Core.state.settings.lang;}}catch(e){}},
+    load(){try{const d=localStorage.getItem(this.key);if(d){const p=JSON.parse(d);Core.state={...Core.state,...p};if(!Core.state._tombstones)Core.state._tombstones={};if(!Core.state.settings.notifications)Core.state.settings.notifications={abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};const n=Core.state.settings.notifications;if(n.krediKarti===undefined)n.krediKarti=false;if(n.hedef===undefined)n.hedef=false;if(n.buyukHarcama===undefined)n.buyukHarcama=false;if(n.doviz===undefined)n.doviz=false;if(Core.state.wallets.length>0)Core.state.settings.onboarded=true;if(Core.state.settings.lang)window.LANG=Core.state.settings.lang;}_prevIdSets=_collectIdSet(Core.state);}catch(e){}},
     save(){
       try{
+        _updateTombstones(Core.state);
         Core.state.settings.lastModified = Date.now();
         localStorage.setItem(this.key,JSON.stringify(Core.state));
         Core.emit('stateChanged',Core.state);
@@ -2934,6 +3001,7 @@ const Core = {
     },
     saveNow(){
       try{
+        _updateTombstones(Core.state);
         Core.state.settings.lastModified = Date.now();
         localStorage.setItem(this.key,JSON.stringify(Core.state));
         Core.emit('stateChanged',Core.state);
@@ -3855,7 +3923,7 @@ const App = {
         if(document.visibilityState==='visible')App.ExchangeRate.ensureFresh();
       });
       window.addEventListener('focus',()=>App.ExchangeRate.ensureFresh());
-      setTimeout(()=>{
+      setTimeout(async ()=>{
         if(lBar)lBar.style.width='100%';
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
@@ -3864,8 +3932,24 @@ const App = {
         applyLang();
         App.processRecurring();
         Notifications.check();
-        // ── BULUT SYNC: anahtar varsa listener'ı bağla ──
-        if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud && Core.Cloud.isAvailable()){
+        // ── BULUT SYNC: anahtar varsa, UYGULAMAYI GÖSTERMEDEN ÖNCE pull+merge'i bekle ──
+        // Senaryo: Telefon offline iken işlem yaptı. PC eski veriyle kapalıydı, şimdi
+        // açılıyor. PC'nin eski verisi UI'da görünüp kullanıcıyı yanıltmasın ve eski
+        // veri buluta otomatik yazılıp telefonun yeni verisini ezmesin — bu yüzden
+        // loader, pull+merge tamamlanana kadar kaldırılmaz. Offline ise veya pull
+        // zaman aşımına uğrarsa (max 6sn) yerel veriyle devam edilir, sonsuza kadar
+        // beklenmez.
+        if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud && Core.Cloud.isAvailable() && navigator.onLine !== false){
+          if(lBar){lBar.style.width='80%';}
+          try{
+            await Promise.race([
+              Core.Cloud._initialPull(),
+              new Promise(res=>setTimeout(res,6000)) // 6sn'de zaman aşımı, sonsuza kadar bekletme
+            ]);
+          }catch(e){ console.warn('[SAGI] Açılış pull/merge hatası:', e); }
+          Core.Cloud.attachListener();
+        } else if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud && Core.Cloud.isAvailable()){
+          // Offline — pull beklenmez, sadece listener bağlanır (online olunca tetiklenir)
           Core.Cloud.attachListener();
         }
         // Bulut status değişince ayarlar sayfasındaki kutuyu güncelle

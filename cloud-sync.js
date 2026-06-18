@@ -141,29 +141,34 @@
 
         console.log('[Cloud] initialPull — local:', localMod, 'remote:', remoteMod);
 
-        if (remoteMod > localMod) {
-          console.log('[Cloud] initialPull: bulut daha yeni, pull yapılıyor.');
-          const savedKey = Core.state.settings.syncKey;
-          Core.state = data.state;
-          Core.state.settings = Object.assign({
-            notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
-              krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
-            notifMaster: false, theme: 'light', lang: 'tr', anim: 'on',
-            privacy: 'off', currency: 'TRY', cachedRates: null,
-          }, data.state.settings || {});
-          Core.state.settings.syncKey = savedKey;
-          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          // Listener ilk snapshot'ı suppress etsin — biz zaten aynı veriyi çektik
-          this._suppressNextRemote = true;
-          try { Core.emit('stateChanged', Core.state); } catch(e) {}
-          try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
-          this._rerenderActiveView();
-        } else if (localMod > remoteMod) {
-          // Yerel daha yeni — kapanışta push kaçmış olabilir, şimdi push yap
-          console.log('[Cloud] initialPull: yerel daha yeni, push yapılıyor.');
-          await this._doPush();
+        if (remoteMod === localMod) {
+          // Eşit — zaten senkron
+          return;
         }
-        // Eşitse bir şey yapma
+
+        // ── Array-level merge — hiçbir taraf diğerini topyekûn ezmez ──────
+        // Eskiden: "kim daha yeni" → tek taraf kazanır, diğeri kaybolur.
+        // Şimdi: ID bazlı birleştirme. Bir cihaz günlerce offline kalıp
+        // değişiklik yapsa da, online'a döndüğünde o değişiklikler kaybolmaz;
+        // diğer cihazın değişiklikleriyle birleşir. Silme işlemleri tombstone
+        // sayesinde geri dirilmez. Core.mergeState, index.html'deki inline
+        // Core objesine eklenmiştir (core.js dosyası artık kullanılmıyor).
+        console.log('[Cloud] initialPull: merge ediliyor (local + remote).');
+        const savedKey = Core.state.settings.syncKey;
+        const merged = Core.mergeState(Core.state, data.state);
+        Core.state = merged;
+        Core.state.settings.syncKey = savedKey;
+        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        // Listener ilk snapshot'ı suppress etsin — biz zaten aynı veriyi çektik
+        this._suppressNextRemote = true;
+        try { Core.emit('stateChanged', Core.state); } catch(e) {}
+        try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
+        this._rerenderActiveView();
+
+        // Merge sonucu hem yerelden hem uzaktan farklı olabilir (örn. iki
+        // tarafın da yeni kayıtları birleşti) — bu yeni birleşik hali
+        // buluta geri yaz ki diğer cihazlar da görsün.
+        await this._doPush();
       } catch(e) {
         console.warn('[Cloud] initialPull hatası:', e);
       }
@@ -342,8 +347,19 @@
 
       if (!data.state) throw new Error("NOT_FOUND");
 
-      // Buluttaki state'i yerel state'in üzerine yaz
-      Core.state = data.state;
+      // ── Yerel veri varsa merge et, topyekûn ezme ──────────────────────
+      // Kullanıcı bu cihazda offline iken zaten işlem yapmış olabilir.
+      // O veriyi kaybetmeden buluttaki veriyle birleştir.
+      const hasLocalData = (Core.state.transactions && Core.state.transactions.length > 0)
+        || (Core.state.wallets && Core.state.wallets.length > 0);
+
+      if (hasLocalData) {
+        console.log('[Cloud] loginWithKey: yerel veri mevcut, merge ediliyor.');
+        Core.state = Core.mergeState(Core.state, data.state);
+      } else {
+        Core.state = data.state;
+      }
+
       // Eksik settings alanlarını tamamla (eski sürüm uyumluluğu)
       Core.state.settings = Object.assign({
         notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
@@ -355,7 +371,7 @@
         privacy: 'off',
         currency: 'TRY',
         cachedRates: null,
-      }, data.state.settings || {});
+      }, data.state.settings || {}, hasLocalData ? Core.state.settings : {});
       // syncKey: girilen key'i yaz — PLUS doc'una redirect gelince
       // recursive call'da key zaten PLUS key olacak, doğru yazılır
       Core.state.settings.syncKey = key;
@@ -363,6 +379,11 @@
 
       this._emitStatus("ok");
       this.attachListener();
+
+      if (hasLocalData) {
+        await this._doPush();
+      }
+
       return Core.state;
     },
 
@@ -420,22 +441,12 @@
           const remoteMod = data.lastModified || 0;
           const localMod =
             (Core.state.settings && Core.state.settings.lastModified) || 0;
-            if (remoteMod > localMod) {
-            console.log("[Cloud] Uzak değişiklik alındı, yerel güncelleniyor.");
+          if (remoteMod !== localMod) {
+            // ── Array-level merge — bkz. _initialPull yorumu ──────────────
+            console.log("[Cloud] Uzak değişiklik alındı, merge ediliyor.");
             const savedKey = Core.state.settings.syncKey;
-            Core.state = data.state;
-            // Eksik settings alanlarını tamamla (eski sürüm uyumluluğu)
-            Core.state.settings = Object.assign({
-              notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
-                krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
-              notifMaster: false,
-              theme: 'light',
-              lang: 'tr',
-              anim: 'on',
-              privacy: 'off',
-              currency: 'TRY',
-              cachedRates: null,
-            }, data.state.settings || {});
+            const merged = Core.mergeState(Core.state, data.state);
+            Core.state = merged;
             Core.state.settings.syncKey = savedKey;
             localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
             try {
@@ -598,34 +609,25 @@
 
         console.log('[Cloud] forceSync — local:', localMod, 'remote:', remoteMod);
 
-        if (remoteMod > localMod) {
-          // Bulut daha yeni — pull yap
-          console.log('[Cloud] forceSync: bulut daha yeni, pull yapılıyor.');
-          const savedKey = Core.state.settings.syncKey;
-          Core.state = data.state;
-          Core.state.settings = Object.assign({
-            notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
-              krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
-            notifMaster: false, theme: 'light', lang: 'tr', anim: 'on',
-            privacy: 'off', currency: 'TRY', cachedRates: null,
-          }, data.state.settings || {});
-          Core.state.settings.syncKey = savedKey;
-          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          this._emitStatus('ok');
-          try { Core.emit('stateChanged', Core.state); } catch(e) {}
-          try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
-          this._rerenderActiveView();
-          return 'pulled';
-        } else if (localMod > remoteMod) {
-          // Yerel daha yeni — push yap
-          console.log('[Cloud] forceSync: yerel daha yeni, push yapılıyor.');
-          return this._doPush();
-        } else {
-          // Eşit — zaten senkron
+        if (remoteMod === localMod) {
           console.log('[Cloud] forceSync: zaten senkron.');
           this._emitStatus('ok');
           return 'in-sync';
         }
+
+        // ── Array-level merge ──────────────────────────────────────────
+        console.log('[Cloud] forceSync: merge ediliyor.');
+        const savedKey = Core.state.settings.syncKey;
+        const merged = Core.mergeState(Core.state, data.state);
+        Core.state = merged;
+        Core.state.settings.syncKey = savedKey;
+        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        this._emitStatus('ok');
+        try { Core.emit('stateChanged', Core.state); } catch(e) {}
+        try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
+        this._rerenderActiveView();
+        await this._doPush();
+        return 'merged';
       } catch(e) {
         console.warn('[Cloud] forceSync hatası:', e);
         this._emitStatus(navigator.onLine === false ? 'offline' : 'error');
