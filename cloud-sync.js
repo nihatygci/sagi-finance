@@ -588,6 +588,67 @@
     },
 
     // ── Akıllı senkronizasyon — lastModified karşılaştır, kazananı uygula ──
+    // ── Senkronizasyon ÖN ANALİZİ — hiçbir şey değiştirmez, sadece karşılaştırır ──
+    // Kullanıcı "Senkronize Et" butonuna basmadan önce ne olacağını görsün diye:
+    // buluttaki veriyle yereli kıyaslar, hangi taraf da kaç yeni/farklı kayıt
+    // olduğunu sayar, sonucu döner. Hiçbir yazma işlemi yapmaz (read-only).
+    async analyzeSync() {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) {
+        return { status: 'unavailable' };
+      }
+      const docRef = this._doc(Core.state.settings.syncKey);
+      try {
+        const snap = await docRef.get();
+        const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
+
+        if (!snap.exists) {
+          return { status: 'cloud-empty', willPush: true };
+        }
+
+        const data = snap.data();
+        const remoteMod = (data && data.lastModified) || 0;
+        const remoteState = data && data.state;
+
+        if (remoteMod === localMod) {
+          return { status: 'in-sync' };
+        }
+        if (!remoteState) {
+          return { status: 'cloud-empty', willPush: true };
+        }
+
+        // Hangi taraf da, diğerinde olmayan kaç ID var — kullanıcıya somut
+        // bir özet vermek için (örn. "2 yeni işlem buluttan gelecek").
+        const counts = {};
+        const ARRS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
+        let totalNewFromRemote = 0, totalNewFromLocal = 0;
+        ARRS.forEach(key => {
+          const localArr = Array.isArray(Core.state[key]) ? Core.state[key] : [];
+          const remoteArr = Array.isArray(remoteState[key]) ? remoteState[key] : [];
+          const localIds = new Set(localArr.map(x => x && x.id).filter(Boolean));
+          const remoteIds = new Set(remoteArr.map(x => x && x.id).filter(Boolean));
+          let newFromRemote = 0, newFromLocal = 0;
+          remoteIds.forEach(id => { if (!localIds.has(id)) newFromRemote++; });
+          localIds.forEach(id => { if (!remoteIds.has(id)) newFromLocal++; });
+          if (newFromRemote || newFromLocal) counts[key] = { newFromRemote, newFromLocal };
+          totalNewFromRemote += newFromRemote;
+          totalNewFromLocal += newFromLocal;
+        });
+
+        return {
+          status: 'diff',
+          willMerge: true,
+          totalNewFromRemote,
+          totalNewFromLocal,
+          details: counts,
+          remoteMod,
+          localMod,
+        };
+      } catch (e) {
+        console.warn('[Cloud] analyzeSync hatası:', e);
+        return { status: 'error', error: e };
+      }
+    },
+
     async forceSync() {
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }

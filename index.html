@@ -6739,21 +6739,55 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       async cloudForceSync(){
         if(!Core.state.settings.syncKey) return;
         if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
-        UI.Toasts.show(t('cloudSyncing'),'success');
+
+        UI.Toasts.show(t('cloudAnalyzing'),'success');
+        let analysis;
         try {
-          const result = await Core.Cloud.forceSync();
-          this.renderCloudBox();
-          if(result === 'pulled'){
-            UI.Toasts.show(t('cloudUpdatedFromCloud'),'success');
-          } else if(result === 'in-sync'){
-            UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
-          } else {
-            UI.Toasts.show(t('cloudPushedToCloud'),'success');
-          }
+          analysis = await Core.Cloud.analyzeSync();
         } catch(e) {
           UI.Toasts.show(t('cloudInitFail'),'error');
-          this.renderCloudBox();
+          return;
         }
+
+        if(analysis.status === 'unavailable' || analysis.status === 'error'){
+          UI.Toasts.show(t('cloudInitFail'),'error');
+          return;
+        }
+
+        if(analysis.status === 'in-sync'){
+          UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
+          return;
+        }
+
+        // Kullanıcıya ne olacağını net göster, onay al, sonra senkronize et
+        let previewMsg;
+        if(analysis.status === 'cloud-empty'){
+          previewMsg = t('cloudPreviewWillPush');
+        } else {
+          // "X yeni kayıt buluttan gelecek, Y yeni kayıt buluta gönderilecek"
+          previewMsg = t('cloudPreviewMerge', {
+            fromCloud: analysis.totalNewFromRemote,
+            toCloud: analysis.totalNewFromLocal
+          });
+        }
+
+        UI.Confirm.show(previewMsg, async ()=>{
+          UI.Toasts.show(t('cloudSyncing'),'success');
+          try {
+            const result = await Core.Cloud.forceSync();
+            this.renderCloudBox();
+            if(result === 'merged'){
+              UI.Toasts.show(t('cloudMerged'),'success');
+            } else if(result === 'in-sync'){
+              UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
+            } else {
+              UI.Toasts.show(t('cloudPushedToCloud'),'success');
+            }
+          } catch(e) {
+            UI.Toasts.show(t('cloudInitFail'),'error');
+            this.renderCloudBox();
+          }
+        });
       },
 
       cloudSignOut(){
