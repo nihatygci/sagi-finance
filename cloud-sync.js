@@ -448,6 +448,7 @@
             const merged = Core.mergeState(Core.state, data.state);
             Core.state = merged;
             Core.state.settings.syncKey = savedKey;
+            Core.state.settings.lastModified = remoteMod;
             localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
             try {
               Core.emit("stateChanged", Core.state);

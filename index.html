@@ -2963,7 +2963,7 @@ function mergeState(localState, remoteState){
       if(!existing){ byId.set(item.id, item); }
       else {
         const localTs = item._updatedAt||0, remoteTs = existing._updatedAt||0;
-        byId.set(item.id, localTs>=remoteTs ? item : existing);
+        byId.set(item.id, localTs>remoteTs ? item : existing);
       }
     });
     const result = [];
@@ -3863,6 +3863,7 @@ const App = {
       const wc=w.currency||this.mainCur();
       const delta=App.ExchangeRate.convert(amount,amountCur||wc,wc)*(sign>=0?1:-1);
       w.balance=(w.balance||0)+delta;
+      w._updatedAt=Date.now();
       return true;
     },
     applyTx(tx){
@@ -5015,7 +5016,8 @@ const App = {
           type,
           currency:document.getElementById('wal_currency').value||'TRY',
           c1:document.getElementById('wal_c1').value,
-          c2:document.getElementById('wal_c2').value
+          c2:document.getElementById('wal_c2').value,
+          _updatedAt:Date.now()
         };
         if(isCC){
           p.ccLimit=parseFloat(document.getElementById('wal_cc_limit').value)||0;
