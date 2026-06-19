@@ -643,6 +643,10 @@ const LANGS = {
       cloudUpdatedFromCloud:'Buluttan güncellendi ✓',
       cloudAlreadyUpToDate:'Zaten güncel ✓',
       cloudPushedToCloud:'Buluta gönderildi ✓',
+      cloudAnalyzing:'Karşılaştırılıyor...',
+      cloudPreviewWillPush:'Buluta veri gönderilecek. Devam edilsin mi?',
+      cloudPreviewMerge:(args)=>`Buluttan ${args&&args.fromCloud!=null?args.fromCloud:0} kayıt gelecek, buluta ${args&&args.toCloud!=null?args.toCloud:0} kayıt gönderilecek. Devam edilsin mi?`,
+      cloudMerged:'Senkronizasyon tamamlandı ✓',
 
       // ── Hesap dropdown fallback ───────────────────────────────────────
       noWalletOption:'Hesap yok',
@@ -1118,6 +1122,10 @@ const LANGS = {
       cloudUpdatedFromCloud:'Updated from cloud ✓',
       cloudAlreadyUpToDate:'Already up to date ✓',
       cloudPushedToCloud:'Pushed to cloud ✓',
+      cloudAnalyzing:'Comparing...',
+      cloudPreviewWillPush:'Data will be pushed to the cloud. Continue?',
+      cloudPreviewMerge:(args)=>`${args&&args.fromCloud!=null?args.fromCloud:0} record(s) will come from the cloud, ${args&&args.toCloud!=null?args.toCloud:0} will be sent to the cloud. Continue?`,
+      cloudMerged:'Sync complete ✓',
       cloudInactive: 'Cloud not connected',
       
 
