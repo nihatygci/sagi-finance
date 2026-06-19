@@ -3924,7 +3924,7 @@ const App = {
       });
       window.addEventListener('focus',()=>App.ExchangeRate.ensureFresh());
       setTimeout(async ()=>{
-        if(lBar)lBar.style.width='100%';
+        if(lBar)lBar.style.width='70%';
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
         UI.Router.init();
@@ -3940,7 +3940,7 @@ const App = {
         // zaman aşımına uğrarsa (max 6sn) yerel veriyle devam edilir, sonsuza kadar
         // beklenmez.
         if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud && Core.Cloud.isAvailable() && navigator.onLine !== false){
-          if(lBar){lBar.style.width='80%';}
+          if(lBar){lBar.style.width='85%';}
           try{
             await Promise.race([
               Core.Cloud._initialPull(),
@@ -3988,6 +3988,17 @@ const App = {
             history.replaceState(null,'',cleanUrl);
           }
         });
+        // Bar %100'e tamamlanıyor, CSS transition bitince (transitionend) loader kapanıyor
+        // — sabit bir süre tahmin etmek yerine animasyonun gerçekten bitmesini dinliyoruz
+        if(lBar){
+          await new Promise(res=>{
+            let done=false;
+            const finish=()=>{ if(done) return; done=true; lBar.removeEventListener('transitionend',finish); res(); };
+            lBar.addEventListener('transitionend',finish);
+            lBar.style.width='100%';
+            setTimeout(finish,500); // transition tetiklenmezse (örn. zaten %100'deyse) güvenlik freni
+          });
+        }
         if(loader){loader.style.opacity='0';setTimeout(()=>loader.remove(),500);}
         if(!Core.state.settings.onboarded){
           setTimeout(()=>{
