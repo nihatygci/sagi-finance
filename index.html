@@ -4358,57 +4358,49 @@ const App = {
             card.addEventListener('mouseup',e=>{if(sx!==null){const dx=sx-e.clientX;if(Math.abs(dx)>35)KpiCarousel._go(key,dx>0?1:-1);sx=null;}});
           }
         }
-        // Net varlık hesaplama (TL, USD, EUR, GBP cinsinden TOPLAM varlığın karşılığı)
-        // ÖNEMLİ: Bu, her para biriminden hesapları kendi içinde toplamak DEĞİL —
-        // TÜM hesapların toplamını her bir hedef para birimine ÇEVİRİP göstermek.
-        // Eskiden: currencyNetWorth.USD = sadece USD cinsi hesapların toplamı (YANLIŞ)
-        // Şimdi:   currencyNetWorth.USD = TÜM varlığın USD karşılığı (DOĞRU)
-        const _totalNetWorthMain = Core.state.wallets.reduce((s,w)=>{
-          const wCur = w.currency || mainCur;
-          const bal = wCur !== mainCur ? App.ExchangeRate.convert(w.balance||0, wCur, mainCur) : (w.balance||0);
-          return s + bal;
-        }, 0);
+        // Net varlık hesaplama — her para birimi kendi cüzdanlarının gerçek toplamı
+        // EUR slaytı = EUR cüzdanlarının toplamı (€3.500), TL slaytı = TL cüzdanları (₺X) vs.
+        // FX çevirme YOK — kullanıcının o birimde ne kadar parası varsa o gösterilir.
         const currencyNetWorth = {TRY:0, USD:0, EUR:0, GBP:0};
-        Object.keys(currencyNetWorth).forEach(cur=>{
-          currencyNetWorth[cur] = cur === mainCur
-            ? _totalNetWorthMain
-            : App.ExchangeRate.convert(_totalNetWorthMain, mainCur, cur);
+        Core.state.wallets.forEach(w=>{
+          const wCur = w.currency || mainCur;
+          if(currencyNetWorth.hasOwnProperty(wCur)){
+            currencyNetWorth[wCur] += (w.balance||0);
+          }
         });
 
-        // Bu ayki gelir/gider — TOPLAM gelir/gideri her para birimine çevirip göster
-        // (eskiden burada da aynı "sadece o cinsten işlemleri topla" hatası vardı)
+        // Bu ayki gelir/gider — her para birimi o cüzdandan yapılan gerçek işlemler
+        // EUR cüzdanından yapılan gelir/gider EUR slaytında, TL cüzdanındaki TL slaytında
         const currentDate = new Date();
         const currentMonth = currentDate.getMonth();
         const currentYear = currentDate.getFullYear();
 
-        let _totalIncomeMain = 0, _totalExpenseMain = 0;
+        const monthlyIncome = {TRY:0, USD:0, EUR:0, GBP:0};
+        const monthlyExpense = {TRY:0, USD:0, EUR:0, GBP:0};
         Core.state.transactions.forEach(tx => {
           const txDate = new Date(tx.date);
           if(txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear && tx.cat !== 'Transfer') {
             const wallet = Core.state.wallets.find(w => w.id === tx.wallet);
             const wCur = (wallet && wallet.currency) || mainCur;
-            const amtMain = wCur !== mainCur ? App.ExchangeRate.convert(tx.amount||0, wCur, mainCur) : (tx.amount||0);
-            if(tx.type === 'income') _totalIncomeMain += amtMain;
-            if(tx.type === 'expense') _totalExpenseMain += amtMain;
+            if(monthlyIncome.hasOwnProperty(wCur)){
+              if(tx.type === 'income') monthlyIncome[wCur] += (tx.amount||0);
+              if(tx.type === 'expense') monthlyExpense[wCur] += (tx.amount||0);
+            }
           }
-        });
-        const monthlyIncome = {TRY:0, USD:0, EUR:0, GBP:0};
-        const monthlyExpense = {TRY:0, USD:0, EUR:0, GBP:0};
-        Object.keys(monthlyIncome).forEach(cur=>{
-          monthlyIncome[cur] = cur === mainCur ? _totalIncomeMain : App.ExchangeRate.convert(_totalIncomeMain, mainCur, cur);
-          monthlyExpense[cur] = cur === mainCur ? _totalExpenseMain : App.ExchangeRate.convert(_totalExpenseMain, mainCur, cur);
         });
 
         // Slayt verilerini hazırla
-        const netWorthSlides = [{cur:'TRY',value:currencyNetWorth.TRY},{cur:'USD',value:currencyNetWorth.USD},{cur:'EUR',value:currencyNetWorth.EUR},{cur:'GBP',value:currencyNetWorth.GBP}];
-        const expenseSlides = [{cur:'TRY',value:monthlyExpense.TRY},{cur:'USD',value:monthlyExpense.USD},{cur:'EUR',value:monthlyExpense.EUR},{cur:'GBP',value:monthlyExpense.GBP}];
-        const incomeSlides = [{cur:'TRY',value:monthlyIncome.TRY},{cur:'USD',value:monthlyIncome.USD},{cur:'EUR',value:monthlyIncome.EUR},{cur:'GBP',value:monthlyIncome.GBP}];
-        const flowSlides = [
-          {cur:'TRY',value:monthlyIncome.TRY - monthlyExpense.TRY},
-          {cur:'USD',value:monthlyIncome.USD - monthlyExpense.USD},
-          {cur:'EUR',value:monthlyIncome.EUR - monthlyExpense.EUR},
-          {cur:'GBP',value:monthlyIncome.GBP - monthlyExpense.GBP}
-        ];
+        // Hangi para birimlerinde cüzdan var? Sadece onlar slayta çıksın.
+        // mainCur her zaman dahil; diğerleri o birimde en az 1 cüzdan varsa gösterilir.
+        const _activeCurs = ['TRY','USD','EUR','GBP'].filter(cur=>
+          cur === mainCur || Core.state.wallets.some(w=>(w.currency||mainCur)===cur)
+        );
+        const _makeSlides = (obj) => _activeCurs.map(cur=>({cur, value: obj[cur]||0}));
+        const netWorthSlides = _makeSlides(currencyNetWorth);
+        const expenseSlides  = _makeSlides(monthlyExpense);
+        const incomeSlides   = _makeSlides(monthlyIncome);
+        const _flowObj = {TRY:monthlyIncome.TRY-monthlyExpense.TRY,USD:monthlyIncome.USD-monthlyExpense.USD,EUR:monthlyIncome.EUR-monthlyExpense.EUR,GBP:monthlyIncome.GBP-monthlyExpense.GBP};
+        const flowSlides = _makeSlides(_flowObj);
 
         _buildKpiSlides('netWorth', netWorthSlides);
         _buildKpiSlides('expense', expenseSlides);
