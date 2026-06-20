@@ -3472,8 +3472,9 @@ const Notifications = {
     // 4. BİRİKİM HEDEFİ — yaklaşma ve tarihi geçme
     if(notifs.hedef){
       Core.state.goals.forEach(g=>{
-        if(!g.target||g.current>=g.target)return;
-        const pct=Math.floor((g.current/g.target)*100);
+        const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;
+        if(!gTargetOwn||g.current>=gTargetOwn)return;
+        const pct=Math.floor((g.current/gTargetOwn)*100);
         // %75 veya %90 milestone
         [75,90].forEach(milestone=>{
           if(pct>=milestone){
@@ -3638,13 +3639,16 @@ const App = {
       if(!w){this._hide('fx_preview_goal');return;}
       const wc=App.Money.walletCur(wId);
       const mc=App.Money.mainCur();
-      // txCur ile girdi → wc'ye çevir (hesaptan düşülecek), mc'ye de çevir (hedefe yansıyacak)
+      const _goalForPreview=Core.state.goals.find(x=>x.id===Core.temp.goalId);
+      const gc=(_goalForPreview&&_goalForPreview.currency)||mc;
+      // txCur ile girdi → wc'ye çevir (hesaptan düşülecek), gc'ye de çevir (hedefe yansıyacak —
+      // hedefin KENDİ para biriminde, executeAction ile aynı mantık)
       const deductedFromWallet=App.ExchangeRate.convert(a,txCur,wc);
-      const addedToGoal=App.ExchangeRate.convert(a,txCur,mc);
+      const addedToGoal=App.ExchangeRate.convert(a,txCur,gc);
       const isAdd=Core.temp.goalType==='add';
       const lbl=document.getElementById('fx_goal_label');
       const isSame=(txCur===wc);
-      if(isSame&&txCur===mc){this._hide('fx_preview_goal');return;}
+      if(isSame&&txCur===gc){this._hide('fx_preview_goal');return;}
       // İki satır: hesaptan düşülecek + hedefe yansıyacak
       const box=document.getElementById('fx_preview_goal');
       if(!box)return;
@@ -3655,11 +3659,10 @@ const App = {
           <span style="font-weight:800;font-family:var(--font-display);color:var(--status-danger);font-size:15px">${Core.Utils.formatMoney(deductedFromWallet,wc)}</span>
         </div>`;
       }
-      if(txCur!==mc||!isSame){
-        const goalAmt=isAdd?addedToGoal:App.ExchangeRate.convert(Math.min(addedToGoal,App.ExchangeRate.convert(Core.state.goals.find(x=>x.id===Core.temp.goalId)?.current||0,mc,mc)),mc,mc);
+      if(txCur!==gc||!isSame){
         html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${!isSame?'6px':'0'}">
-          <span style="font-size:12px;color:var(--text-muted)">${isAdd?t('fxAddedToGoal'):t('fxDeductedFromGoal')} (${mc})</span>
-          <span style="font-weight:800;font-family:var(--font-display);color:${isAdd?'var(--brand-accent)':'var(--status-danger)'};font-size:15px">${Core.Utils.formatMoney(addedToGoal,mc)}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${isAdd?t('fxAddedToGoal'):t('fxDeductedFromGoal')} (${gc})</span>
+          <span style="font-weight:800;font-family:var(--font-display);color:${isAdd?'var(--brand-accent)':'var(--status-danger)'};font-size:15px">${Core.Utils.formatMoney(addedToGoal,gc)}</span>
         </div>`;
       }
       html+=`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500">${this._rateStr(txCur,wc)}</div>`;
@@ -4419,7 +4422,7 @@ const App = {
         _buildKpiSlides('flow', flowSlides);
 
         const dg=document.getElementById('dashGoals');
-        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const p=Math.min((g.current/g.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
+        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
 
         const dd=document.getElementById('dashDebts');
         if(dd){const dB=Core.state.debts.filter(x=>x.dir==='borç').reduce((a,b)=>a+b.amount,0),dA=Core.state.debts.filter(x=>x.dir==='alacak').reduce((a,b)=>a+b.amount,0);if(dB===0&&dA===0)dd.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noDebt')}</span></div>`;else{const net=dA-dB,nc=net>=0?'var(--status-success)':'var(--status-danger)';dd.innerHTML=`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body);margin-bottom:10px"><div class="flex justify-between items-center mb-2"><span class="color-danger font-bold">${t('debtDir_borc')}</span><span class="font-display font-bold color-danger" style="font-size:17px">${Core.Utils.formatMoney(dB)}</span></div><div class="flex justify-between items-center"><span class="color-success font-bold">${t('debtDir_alacak')}</span><span class="font-display font-bold color-success" style="font-size:17px">${Core.Utils.formatMoney(dA)}</span></div></div><div class="flex justify-between items-center"><span class="text-subtitle font-medium">Net</span><span class="font-display font-bold" style="font-size:19px;color:${nc}">${Core.Utils.formatMoney(Math.abs(net))}</span></div>`;}}
@@ -6146,7 +6149,14 @@ const App = {
       }
     },
     Goals:{
-      render(){const g=document.getElementById('goalsGrid');if(!Core.state.goals.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-target"/></svg></div><h3>${t('emptyGoalTitle')}</h3><p>${t('emptyGoalDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;return;}g.innerHTML=Core.state.goals.map(x=>{const p=Math.min((x.current/x.target)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';let dH='';if(x.date){
+      render(){const g=document.getElementById('goalsGrid');if(!Core.state.goals.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-target"/></svg></div><h3>${t('emptyGoalTitle')}</h3><p>${t('emptyGoalDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;return;}g.innerHTML=Core.state.goals.map(x=>{
+        // İlerleme yüzdesi: hedefin KENDİ para biriminde current/target oranı
+        // (target zaten mc'ye çevrilmiş tutuluyordu — yüzde hesabı için current'ı
+        // da aynı baza, yani target'ın orijinal hedef para birimi karşılığına göre alıyoruz)
+        const mc3=Core.state.settings.currency||'TRY';
+        const gc=x.currency||mc3;
+        const goalOriginalTarget=x.originalTarget!=null?x.originalTarget:x.target;
+        const p=Math.min((x.current/goalOriginalTarget)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';let dH='';if(x.date){
           const diffMs=new Date(x.date)-new Date();
           const diffDays=Math.ceil(diffMs/(1000*3600*24));
           let timeLabel;
@@ -6155,7 +6165,13 @@ const App = {
           else if(diffDays<=30)timeLabel=`(${Math.ceil(diffDays/7)} ${t('weeksLeft')})`;
           else timeLabel=`(${Math.floor(diffDays/30)} ${t('monthsLeft')})`;
           dH=`<div class="text-caption mb-3 color-warn">${t('endDateLabel')} ${Core.Utils.formatDate(x.date)} ${timeLabel}</div>`;
-        }const mc3=Core.state.settings.currency||'TRY';const goalCurStr=x.currency&&x.currency!==mc3&&x.originalTarget?` (${Core.Utils.formatMoney(x.originalTarget,x.currency)})`:'';return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,mc3)} / ${Core.Utils.formatMoney(x.target,mc3)}${goalCurStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
+        }
+        // Ana gösterim: hedefin KENDİ para biriminde current/target.
+        // Parantez: ana para birimine (mc3) çevrilmiş karşılığı — sadece farklıysa gösterilir.
+        const currentInMc=gc!==mc3?App.ExchangeRate.convert(x.current,gc,mc3):x.current;
+        const targetInMc=gc!==mc3?App.ExchangeRate.convert(goalOriginalTarget,gc,mc3):goalOriginalTarget;
+        const mcConvStr=gc!==mc3?` (${Core.Utils.formatMoney(currentInMc,mc3)} / ${Core.Utils.formatMoney(targetInMc,mc3)})`:'';
+        return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,gc)} / ${Core.Utils.formatMoney(goalOriginalTarget,gc)}${mcConvStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.originalTarget||g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');const gcEl=document.getElementById('goal_currency');if(gcEl)gcEl.value=g.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
@@ -6176,18 +6192,22 @@ const App = {
         if(!w||!g)return;
         const wc=App.Money.walletCur(wId);
         const mc=App.Money.mainCur();
+        // Hedefin kendi para birimi — yoksa (eski hedefler) ana para birimi varsayılır
+        const gc=g.currency||mc;
         // txCur → wc: hesaptan düşülecek gerçek tutar
         const deductFromWallet=App.ExchangeRate.convert(a,txCur,wc);
-        // txCur → mc: hedefe yansıyacak tutar
-        const amountInMain=App.ExchangeRate.convert(a,txCur,mc);
+        // txCur → gc: hedefe yansıyacak tutar, HEDEFİN KENDİ PARA BİRİMİNDE
+        // (eskiden mc'ye çevrilip ekleniyordu — bu, hedefin oluşturulurken seçilen
+        // para biriminde değil, hesabın/ana para biriminde büyümesine sebep oluyordu)
+        const amountInGoalCur=App.ExchangeRate.convert(a,txCur,gc);
         if(Core.temp.goalType==='add'){
-          g.current+=amountInMain;
+          g.current+=amountInGoalCur;
           const tx={id:Core.Utils.generateId(),type:'expense',amount:deductFromWallet,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0],rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }else{
-          const remMain=Math.min(g.current,amountInMain);
-          g.current-=remMain;
-          const backInWalletCur=App.ExchangeRate.convert(remMain,mc,wc);
+          const remGoalCur=Math.min(g.current,amountInGoalCur);
+          g.current-=remGoalCur;
+          const backInWalletCur=App.ExchangeRate.convert(remGoalCur,gc,wc);
           const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0],rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }
@@ -6285,7 +6305,7 @@ const App = {
         o+='</optgroup>';
         if(Core.state.goals.length){
           o+='<optgroup label="'+t('goalsLabel')+'">';
-          Core.state.goals.forEach(g=>{o+=`<option value="g:${g.id}">${g.name} (${Core.Utils.formatMoney(g.current,Core.state.settings.currency||'TRY')} / ${Core.Utils.formatMoney(g.target,Core.state.settings.currency||'TRY')})</option>`;});
+          Core.state.goals.forEach(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const gc=g.currency||Core.state.settings.currency||'TRY';o+=`<option value="g:${g.id}">${g.name} (${Core.Utils.formatMoney(g.current,gc)} / ${Core.Utils.formatMoney(gTargetOwn,gc)})</option>`;});
           o+='</optgroup>';
         }
         tE.innerHTML=o;
@@ -6900,11 +6920,12 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         // Para birimi değiştiyse tüm ana-para-biriminde saklanan değerleri dönüştür
         if(oC!==nC){
           const conv=(amt)=>App.ExchangeRate.convert(amt,oC,nC);
-          // Hedefler: target ve current ana para biriminde saklanır
+          // Hedefler: target (ana para birimi referansı) çevrilir; current artık
+          // hedefin KENDİ para biriminde (g.currency) tutuluyor — ana para birimi
+          // değişikliğinden etkilenmemeli, bu yüzden current'a DOKUNULMAZ.
           Core.state.goals.forEach(g=>{
             g.target=conv(g.target);
-            g.current=conv(g.current);
-            // originalTarget ve currency kendi para biriminde kalır, dokunma
+            // current ve originalTarget, currency kendi para biriminde kalır, dokunma
           });
           // Borçlar: amount ana para biriminde saklanır
           Core.state.debts.forEach(d=>{
@@ -6966,9 +6987,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         });
         if(Core.state.goals.length){
           csv += '\r\n## HEDEFLER\r\n';
-          csv += 'Ad,Hedef Tutar,Mevcut,Son Tarih\r\n';
+          csv += 'Ad,Hedef Tutar,Mevcut,Para Birimi,Son Tarih\r\n';
           Core.state.goals.forEach(g=>{
-            csv += [esc(g.name), g.target, g.current, esc(g.date||'')].join(',') + '\r\n';
+            const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;
+            const gc=g.currency||Core.state.settings.currency||'TRY';
+            csv += [esc(g.name), gTargetOwn, g.current, gc, esc(g.date||'')].join(',') + '\r\n';
           });
         }
         const a=document.createElement('a');
