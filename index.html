@@ -3924,6 +3924,16 @@ const App = {
         if(document.visibilityState==='visible')App.ExchangeRate.ensureFresh();
       });
       window.addEventListener('focus',()=>App.ExchangeRate.ensureFresh());
+      // ── Buluttan her veri geldiğinde (açılış pull'u VEYA realtime listener) ──
+      // Plus görsel ayarlarını (vurgu rengi, font) yeniden uygula. Listener,
+      // _initialPull çağrılmadan ÖNCE bağlanmalı — yoksa açılıştaki ilk
+      // 'cloudRemoteUpdate' emit'i kaçırılır ve renk/font hiç yeniden uygulanmaz.
+      Core.on('cloudRemoteUpdate', ()=>{
+        try {
+          if (typeof _applyStoredColor === 'function') _applyStoredColor();
+          if (typeof _applyStoredFont === 'function') _applyStoredFont();
+        } catch(e) {}
+      });
       setTimeout(async ()=>{
         if(lBar)lBar.style.width='70%';
         // Bottom bar — kullanıcı tercihine göre render et
