@@ -3040,7 +3040,50 @@ const Core = {
     formatDate:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}):'',
     formatDateTime:(d)=>d?new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+(new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):'',
     formatDateOnly:(d)=>d?d.split('T')[0]:'',
-    getCatColor:(cat)=>{if(cat==='Transfer')return'var(--status-neutral)';const P=['#4f46e5','#0ea5e9','#22a06b','#d97706','#ec4899','#8b5cf6','#f43f5e','#14b8a6','#f97316','#06b6d4','#6366f1','#a855f7','#e5534b','#3b82f6','#10b981','#f59e0b','#ef4444','#3b82f6','#84cc16','#06b6d4','#8b5cf6','#f43f5e','#059669','#dc2626','#7c3aed','#db2777','#0891b2','#65a30d','#b45309','#0f766e','#1d4ed8','#9333ea','#c2410c','#0369a1','#15803d'];let hash=0;for(let i=0;i<cat.length;i++)hash=(cat.charCodeAt(i)*2654435761)^((hash<<5)-hash);return P[Math.abs(hash)%P.length];}
+    _hexToHsl:(hex)=>{
+      hex=hex.replace('#','');
+      const r=parseInt(hex.substr(0,2),16)/255,g=parseInt(hex.substr(2,2),16)/255,b=parseInt(hex.substr(4,2),16)/255;
+      const max=Math.max(r,g,b),min=Math.min(r,g,b);let h,s,l=(max+min)/2;
+      if(max===min){h=s=0;}else{
+        const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
+        switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}
+        h/=6;
+      }
+      return[h*360,s*100,l*100];
+    },
+    _hslToHex:(h,s,l)=>{
+      h/=360;s/=100;l/=100;let r,g,b;
+      if(s===0){r=g=b=l;}else{
+        const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+        const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;
+        r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+      }
+      const toHex=x=>{const v=Math.round(x*255).toString(16);return v.length===1?'0'+v:v;};
+      return'#'+toHex(r)+toHex(g)+toHex(b);
+    },
+    getCatColor:(cat)=>{
+      if(cat==='Transfer')return'var(--status-neutral)';
+      // ── Brand-accent bazlı ton paleti ──────────────────────────────────
+      // Öncelik: SADECE lightness (açıklık/koyuluk) ile ayır, aynı hue'da kal.
+      // Hue kaydırma çok küçük adımlarla ve sadece son çare olarak devreye girer
+      // — amaç kategori rengi marka renginden kopmasın, ama yan yana durduğunda
+      // yine de ayırt edilebilsin.
+      const root=document.documentElement;
+      const accentHex=getComputedStyle(root).getPropertyValue('--brand-accent').trim()||'#6257f0';
+      const [baseH,baseS,baseL]=Core.Utils._hexToHsl(accentHex);
+      let hash=0;for(let i=0;i<cat.length;i++)hash=(cat.charCodeAt(i)*2654435761)^((hash<<5)-hash);
+      hash=Math.abs(hash);
+      // 8 farklı lightness kademesi — önce bunlarla dene
+      const lightnessSteps=[0,-18,16,-32,28,-9,38,-24];
+      const lIdx=hash%lightnessSteps.length;
+      // Sadece 8'den fazla "tekrar" gerekiyorsa (yani lightness havuzu turladıysa)
+      // hue'yu küçük adımlarla (±18°) kaydır — büyük sıçramalar YOK.
+      const hueTurn=Math.floor(hash/lightnessSteps.length)%6;
+      const hueSteps=[0,18,-18,36,-36,54];
+      const l=Math.min(80,Math.max(26,baseL+lightnessSteps[lIdx]));
+      const h=(baseH+hueSteps[hueTurn]+360)%360;
+      return Core.Utils._hslToHex(h,Math.min(80,Math.max(40,baseS)),l);
+    }
   },
   calculateForecast(){
     const now=new Date(),day=now.getDate(),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
@@ -4422,7 +4465,7 @@ const App = {
         _buildKpiSlides('flow', flowSlides);
 
         const dg=document.getElementById('dashGoals');
-        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
+        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c='var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
 
         const dd=document.getElementById('dashDebts');
         if(dd){const dB=Core.state.debts.filter(x=>x.dir==='borç').reduce((a,b)=>a+b.amount,0),dA=Core.state.debts.filter(x=>x.dir==='alacak').reduce((a,b)=>a+b.amount,0);if(dB===0&&dA===0)dd.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noDebt')}</span></div>`;else{const net=dA-dB,nc=net>=0?'var(--status-success)':'var(--status-danger)';dd.innerHTML=`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body);margin-bottom:10px"><div class="flex justify-between items-center mb-2"><span class="color-danger font-bold">${t('debtDir_borc')}</span><span class="font-display font-bold color-danger" style="font-size:17px">${Core.Utils.formatMoney(dB)}</span></div><div class="flex justify-between items-center"><span class="color-success font-bold">${t('debtDir_alacak')}</span><span class="font-display font-bold color-success" style="font-size:17px">${Core.Utils.formatMoney(dA)}</span></div></div><div class="flex justify-between items-center"><span class="text-subtitle font-medium">Net</span><span class="font-display font-bold" style="font-size:19px;color:${nc}">${Core.Utils.formatMoney(Math.abs(net))}</span></div>`;}}
@@ -6156,7 +6199,7 @@ const App = {
         const mc3=Core.state.settings.currency||'TRY';
         const gc=x.currency||mc3;
         const goalOriginalTarget=x.originalTarget!=null?x.originalTarget:x.target;
-        const p=Math.min((x.current/goalOriginalTarget)*100,100),c=p>=100?'var(--status-success)':'var(--brand-accent)';let dH='';if(x.date){
+        const p=Math.min((x.current/goalOriginalTarget)*100,100),c='var(--brand-accent)';let dH='';if(x.date){
           const diffMs=new Date(x.date)-new Date();
           const diffDays=Math.ceil(diffMs/(1000*3600*24));
           let timeLabel;
