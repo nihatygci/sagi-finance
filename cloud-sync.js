@@ -565,9 +565,10 @@
           },
           { merge: false },
         );
-        // Push başarılı — şimdi local'i güncelle
+        // Push başarılı — şimdi local'i güncelle ve pending flag'i temizle
         Core.state.settings.lastModified = pushTimestamp;
         localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        if (Core.DB && Core.DB.clearPendingPush) Core.DB.clearPendingPush();
         this.lastError = "";
         this._emitStatus("ok");
       } catch (e) {
@@ -834,5 +835,28 @@
       // _fbReady false ise firebase-config.js .finally() bloğu devralır — burada bekleme yok
     }
   }, true /* capture — App.init()'in DOMContentLoaded'ından önce çalışır */);
+
+  // ── Offline / Online geçişleri ───────────────────────────────────────
+  // Online'a dönünce: önce merge (initialPull), sonra offline'da biriken
+  // bekleyen push varsa (Core.DB.hasPendingPush) onu da gönder.
+  // Bu, "offline'da işlem yaptım, sonra online oldum, veri kaybolmadı" 
+  // senaryosunu garantiler.
+  window.addEventListener('offline', function() {
+    if (!Core.state.settings.syncKey) return;
+    Cloud._emitStatus('offline');
+  });
+
+  window.addEventListener('online', function() {
+    if (!Core.state.settings.syncKey || !Cloud.isAvailable()) return;
+    console.log('[Cloud] Online — merge + pending push retry.');
+    Cloud._emitStatus('syncing');
+    Cloud._initialPull().then(() => {
+      if (Core.DB && Core.DB.hasPendingPush && Core.DB.hasPendingPush()) {
+        console.log('[Cloud] Bekleyen push bulundu, gönderiliyor.');
+        return Cloud._doPush();
+      }
+      Cloud._emitStatus('ok');
+    }).catch(() => Cloud._emitStatus('error'));
+  });
 
 })();

@@ -2987,25 +2987,57 @@ const Core = {
   mergeState: mergeState,
   DB:{
     key:'sagi_v1_data',
+    _pendingPushKey: 'sagi_pending_push',
     load(){try{const d=localStorage.getItem(this.key);if(d){const p=JSON.parse(d);Core.state={...Core.state,...p};if(!Core.state._tombstones)Core.state._tombstones={};if(!Core.state.settings.notifications)Core.state.settings.notifications={abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};const n=Core.state.settings.notifications;if(n.krediKarti===undefined)n.krediKarti=false;if(n.hedef===undefined)n.hedef=false;if(n.buyukHarcama===undefined)n.buyukHarcama=false;if(n.doviz===undefined)n.doviz=false;if(Core.state.wallets.length>0)Core.state.settings.onboarded=true;if(Core.state.settings.lang)window.LANG=Core.state.settings.lang;}_prevIdSets=_collectIdSet(Core.state);}catch(e){}},
+    // ── _updatedAt enjeksiyonu ─────────────────────────────────────────
+    // Her save()'den önce, son kayıtlarda değişiklik olan item'lara
+    // _updatedAt timestamp'i basıyoruz. Bu, mergeState()'in "iki cihazda
+    // aynı item değiştiyse hangisi daha yeni" sorusuna cevap vermesini
+    // sağlar. Sadece ID'si olan (mergeable) item'lara eklenir; daha önce
+    // _updatedAt'i olmayan item'lar ilk save'de otomatik alır.
+    _injectUpdatedAt(){
+      const now=Date.now();
+      const ARRS=['wallets','transactions','recurring','goals','debts','categories','budgets'];
+      ARRS.forEach(key=>{
+        const arr=Core.state[key];
+        if(!Array.isArray(arr))return;
+        arr.forEach(item=>{ if(item&&item.id&&!item._updatedAt) item._updatedAt=now; });
+      });
+    },
+    // ── Pending push kaydı ─────────────────────────────────────────────
+    // Push başarısız olursa (offline veya hata) bunu localStorage'a yaz.
+    // Online event'i gelince cloud-sync.js bu flag'i okuyup retry yapar.
+    markPendingPush(){
+      try{ localStorage.setItem(this._pendingPushKey,'1'); }catch(e){}
+    },
+    clearPendingPush(){
+      try{ localStorage.removeItem(this._pendingPushKey); }catch(e){}
+    },
+    hasPendingPush(){
+      return!!localStorage.getItem(this._pendingPushKey);
+    },
     save(){
       try{
+        this._injectUpdatedAt();
         _updateTombstones(Core.state);
         Core.state.settings.lastModified = Date.now();
         localStorage.setItem(this.key,JSON.stringify(Core.state));
         Core.emit('stateChanged',Core.state);
         if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
+          this.markPendingPush();
           Core.Cloud.queuePush();
         }
       }catch(e){}
     },
     saveNow(){
       try{
+        this._injectUpdatedAt();
         _updateTombstones(Core.state);
         Core.state.settings.lastModified = Date.now();
         localStorage.setItem(this.key,JSON.stringify(Core.state));
         Core.emit('stateChanged',Core.state);
         if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
+          this.markPendingPush();
           Core.Cloud.queuePush(true);
         }
       }catch(e){}
