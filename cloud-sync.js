@@ -141,33 +141,33 @@
 
         console.log('[Cloud] initialPull — local:', localMod, 'remote:', remoteMod);
 
-        if (remoteMod === localMod) {
-          // Eşit — zaten senkron
+        // timestamp'ler eşit olsa bile içerik farklı olabilir (örn. iki cihaz
+        // aynı milisaniyede save yaptıysa). Güvence: transaction sayısını da karşılaştır.
+        const localTxCount = (Core.state.transactions||[]).length;
+        const remoteTxCount = ((data.state&&data.state.transactions)||[]).length;
+        const localWalletCount = (Core.state.wallets||[]).length;
+        const remoteWalletCount = ((data.state&&data.state.wallets)||[]).length;
+        const contentSame = localTxCount===remoteTxCount && localWalletCount===remoteWalletCount;
+
+        if (remoteMod === localMod && contentSame) {
+          // Gerçekten senkron — hiçbir şey yapma
+          console.log('[Cloud] initialPull: zaten senkron.');
           return;
         }
 
-        // ── Array-level merge — hiçbir taraf diğerini topyekûn ezmez ──────
-        // Eskiden: "kim daha yeni" → tek taraf kazanır, diğeri kaybolur.
-        // Şimdi: ID bazlı birleştirme. Bir cihaz günlerce offline kalıp
-        // değişiklik yapsa da, online'a döndüğünde o değişiklikler kaybolmaz;
-        // diğer cihazın değişiklikleriyle birleşir. Silme işlemleri tombstone
-        // sayesinde geri dirilmez. Core.mergeState, index.html'deki inline
-        // Core objesine eklenmiştir (core.js dosyası artık kullanılmıyor).
+        // ── Array-level merge ──────────────────────────────────────────
         console.log('[Cloud] initialPull: merge ediliyor (local + remote).');
         const savedKey = Core.state.settings.syncKey;
         const merged = Core.mergeState(Core.state, data.state);
         Core.state = merged;
         Core.state.settings.syncKey = savedKey;
         localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-        // Listener ilk snapshot'ı suppress etsin — biz zaten aynı veriyi çektik
         this._suppressNextRemote = true;
         try { Core.emit('stateChanged', Core.state); } catch(e) {}
         try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
         this._rerenderActiveView();
 
-        // Merge sonucu hem yerelden hem uzaktan farklı olabilir (örn. iki
-        // tarafın da yeni kayıtları birleşti) — bu yeni birleşik hali
-        // buluta geri yaz ki diğer cihazlar da görsün.
+        // Merge sonucu buluta geri yaz
         await this._doPush();
       } catch(e) {
         console.warn('[Cloud] initialPull hatası:', e);
@@ -612,7 +612,15 @@
         const remoteState = data && data.state;
 
         if (remoteMod === localMod) {
-          return { status: 'in-sync' };
+          // timestamp eşit — içeriği de kısaca karşılaştır
+          const localTxCount = (Core.state.transactions||[]).length;
+          const remoteTxCount = ((remoteState&&remoteState.transactions)||[]).length;
+          const localWCount = (Core.state.wallets||[]).length;
+          const remoteWCount = ((remoteState&&remoteState.wallets)||[]).length;
+          if (localTxCount === remoteTxCount && localWCount === remoteWCount) {
+            return { status: 'in-sync' };
+          }
+          // timestamp eşit ama içerik farklı — merge gerekiyor
         }
         if (!remoteState) {
           return { status: 'cloud-empty', willPush: true };
@@ -672,7 +680,12 @@
 
         console.log('[Cloud] forceSync — local:', localMod, 'remote:', remoteMod);
 
-        if (remoteMod === localMod) {
+        const localTxCount2 = (Core.state.transactions||[]).length;
+        const remoteTxCount2 = ((data.state&&data.state.transactions)||[]).length;
+        const contentSame2 = localTxCount2 === remoteTxCount2 &&
+          (Core.state.wallets||[]).length === ((data.state&&data.state.wallets)||[]).length;
+
+        if (remoteMod === localMod && contentSame2) {
           console.log('[Cloud] forceSync: zaten senkron.');
           this._emitStatus('ok');
           return 'in-sync';

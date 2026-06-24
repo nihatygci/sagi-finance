@@ -6854,8 +6854,12 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
 
       async cloudForceSync(){
         if(!Core.state.settings.syncKey) return;
-        if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
+        if(!Core.Cloud || !Core.Cloud.isAvailable()){
+          UI.Toasts.show(t('cloudInitFail'),'error');
+          return;
+        }
 
+        // Önce analiz et
         UI.Toasts.show(t('cloudAnalyzing'),'success');
         let analysis;
         try {
@@ -6875,35 +6879,37 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           return;
         }
 
-        // Kullanıcıya ne olacağını net göster, onay al, sonra senkronize et
-        let previewMsg;
+        // Zaten senkronize et butonuna bastı — onay dialogu istemeden direkt yap.
+        // Analiz sonucunu toast olarak göster (ne olacağını bilsin), sonra işlemi başlat.
+        let infoMsg;
         if(analysis.status === 'cloud-empty'){
-          previewMsg = t('cloudPreviewWillPush');
+          infoMsg = t('cloudPreviewWillPush');
         } else {
-          // "X yeni kayıt buluttan gelecek, Y yeni kayıt buluta gönderilecek"
-          previewMsg = t('cloudPreviewMerge', {
+          infoMsg = t('cloudPreviewMerge', {
             fromCloud: analysis.totalNewFromRemote,
             toCloud: analysis.totalNewFromLocal
           });
         }
+        UI.Toasts.show(infoMsg, 'success');
 
-        UI.Confirm.show(previewMsg, async ()=>{
-          UI.Toasts.show(t('cloudSyncing'),'success');
-          try {
-            const result = await Core.Cloud.forceSync();
-            this.renderCloudBox();
-            if(result === 'merged'){
-              UI.Toasts.show(t('cloudMerged'),'success');
-            } else if(result === 'in-sync'){
-              UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
-            } else {
-              UI.Toasts.show(t('cloudPushedToCloud'),'success');
-            }
-          } catch(e) {
-            UI.Toasts.show(t('cloudInitFail'),'error');
-            this.renderCloudBox();
+        // Kısa bekleme — kullanıcı mesajı okusun
+        await new Promise(res=>setTimeout(res,1200));
+
+        UI.Toasts.show(t('cloudSyncing'),'success');
+        try {
+          const result = await Core.Cloud.forceSync();
+          this.renderCloudBox();
+          if(result === 'merged'){
+            UI.Toasts.show(t('cloudMerged'),'success');
+          } else if(result === 'in-sync'){
+            UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
+          } else {
+            UI.Toasts.show(t('cloudPushedToCloud'),'success');
           }
-        });
+        } catch(e) {
+          UI.Toasts.show(t('cloudInitFail'),'error');
+          this.renderCloudBox();
+        }
       },
 
       cloudSignOut(){
