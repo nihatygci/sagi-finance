@@ -3209,7 +3209,7 @@ const UI = {
       },230);
     }
   },
-  Confirm:{cb:null,show(msg,cb){document.getElementById('confirmMsg').textContent=msg;this.cb=cb;UI.Modals.open('modalConfirm');},execute(){if(this.cb)this.cb();UI.Modals.close('modalConfirm');}},
+  Confirm:{cb:null,show(msg,cb){document.getElementById('confirmMsg').innerHTML=msg;this.cb=cb;UI.Modals.open('modalConfirm');},execute(){if(this.cb)this.cb();UI.Modals.close('modalConfirm');}},
   Toasts:{
     show(msg,type='success'){
       const c=document.getElementById('toastContainer'),t=document.createElement('div');

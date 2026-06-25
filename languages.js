@@ -310,7 +310,7 @@ const LANGS = {
       confDelRecSimple:'Bu aboneliği silmek istediğinize emin misiniz?',
       confDelDebt:'Bu kaydı silmek istediğinize emin misiniz?',
       confDelLimit:'Bu bütçe limiti kaldırılsın mı?',
-      confFactory:'TÜM VERİLER SİLİNECEK! Bu işlem geri alınamaz. Devam etmek istiyor musunuz?',
+      confFactory:'<strong style=\"color:var(--status-danger)\">⚠️ Bu işlem geri alınamaz.</strong><br><br><strong>Silinecekler:</strong><br>• Tüm işlemler, hesaplar, abonelikler, hedefler, borçlar<br>• Bu cihazdaki tüm yerel veriler<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Not:</strong> Bulut anahtarınız varsa silinmez. Başka bir cihazdan veya anahtarınızla tekrar bağlanarak verilerinizi geri yükleyebilirsiniz.</span><br><br>Devam etmek istiyor musunuz?',
       confNotifPerm:'SAGI Finance size abonelik, borç vadeleri ve bütçe uyarıları için bildirim gönderebilir. İzin vermek ister misiniz?',
       confCloudCreate:'Mevcut yerel verileriniz anonim bir anahtarla Firebase\'e yüklenecek ve senkronizasyon başlayacak.\n\n⚠️ Anahtarınızı kaydedin — kaybederseniz bulut verilerinize bir daha erişemezsiniz.\n\nGizlilik Politikamızda belirttiğimiz üzere kimlik bilgisi toplanmaz. Devam etmek istiyor musunuz?',
       confCloudSignOut:'Bu cihazdan bulut bağlantısı kesilecek. Verileriniz bu cihazda kalmaya devam eder. Devam?',
@@ -361,7 +361,7 @@ const LANGS = {
       restoreHintPlus:'JSON yedek dosyası veya <span style="color:var(--brand-accent);font-weight:600">SAGI Plus</span> ile dışa aktarılan CSV.',
       selectJsonFile:'JSON Dosyası Seç',
       selectCsvFile:'CSV Dosyası Seç',
-      confDeleteAccount:'Hesabınızı ve tüm verilerinizi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz. Firebase üzerindeki tüm hesap verileriniz ve cihazda kayıtlı yerel verileriniz tamamen silinecektir.',
+      confDeleteAccount:'<strong style=\"color:var(--status-danger)\">⚠️ Bu işlem geri alınamaz.</strong><br><br><strong>Silinecekler:</strong><br>• Bulut anahtarınız ve Firebase\'deki tüm veriler<br>• Bu cihazdaki yerel veriler<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Not:</strong> Anahtarınız tamamen silineceği için başka cihazlardan da erişim sona erer. Yalnızca cihazdan çıkmak istiyorsanız bunun yerine <em>Bulut Bağlantısını Kes</em> seçeneğini kullanın.</span><br><br>Hesabı kalıcı olarak silmek istiyor musunuz?',
       accountDeleted:'Hesabınız silindi.',
 
       // Analiz sayfası — hardcoded
@@ -938,7 +938,7 @@ const LANGS = {
       confDelRecSimple:'Delete this subscription?',
       confDelDebt:'Delete this record?',
       confDelLimit:'Remove this budget limit?',
-      confFactory:'ALL DATA WILL BE DELETED! This cannot be undone. Continue?',
+      confFactory:'<strong style=\"color:var(--status-danger)\">⚠️ This action cannot be undone.</strong><br><br><strong>What will be deleted:</strong><br>• All transactions, accounts, subscriptions, goals, debts<br>• All locally stored data on this device<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Note:</strong> Your cloud key is not affected. You can reconnect with your key on any device to restore your data.</span><br><br>Do you want to continue?',
       confNotifPerm:'SAGI Finance can send reminders for subscriptions, debt deadlines, and budget alerts. Allow notifications?',
       confCloudCreate:'Your local data will be uploaded to Firebase under an anonymous key and sync will begin.\n\n⚠️ Save your key — if you lose it, you will not be able to access your cloud data again.\n\nAs stated in our Privacy Policy, no identity information is collected. Continue?',
       confCloudSignOut:'Cloud connection will be disconnected on this device. Your data will remain here. Continue?',
@@ -1243,7 +1243,7 @@ const LANGS = {
       restoreHintPlus:'JSON backup file or CSV exported with <span style="color:var(--brand-accent);font-weight:600">SAGI Plus</span>.',
       selectJsonFile:'Select JSON File',
       selectCsvFile:'Select CSV File',
-      confDeleteAccount:'Are you sure you want to permanently delete your account and all your data? This action cannot be undone. All your Firebase account data and locally stored data on this device will be completely removed.',
+      confDeleteAccount:'<strong style=\"color:var(--status-danger)\">⚠️ This action cannot be undone.</strong><br><br><strong>What will be deleted:</strong><br>• Your cloud key and all data on Firebase<br>• Locally stored data on this device<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Note:</strong> Since your key is permanently deleted, access from all other devices will also end. If you only want to disconnect this device, use <em>Disconnect Cloud</em> instead.</span><br><br>Permanently delete your account?',
       accountDeleted:'Your account has been deleted.',
 
       // Analytics page — hardcoded
