@@ -4013,7 +4013,9 @@ const App = {
           if (typeof _applyStoredColor === 'function') _applyStoredColor();
           if (typeof _applyStoredFont === 'function') _applyStoredFont();
         } catch(e) {}
-        // Alt menü ve hızlı işlemler sırasını güncelle
+        // Bildirim kontrolü — remote'tan gelen yeni veri (abonelik, borç vs.) için
+        try { if(typeof Notifications !== 'undefined') Notifications.check(); } catch(e) {}
+        // Alt menüyü güncelle
         try { App.Controllers.BottomBar.renderNav(); } catch(e) {}
         // Ayarlar sayfası açıksa ilgili section'ı yeniden render et
         try {
