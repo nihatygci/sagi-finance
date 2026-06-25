@@ -2915,12 +2915,50 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 // ═══════════════════════════════════════
 // CORE
 // ═══════════════════════════════════════
-// ── Merge sistemi — Tombstone bazlı array merge ─────────────────────────
+// ── Merge sistemi — Tombstone bazlı array merge + per-field settings ──────
 // Cihazlar günlerce offline kalıp değişiklik yapsa da, online'a dönünce
 // hiçbir taraf diğerinin verisini topyekûn ezmez. ID bazlı birleştirme +
-// silme kayıtları (tombstone) ile çalışır. Bkz. mergeState() açıklaması.
+// silme kayıtları (tombstone) ile çalışır.
+// Settings: her alan bağımsız _settingsTs timestamp ile izlenir —
+// "tema değiştiren cihaz, para birimi seçen cihazı ezmez".
 const MERGEABLE_ARRAYS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
+
+// Settings per-field izleme — bu alanlar cihaz bazlı bağımsız merge edilir
+const SETTINGS_PER_FIELD_KEYS = [
+  'theme','lang','anim','privacy','currency','name',
+  'plusFont','plusColor','plusCustomColors','plusPlan',
+  'bnavItems','notifMaster','notifications',
+];
+
+// Bir veya daha fazla settings alanı değiştiğinde Core.DB.save()'dan ÖNCE çağrılır.
+// _touchSettingsTs(['theme'])  — sadece tema
+// _touchSettingsTs()           — tüm izlenen alanlar
+function _touchSettingsTs(fields) {
+  if (!Core.state.settings._settingsTs) Core.state.settings._settingsTs = {};
+  const now = Date.now();
+  (fields || SETTINGS_PER_FIELD_KEYS).forEach(function(k) {
+    Core.state.settings._settingsTs[k] = now;
+  });
+}
+window._touchSettingsTs = _touchSettingsTs;
+
 let _prevIdSets = null;
+// Item içerik snapshot'ları — edit detection için
+let _prevItemSnapshots = null;
+
+function _itemEquals(a, b) {
+  const strip = function(obj) { const c = Object.assign({}, obj); delete c._updatedAt; return JSON.stringify(c); };
+  return strip(a) === strip(b);
+}
+function _captureItemSnapshots() {
+  _prevItemSnapshots = {};
+  MERGEABLE_ARRAYS.forEach(function(key) {
+    const arr = Core.state[key];
+    const map = new Map();
+    if (Array.isArray(arr)) arr.forEach(function(item) { if (item && item.id) map.set(item.id, JSON.parse(JSON.stringify(item))); });
+    _prevItemSnapshots[key] = map;
+  });
+}
 function _collectIdSet(state){
   const sets = {};
   MERGEABLE_ARRAYS.forEach(key=>{
@@ -2947,6 +2985,8 @@ function _updateTombstones(state){
 }
 function mergeState(localState, remoteState){
   const merged = JSON.parse(JSON.stringify(localState));
+
+  // ── 1) Tombstone birleştirme ──────────────────────────────────────
   const localTomb = localState._tombstones || {};
   const remoteTomb = remoteState._tombstones || {};
   const allTomb = Object.assign({}, localTomb, remoteTomb);
@@ -2954,6 +2994,8 @@ function mergeState(localState, remoteState){
     if(localTomb[id] && remoteTomb[id]) allTomb[id] = Math.max(localTomb[id], remoteTomb[id]);
   });
   merged._tombstones = allTomb;
+
+  // ── 2) Array merge — ID bazlı, _updatedAt kazananı belirler ──────
   MERGEABLE_ARRAYS.forEach(key=>{
     const localArr = Array.isArray(localState[key]) ? localState[key] : [];
     const remoteArr = Array.isArray(remoteState[key]) ? remoteState[key] : [];
@@ -2965,18 +3007,45 @@ function mergeState(localState, remoteState){
       if(!existing){ byId.set(item.id, item); }
       else {
         const localTs = item._updatedAt||0, remoteTs = existing._updatedAt||0;
-        byId.set(item.id, localTs>remoteTs ? item : existing);
+        // Eşit timestamp'te local kazanır (bu cihazda düzenlendi varsayımı)
+        byId.set(item.id, localTs>=remoteTs ? item : existing);
       }
     });
     const result = [];
     byId.forEach((item,id)=>{ if(!allTomb[id]) result.push(item); });
     merged[key] = result;
   });
-  const localMod = (localState.settings&&localState.settings.lastModified)||0;
-  const remoteMod = (remoteState.settings&&remoteState.settings.lastModified)||0;
-  merged.settings = remoteMod>localMod
-    ? Object.assign({}, localState.settings, remoteState.settings, {syncKey: localState.settings.syncKey})
-    : Object.assign({}, remoteState.settings, localState.settings);
+
+  // ── 3) Settings per-field merge ───────────────────────────────────
+  // Her alan için _settingsTs'e bak; daha sonra değiştiren cihaz kazanır.
+  // _settingsTs yoksa (eski veri uyumluluğu) lastModified'a düşer.
+  const localStTs  = (localState.settings  && localState.settings._settingsTs)  || {};
+  const remoteStTs = (remoteState.settings && remoteState.settings._settingsTs) || {};
+  const localMod   = (localState.settings  && localState.settings.lastModified)  || 0;
+  const remoteMod  = (remoteState.settings && remoteState.settings.lastModified) || 0;
+
+  // Base: her iki tarafı birleştir, local üste yazar
+  const mergedSettings = Object.assign({}, remoteState.settings || {}, localState.settings || {});
+
+  // Per-field override: remote daha yeniyse remote'u al
+  SETTINGS_PER_FIELD_KEYS.forEach(function(k) {
+    const lTs = localStTs[k]  || localMod;
+    const rTs = remoteStTs[k] || remoteMod;
+    if (rTs > lTs) mergedSettings[k] = (remoteState.settings || {})[k];
+  });
+
+  // _settingsTs: union — her alan için en yüksek timestamp
+  const mergedStTs = Object.assign({}, remoteStTs, localStTs);
+  SETTINGS_PER_FIELD_KEYS.forEach(function(k) {
+    const rTs = remoteStTs[k] || 0;
+    if (rTs > (localStTs[k] || 0)) mergedStTs[k] = rTs;
+  });
+  mergedSettings._settingsTs  = mergedStTs;
+  mergedSettings.syncKey      = localState.settings.syncKey;
+  mergedSettings.lastModified = Math.max(localMod, remoteMod);
+  merged.settings = mergedSettings;
+
+  // ── 4) Diğer alanlar ─────────────────────────────────────────────
   merged.notifInbox = localState.notifInbox || remoteState.notifInbox || [];
   merged.paidMonths = Object.assign({}, remoteState.paidMonths||{}, localState.paidMonths||{});
   return merged;
@@ -2990,21 +3059,30 @@ const Core = {
   DB:{
     key:'sagi_v1_data',
     _pendingPushKey: 'sagi_pending_push',
-    load(){try{const d=localStorage.getItem(this.key);if(d){const p=JSON.parse(d);Core.state={...Core.state,...p};if(!Core.state._tombstones)Core.state._tombstones={};if(!Core.state.settings.notifications)Core.state.settings.notifications={abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};const n=Core.state.settings.notifications;if(n.krediKarti===undefined)n.krediKarti=false;if(n.hedef===undefined)n.hedef=false;if(n.buyukHarcama===undefined)n.buyukHarcama=false;if(n.doviz===undefined)n.doviz=false;if(Core.state.wallets.length>0)Core.state.settings.onboarded=true;if(Core.state.settings.lang)window.LANG=Core.state.settings.lang;}_prevIdSets=_collectIdSet(Core.state);}catch(e){}},
+    load(){try{const d=localStorage.getItem(this.key);if(d){const p=JSON.parse(d);Core.state={...Core.state,...p};if(!Core.state._tombstones)Core.state._tombstones={};if(!Core.state.settings.notifications)Core.state.settings.notifications={abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};const n=Core.state.settings.notifications;if(n.krediKarti===undefined)n.krediKarti=false;if(n.hedef===undefined)n.hedef=false;if(n.buyukHarcama===undefined)n.buyukHarcama=false;if(n.doviz===undefined)n.doviz=false;if(Core.state.wallets.length>0)Core.state.settings.onboarded=true;if(Core.state.settings.lang)window.LANG=Core.state.settings.lang;}_prevIdSets=_collectIdSet(Core.state);_captureItemSnapshots();}catch(e){}},
     // ── _updatedAt enjeksiyonu ─────────────────────────────────────────
-    // Her save()'den önce, son kayıtlarda değişiklik olan item'lara
-    // _updatedAt timestamp'i basıyoruz. Bu, mergeState()'in "iki cihazda
-    // aynı item değiştiyse hangisi daha yeni" sorusuna cevap vermesini
-    // sağlar. Sadece ID'si olan (mergeable) item'lara eklenir; daha önce
-    // _updatedAt'i olmayan item'lar ilk save'de otomatik alır.
+    // Her save()'den önce, değişen item'lara _updatedAt timestamp'i basar.
+    // Yeni item: _updatedAt yoksa set edilir.
+    // Düzenlenen item: önceki snapshot ile içerik karşılaştırılır; farklıysa güncellenir.
+    // Bu sayede mergeState() "iki cihazda aynı item değiştiyse hangisi daha yeni"
+    // sorusunu item bazında doğru çözebilir.
     _injectUpdatedAt(){
       const now=Date.now();
       const ARRS=['wallets','transactions','recurring','goals','debts','categories','budgets'];
       ARRS.forEach(key=>{
         const arr=Core.state[key];
         if(!Array.isArray(arr))return;
-        arr.forEach(item=>{ if(item&&item.id&&!item._updatedAt) item._updatedAt=now; });
+        arr.forEach(item=>{
+          if(!item||!item.id)return;
+          if(!item._updatedAt){
+            item._updatedAt=now;
+          } else if(_prevItemSnapshots&&_prevItemSnapshots[key]){
+            const prev=_prevItemSnapshots[key].get(item.id);
+            if(!prev||!_itemEquals(item,prev)) item._updatedAt=now;
+          }
+        });
       });
+      _captureItemSnapshots();
     },
     // ── Pending push kaydı ─────────────────────────────────────────────
     // Push başarısız olursa (offline veya hata) bunu localStorage'a yaz.
@@ -3475,13 +3553,13 @@ const Notifications = {
     if(!this.supported){UI.Toasts.show(t('msgNotifUnsup'),'error');return;}
     if(!this.granted){
       this.requestPermission().then(()=>{
-        if(this.granted){Core.state.settings.notifMaster=true;Core.DB.save();this.updateUI();}
+        if(this.granted){Core.state.settings.notifMaster=true;_touchSettingsTs(['notifMaster','notifications']);Core.DB.save();this.updateUI();}
       });
       return;
     }
     const current=Core.state.settings.notifMaster!==false;
     Core.state.settings.notifMaster=!current;
-    Core.DB.save();this.updateUI();
+    _touchSettingsTs(['notifMaster']);Core.DB.save();this.updateUI();
     UI.Toasts.show(Core.state.settings.notifMaster?t('msgNotifAllOn'):t('msgNotifAllOff'));
   },
   toggleSetting(key){
@@ -3489,7 +3567,7 @@ const Notifications = {
     if(!this.granted){this.toggleMaster();return;}
     if(!Core.state.settings.notifications)Core.state.settings.notifications={};
     Core.state.settings.notifications[key]=!Core.state.settings.notifications[key];
-    Core.DB.save();this.updateUI();
+    _touchSettingsTs(['notifications']);Core.DB.save();this.updateUI();
     UI.Toasts.show(Core.state.settings.notifications[key]?t('msgNotifOn'):t('msgNotifOff'));
   },
   check(){
@@ -7027,13 +7105,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const grouped = raw.match(/.{1,4}/g);
         el.value = grouped ? grouped.join('-') : '';
       },
-      togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
+      togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';_touchSettingsTs(['privacy']);Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
       applyPrivacy(){const isOn=Core.state.settings.privacy==='on';const sBtn=document.getElementById('sidePrivacyBtn'),hBtn=document.getElementById('headerPrivacyBtn'),sIcon=document.getElementById('sidePrivacyIcon'),hIcon=document.getElementById('headerPrivacyIcon');if(isOn){if(sBtn)sBtn.classList.add('active');if(hBtn)hBtn.classList.add('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye-off"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye-off"/>';}else{if(sBtn)sBtn.classList.remove('active');if(hBtn)hBtn.classList.remove('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye"/>'; }},
-      setTheme(mode){Core.state.settings.theme=mode;Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
+      setTheme(mode){Core.state.settings.theme=mode;_touchSettingsTs(['theme']);Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
       applyTheme(){document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');const anim=Core.state.settings.anim||'on';if(anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light',lang=Core.state.settings.lang||'tr';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active')});const animBtn=document.getElementById('set_anim_'+anim);if(animBtn)animBtn.classList.add('active');const langBtn=document.getElementById('set_lang_'+lang);if(langBtn)langBtn.classList.add('active')},
-      setLang(lang){window.LANG=lang;Core.state.settings.lang=lang;Core.DB.save();applyLang();['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const btn=document.getElementById('set_lang_'+lang);if(btn)btn.classList.add('active');UI.Toasts.show(lang==='tr'?t('msgTrSelected'):t('msgEnSelected'));},
+      setLang(lang){window.LANG=lang;Core.state.settings.lang=lang;_touchSettingsTs(['lang']);Core.DB.save();applyLang();['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const btn=document.getElementById('set_lang_'+lang);if(btn)btn.classList.add('active');UI.Toasts.show(lang==='tr'?t('msgTrSelected'):t('msgEnSelected'));},
       setAnim(val){
         Core.state.settings.anim=val;
+        _touchSettingsTs(['anim']);
         App.Controllers.Settings.applyTheme();
         Core.DB.save();
       },
@@ -7072,7 +7151,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             });
           }
         }
-        Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));
+        _touchSettingsTs(['currency','name']);Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));
         setTimeout(()=>location.reload(),800);
       },
       exportJSON(){
@@ -7593,6 +7672,7 @@ App.Controllers.BottomBar = {
   setActive(ids){
     const trimmed = ids.slice(0,5);
     Core.state.settings.bnavItems = trimmed;
+    _touchSettingsTs(['bnavItems']);
     Core.DB.saveNow();
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
     this.renderNav();
@@ -7601,6 +7681,7 @@ App.Controllers.BottomBar = {
 
   reset(){
     Core.state.settings.bnavItems = [...this.DEFAULT_IDS];
+    _touchSettingsTs(['bnavItems']);
     Core.DB.saveNow();
     localStorage.removeItem(this.STORAGE_KEY);
     this.renderNav();

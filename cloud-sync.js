@@ -1,19 +1,14 @@
 /* ════════════════════════════════════════════════════════════════════
-   SAGI Finance — CLOUD SYNC
+   SAGI Finance — CLOUD SYNC  v2.0
    ────────────────────────────────────────────────────────────────────
-   Firebase Cloud Firestore üzerinden cihazlar arası senkronizasyon.
-
-   • 16 haneli hex anahtar (XXXX-XXXX-XXXX-XXXX) cihazlar arası
-     eşleşme için kullanılır. Anahtar Firestore'da bir doküman ID'si
-     olarak saklanır: users/{key16}
-   • Yerel her save sonrası 1.5 sn debounce ile buluta push.
-   • onSnapshot ile gerçek zamanlı pull — başka cihazda yapılan
-     değişiklikler bu cihazda otomatik görünür.
-   • lastModified timestamp ile çakışma çözülür: son yazan kazanır.
-
-   Bu modül yüklendiğinde Core.Cloud namespace'ini Core'a ekler.
-   Firebase yüklenememişse modül sessizce devre dışı kalır;
-   uygulama offline çalışmaya devam eder.
+   • Firestore runTransaction ile atomic push — iki cihaz aynı anda
+     yazarsa merge edilir, veri kaybı olmaz.
+   • Settings per-field timestamp (_settingsTs) — tema değiştiren
+     cihaz, para birimi seçen cihazı ezmez.
+   • _applyRemote() tek merkezi metod — initialPull, onSnapshot,
+     forceSync ve loginWithKey aynı merge mantığını kullanır.
+   • pushId ile kendi push'larımızı tanırız — _suppressNextRemote yok.
+   • analyzeSync tombstone'ları da sayıya dahil eder.
    ════════════════════════════════════════════════════════════════════ */
 
 (function () {
@@ -77,6 +72,28 @@
       setTimeout(() => this._waitForFirebaseAndNotify(attempts + 1), 250);
     },
 
+    // ── Remote veriyi yerel ile merge et ve uygula ───────────────────
+    // Tüm "remote değişiklik geldi" senaryolarında bu tek metod çağrılır:
+    //   initialPull, onSnapshot, forceSync, loginWithKey
+    // opts.push  = true  → merge sonrası buluta geri yaz
+    // opts.reload = true → merge sonrası sayfayı yenile
+    async _applyRemote(remoteState, remoteMod, opts) {
+      opts = opts || {};
+      const savedKey = Core.state.settings.syncKey;
+      const merged = Core.mergeState(Core.state, remoteState);
+      merged.settings.syncKey = savedKey;
+      if (!opts.push) {
+        merged.settings.lastModified = remoteMod || merged.settings.lastModified;
+      }
+      Core.state = merged;
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+      try { Core.emit('stateChanged', Core.state); } catch(e) {}
+      try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
+      this._rerenderActiveView();
+      if (opts.push) await this._doPush();
+      if (opts.reload) setTimeout(() => window.location.reload(), 300);
+    },
+
     async _initialPull() {
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       try {
@@ -98,8 +115,7 @@
           return true;
         }
         if (!data || !data.state) return;
-        // forwardKey yoksa — remote syncKey PLUS key mi?
-        // devActivate eski doc'taki syncKey'i PLUS key olarak güncelledi
+        // Remote syncKey PLUS key mi?
         const remoteSyncKey = data.state && data.state.settings && data.state.settings.syncKey;
         const currentKey = Core.state.settings.syncKey || '';
         if (remoteSyncKey && remoteSyncKey !== currentKey && remoteSyncKey.startsWith('PLUS-')) {
@@ -113,8 +129,7 @@
           }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
           return true;
         }
-        // forwardKey ve remoteSyncKey yoksa — PLUS-{key} doc'u var mı proaktif kontrol
-        // devActivate forwardKey yazmayı başaramadıysa bu güvence yakalar
+        // PLUS-{key} doc proaktif kontrol
         if (!currentKey.startsWith('PLUS-')) {
           try {
             const plusKey = 'PLUS-' + currentKey;
@@ -137,47 +152,23 @@
         }
 
         const remoteMod = data.lastModified || 0;
-        const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
-
-        console.log('[Cloud] initialPull — local:', localMod, 'remote:', remoteMod);
-
-        // timestamp'ler eşit olsa bile içerik farklı olabilir (örn. iki cihaz
-        // aynı milisaniyede save yaptıysa). Güvence: transaction sayısını da karşılaştır.
-        const localTxCount = (Core.state.transactions||[]).length;
-        const remoteTxCount = ((data.state&&data.state.transactions)||[]).length;
-        const localWalletCount = (Core.state.wallets||[]).length;
+        const localMod  = (Core.state.settings && Core.state.settings.lastModified) || 0;
+        const localTxCount   = (Core.state.transactions||[]).length;
+        const remoteTxCount  = ((data.state&&data.state.transactions)||[]).length;
+        const localWalletCount  = (Core.state.wallets||[]).length;
         const remoteWalletCount = ((data.state&&data.state.wallets)||[]).length;
         const contentSame = localTxCount===remoteTxCount && localWalletCount===remoteWalletCount;
 
         if (remoteMod === localMod && contentSame) {
-          // Gerçekten senkron — hiçbir şey yapma
           console.log('[Cloud] initialPull: zaten senkron.');
           return;
         }
 
-        // ── Array-level merge ──────────────────────────────────────────
-        console.log('[Cloud] initialPull: merge ediliyor (local + remote).');
-        const savedKey = Core.state.settings.syncKey;
-        const merged = Core.mergeState(Core.state, data.state);
-        Core.state = merged;
-        Core.state.settings.syncKey = savedKey;
-        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-        this._suppressNextRemote = true;
-        try { Core.emit('stateChanged', Core.state); } catch(e) {}
-        try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
-        this._rerenderActiveView();
-
-        // Merge sonucu buluta geri yaz
-        await this._doPush();
+        console.log('[Cloud] initialPull: merge + push (local:', localMod, '/ remote:', remoteMod, ')');
+        // Merge + buluta geri yaz (iki taraf da yeni şey eklemiş olabilir)
+        await this._applyRemote(data.state, remoteMod, { push: true });
       } catch(e) {
         console.warn('[Cloud] initialPull hatası:', e);
-      }
-    },
-
-    _checkFirebase() {
-      if (window._fbReady && window._fbDB) {
-        console.log('[Cloud] Firebase hazır, durum güncellendi.');
-        this._emitStatus('idle');
       }
     },
 
@@ -432,32 +423,27 @@
             return;
           }
 
-          // Kendi push'umuzu pushId ile tanı — boolean suppress yerine güvenli yöntem
+          // Kendi push'umuzu pushId ile tanı
           if (data.pushId && data.pushId === this._lastPushId) {
             this._lastPushId = null;
             return;
           }
 
           const remoteMod = data.lastModified || 0;
-          const localMod =
-            (Core.state.settings && Core.state.settings.lastModified) || 0;
-          if (remoteMod !== localMod) {
-            // ── Array-level merge — bkz. _initialPull yorumu ──────────────
-            console.log("[Cloud] Uzak değişiklik alındı, merge ediliyor.");
-            const savedKey = Core.state.settings.syncKey;
-            const merged = Core.mergeState(Core.state, data.state);
-            Core.state = merged;
-            Core.state.settings.syncKey = savedKey;
-            Core.state.settings.lastModified = remoteMod;
-            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-            try {
-              Core.emit("stateChanged", Core.state);
-            } catch (e) {}
-            try {
-              Core.emit("cloudRemoteUpdate", Core.state);
-            } catch (e) {}
-            this._rerenderActiveView();
+          const localMod  = (Core.state.settings && Core.state.settings.lastModified) || 0;
+
+          if (remoteMod === localMod) {
+            // Timestamp eşit — tombstone ve tx sayısını da kontrol et
+            const rTomb = Object.keys((data.state && data.state._tombstones) || {}).length;
+            const lTomb = Object.keys((Core.state._tombstones) || {}).length;
+            const rTx   = ((data.state && data.state.transactions) || []).length;
+            const lTx   = (Core.state.transactions || []).length;
+            if (rTomb === lTomb && rTx === lTx) return; // gerçekten senkron
           }
+
+          console.log("[Cloud] Uzak değişiklik alındı, merge ediliyor. remote:", remoteMod, "local:", localMod);
+          // pull-only: karşı cihaz transaction ile zaten yazdı, biz sadece local'i güncelliyoruz
+          this._applyRemote(data.state, remoteMod, { push: false });
         },
         (err) => {
           console.warn("[Cloud] Listener hatası:", err);
@@ -542,12 +528,8 @@
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       this._emitStatus("syncing");
       const docRef = this._doc(Core.state.settings.syncKey);
-      // pushId: bu push'a özgü ID — snapshot gelince kendi push'umuzu tanırız
       const pushId = Math.random().toString(36).slice(2);
       this._lastPushId = pushId;
-      // lastModified push ÖNCESINDE güncellenmez — push başarılı olunca güncellenir
-      const pushTimestamp = Date.now();
-      // ── Consent verisini Firestore top-level'a ekle (denetim kaydı) ──
       const consentPayload = {};
       if (Core.state.settings.consentDate) {
         consentPayload.consentDate    = Core.state.settings.consentDate;
@@ -556,27 +538,69 @@
         consentPayload.consentMethod  = Core.state.settings.consentMethod || null;
       }
       try {
-        await docRef.set(
-          {
-            state: Core.state,
+        let finalState = null;
+        let pushTimestamp = null;
+
+        await window._fbDB.runTransaction(async (txn) => {
+          const snap = await txn.get(docRef);
+          pushTimestamp = Date.now();
+
+          if (!snap.exists) {
+            // İlk yazma — direkt set
+            finalState = JSON.parse(JSON.stringify(Core.state));
+          } else {
+            const remoteData  = snap.data();
+            const remoteState = remoteData && remoteData.state;
+            // Bu transaction döngüsünde kendi önceki yazımızla çakıştık — geç
+            if (remoteData && remoteData.pushId === this._lastPushId) {
+              finalState = JSON.parse(JSON.stringify(Core.state));
+            } else if (remoteState) {
+              const remoteMod = (remoteData && remoteData.lastModified) || 0;
+              const localMod  = (Core.state.settings && Core.state.settings.lastModified) || 0;
+              if (remoteMod !== localMod) {
+                // Başka cihazın değişikliği var — transaction içinde merge et
+                console.log('[Cloud] _doPush: transaction merge — remote:', remoteMod, 'local:', localMod);
+                finalState = Core.mergeState(Core.state, remoteState);
+                finalState.settings.syncKey = Core.state.settings.syncKey;
+              } else {
+                finalState = JSON.parse(JSON.stringify(Core.state));
+              }
+            } else {
+              finalState = JSON.parse(JSON.stringify(Core.state));
+            }
+          }
+
+          finalState.settings.lastModified = pushTimestamp;
+          txn.set(docRef, {
+            state:        finalState,
             lastModified: pushTimestamp,
-            pushId: pushId,
+            pushId:       pushId,
             ...consentPayload,
-          },
-          { merge: false },
-        );
-        // Push başarılı — şimdi local'i güncelle ve pending flag'i temizle
-        Core.state.settings.lastModified = pushTimestamp;
-        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          });
+        });
+
+        // Transaction başarılı — yerel state'i güncelle
+        if (finalState) {
+          const savedKey = Core.state.settings.syncKey;
+          Core.state = finalState;
+          Core.state.settings.syncKey = savedKey;
+          Core.state.settings.lastModified = pushTimestamp;
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          // Transaction merge yaptıysa UI'a yansıt
+          try { Core.emit('stateChanged', Core.state); } catch(e) {}
+        }
+
         if (Core.DB && Core.DB.clearPendingPush) Core.DB.clearPendingPush();
         this.lastError = "";
         this._emitStatus("ok");
       } catch (e) {
-        console.error('[Cloud DEBUG] Push hatası — code:', e.code, '| message:', e.message);
-        console.warn("[Cloud] Push hatası:", e);
+        console.error('[Cloud] Push hatası — code:', e.code, '| message:', e.message);
         this._lastPushId = null;
         this.lastError = (e && e.message) || "";
         this._emitStatus(navigator.onLine === false ? "offline" : "error");
+        if (navigator.onLine === false && Core.DB && Core.DB.markPendingPush) {
+          Core.DB.markPendingPush();
+        }
       }
     },
 
@@ -612,12 +636,14 @@
         const remoteState = data && data.state;
 
         if (remoteMod === localMod) {
-          // timestamp eşit — içeriği de kısaca karşılaştır
+          // timestamp eşit — içeriği de kısaca karşılaştır (tombstone dahil)
           const localTxCount = (Core.state.transactions||[]).length;
           const remoteTxCount = ((remoteState&&remoteState.transactions)||[]).length;
           const localWCount = (Core.state.wallets||[]).length;
           const remoteWCount = ((remoteState&&remoteState.wallets)||[]).length;
-          if (localTxCount === remoteTxCount && localWCount === remoteWCount) {
+          const lTomb = Object.keys((Core.state._tombstones)||{}).length;
+          const rTomb = Object.keys(((remoteState&&remoteState._tombstones)||{})).length;
+          if (localTxCount === remoteTxCount && localWCount === remoteWCount && lTomb === rTomb) {
             return { status: 'in-sync' };
           }
           // timestamp eşit ama içerik farklı — merge gerekiyor
@@ -626,19 +652,20 @@
           return { status: 'cloud-empty', willPush: true };
         }
 
-        // Hangi taraf da, diğerinde olmayan kaç ID var — kullanıcıya somut
-        // bir özet vermek için (örn. "2 yeni işlem buluttan gelecek").
+        // Hangi taraf da, diğerinde olmayan kaç ID var
         const counts = {};
         const ARRS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
         let totalNewFromRemote = 0, totalNewFromLocal = 0;
+        // Tüm tombstone'ları birleştir — silinmiş ID'leri "yeni" sayma
+        const allTomb = Object.assign({}, Core.state._tombstones||{}, (remoteState&&remoteState._tombstones)||{});
         ARRS.forEach(key => {
           const localArr = Array.isArray(Core.state[key]) ? Core.state[key] : [];
           const remoteArr = Array.isArray(remoteState[key]) ? remoteState[key] : [];
           const localIds = new Set(localArr.map(x => x && x.id).filter(Boolean));
           const remoteIds = new Set(remoteArr.map(x => x && x.id).filter(Boolean));
           let newFromRemote = 0, newFromLocal = 0;
-          remoteIds.forEach(id => { if (!localIds.has(id)) newFromRemote++; });
-          localIds.forEach(id => { if (!remoteIds.has(id)) newFromLocal++; });
+          remoteIds.forEach(id => { if (!localIds.has(id) && !allTomb[id]) newFromRemote++; });
+          localIds.forEach(id => { if (!remoteIds.has(id) && !allTomb[id]) newFromLocal++; });
           if (newFromRemote || newFromLocal) counts[key] = { newFromRemote, newFromLocal };
           totalNewFromRemote += newFromRemote;
           totalNewFromLocal += newFromLocal;
@@ -670,39 +697,30 @@
         const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
 
         if (!snap.exists) {
-          // Bulutta hiç veri yok — push yap
           console.log('[Cloud] forceSync: bulutta veri yok, push yapılıyor.');
           return this._doPush();
         }
 
-        const data = snap.data();
+        const data      = snap.data();
         const remoteMod = (data && data.lastModified) || 0;
+        const remoteState = data && data.state;
 
-        console.log('[Cloud] forceSync — local:', localMod, 'remote:', remoteMod);
+        if (!remoteState) return this._doPush();
 
-        const localTxCount2 = (Core.state.transactions||[]).length;
-        const remoteTxCount2 = ((data.state&&data.state.transactions)||[]).length;
-        const contentSame2 = localTxCount2 === remoteTxCount2 &&
-          (Core.state.wallets||[]).length === ((data.state&&data.state.wallets)||[]).length;
+        const localTxCnt  = (Core.state.transactions||[]).length;
+        const remoteTxCnt = ((remoteState.transactions)||[]).length;
+        const contentSame = localTxCnt === remoteTxCnt &&
+          (Core.state.wallets||[]).length === ((remoteState.wallets)||[]).length;
 
-        if (remoteMod === localMod && contentSame2) {
+        if (remoteMod === localMod && contentSame) {
           console.log('[Cloud] forceSync: zaten senkron.');
           this._emitStatus('ok');
           return 'in-sync';
         }
 
-        // ── Array-level merge ──────────────────────────────────────────
-        console.log('[Cloud] forceSync: merge ediliyor.');
-        const savedKey = Core.state.settings.syncKey;
-        const merged = Core.mergeState(Core.state, data.state);
-        Core.state = merged;
-        Core.state.settings.syncKey = savedKey;
-        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-        this._emitStatus('ok');
-        try { Core.emit('stateChanged', Core.state); } catch(e) {}
-        try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
-        this._rerenderActiveView();
-        await this._doPush();
+        console.log('[Cloud] forceSync: merge + push.');
+        // _doPush transaction içinde merge yapıyor — _applyRemote sonrası push yeterli
+        await this._applyRemote(remoteState, remoteMod, { push: true });
         return 'merged';
       } catch(e) {
         console.warn('[Cloud] forceSync hatası:', e);
