@@ -4013,6 +4013,30 @@ const App = {
           if (typeof _applyStoredColor === 'function') _applyStoredColor();
           if (typeof _applyStoredFont === 'function') _applyStoredFont();
         } catch(e) {}
+        // Alt menü ve hızlı işlemler sırasını güncelle
+        try { App.Controllers.BottomBar.renderNav(); } catch(e) {}
+        // Ayarlar sayfası açıksa ilgili section'ı yeniden render et
+        try {
+          const _hash = location.hash;
+          if (_hash.startsWith('#/settings')) {
+            const _section = _hash.split('/')[2] || '';
+            if (_section === 'notifications' && typeof Notifications !== 'undefined') {
+              Notifications.updateUI();
+            }
+            if (_section === 'bottombar') {
+              setTimeout(() => {
+                App.Controllers.BottomBar.renderEditor();
+                App.Controllers.QuickActions.renderEditor();
+              }, 50);
+            }
+            if (_section === 'cloud') {
+              App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
+            }
+            if (!_section || _section === 'personalization') {
+              App.Controllers.Settings.renderForm && App.Controllers.Settings.renderForm();
+            }
+          }
+        } catch(e) {}
       });
       setTimeout(async ()=>{
         if(lBar)lBar.style.width='70%';
