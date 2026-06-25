@@ -4048,7 +4048,6 @@ const App = {
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         applyLang();
         App.processRecurring();
-        Notifications.check();
         // ── BULUT SYNC: anahtar varsa, UYGULAMAYI GÖSTERMEDEN ÖNCE pull+merge'i bekle ──
         // Senaryo: Telefon offline iken işlem yaptı. PC eski veriyle kapalıydı, şimdi
         // açılıyor. PC'nin eski verisi UI'da görünüp kullanıcıyı yanıltmasın ve eski
@@ -4069,6 +4068,11 @@ const App = {
           // Offline — pull beklenmez, sadece listener bağlanır (online olunca tetiklenir)
           Core.Cloud.attachListener();
         }
+        // Bulut pull tamamlandıktan sonra bildirim kontrolü yap (güncel veriyle)
+        App.processRecurring();
+        Notifications.check();
+        // Periyodik bildirim kontrolü — sekme açık kaldığında da çalışsın (her saat)
+        setInterval(()=>{ try{ App.processRecurring(); Notifications.check(); }catch(e){} }, 60*60*1000);
         // Bulut status değişince ayarlar sayfasındaki kutuyu güncelle
         Core.on('cloudStatusChanged', ()=>{
           App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
