@@ -1193,6 +1193,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <button class="btn btn-outline btn-sm" id="ob_btn_copy" onclick="App.Controllers.Onboarding.copyGeneratedKey()" data-i18n="obKeyCopy">Kopyala</button>
       <div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.4" data-i18n="obKeyWarn">Bu anahtarı güvenli bir yere kaydedin. Kaybederseniz başka cihazdan verilerinize ulaşamazsınız.</div>
     </div>
+    <!-- Anahtar oluşturulduktan sonra görünen "Devam" butonu -->
+    <button class="btn btn-primary w-full" id="ob_btn_keynext" style="display:none;padding:14px;font-size:16px;margin-top:12px" data-i18n="obKeyContinue" onclick="App.Controllers.Onboarding.nextStep(2)">Devam Et</button>
 
     <!-- eski nav satırı kaldırıldı — geri butonları her panelin içine taşındı -->
     <div id="ob_key_nav" style="display:none"></div>
@@ -4107,7 +4109,7 @@ const App = {
                 const createBtn = document.getElementById('ob_btn_create');
                 if(createBtn) createBtn.style.display = 'none';
                 var _knBtn=document.getElementById('ob_btn_keynext');if(_knBtn)_knBtn.style.display='block';
-                document.getElementById('ob_btn_back').style.display = 'none';
+                var _backBtn=document.getElementById('ob_btn_back');if(_backBtn)_backBtn.style.display='none';
               }, 50);
             }
           },100);
@@ -4250,7 +4252,7 @@ const App = {
           // Yeni butonu sakla, "Devam" butonunu göster
           btn.style.display = 'none';
           var _knBtn=document.getElementById('ob_btn_keynext');if(_knBtn)_knBtn.style.display='block';
-          document.getElementById('ob_btn_back').style.display = 'none';
+          var _backBtn=document.getElementById('ob_btn_back');if(_backBtn)_backBtn.style.display='none';
         }catch(e){
           console.warn('[Onboarding] createAccount hatası:', e);
           if(cerr){ cerr.textContent = t('cloudCreateFail') + ' — ' + t('obKeySuggestSkip'); cerr.style.display='block'; }
@@ -6923,6 +6925,18 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       cloudDeleteAccount(){
         UI.Confirm.show(t('confDeleteAccount'), async ()=>{
           await Core.Cloud.deleteAccount();
+          // Plus ayarlarını temizle (font, renk, custom renkler)
+          localStorage.removeItem('sagi_plus_font');
+          localStorage.removeItem('sagi_plus_color');
+          localStorage.removeItem('sagi_plus_custom_colors');
+          // Plus CSS değişkenlerini varsayılana döndür
+          try{
+            document.documentElement.style.removeProperty('--brand-accent');
+            document.documentElement.style.removeProperty('--brand-accent-light');
+            document.documentElement.style.removeProperty('--font-display');
+            document.documentElement.style.removeProperty('--font-sans');
+            document.body.style.fontFamily = '';
+          }catch(e){}
           UI.Toasts.show(t('accountDeleted'),'success');
           setTimeout(()=>location.reload(), 800);
         });
@@ -7257,8 +7271,20 @@ _executeImport(){
         reader.readAsText(f,'UTF-8');
       },
       factoryReset(){UI.Confirm.show(t('confFactory'),()=>{
-        // Bulut listener'ı kapat (kullanıcı isterse anahtarla geri dönebilir)
+        // Bulut listener'ı kapat
         try{ Core.Cloud.detachListener(); }catch(e){}
+        // Plus ayarlarını temizle (font, renk, custom renkler)
+        localStorage.removeItem('sagi_plus_font');
+        localStorage.removeItem('sagi_plus_color');
+        localStorage.removeItem('sagi_plus_custom_colors');
+        // Plus CSS değişkenlerini varsayılana döndür
+        try{
+          document.documentElement.style.removeProperty('--brand-accent');
+          document.documentElement.style.removeProperty('--brand-accent-light');
+          document.documentElement.style.removeProperty('--font-display');
+          document.documentElement.style.removeProperty('--font-sans');
+          document.body.style.fontFamily = '';
+        }catch(e){}
         localStorage.removeItem(Core.DB.key);
         location.reload();
       });}
