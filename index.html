@@ -3016,6 +3016,58 @@ function mergeState(localState, remoteState){
     merged[key] = result;
   });
 
+  // ── 2b) Wallet balance düzeltme ──────────────────────────────────
+  // Problem: iki cihaz aynı anda farklı tx ekledi → her biri kendi wallet bakiyesini
+  // güncelledi → merge'de timestamp'e göre biri kazanır ama diğer cihazın tx'leri
+  // balance'a yansımaz.
+  // Çözüm: merge sonrası, bir tarafın bilmediği (yeni) tx'lerin delta'larını
+  // kazanan wallet balance'ına uygula.
+  (function(){
+    var localTxIds  = new Set((localState.transactions  ||[]).map(function(t){return t&&t.id;}).filter(Boolean));
+    var remoteTxIds = new Set((remoteState.transactions ||[]).map(function(t){return t&&t.id;}).filter(Boolean));
+    var walletMap = {};
+    merged.wallets.forEach(function(w){ if(w&&w.id) walletMap[w.id]=w; });
+    // Local'de olmayan ama remote'da olan tx'ler (remote'dan gelen yeniler)
+    var remoteOnlyTxs = (remoteState.transactions||[]).filter(function(t){
+      return t&&t.id&&!localTxIds.has(t.id)&&!allTomb[t.id];
+    });
+    // Remote'da olmayan ama local'de olan tx'ler (local'den gelen yeniler)
+    var localOnlyTxs = (localState.transactions||[]).filter(function(t){
+      return t&&t.id&&!remoteTxIds.has(t.id)&&!allTomb[t.id];
+    });
+    // Eğer hiç yeni tx yoksa (her iki taraf da aynı tx'e sahip) skip
+    if(!remoteOnlyTxs.length&&!localOnlyTxs.length) return;
+    // Her wallet için hangi tarafın kazandığını belirle
+    var winnerSide = {};
+    (localState.wallets||[]).forEach(function(lw){
+      if(!lw||!lw.id)return;
+      var rw=(remoteState.wallets||[]).find(function(w){return w&&w.id===lw.id;});
+      winnerSide[lw.id]=(!rw||(lw._updatedAt||0)>=(rw._updatedAt||0))?'local':'remote';
+    });
+    (remoteState.wallets||[]).forEach(function(rw){
+      if(!rw||!rw.id||winnerSide[rw.id])return;
+      winnerSide[rw.id]='remote';
+    });
+    function _applyTxDelta(tx, walMap){
+      var w=walMap[tx.wallet]; if(!w)return;
+      var wCur=w.currency||'TRY';
+      var txCur=tx.amountCurrency||wCur;
+      var amt=parseFloat(tx.amount)||0;
+      if(txCur!==wCur&&typeof App!=='undefined'&&App.ExchangeRate&&App.ExchangeRate.convert){
+        amt=App.ExchangeRate.convert(amt,txCur,wCur);
+      }
+      w.balance=(w.balance||0)+amt*(tx.type==='income'?1:-1);
+    }
+    // Local kazandıysa → remote-only tx'lerin deltası eklenmemiş, ekle
+    remoteOnlyTxs.forEach(function(tx){
+      if(winnerSide[tx.wallet]==='local') _applyTxDelta(tx, walletMap);
+    });
+    // Remote kazandıysa → local-only tx'lerin deltası eklenmemiş, ekle
+    localOnlyTxs.forEach(function(tx){
+      if(winnerSide[tx.wallet]==='remote') _applyTxDelta(tx, walletMap);
+    });
+  })();
+
   // ── 3) Settings per-field merge ───────────────────────────────────
   // Her alan için _settingsTs'e bak; daha sonra değiştiren cihaz kazanır.
   // _settingsTs yoksa (eski veri uyumluluğu) lastModified'a düşer.
@@ -3046,7 +3098,18 @@ function mergeState(localState, remoteState){
   merged.settings = mergedSettings;
 
   // ── 4) Diğer alanlar ─────────────────────────────────────────────
-  merged.notifInbox = localState.notifInbox || remoteState.notifInbox || [];
+  // notifInbox: tag bazlı merge — her iki cihazın bildirimleri korunur.
+  // OR (||) kullanmak yanlış: [] truthy olduğundan local boş dizi remote'u ezer.
+  (function(){
+    const la = Array.isArray(localState.notifInbox) ? localState.notifInbox : [];
+    const ra = Array.isArray(remoteState.notifInbox) ? remoteState.notifInbox : [];
+    const byTag = new Map();
+    // Remote önce — local üste yazar (read durumu local daha güncel)
+    ra.forEach(function(n){ if(n&&n.id) byTag.set(n.tag||n.id, n); });
+    la.forEach(function(n){ if(n&&n.id) byTag.set(n.tag||n.id, n); });
+    const all = Array.from(byTag.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    merged.notifInbox = all.slice(0, 100);
+  })();
   merged.paidMonths = Object.assign({}, remoteState.paidMonths||{}, localState.paidMonths||{});
   return merged;
 }
@@ -3462,18 +3525,19 @@ const Notifications = {
     var tag=opts.tag||('sagi-'+action+'-'+Date.now());
     // Her zaman inbox'a kaydet (izin olmasa da)
     if(!Array.isArray(Core.state.notifInbox)) Core.state.notifInbox=[];
-    // Aynı tag'li bildirim zaten varsa ne inbox'a ekle ne native gönder
-    if(Core.state.notifInbox.find(n=>n.tag===tag)) return;
-    Core.state.notifInbox.unshift({
-      id:'ni_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-      title, body, action, tag,
-      ts:Date.now(), read:false
-    });
-    // Max 50 kayıt tut
-    if(Core.state.notifInbox.length>50) Core.state.notifInbox.length=50;
-    Core.DB.save();
-    // Header badge güncelle
-    App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge();
+    // Aynı tag'li bildirim inbox'ta var mı? (başka cihazdan sync gelmiş olabilir)
+    // Varsa inbox'a tekrar ekleme, ama bu cihazda native bildirim henüz gönderilmemişse gönder.
+    const _alreadyInInbox=!!Core.state.notifInbox.find(n=>n.tag===tag);
+    if(!_alreadyInInbox){
+      Core.state.notifInbox.unshift({
+        id:'ni_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        title, body, action, tag,
+        ts:Date.now(), read:false
+      });
+      if(Core.state.notifInbox.length>50) Core.state.notifInbox.length=50;
+      Core.DB.save();
+      App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge();
+    }
     if(!this.granted)return;
     var notifOpts={body:body,tag:tag,icon:'./icon-192.png',badge:'./icon-192.png',vibrate:[180,80,180],requireInteraction:false,silent:opts.silent||false,data:{action:action,url:'./',ts:Date.now()}};
     var swReg=window._swReg;
