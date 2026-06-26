@@ -3105,6 +3105,7 @@ const Core = {
         Core.emit('stateChanged',Core.state);
         if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
           this.markPendingPush();
+          this._markDirtyFromSnapshots();
           Core.Cloud.queuePush();
         }
       }catch(e){}
@@ -3118,9 +3119,32 @@ const Core = {
         Core.emit('stateChanged',Core.state);
         if(Core.state.settings.syncKey && Core.Cloud && Core.Cloud.queuePush){
           this.markPendingPush();
+          this._markDirtyFromSnapshots();
           Core.Cloud.queuePush(true);
         }
       }catch(e){}
+    },
+    _markDirtyFromSnapshots(){
+      if(!Core.Cloud||!Core.Cloud.markDirty) return;
+      const COLS=['wallets','transactions','recurring','goals','debts','categories','budgets'];
+      COLS.forEach(col=>{
+        const arr=Core.state[col]||[];
+        arr.forEach(item=>{
+          if(!item||!item.id) return;
+          const prev=_prevItemSnapshots&&_prevItemSnapshots[col]&&_prevItemSnapshots[col].get(item.id);
+          if(!prev||(item._updatedAt&&prev._updatedAt!==item._updatedAt)){
+            Core.Cloud.markDirty(col,item);
+          }
+        });
+        if(Core.state._tombstones&&_prevItemSnapshots&&_prevItemSnapshots[col]){
+          _prevItemSnapshots[col].forEach((prevItem,id)=>{
+            if(Core.state._tombstones[id]&&!arr.find(x=>x.id===id)){
+              if(Core.Cloud._deleteItem) Core.Cloud._deleteItem(col,id).catch(()=>{});
+            }
+          });
+        }
+      });
+      if(Core.Cloud._writeSettings) Core.Cloud._writeSettings().catch(()=>{});
     }
   },
   Utils:{

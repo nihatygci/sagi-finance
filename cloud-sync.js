@@ -1,726 +1,504 @@
 /* ════════════════════════════════════════════════════════════════════
-   SAGI Finance — CLOUD SYNC  v2.0
+   SAGI Finance — CLOUD SYNC  v3.0  (Collection-based architecture)
    ────────────────────────────────────────────────────────────────────
-   • Firestore runTransaction ile atomic push — iki cihaz aynı anda
-     yazarsa merge edilir, veri kaybı olmaz.
-   • Settings per-field timestamp (_settingsTs) — tema değiştiren
-     cihaz, para birimi seçen cihazı ezmez.
-   • _applyRemote() tek merkezi metod — initialPull, onSnapshot,
-     forceSync ve loginWithKey aynı merge mantığını kullanır.
-   • pushId ile kendi push'larımızı tanırız — _suppressNextRemote yok.
-   • analyzeSync tombstone'ları da sayıya dahil eder.
+   Yeni mimari:
+     users/{key}/settings          → tek doküman
+     users/{key}/transactions/{id} → her işlem ayrı doküman
+     users/{key}/wallets/{id}
+     users/{key}/goals/{id}
+     users/{key}/debts/{id}
+     users/{key}/recurring/{id}
+     users/{key}/categories/{id}
+     users/{key}/budgets/{id}
+     users/{key}/meta              → hesap meta bilgisi
+
+   Bu yapıyla:
+   • Firestore'un offline persistence'ı her dokümanı ayrı cache'ler
+     → offline yazma SDK queue'sunda bekler, online olunca otomatik gider
+   • onSnapshot collection'ı dinler → sadece değişen doküman gelir
+   • İki cihaz aynı anda farklı item'a yazarsa çakışma olmaz
+   • Migration: users/{key} blob dokümanı varsa otomatik taşınır
+
+   Geriye uyumluluk:
+   • plus.js'deki users/{key}/assistant/memory ve users/{key}/chat/messages
+     bu mimariden bağımsız, dokunulmaz
+   • forwardKey / PLUS- key yapısı korunur
    ════════════════════════════════════════════════════════════════════ */
 
 (function () {
-  "use strict";
+  'use strict';
 
-  // Core henüz tanımlanmadıysa bekle (script sırası garantili olsun diye yine de
-  // index.html'de bu dosya inline scriptlerden ÖNCE çağrılıyor; yine de güvenli kontrol).
-  if (typeof window.Core === "undefined") {
-    // Core daha sonra tanımlanacak — biz attığımız zamanı gözleyip enjekte ederiz.
-    // En basit yol: Core'u tanımlayan scriptin altında bu modül zaten import ediliyor.
-    // Bu durumda direkt Core'a Cloud'u eklemek için window'a koymadan önce hazırla.
-    window.__SAGI_CLOUD_PENDING__ = true;
-  }
+  const COLLECTIONS = ['transactions','wallets','goals','debts','recurring','categories','budgets'];
 
-  // ── Cloud namespace ──────────────────────────────────────────────────
   const Cloud = {
-    // Durum
-    status: "idle", // 'idle' | 'syncing' | 'ok' | 'error' | 'offline' | 'unavailable'
-    lastError: "",
+    status: 'idle',
+    lastError: '',
+    _unsubscribes: [],   // her collection listener'ı için ayrı unsub
+    _settingsUnsub: null,
 
-    // Internal
-    _pushTimer: null,
-    _pushDelay: 700,
-    _unsubscribe: null,
-    _lastPushId: null,
-
-    // Firestore koleksiyon yolu
-    _COLLECTION: "users",
-
-    // ── Kullanılabilirlik ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────
     isAvailable() {
       return !!(window._fbReady && window._fbDB);
     },
 
-    // Firebase persistence henüz settle olmadıysa (enablePersistence async)
-    // _fbReady false kalabilir. Bu metod max 5sn polling yaparak hazır olunca
-    // cloudStatusChanged emit eder; böylece Onboarding butonları aktif olur.
+    _emitStatus(s) {
+      this.status = s;
+      try { Core.emit('cloudStatusChanged', s); } catch(e) {}
+    },
+
+    // ── Key yönetimi ─────────────────────────────────────────────────
+    generateKey() {
+      const buf = new Uint8Array(8);
+      crypto.getRandomValues(buf);
+      return Array.from(buf).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase().match(/.{4}/g).join('-');
+    },
+
+    normalizeKey(raw) {
+      if (!raw) return '';
+      const str = String(raw).trim();
+      const plusMatch = str.match(/^PLUS[-]?([0-9A-Fa-f-]{16,19})$/i);
+      if (plusMatch) {
+        const hex = plusMatch[1].replace(/[^0-9a-fA-F]/g,'').toUpperCase();
+        if (hex.length === 16) return 'PLUS-' + hex.match(/.{4}/g).join('-');
+      }
+      const clean = str.replace(/[^0-9a-fA-F]/g,'').toUpperCase();
+      if (clean.length === 16) return clean.match(/.{4}/g).join('-');
+      return '';
+    },
+
+    isValidKey(key) {
+      const k = key || '';
+      return /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)
+          || /^PLUS-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k);
+    },
+
+    _docId(key) { return (key || '').replace(/-/g, ''); },
+
+    // users/{key} root ref
+    _userRef(key) {
+      if (!this.isAvailable()) return null;
+      return window._fbDB.collection('users').doc(this._docId(key || Core.state.settings.syncKey));
+    },
+
+    // users/{key}/{collection}
+    _col(colName, key) {
+      const ref = this._userRef(key);
+      if (!ref) return null;
+      return ref.collection(colName);
+    },
+
+    // ── Firebase hazır olunca başlat ─────────────────────────────────
     _waitForFirebaseAndNotify(attempts) {
       if (attempts === undefined) attempts = 0;
       if (this.isAvailable()) {
-        console.log('[Cloud] Firebase polling: hazır, emit ediliyor.');
-        if (Core.state.settings && Core.state.settings.syncKey && !this._unsubscribe) {
-          // Önce pull yap — tamamlanınca listener'ı bağla
-          // Listener bağlanmadan önce pull bitmiş olacak, suppress race condition olmaz
-          this._initialPull().then((forwarded) => {
-            if (forwarded) return; // forwardKey ile geçiş yapıldı, listener bağlama
-            this.attachListener();
-            this._emitStatus('ok');
-          }).catch(() => {
-            this.attachListener();
-          });
+        if (Core.state.settings && Core.state.settings.syncKey && this._unsubscribes.length === 0) {
+          this._boot().catch(e => console.warn('[Cloud] boot hatası:', e));
         } else {
           this._emitStatus('idle');
         }
         return;
       }
-      if (attempts >= 40) {
-        console.warn('[Cloud] Firebase 10sn içinde hazır olmadı, offline kalındı.');
-        return;
-      }
+      if (attempts >= 40) { console.warn('[Cloud] Firebase 10sn içinde hazır olmadı.'); return; }
       setTimeout(() => this._waitForFirebaseAndNotify(attempts + 1), 250);
     },
 
-    // ── Remote veriyi yerel ile merge et ve uygula ───────────────────
-    // Tüm "remote değişiklik geldi" senaryolarında bu tek metod çağrılır:
-    //   initialPull, onSnapshot, forceSync, loginWithKey
-    // opts.push  = true  → merge sonrası buluta geri yaz
-    // opts.reload = true → merge sonrası sayfayı yenile
-    async _applyRemote(remoteState, remoteMod, opts) {
-      opts = opts || {};
-      const savedKey = Core.state.settings.syncKey;
-      const merged = Core.mergeState(Core.state, remoteState);
-      merged.settings.syncKey = savedKey;
-      if (!opts.push) {
-        merged.settings.lastModified = remoteMod || merged.settings.lastModified;
-      }
-      Core.state = merged;
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-      try { Core.emit('stateChanged', Core.state); } catch(e) {}
-      try { Core.emit('cloudRemoteUpdate', Core.state); } catch(e) {}
-      this._rerenderActiveView();
-      if (opts.push) await this._doPush();
-      if (opts.reload) setTimeout(() => window.location.reload(), 300);
-    },
+    // ── Boot: migration kontrolü → veri yükle → listener'ları bağla ─
+    async _boot() {
+      const key = Core.state.settings.syncKey;
+      if (!key || !this.isAvailable()) return;
 
-    async _initialPull() {
-      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      this._emitStatus('syncing');
       try {
-        const docRef = this._doc(Core.state.settings.syncKey);
-        const snap = await docRef.get();
-        if (!snap.exists) return;
-        const data = snap.data();
-        // forwardKey varsa — direkt geç
-        if (data && data.forwardKey) {
-          const newKey = data.forwardKey;
-          console.log('[Cloud] initialPull forwardKey:', newKey);
-          this.detachListener();
-          Core.state.settings.syncKey = newKey;
-          Core.state.settings.lastModified = 0;
+        // PLUS yönlendirme kontrolü
+        const redirectKey = await this._resolvePlusKey(key);
+        if (redirectKey && redirectKey !== key) {
+          Core.state.settings.syncKey = redirectKey;
           localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          this.loginWithKey(newKey).then(() => {
-            setTimeout(() => window.location.reload(), 300);
-          }).catch(e => console.warn('[Cloud] forwardKey login hatası:', e));
-          return true;
-        }
-        if (!data || !data.state) return;
-        // Remote syncKey PLUS key mi?
-        const remoteSyncKey = data.state && data.state.settings && data.state.settings.syncKey;
-        const currentKey = Core.state.settings.syncKey || '';
-        if (remoteSyncKey && remoteSyncKey !== currentKey && remoteSyncKey.startsWith('PLUS-')) {
-          console.log('[Cloud] Remote syncKey PLUS, geçiliyor:', remoteSyncKey);
-          this.detachListener();
-          Core.state.settings.syncKey = remoteSyncKey;
-          Core.state.settings.lastModified = 0;
-          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          this.loginWithKey(remoteSyncKey).then(() => {
-            setTimeout(() => window.location.reload(), 300);
-          }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
-          return true;
-        }
-        // PLUS-{key} doc proaktif kontrol
-        if (!currentKey.startsWith('PLUS-')) {
-          try {
-            const plusKey = 'PLUS-' + currentKey;
-            const plusSnap = await this._doc(plusKey).get();
-            if (plusSnap.exists && plusSnap.data() && plusSnap.data().state) {
-              console.log('[Cloud] initialPull: PLUS doc bulundu, geçiliyor:', plusKey);
-              try {
-                await this._doc(currentKey).set({ forwardKey: plusKey, lastModified: Date.now() }, { merge: true });
-              } catch(e) { console.warn('[Cloud] forwardKey yazılamadı:', e); }
-              this.detachListener();
-              Core.state.settings.syncKey = plusKey;
-              Core.state.settings.lastModified = 0;
-              localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-              this.loginWithKey(plusKey).then(() => {
-                setTimeout(() => window.location.reload(), 300);
-              }).catch(e => console.warn('[Cloud] PLUS geçiş hatası:', e));
-              return true;
-            }
-          } catch(e) { console.warn('[Cloud] PLUS doc kontrol hatası:', e); }
+          return this._boot();
         }
 
-        const remoteMod = data.lastModified || 0;
-        const localMod  = (Core.state.settings && Core.state.settings.lastModified) || 0;
-        const localTxCount   = (Core.state.transactions||[]).length;
-        const remoteTxCount  = ((data.state&&data.state.transactions)||[]).length;
-        const localWalletCount  = (Core.state.wallets||[]).length;
-        const remoteWalletCount = ((data.state&&data.state.wallets)||[]).length;
-        const contentSame = localTxCount===remoteTxCount && localWalletCount===remoteWalletCount;
+        // Eski blob migration kontrolü
+        await this._migrateIfNeeded(key);
 
-        if (remoteMod === localMod && contentSame) {
-          console.log('[Cloud] initialPull: zaten senkron.');
-          return;
-        }
+        // İlk yükleme: tüm collection'ları bir kez çek
+        await this._initialLoad(key);
 
-        console.log('[Cloud] initialPull: merge + push (local:', localMod, '/ remote:', remoteMod, ')');
-        // Merge + buluta geri yaz (iki taraf da yeni şey eklemiş olabilir)
-        await this._applyRemote(data.state, remoteMod, { push: true });
+        // Realtime listener'ları bağla
+        this.attachListeners(key);
+
+        this._emitStatus('ok');
       } catch(e) {
-        console.warn('[Cloud] initialPull hatası:', e);
+        console.warn('[Cloud] boot hatası:', e);
+        this._emitStatus(navigator.onLine === false ? 'offline' : 'error');
       }
     },
 
-    _emitStatus(s) {
-      this.status = s;
-      try {
-        Core.emit("cloudStatusChanged", s);
-      } catch (e) {}
-    },
-
-    // ── Anahtar üretimi & doğrulama ───────────────────────────────────
-    // 16-hane hex: 8 byte rastgele = 64 bit entropi
-    generateKey() {
-      const buf = new Uint8Array(8);
-      crypto.getRandomValues(buf);
-      const hex = Array.from(buf)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("")
-        .toUpperCase();
-      return hex.match(/.{4}/g).join("-");
-    },
-
-    // Kullanıcı girdisini normalize et: tire/boşluk temizle, büyült
-    normalizeKey(raw) {
-      if (!raw) return "";
-      const str = String(raw).trim();
-      // PLUS prefix: PLUS-XXXX-XXXX-XXXX-XXXX veya PLUSXXXXXXXXXXXXXXXX
-      const plusMatch = str.match(/^PLUS[-]?([0-9A-Fa-f-]{16,19})$/i);
-      if (plusMatch) {
-        const hex = plusMatch[1].replace(/[^0-9a-fA-F]/g, '').toUpperCase();
-        if (hex.length === 16) return 'PLUS-' + hex.match(/.{4}/g).join('-');
-      }
-      // Normal 16 haneli key
-      const clean = str.replace(/[^0-9a-fA-F]/g, "").toUpperCase();
-      if (clean.length === 16) return clean.match(/.{4}/g).join("-");
-      return "";
-    },
-
-    isValidKey(key) {
-      const k = key || "";
-      if (/^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)) return true;
-      if (/^PLUS-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(k)) return true;
-      return false;
-    },
-
-    // Firestore doc ID'si — tireler kaldırılır (16 char)
-    _docId(key) {
-      return (key || "").replace(/-/g, "");
-    },
-
-    _doc(key) {
+    // ── PLUS yönlendirme ─────────────────────────────────────────────
+    async _resolvePlusKey(key) {
       if (!this.isAvailable()) return null;
-      return window._fbDB.collection(this._COLLECTION).doc(this._docId(key));
-    },
-
-    // ── Yeni hesap aç ─────────────────────────────────────────────────
-    // Mevcut yerel state'i alır, yeni anahtar üretir, Firestore'a yazar.
-    async createAccount() {
-  console.log('[Cloud DEBUG] createAccount çağrıldı');
-  console.log('[Cloud DEBUG] isAvailable:', this.isAvailable());
-  console.log('[Cloud DEBUG] _fbReady:', window._fbReady);
-  console.log('[Cloud DEBUG] _fbDB:', window._fbDB);
-  
-  if (!this.isAvailable()) {
-    const err = new Error('CLOUD_UNAVAILABLE');
-    err.detail = window._fbErr || 'sdk-missing';
-    console.error('[Cloud DEBUG] UNAVAILABLE nedeni:', err.detail);
-    throw err;
-  }
-      const key = this.generateKey();
-      Core.state.settings.syncKey = key;
-      Core.state.settings.lastModified = Date.now();
-      // localStorage'a yaz (save'i bypass — push'u biz manuel yapıyoruz)
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-
-      // Firestore'a yaz
-      const docRef = this._doc(key);
-      const pushId = Math.random().toString(36).slice(2);
-      this._lastPushId = pushId;
-      // ── Consent verisini Firestore top-level'a ekle (denetim kaydı) ──
-      const consentPayload = {};
-      if (Core.state.settings.consentDate) {
-        consentPayload.consentDate    = Core.state.settings.consentDate;
-        consentPayload.consentVersion = Core.state.settings.consentVersion || null;
-        consentPayload.consentLang    = Core.state.settings.consentLang || null;
-        consentPayload.consentMethod  = Core.state.settings.consentMethod || null;
-      }
       try {
-        await docRef.set({
-          state: Core.state,
-          lastModified: Core.state.settings.lastModified,
-          pushId: pushId,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          ...consentPayload,
-        });
-      } catch (e) {
-        console.error('[Cloud] HATA DETAYI:', e.code, e.message, e);
-        // Yazma başarısız: anahtar yerel state'te kalır ama bulutla bağlı değildir
-        this._lastPushId = null;
-        this._emitStatus("error");
-        this.lastError = (e && e.message) || "write-failed";
-        throw e;
-      }
-
-      this._emitStatus("ok");
-      this.attachListener();
-      return key;
-    },
-
-    // ── Mevcut anahtarla giriş ────────────────────────────────────────
-    async loginWithKey(rawKey) {
-  console.log('[Cloud DEBUG] loginWithKey çağrıldı, key:', rawKey);
-  console.log('[Cloud DEBUG] isAvailable:', this.isAvailable());
-      const key = this.normalizeKey(rawKey);
-      if (!this.isValidKey(key)) {
-        throw new Error("INVALID_KEY");
-      }
-
-      const docRef = this._doc(key);
-      let snap;
-      try {
-        snap = await docRef.get();
-      } catch (e) {
-        console.error('[Cloud] HATA DETAYI:', e.code, e.message, e);
-        this._emitStatus("error");
-        this.lastError = (e && e.message) || "read-failed";
-        throw e;
-      }
-      if (!snap.exists) throw new Error("NOT_FOUND");
-
-      const data = snap.data();
-      if (!data) throw new Error("NOT_FOUND");
-
-      // ── PLUS yönlendirme — state kontrolünden ÖNCE yapılmalı ─────────
-      // 1) forwardKey: devActivate eski doc'a forwardKey yazıyor
-      //    state olmasa bile buraya bakılmalı — önce kontrol et
-      if (data.forwardKey) {
-        const fwdKey = this.normalizeKey(data.forwardKey) || data.forwardKey;
-        console.log('[Cloud] loginWithKey: forwardKey bulundu, yönlendiriliyor:', fwdKey);
-        return this.loginWithKey(fwdKey);
-      }
-      // 2) state.settings.syncKey PLUS- ile başlıyorsa: eski normal key ile
-      //    giriş yapıldı ama hesap PLUS'a yükseltilmiş — PLUS doc'una geç
-      const remoteSyncKey = data.state && data.state.settings && data.state.settings.syncKey;
-      if (remoteSyncKey && remoteSyncKey !== key && remoteSyncKey.startsWith('PLUS-')) {
-        console.log('[Cloud] loginWithKey: remote PLUS key bulundu, geçiliyor:', remoteSyncKey);
-        return this.loginWithKey(remoteSyncKey);
-      }
-      // 3) forwardKey ve remoteSyncKey yoksa — PLUS-{key} doc'u var mı proaktif kontrol et
-      //    devActivate forwardKey yazmayı başaramadıysa bu güvence yakalar
-      if (!key.startsWith('PLUS-')) {
-        try {
+        // users/{key} meta doc'unda forwardKey var mı?
+        const metaSnap = await this._userRef(key).collection('meta').doc('info').get();
+        if (metaSnap.exists) {
+          const meta = metaSnap.data();
+          if (meta && meta.forwardKey) return this.normalizeKey(meta.forwardKey) || meta.forwardKey;
+        }
+        // Eski blob doc'unda forwardKey?
+        const blobSnap = await window._fbDB.collection('users').doc(this._docId(key)).get();
+        if (blobSnap.exists) {
+          const blob = blobSnap.data();
+          if (blob && blob.forwardKey) return this.normalizeKey(blob.forwardKey) || blob.forwardKey;
+          if (blob && blob.state && blob.state.settings && blob.state.settings.syncKey) {
+            const rsk = blob.state.settings.syncKey;
+            if (rsk !== key && rsk.startsWith('PLUS-')) return rsk;
+          }
+        }
+        // PLUS-{key} doc var mı?
+        if (!key.startsWith('PLUS-')) {
           const plusKey = 'PLUS-' + key;
-          const plusSnap = await this._doc(plusKey).get();
-          if (plusSnap.exists && plusSnap.data() && plusSnap.data().state) {
-            console.log('[Cloud] loginWithKey: PLUS doc bulundu, geçiliyor:', plusKey);
-            // Eski doc'a forwardKey yaz — bir daha bu kontrolü yapmak zorunda kalmayalım
-            try {
-              await this._doc(key).set({ forwardKey: plusKey, lastModified: Date.now() }, { merge: true });
-              console.log('[Cloud] loginWithKey: forwardKey eski doc\'a yazıldı.');
-            } catch(e) { console.warn('[Cloud] forwardKey yazılamadı:', e); }
-            return this.loginWithKey(plusKey);
-          }
-        } catch(e) { console.warn('[Cloud] PLUS doc kontrol hatası:', e); }
-      }
-      // ─────────────────────────────────────────────────────────────────
-
-      if (!data.state) throw new Error("NOT_FOUND");
-
-      // ── Yerel veri varsa merge et, topyekûn ezme ──────────────────────
-      // Kullanıcı bu cihazda offline iken zaten işlem yapmış olabilir.
-      // O veriyi kaybetmeden buluttaki veriyle birleştir.
-      const hasLocalData = (Core.state.transactions && Core.state.transactions.length > 0)
-        || (Core.state.wallets && Core.state.wallets.length > 0);
-
-      if (hasLocalData) {
-        console.log('[Cloud] loginWithKey: yerel veri mevcut, merge ediliyor.');
-        Core.state = Core.mergeState(Core.state, data.state);
-      } else {
-        Core.state = data.state;
-      }
-
-      // Eksik settings alanlarını tamamla (eski sürüm uyumluluğu)
-      Core.state.settings = Object.assign({
-        notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
-          krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
-        notifMaster: false,
-        theme: 'light',
-        lang: 'tr',
-        anim: 'on',
-        privacy: 'off',
-        currency: 'TRY',
-        cachedRates: null,
-      }, data.state.settings || {}, hasLocalData ? Core.state.settings : {});
-      // syncKey: girilen key'i yaz — PLUS doc'una redirect gelince
-      // recursive call'da key zaten PLUS key olacak, doğru yazılır
-      Core.state.settings.syncKey = key;
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-
-      this._emitStatus("ok");
-      this.attachListener();
-
-      if (hasLocalData) {
-        await this._doPush();
-      }
-
-      return Core.state;
-    },
-
-    // ── Realtime listener ─────────────────────────────────────────────
-    attachListener() {
-      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
-      this.detachListener();
-
-      const docRef = this._doc(Core.state.settings.syncKey);
-      this._unsubscribe = docRef.onSnapshot(
-        (snap) => {
-          // İlk snapshot — bağlandık
-          if (this.status !== "ok") this._emitStatus("ok");
-
-          if (!snap.exists) return;
-          const data = snap.data();
-          // forwardKey varsa — bu key plus'a yükseltildi, yeni key'e geç
-          if (data && data.forwardKey) {
-            const newKey = data.forwardKey;
-            console.log('[Cloud] forwardKey alındı, yeni key:', newKey);
-            this.detachListener();
-            Core.state.settings.syncKey = newKey;
-            Core.state.settings.lastModified = 0; // pull zorla
-            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-            // Yeni key'den veri çek ve listener bağla
-            this.loginWithKey(newKey).then(() => {
-              setTimeout(() => window.location.reload(), 500);
-            }).catch(e => console.warn('[Cloud] forwardKey login hatası:', e));
-            return;
-          }
-          if (!data || !data.state) return;
-
-          // remoteSyncKey PLUS- ile başlıyorsa: devActivate bu cihazda çalıştı ama
-          // bu cihaz başka bir cihazdan açık — PLUS doc'una geç
-          const _rsk = data.state.settings && data.state.settings.syncKey;
-          const _lk  = Core.state.settings.syncKey || '';
-          if (_rsk && _rsk !== _lk && _rsk.startsWith('PLUS-')) {
-            console.log('[Cloud] onSnapshot: remote PLUS key bulundu, geçiliyor:', _rsk);
-            this.detachListener();
-            Core.state.settings.syncKey = _rsk;
-            Core.state.settings.lastModified = 0;
-            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-            this.loginWithKey(_rsk).then(() => {
-              setTimeout(() => window.location.reload(), 500);
-            }).catch(e => console.warn('[Cloud] onSnapshot PLUS geçiş hatası:', e));
-            return;
-          }
-
-          // Kendi push'umuzu pushId ile tanı
-          if (data.pushId && data.pushId === this._lastPushId) {
-            this._lastPushId = null;
-            return;
-          }
-
-          const remoteMod = data.lastModified || 0;
-          const localMod  = (Core.state.settings && Core.state.settings.lastModified) || 0;
-
-          if (remoteMod === localMod) {
-            // Timestamp eşit — tombstone ve tx sayısını da kontrol et
-            const rTomb = Object.keys((data.state && data.state._tombstones) || {}).length;
-            const lTomb = Object.keys((Core.state._tombstones) || {}).length;
-            const rTx   = ((data.state && data.state.transactions) || []).length;
-            const lTx   = (Core.state.transactions || []).length;
-            if (rTomb === lTomb && rTx === lTx) return; // gerçekten senkron
-          }
-
-          console.log("[Cloud] Uzak değişiklik alındı, merge ediliyor. remote:", remoteMod, "local:", localMod);
-          // pull-only: karşı cihaz transaction ile zaten yazdı, biz sadece local'i güncelliyoruz
-          this._applyRemote(data.state, remoteMod, { push: false });
-        },
-        (err) => {
-          console.warn("[Cloud] Listener hatası:", err);
-          this.lastError = (err && err.message) || "";
-          this._emitStatus(navigator.onLine === false ? "offline" : "error");
-        },
-      );
-    },
-
-    detachListener() {
-      if (this._unsubscribe) {
-        try {
-          this._unsubscribe();
-        } catch (e) {}
-        this._unsubscribe = null;
-      }
-    },
-
-    _rerenderActiveView() {
-      try {
-        const hash = window.location.hash.replace("#", "") || "/dashboard";
-        const c = (window.App && App.Controllers) || null;
-        if (!c) return;
-
-        // bnavItems değiştiyse alt menüyü her durumda yenile
-        // (localStorage'daki eski key'i de güncelle — uyumluluk için)
-        if (c.BottomBar) {
-          const items = Core.state.settings.bnavItems;
-          if (Array.isArray(items) && items.length > 0) {
-            try { localStorage.setItem(c.BottomBar.STORAGE_KEY, JSON.stringify(items)); } catch(e) {}
-          }
-          c.BottomBar.renderNav();
-        }
-
-        // Tema & dil değiştiyse uygula
-        if (c.Settings) {
-          c.Settings.applyTheme && c.Settings.applyTheme();
-          if (Core.state.settings.lang && window.LANG !== Core.state.settings.lang) {
-            window.LANG = Core.state.settings.lang;
-            typeof applyLang === 'function' && applyLang();
+          const plusSnap = await window._fbDB.collection('users').doc(this._docId(plusKey)).get();
+          if (plusSnap.exists) {
+            // Eski doc'a forwardKey yaz (best-effort)
+            try { await window._fbDB.collection('users').doc(this._docId(key)).set({ forwardKey: plusKey }, { merge: true }); } catch(e) {}
+            return plusKey;
           }
         }
-
-        if (hash === "/dashboard")
-          c.Dashboard && c.Dashboard.render && c.Dashboard.render();
-        else if (hash === "/wallets")
-          c.Wallets && c.Wallets.render && c.Wallets.render();
-        else if (hash === "/transactions")
-          c.Transactions &&
-            c.Transactions.renderSetup &&
-            c.Transactions.renderSetup();
-        else if (hash === "/analytics")
-          c.Analytics && c.Analytics.render && c.Analytics.render();
-        else if (hash === "/recurring")
-          c.Recurring && c.Recurring.render && c.Recurring.render();
-        else if (hash === "/goals")
-          c.Goals && c.Goals.render && c.Goals.render();
-        else if (hash === "/debts")
-          c.Debts && c.Debts.render && c.Debts.render();
-        else if (hash === "/settings")
-          c.Settings && c.Settings.renderForm && c.Settings.renderForm();
-      } catch (e) {
-        console.warn("[Cloud] Re-render hatası:", e);
-      }
+      } catch(e) { console.warn('[Cloud] PLUS kontrol hatası:', e); }
+      return null;
     },
 
-    // ── Debounced push ────────────────────────────────────────────────
-    queuePush(immediate) {
-      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
-      if (this._pushTimer) clearTimeout(this._pushTimer);
-      if (immediate) {
-        this._pushTimer = null;
-        return this._doPush();
-      }
-      this._pushTimer = setTimeout(() => {
-        this._pushTimer = null;
-        this._doPush();
-      }, this._pushDelay);
-    },
-
-    async _doPush() {
-      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
-      this._emitStatus("syncing");
-      const docRef = this._doc(Core.state.settings.syncKey);
-      const pushId = Math.random().toString(36).slice(2);
-      this._lastPushId = pushId;
-      const consentPayload = {};
-      if (Core.state.settings.consentDate) {
-        consentPayload.consentDate    = Core.state.settings.consentDate;
-        consentPayload.consentVersion = Core.state.settings.consentVersion || null;
-        consentPayload.consentLang    = Core.state.settings.consentLang || null;
-        consentPayload.consentMethod  = Core.state.settings.consentMethod || null;
-      }
+    // ── Migration: eski blob → sub-collection ────────────────────────
+    // users/{key} dokümanında state alanı varsa (eski format) → migrate et
+    async _migrateIfNeeded(key) {
       try {
-        let finalState = null;
-        let pushTimestamp = null;
+        const blobRef = window._fbDB.collection('users').doc(this._docId(key));
+        const blobSnap = await blobRef.get();
+        if (!blobSnap.exists) return;
+        const blob = blobSnap.data();
+        // state alanı yok ya da zaten migrated → çık
+        if (!blob || !blob.state || blob._migrated) return;
 
-        await window._fbDB.runTransaction(async (txn) => {
-          const snap = await txn.get(docRef);
-          pushTimestamp = Date.now();
+        console.log('[Cloud] Migration başladı — blob → sub-collection');
+        const state = blob.state;
+        const userRef = this._userRef(key);
+        const batch = window._fbDB.batch();
 
-          if (!snap.exists) {
-            // İlk yazma — direkt set
-            finalState = JSON.parse(JSON.stringify(Core.state));
-          } else {
-            const remoteData  = snap.data();
-            const remoteState = remoteData && remoteData.state;
-            // Bu transaction döngüsünde kendi önceki yazımızla çakıştık — geç
-            if (remoteData && remoteData.pushId === this._lastPushId) {
-              finalState = JSON.parse(JSON.stringify(Core.state));
-            } else if (remoteState) {
-              const remoteMod = (remoteData && remoteData.lastModified) || 0;
-              const localMod  = (Core.state.settings && Core.state.settings.lastModified) || 0;
-              if (remoteMod !== localMod) {
-                // Başka cihazın değişikliği var — transaction içinde merge et
-                console.log('[Cloud] _doPush: transaction merge — remote:', remoteMod, 'local:', localMod);
-                finalState = Core.mergeState(Core.state, remoteState);
-                finalState.settings.syncKey = Core.state.settings.syncKey;
-              } else {
-                finalState = JSON.parse(JSON.stringify(Core.state));
-              }
-            } else {
-              finalState = JSON.parse(JSON.stringify(Core.state));
-            }
-          }
-
-          finalState.settings.lastModified = pushTimestamp;
-          txn.set(docRef, {
-            state:        finalState,
-            lastModified: pushTimestamp,
-            pushId:       pushId,
-            ...consentPayload,
+        // Her collection'ı taşı
+        COLLECTIONS.forEach(col => {
+          const items = Array.isArray(state[col]) ? state[col] : [];
+          items.forEach(item => {
+            if (!item || !item.id) return;
+            const docRef = userRef.collection(col).doc(item.id);
+            batch.set(docRef, { ...item, _updatedAt: item._updatedAt || Date.now(), _deleted: false });
           });
         });
 
-        // Transaction başarılı — yerel state'i güncelle
-        if (finalState) {
-          const savedKey = Core.state.settings.syncKey;
-          Core.state = finalState;
-          Core.state.settings.syncKey = savedKey;
-          Core.state.settings.lastModified = pushTimestamp;
-          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          // Transaction merge yaptıysa UI'a yansıt
-          try { Core.emit('stateChanged', Core.state); } catch(e) {}
+        // Settings'i taşı
+        if (state.settings) {
+          batch.set(userRef.collection('settings').doc('main'), {
+            ...state.settings,
+            _updatedAt: Date.now()
+          });
         }
 
-        if (Core.DB && Core.DB.clearPendingPush) Core.DB.clearPendingPush();
-        this.lastError = "";
-        this._emitStatus("ok");
-      } catch (e) {
-        console.error('[Cloud] Push hatası — code:', e.code, '| message:', e.message);
-        this._lastPushId = null;
-        this.lastError = (e && e.message) || "";
-        this._emitStatus(navigator.onLine === false ? "offline" : "error");
-        if (navigator.onLine === false && Core.DB && Core.DB.markPendingPush) {
-          Core.DB.markPendingPush();
-        }
-      }
-    },
-
-    // ── Manuel zorla push ─────────────────────────────────────────────
-    async forcePush() {
-      if (this._pushTimer) {
-        clearTimeout(this._pushTimer);
-        this._pushTimer = null;
-      }
-      return this._doPush();
-    },
-
-    // ── Akıllı senkronizasyon — lastModified karşılaştır, kazananı uygula ──
-    // ── Senkronizasyon ÖN ANALİZİ — hiçbir şey değiştirmez, sadece karşılaştırır ──
-    // Kullanıcı "Senkronize Et" butonuna basmadan önce ne olacağını görsün diye:
-    // buluttaki veriyle yereli kıyaslar, hangi taraf da kaç yeni/farklı kayıt
-    // olduğunu sayar, sonucu döner. Hiçbir yazma işlemi yapmaz (read-only).
-    async analyzeSync() {
-      if (!this.isAvailable() || !Core.state.settings.syncKey) {
-        return { status: 'unavailable' };
-      }
-      const docRef = this._doc(Core.state.settings.syncKey);
-      try {
-        const snap = await docRef.get();
-        const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
-
-        if (!snap.exists) {
-          return { status: 'cloud-empty', willPush: true };
-        }
-
-        const data = snap.data();
-        const remoteMod = (data && data.lastModified) || 0;
-        const remoteState = data && data.state;
-
-        if (remoteMod === localMod) {
-          // timestamp eşit — içeriği de kısaca karşılaştır (tombstone dahil)
-          const localTxCount = (Core.state.transactions||[]).length;
-          const remoteTxCount = ((remoteState&&remoteState.transactions)||[]).length;
-          const localWCount = (Core.state.wallets||[]).length;
-          const remoteWCount = ((remoteState&&remoteState.wallets)||[]).length;
-          const lTomb = Object.keys((Core.state._tombstones)||{}).length;
-          const rTomb = Object.keys(((remoteState&&remoteState._tombstones)||{})).length;
-          if (localTxCount === remoteTxCount && localWCount === remoteWCount && lTomb === rTomb) {
-            return { status: 'in-sync' };
-          }
-          // timestamp eşit ama içerik farklı — merge gerekiyor
-        }
-        if (!remoteState) {
-          return { status: 'cloud-empty', willPush: true };
-        }
-
-        // Hangi taraf da, diğerinde olmayan kaç ID var
-        const counts = {};
-        const ARRS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
-        let totalNewFromRemote = 0, totalNewFromLocal = 0;
-        // Tüm tombstone'ları birleştir — silinmiş ID'leri "yeni" sayma
-        const allTomb = Object.assign({}, Core.state._tombstones||{}, (remoteState&&remoteState._tombstones)||{});
-        ARRS.forEach(key => {
-          const localArr = Array.isArray(Core.state[key]) ? Core.state[key] : [];
-          const remoteArr = Array.isArray(remoteState[key]) ? remoteState[key] : [];
-          const localIds = new Set(localArr.map(x => x && x.id).filter(Boolean));
-          const remoteIds = new Set(remoteArr.map(x => x && x.id).filter(Boolean));
-          let newFromRemote = 0, newFromLocal = 0;
-          remoteIds.forEach(id => { if (!localIds.has(id) && !allTomb[id]) newFromRemote++; });
-          localIds.forEach(id => { if (!remoteIds.has(id) && !allTomb[id]) newFromLocal++; });
-          if (newFromRemote || newFromLocal) counts[key] = { newFromRemote, newFromLocal };
-          totalNewFromRemote += newFromRemote;
-          totalNewFromLocal += newFromLocal;
+        // Meta
+        batch.set(userRef.collection('meta').doc('info'), {
+          syncKey: key,
+          migratedAt: Date.now(),
+          createdAt: blob.createdAt || null,
+          consentDate: (state.settings && state.settings.consentDate) || null,
         });
 
-        return {
-          status: 'diff',
-          willMerge: true,
-          totalNewFromRemote,
-          totalNewFromLocal,
-          details: counts,
-          remoteMod,
-          localMod,
-        };
-      } catch (e) {
-        console.warn('[Cloud] analyzeSync hatası:', e);
-        return { status: 'error', error: e };
+        // Eski blob doc'u migrated olarak işaretle (silme — veri güvenliği için)
+        batch.set(blobRef, { _migrated: true, _migratedAt: Date.now() }, { merge: true });
+
+        await batch.commit();
+        console.log('[Cloud] Migration tamamlandı.');
+      } catch(e) {
+        console.warn('[Cloud] Migration hatası:', e);
+        // Migration başarısız olsa da devam et — eski blob'dan yükle
       }
     },
 
+    // ── İlk yükleme: tüm collection'ları çek ────────────────────────
+    async _initialLoad(key) {
+      const userRef = this._userRef(key);
+      // Paralel çek
+      const [settingsSnap, ...colSnaps] = await Promise.all([
+        userRef.collection('settings').doc('main').get(),
+        ...COLLECTIONS.map(col => userRef.collection(col).where('_deleted','==',false).get())
+      ]);
+
+      // Settings
+      if (settingsSnap.exists) {
+        const remoteSettings = settingsSnap.data() || {};
+        // syncKey'i koru, diğerlerini remote'tan al (per-field merge)
+        Core.state.settings = this._mergeSettings(Core.state.settings, remoteSettings);
+      }
+      Core.state.settings.syncKey = key;
+
+      // Collection'lar
+      COLLECTIONS.forEach((col, i) => {
+        const snap = colSnaps[i];
+        const remoteMap = new Map();
+        snap.forEach(doc => remoteMap.set(doc.id, { id: doc.id, ...doc.data() }));
+
+        const localMap = new Map();
+        (Core.state[col] || []).forEach(item => { if (item && item.id) localMap.set(item.id, item); });
+
+        // Merge: her item için _updatedAt'i karşılaştır
+        const merged = new Map();
+        remoteMap.forEach((remoteItem, id) => merged.set(id, remoteItem));
+        localMap.forEach((localItem, id) => {
+          const remoteItem = merged.get(id);
+          if (!remoteItem) {
+            // Sadece local'de var — push edilecek (offline'da eklenmiş)
+            merged.set(id, localItem);
+          } else {
+            const lTs = localItem._updatedAt || 0;
+            const rTs = remoteItem._updatedAt || 0;
+            merged.set(id, lTs > rTs ? localItem : remoteItem);
+          }
+        });
+
+        Core.state[col] = Array.from(merged.values()).filter(item => !item._deleted);
+      });
+
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+      try { Core.emit('stateChanged', Core.state); } catch(e) {}
+      this._rerenderActiveView();
+
+      // Local'de olup remote'da olmayan item'ları push et (offline'da eklenmişti)
+      await this._pushLocalOnlyItems(key);
+    },
+
+    // Offline'da eklenip henüz Firestore'a gitmeyen item'ları yaz
+    async _pushLocalOnlyItems(key) {
+      const userRef = this._userRef(key);
+      // Her collection için local'dekini Firestore'a yaz (set + merge:true)
+      // Firestore offline cache'de zaten varsa üstüne yazar, yoksa ekler
+      for (const col of COLLECTIONS) {
+        const items = Core.state[col] || [];
+        for (const item of items) {
+          if (!item || !item.id) continue;
+          try {
+            await userRef.collection(col).doc(item.id).set(
+              { ...item, _deleted: false, _updatedAt: item._updatedAt || Date.now() },
+              { merge: true }
+            );
+          } catch(e) { /* offline ise SDK queue'ya alır */ }
+        }
+      }
+    },
+
+    // ── Settings merge (per-field) ────────────────────────────────────
+    _mergeSettings(local, remote) {
+      const FIELD_KEYS = ['theme','lang','anim','privacy','currency','name',
+        'plusFont','plusColor','plusCustomColors','plusPlan',
+        'bnavItems','notifMaster','notifications'];
+      const localTs  = local._settingsTs  || {};
+      const remoteTs = remote._settingsTs || {};
+      const localMod  = local.lastModified  || 0;
+      const remoteMod = remote.lastModified || 0;
+      const merged = Object.assign({}, remote, local); // local base
+      FIELD_KEYS.forEach(k => {
+        const lTs = localTs[k]  || localMod;
+        const rTs = remoteTs[k] || remoteMod;
+        if (rTs > lTs) merged[k] = remote[k]; // remote daha yeni
+      });
+      const mergedTs = Object.assign({}, remoteTs, localTs);
+      FIELD_KEYS.forEach(k => { if ((remoteTs[k]||0) > (localTs[k]||0)) mergedTs[k] = remoteTs[k]; });
+      merged._settingsTs = mergedTs;
+      merged.syncKey = local.syncKey; // her zaman local key
+      return merged;
+    },
+
+    // ── Realtime listener'lar ─────────────────────────────────────────
+    attachListeners(key) {
+      this.detachListeners();
+      if (!this.isAvailable() || !key) return;
+      const userRef = this._userRef(key);
+
+      // Settings listener
+      this._settingsUnsub = userRef.collection('settings').doc('main')
+        .onSnapshot(snap => {
+          if (!snap.exists) return;
+          const remoteSettings = snap.data() || {};
+          const newSettings = this._mergeSettings(Core.state.settings, remoteSettings);
+          newSettings.syncKey = key;
+          Core.state.settings = newSettings;
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+          try { Core.emit('stateChanged', Core.state); } catch(e) {}
+          this._applySettingsSideEffects(newSettings);
+        }, err => console.warn('[Cloud] settings listener hatası:', err));
+
+      // Her collection için listener
+      COLLECTIONS.forEach(col => {
+        const unsub = userRef.collection(col)
+          .where('_deleted','==',false)
+          .onSnapshot(snap => {
+            snap.docChanges().forEach(change => {
+              const item = { id: change.doc.id, ...change.doc.data() };
+              if (change.type === 'removed' || item._deleted) {
+                Core.state[col] = (Core.state[col] || []).filter(x => x.id !== item.id);
+              } else {
+                // added veya modified
+                const arr = Core.state[col] || [];
+                const idx = arr.findIndex(x => x.id === item.id);
+                const localItem = idx >= 0 ? arr[idx] : null;
+                const localTs  = (localItem && localItem._updatedAt) || 0;
+                const remoteTs = item._updatedAt || 0;
+                if (!localItem) {
+                  Core.state[col] = [...arr, item];
+                } else if (remoteTs >= localTs) {
+                  const newArr = [...arr];
+                  newArr[idx] = item;
+                  Core.state[col] = newArr;
+                }
+                // localTs > remoteTs → local daha yeni, dokunma (henüz push edilmemiş)
+              }
+            });
+            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+            try { Core.emit('stateChanged', Core.state); } catch(e) {}
+            this._rerenderActiveView();
+          }, err => console.warn('[Cloud]', col, 'listener hatası:', err));
+        this._unsubscribes.push(unsub);
+      });
+
+      this._emitStatus('ok');
+    },
+
+    detachListeners() {
+      if (this._settingsUnsub) { try { this._settingsUnsub(); } catch(e) {} this._settingsUnsub = null; }
+      this._unsubscribes.forEach(fn => { try { fn(); } catch(e) {} });
+      this._unsubscribes = [];
+    },
+
+    // Geriye uyumluluk için alias
+    detachListener() { this.detachListeners(); },
+    get _unsubscribe() { return this._unsubscribes.length > 0 ? true : null; },
+
+    // ── Tek item yaz ─────────────────────────────────────────────────
+    // Core.DB.save() → _writeItem() çağrılır, blob push DEĞİL
+    async _writeItem(col, item) {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      if (!item || !item.id) return;
+      try {
+        await this._userRef().collection(col).doc(item.id).set(
+          { ...item, _deleted: false, _updatedAt: item._updatedAt || Date.now() },
+          { merge: true }
+        );
+      } catch(e) {
+        // Offline: Firestore SDK otomatik queue'ya alır, online olunca gönderir
+        console.warn('[Cloud] _writeItem offline/hata (SDK queue\'ya alındı):', col, item.id);
+      }
+    },
+
+    // Birden fazla item'ı batch yaz
+    async _writeBatch(writes) {
+      // writes: [{col, item}]
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      if (!writes || writes.length === 0) return;
+      const userRef = this._userRef();
+      const batch = window._fbDB.batch();
+      writes.forEach(({ col, item }) => {
+        if (!item || !item.id) return;
+        const ref = userRef.collection(col).doc(item.id);
+        batch.set(ref, { ...item, _deleted: false, _updatedAt: item._updatedAt || Date.now() }, { merge: true });
+      });
+      try {
+        await batch.commit();
+      } catch(e) {
+        console.warn('[Cloud] _writeBatch offline/hata (SDK queue\'ya alındı)');
+      }
+    },
+
+    // Soft delete
+    async _deleteItem(col, id) {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      try {
+        await this._userRef().collection(col).doc(id).set(
+          { _deleted: true, _updatedAt: Date.now() },
+          { merge: true }
+        );
+      } catch(e) {
+        console.warn('[Cloud] _deleteItem offline/hata (SDK queue\'ya alındı):', col, id);
+      }
+    },
+
+    // Settings yaz
+    async _writeSettings() {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      try {
+        const s = { ...Core.state.settings, _updatedAt: Date.now() };
+        await this._userRef().collection('settings').doc('main').set(s, { merge: true });
+      } catch(e) {
+        console.warn('[Cloud] _writeSettings offline/hata (SDK queue\'ya alındı)');
+      }
+    },
+
+    // ── queuePush: DB.save() her çağırdığında buraya gelir ───────────
+    // Yeni mimaride "tüm state'i push" yok.
+    // Bunun yerine son değişen item'ları Firestore'a yazar.
+    // Core.DB.save() çağrısı sonrası _pendingWrites set edilmeli.
+    // Ama mevcut index.html'de hangi item değişti bilinmiyor — o yüzden
+    // save() sonrası tüm state'i tarayıp diff alıyoruz.
+    _pendingWrites: [],   // {col, item} listesi
+    _pushTimer: null,
+    _pushDelay: 800,
+
+    queuePush(immediate) {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      if (this._pushTimer) clearTimeout(this._pushTimer);
+      const doIt = () => {
+        this._pushTimer = null;
+        this._flushPending();
+      };
+      if (immediate) { doIt(); return; }
+      this._pushTimer = setTimeout(doIt, this._pushDelay);
+    },
+
+    // Pending write'ları varsa yaz, yoksa diff al ve yaz
+    async _flushPending() {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return;
+      this._emitStatus('syncing');
+      try {
+        if (this._pendingWrites.length > 0) {
+          const writes = [...this._pendingWrites];
+          this._pendingWrites = [];
+          await this._writeBatch(writes);
+        } else {
+          // Fallback: settings yaz (en azından settings güncel kalsın)
+          await this._writeSettings();
+        }
+        if (Core.DB && Core.DB.clearPendingPush) Core.DB.clearPendingPush();
+        this.lastError = '';
+        this._emitStatus('ok');
+      } catch(e) {
+        console.warn('[Cloud] _flushPending hatası:', e);
+        this.lastError = e.message || '';
+        this._emitStatus(navigator.onLine === false ? 'offline' : 'error');
+      }
+    },
+
+    // Belirli bir item'ı queue'ya ekle (index.html'de item değişince çağrılabilir)
+    markDirty(col, item) {
+      if (!col || !item || !item.id) return;
+      // Aynı id zaten varsa güncelle
+      const idx = this._pendingWrites.findIndex(w => w.col === col && w.item.id === item.id);
+      if (idx >= 0) this._pendingWrites[idx] = { col, item };
+      else this._pendingWrites.push({ col, item });
+    },
+
+    // ── forceSync: kullanıcı butonu ──────────────────────────────────
     async forceSync() {
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;
       if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }
-
       this._emitStatus('syncing');
-      const docRef = this._doc(Core.state.settings.syncKey);
       try {
-        const snap = await docRef.get();
-        const localMod = (Core.state.settings && Core.state.settings.lastModified) || 0;
-
-        if (!snap.exists) {
-          console.log('[Cloud] forceSync: bulutta veri yok, push yapılıyor.');
-          return this._doPush();
-        }
-
-        const data      = snap.data();
-        const remoteMod = (data && data.lastModified) || 0;
-        const remoteState = data && data.state;
-
-        if (!remoteState) return this._doPush();
-
-        const localTxCnt  = (Core.state.transactions||[]).length;
-        const remoteTxCnt = ((remoteState.transactions)||[]).length;
-        const contentSame = localTxCnt === remoteTxCnt &&
-          (Core.state.wallets||[]).length === ((remoteState.wallets)||[]).length;
-
-        if (remoteMod === localMod && contentSame) {
-          console.log('[Cloud] forceSync: zaten senkron.');
-          this._emitStatus('ok');
-          return 'in-sync';
-        }
-
-        console.log('[Cloud] forceSync: merge + push.');
-        // _doPush transaction içinde merge yapıyor — _applyRemote sonrası push yeterli
-        await this._applyRemote(remoteState, remoteMod, { push: true });
+        await this._initialLoad(Core.state.settings.syncKey);
+        await this._flushPending();
+        this._emitStatus('ok');
         return 'merged';
       } catch(e) {
         console.warn('[Cloud] forceSync hatası:', e);
@@ -729,165 +507,265 @@
       }
     },
 
-    // ── Bu cihazdan çıkış ─────────────────────────────────────────────
-    // Yerel veriler kalır; bulutla bağlantı kesilir.
-    signOut() {
-      this.detachListener();
-      Core.state.settings.syncKey = "";
+    async forcePush() {
+      return this.forceSync();
+    },
+
+    // ── analyzeSync ──────────────────────────────────────────────────
+    async analyzeSync() {
+      if (!this.isAvailable() || !Core.state.settings.syncKey) return { status: 'unavailable' };
+      try {
+        const userRef = this._userRef();
+        const counts = {};
+        let totalNewFromRemote = 0, totalNewFromLocal = 0;
+        for (const col of COLLECTIONS) {
+          const snap = await userRef.collection(col).where('_deleted','==',false).get();
+          const remoteIds = new Set();
+          snap.forEach(doc => remoteIds.add(doc.id));
+          const localIds = new Set((Core.state[col] || []).map(x => x && x.id).filter(Boolean));
+          let newFromRemote = 0, newFromLocal = 0;
+          remoteIds.forEach(id => { if (!localIds.has(id)) newFromRemote++; });
+          localIds.forEach(id => { if (!remoteIds.has(id)) newFromLocal++; });
+          if (newFromRemote || newFromLocal) counts[col] = { newFromRemote, newFromLocal };
+          totalNewFromRemote += newFromRemote;
+          totalNewFromLocal  += newFromLocal;
+        }
+        if (totalNewFromRemote === 0 && totalNewFromLocal === 0) return { status: 'in-sync' };
+        return { status: 'diff', willMerge: true, totalNewFromRemote, totalNewFromLocal, details: counts };
+      } catch(e) {
+        return { status: 'error', error: e };
+      }
+    },
+
+    // ── createAccount ────────────────────────────────────────────────
+    async createAccount() {
+      console.log('[Cloud] createAccount çağrıldı');
+      if (!this.isAvailable()) {
+        const err = new Error('CLOUD_UNAVAILABLE');
+        err.detail = window._fbErr || 'sdk-missing';
+        throw err;
+      }
+      const key = this.generateKey();
+      Core.state.settings.syncKey = key;
       Core.state.settings.lastModified = Date.now();
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-      this._emitStatus("idle");
+
+      const userRef = this._userRef(key);
+      const batch = window._fbDB.batch();
+
+      // Settings
+      batch.set(userRef.collection('settings').doc('main'), {
+        ...Core.state.settings, _updatedAt: Date.now()
+      });
+
+      // Meta
+      const consentPayload = {};
+      if (Core.state.settings.consentDate) {
+        consentPayload.consentDate    = Core.state.settings.consentDate;
+        consentPayload.consentVersion = Core.state.settings.consentVersion || null;
+        consentPayload.consentLang    = Core.state.settings.consentLang    || null;
+        consentPayload.consentMethod  = Core.state.settings.consentMethod  || null;
+      }
+      batch.set(userRef.collection('meta').doc('info'), {
+        syncKey: key,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        ...consentPayload
+      });
+
+      // Mevcut local item'lar
+      COLLECTIONS.forEach(col => {
+        (Core.state[col] || []).forEach(item => {
+          if (!item || !item.id) return;
+          batch.set(userRef.collection(col).doc(item.id), {
+            ...item, _deleted: false, _updatedAt: item._updatedAt || Date.now()
+          });
+        });
+      });
+
       try {
-        Core.emit("stateChanged", Core.state);
-      } catch (e) {}
-    },
-    
-    // ── Hesabı tamamen sil ────────────────────────────────────────────
-    // Firestore'daki dokümanı siler, listener'ı keser, localStorage'ı temizler.
-    async deleteAccount() {
-      const key = Core.state.settings.syncKey;
-
-      // Listener'ı hemen kes — silme sırasında snapshot gelmesin
-      this.detachListener();
-      if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }
-
-      // Firebase'den sil (key varsa)
-      if (key && this.isAvailable()) {
-        try {
-          await this._doc(key).delete();
-          console.log('[Cloud] Firestore dokümanı silindi:', key);
-        } catch (e) {
-          console.warn('[Cloud] Firestore silme hatası:', e);
-          // Silme başarısız olsa da yerel temizliğe devam et
-        }
+        await batch.commit();
+      } catch(e) {
+        console.error('[Cloud] createAccount yazma hatası:', e.code, e.message);
+        this._emitStatus('error');
+        this.lastError = e.message || 'write-failed';
+        throw e;
       }
 
-      // Yerel her şeyi temizle
-      localStorage.removeItem(Core.DB.key);
-      Core.state = JSON.parse(JSON.stringify({
-        settings: {
-          syncKey: '',
-          lastModified: Date.now(),
-          notifications: { abonelik:false, borc:false, butce:false, haftalik:false,
-            krediKarti:false, hedef:false, buyukHarcama:false, doviz:false },
-          notifMaster: false,
-          theme: 'light',
-          lang: 'tr',
-          anim: 'on',
-          privacy: 'off',
-          currency: 'TRY',
-          consentDate: null,
-          consentVersion: null,
-          consentLang: null,
-          consentMethod: null,
-        },
-        wallets:[], transactions:[], recurring:[], goals:[], debts:[], categories:[]
-      }));
+      this._emitStatus('ok');
+      this.attachListeners(key);
+      return key;
+    },
 
+    // ── loginWithKey ─────────────────────────────────────────────────
+    async loginWithKey(rawKey) {
+      console.log('[Cloud] loginWithKey:', rawKey);
+      const key = this.normalizeKey(rawKey);
+      if (!this.isValidKey(key)) throw new Error('INVALID_KEY');
+
+      // PLUS yönlendirme
+      const redirectKey = await this._resolvePlusKey(key);
+      if (redirectKey && redirectKey !== key) {
+        return this.loginWithKey(redirectKey);
+      }
+
+      // Hesap var mı?
+      const metaSnap = await this._userRef(key).collection('meta').doc('info').get();
+      const blobSnap = await window._fbDB.collection('users').doc(this._docId(key)).get();
+
+      if (!metaSnap.exists && (!blobSnap.exists || !blobSnap.data() || (!blobSnap.data().state && !blobSnap.data()._migrated))) {
+        throw new Error('NOT_FOUND');
+      }
+
+      Core.state.settings.syncKey = key;
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+
+      await this._boot();
+      return Core.state;
+    },
+
+    // ── signOut ──────────────────────────────────────────────────────
+    signOut() {
+      this.detachListeners();
+      if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }
+      Core.state.settings.syncKey = '';
+      Core.state.settings.lastModified = Date.now();
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
       this._emitStatus('idle');
       try { Core.emit('stateChanged', Core.state); } catch(e) {}
     },
+
+    // ── deleteAccount ─────────────────────────────────────────────────
+    async deleteAccount() {
+      const key = Core.state.settings.syncKey;
+      this.detachListeners();
+      if (this._pushTimer) { clearTimeout(this._pushTimer); this._pushTimer = null; }
+
+      if (key && this.isAvailable()) {
+        try {
+          const userRef = this._userRef(key);
+          // Sub-collection'ları sil
+          for (const col of [...COLLECTIONS, 'settings', 'meta']) {
+            const snap = await userRef.collection(col).get();
+            const batch = window._fbDB.batch();
+            snap.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+          }
+          // Eski blob doc
+          await window._fbDB.collection('users').doc(this._docId(key)).delete();
+          console.log('[Cloud] Hesap silindi:', key);
+        } catch(e) { console.warn('[Cloud] deleteAccount hatası:', e); }
+      }
+
+      localStorage.removeItem(Core.DB.key);
+      Core.state = JSON.parse(JSON.stringify({
+        settings: {
+          syncKey:'', lastModified: Date.now(),
+          notifications:{abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false},
+          notifMaster:false, theme:'light', lang:'tr', anim:'on', privacy:'off', currency:'TRY',
+          consentDate:null, consentVersion:null, consentLang:null, consentMethod:null,
+        },
+        wallets:[], transactions:[], recurring:[], goals:[], debts:[], categories:[], budgets:[], _tombstones:{}
+      }));
+      this._emitStatus('idle');
+      try { Core.emit('stateChanged', Core.state); } catch(e) {}
+    },
+
+    // ── Settings side effects ─────────────────────────────────────────
+    _applySettingsSideEffects(settings) {
+      try {
+        const c = window.App && App.Controllers;
+        if (!c) return;
+        if (c.Settings) {
+          c.Settings.applyTheme && c.Settings.applyTheme();
+          if (settings.lang && window.LANG !== settings.lang) {
+            window.LANG = settings.lang;
+            typeof applyLang === 'function' && applyLang();
+          }
+        }
+        if (c.BottomBar) {
+          const items = settings.bnavItems;
+          if (Array.isArray(items) && items.length > 0) {
+            try { localStorage.setItem(c.BottomBar.STORAGE_KEY, JSON.stringify(items)); } catch(e) {}
+          }
+          c.BottomBar.renderNav();
+        }
+      } catch(e) {}
+    },
+
+    // ── Active view yeniden render ────────────────────────────────────
+    _rerenderActiveView() {
+      try {
+        const hash = window.location.hash.replace('#','') || '/dashboard';
+        const c = window.App && App.Controllers;
+        if (!c) return;
+        this._applySettingsSideEffects(Core.state.settings);
+        if      (hash === '/dashboard')    c.Dashboard    && c.Dashboard.render    && c.Dashboard.render();
+        else if (hash === '/wallets')      c.Wallets      && c.Wallets.render      && c.Wallets.render();
+        else if (hash === '/transactions') c.Transactions && c.Transactions.renderSetup && c.Transactions.renderSetup();
+        else if (hash === '/analytics')    c.Analytics    && c.Analytics.render    && c.Analytics.render();
+        else if (hash === '/recurring')    c.Recurring    && c.Recurring.render    && c.Recurring.render();
+        else if (hash === '/goals')        c.Goals        && c.Goals.render        && c.Goals.render();
+        else if (hash === '/debts')        c.Debts        && c.Debts.render        && c.Debts.render();
+        else if (hash === '/settings')     c.Settings     && c.Settings.renderForm && c.Settings.renderForm();
+      } catch(e) { console.warn('[Cloud] rerender hatası:', e); }
+    },
   };
-  
 
-  // ── Core'a enjekte et ────────────────────────────────────────────
+  // ── Core'a bağla ────────────────────────────────────────────────────
   window.Cloud = Cloud;
-
   if (typeof window.Core !== 'undefined') {
     window.Core.Cloud = Cloud;
-    console.log('[SAGI] Cloud Core\'a bağlandı. Durum:', Cloud.status);
+    console.log('[SAGI] Cloud v3 Core\'a bağlandı.');
   }
 
-  // ── Kapanışta & arka plana geçişte push ──────────────────────────
-
-  // FIX: pagehide'da Firestore push'u kaldırıldı — tarayıcı async işlemi
-  // tamamlamadan sayfayı öldürür, push hiçbir zaman ulaşmıyordu.
-  // Güvence: visibilitychange:hidden'da push zaten gönderilir.
-  // Burada sadece senkron olan local kayıt yapılır.
-  window.addEventListener('pagehide', function() {
-    if (!Core.state.settings.syncKey) return;
-    if (Cloud._pushTimer) {
-      clearTimeout(Cloud._pushTimer);
-      Cloud._pushTimer = null;
-    }
-    // NOT: lastModified burada güncellenmez — Firebase'e ulaşmadan kapanırsa
-    // sahte yeni timestamp local'de kalır ve sonraki açılışta eski veri push'lanır.
-    localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-  });
-
-  window.addEventListener('beforeunload', function() {
-    if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
-    if (Cloud._pushTimer) {
-      clearTimeout(Cloud._pushTimer);
-      Cloud._pushTimer = null;
-      Core.state.settings.lastModified = Date.now();
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-    }
-  });
-
-  // FIX: visibilitychange:hidden — artık her zaman lastModified güncellenir
-  // ve push başlatılır (sadece bekleyen timer varsa değil, her zaman).
-  // Bu sayede telefon arka plana alındığında veri Firebase'e gider.
-  // visible — öne gelince pull yap, başka cihazda değişiklik olmuş olabilir.
+  // ── Lifecycle eventleri ──────────────────────────────────────────────
   document.addEventListener('visibilitychange', function() {
     if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
     if (document.visibilityState === 'hidden') {
-      // Timer varsa iptal et
-      if (Cloud._pushTimer) {
-        clearTimeout(Cloud._pushTimer);
-        Cloud._pushTimer = null;
+      // Bekleyen yazmalar varsa flush et
+      if (Cloud._pendingWrites.length > 0 || Cloud._pushTimer) {
+        if (Cloud._pushTimer) { clearTimeout(Cloud._pushTimer); Cloud._pushTimer = null; }
+        Cloud._flushPending().catch(() => {});
       }
-      // lastModified'ı senkron güncelle ve local'e yaz
-      Core.state.settings.lastModified = Date.now();
-      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-      // Firestore push'u başlat — mobil hemen öldürmeyebilir, şansımız var
-      Cloud._doPush().catch(() => {});
     } else if (document.visibilityState === 'visible') {
-      // Öne gelince initialPull yap — başka cihazda değişiklik olmuş olabilir
-      Cloud._initialPull().catch(() => {});
+      // Öne gelince listener'lar zaten canlı, onSnapshot otomatik günceller
+      // Ama listener kopmuşsa yeniden bağlan
+      if (Cloud._unsubscribes.length === 0 && Cloud.isAvailable()) {
+        Cloud.attachListeners(Core.state.settings.syncKey);
+      }
     }
   });
 
-  window.addEventListener('DOMContentLoaded', function() {
-    if (typeof window.Core !== 'undefined') {
-      window.Core.Cloud = Cloud;
-    }
-
-    // Firebase bu noktada henüz hazır olmayabilir (persistence async).
-    // firebase-config.js'in .finally() bloğu hazır olunca listener'ı bağlıyor.
-    // Eğer _fbReady zaten true ise (nadir ama mümkün) burada da handle et.
-    if (window.Core && window.Core.Cloud) {
-      if (window._fbReady && window._fbDB) {
-        window.Core.Cloud.status = 'idle';
-        setTimeout(function() {
-          try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
-        }, 0);
-      }
-      // _fbReady false ise firebase-config.js .finally() bloğu devralır — burada bekleme yok
-    }
-  }, true /* capture — App.init()'in DOMContentLoaded'ından önce çalışır */);
-
-  // ── Offline / Online geçişleri ───────────────────────────────────────
-  // Online'a dönünce: önce merge (initialPull), sonra offline'da biriken
-  // bekleyen push varsa (Core.DB.hasPendingPush) onu da gönder.
-  // Bu, "offline'da işlem yaptım, sonra online oldum, veri kaybolmadı" 
-  // senaryosunu garantiler.
-  window.addEventListener('offline', function() {
+  window.addEventListener('pagehide', function() {
     if (!Core.state.settings.syncKey) return;
-    Cloud._emitStatus('offline');
+    localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
   });
 
   window.addEventListener('online', function() {
     if (!Core.state.settings.syncKey || !Cloud.isAvailable()) return;
-    console.log('[Cloud] Online — merge + pending push retry.');
-    Cloud._emitStatus('syncing');
-    Cloud._initialPull().then(() => {
-      if (Core.DB && Core.DB.hasPendingPush && Core.DB.hasPendingPush()) {
-        console.log('[Cloud] Bekleyen push bulundu, gönderiliyor.');
-        return Cloud._doPush();
-      }
-      Cloud._emitStatus('ok');
-    }).catch(() => Cloud._emitStatus('error'));
+    console.log('[Cloud] Online olundu.');
+    // Listener'lar kopmuş olabilir — yeniden bağlan
+    if (Cloud._unsubscribes.length === 0) {
+      Cloud.attachListeners(Core.state.settings.syncKey);
+    }
+    // Pending yazmaları gönder
+    if (Core.DB && Core.DB.hasPendingPush && Core.DB.hasPendingPush()) {
+      Cloud._flushPending().catch(() => {});
+    }
   });
+
+  window.addEventListener('offline', function() {
+    if (!Core.state.settings.syncKey) return;
+    Cloud._emitStatus('offline');
+    // Listener'ları kesmiyoruz — SDK offline persistence halleder
+  });
+
+  window.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.Core !== 'undefined') window.Core.Cloud = Cloud;
+    if (window.Core && window.Core.Cloud && window._fbReady && window._fbDB) {
+      window.Core.Cloud.status = 'idle';
+      setTimeout(() => { try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {} }, 0);
+    }
+  }, true);
 
 })();
