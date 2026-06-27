@@ -6772,8 +6772,8 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const showToggle=remaining>0.01&&hasWallets;
         const remainingStr=Core.Utils.formatMoney(remaining,mc);
         const toggleLabel=debt.dir==='borç'
-          ? (t('debtDeleteToggleBorç')||`Kalan ${remainingStr} hesabımdan düş (ödendi say)`)
-          : (t('debtDeleteToggleAlacak')||`Kalan ${remainingStr} hesabıma ekle (tahsil edildi say)`);
+          ? (t('debtDeleteToggleBorç',{remaining:remainingStr})||`Kalan ${remainingStr} hesabımdan düş (ödendi say)`)
+          : (t('debtDeleteToggleAlacak',{remaining:remainingStr})||`Kalan ${remainingStr} hesabıma ekle (tahsil edildi say)`);
         const confirmMsg=t('confDelDebt')+(showToggle?'':('<br><span style="font-size:13px;color:var(--text-muted)">'+remainingStr+' kalan borç var.</span>'));
         UI.Confirm.show(confirmMsg,(applyRemaining)=>{
           // 1. Kalan bakiyeyi yansıt (toggle açıksa)
@@ -6794,8 +6794,8 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
                 // alacak verdik → kalan tahsil edildi say → income
                 const tType=debt.dir==='borç'?'expense':'income';
                 const tDesc=debt.dir==='borç'
-                  ?(t('debtClosedExpense')||`Borç kapatıldı - ${debt.name}`)
-                  :(t('debtClosedIncome')||`Alacak kapatıldı - ${debt.name}`);
+                  ?(t('debtClosedExpense',{name:debt.name})||`Borç kapatıldı - ${debt.name}`)
+                  :(t('debtClosedIncome',{name:debt.name})||`Alacak kapatıldı - ${debt.name}`);
                 const tx={id:Core.Utils.generateId(),type:tType,amount:walAmt,amountCurrency:wc,
                   desc:tDesc,cat:'Borç/Alacak',wallet:walId,date:new Date().toISOString()};
                 Core.state.transactions.push(tx);App.Money.applyTx(tx);

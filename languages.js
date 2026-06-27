@@ -521,6 +521,9 @@ const LANGS = {
       transferToGoal:'Hedefe Transfer: {name}',
       debtTaken:'Borç Alındı: {name}', debtGiven:'Borç Verildi: {name}',
       debtPayment:'Borç Ödemesi: {name}', debtCollection:'Tahsilat: {name}',
+      debtDeleteToggleBorç:'Kalan {remaining} tutarı hesabımdan düş (ödendi say)',
+      debtDeleteToggleAlacak:'Kalan {remaining} tutarı hesabıma ekle (tahsil edildi say)',
+      debtClosedExpense:'Borç kapatıldı: {name}', debtClosedIncome:'Alacak kapatıldı: {name}',
       subscriptionLabel:'{name} (Abonelik)', ccPaymentLabel:'Kart Ödemesi: {name}',
 
       yes:'Evet', no:'Hayır', ok:'Tamam', approve:'Onayla',
@@ -1000,6 +1003,9 @@ const LANGS = {
       transferToGoal:'Transfer to Goal: {name}',
       debtTaken:'Debt Received: {name}', debtGiven:'Debt Given: {name}',
       debtPayment:'Debt Payment: {name}', debtCollection:'Collection: {name}',
+      debtDeleteToggleBorç:'Deduct remaining {remaining} from my account (mark as paid)',
+      debtDeleteToggleAlacak:'Add remaining {remaining} to my account (mark as collected)',
+      debtClosedExpense:'Debt closed: {name}', debtClosedIncome:'Receivable closed: {name}',
       subscriptionLabel:'{name} (Subscription)', ccPaymentLabel:'Card Payment: {name}',
 
       yes:'Yes', no:'No', ok:'OK', approve:'Confirm',
