@@ -2259,7 +2259,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
       <button class="act-btn" onclick="UI.Modals.close('modalConfirm')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
     </div>
-    <div class="modal-body"><p id="confirmMsg" style="font-size:16px;color:var(--text-secondary);line-height:1.6"></p></div>
+    <div class="modal-body"><p id="confirmMsg" style="font-size:16px;color:var(--text-secondary);line-height:1.6"></p><div id="confirmToggleWrap" style="display:none;margin-top:16px;padding:12px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid var(--border-light)"><label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text-primary)"><input type="checkbox" id="confirmToggleCheck" style="width:16px;height:16px;accent-color:var(--brand-accent);cursor:pointer"><span id="confirmToggleLabel"></span></label></div></div>
     <div class="modal-footer"><button class="btn btn-outline" data-i18n="cancel" onclick="UI.Modals.close('modalConfirm')">İptal</button><button class="btn btn-danger" data-i18n="confirm" onclick="UI.Confirm.execute()">Evet, Devam Et</button></div>
   </div>
 </div>
@@ -3150,14 +3150,18 @@ const Core = {
     // ── Pending push kaydı ─────────────────────────────────────────────
     // Push başarısız olursa (offline veya hata) bunu localStorage'a yaz.
     // Online event'i gelince cloud-sync.js bu flag'i okuyup retry yapar.
+    // Her iki key de yazılıp silinir: eski (v4 compat) + yeni (v5)
+    _pendingPushKeyV5: 'sagi_pending_push_v5',
     markPendingPush(){
       try{ localStorage.setItem(this._pendingPushKey,'1'); }catch(e){}
+      try{ localStorage.setItem(this._pendingPushKeyV5,'1'); }catch(e){}
     },
     clearPendingPush(){
       try{ localStorage.removeItem(this._pendingPushKey); }catch(e){}
+      try{ localStorage.removeItem(this._pendingPushKeyV5); }catch(e){}
     },
     hasPendingPush(){
-      return!!localStorage.getItem(this._pendingPushKey);
+      return !!(localStorage.getItem(this._pendingPushKey)||localStorage.getItem(this._pendingPushKeyV5));
     },
     save(){
       try{
@@ -3374,7 +3378,31 @@ const UI = {
       },230);
     }
   },
-  Confirm:{cb:null,show(msg,cb){document.getElementById('confirmMsg').innerHTML=msg;this.cb=cb;UI.Modals.open('modalConfirm');},execute(){if(this.cb)this.cb();UI.Modals.close('modalConfirm');}},
+  Confirm:{
+    cb:null,
+    show(msg,cb,opts){
+      document.getElementById('confirmMsg').innerHTML=msg;
+      this.cb=cb;
+      const wrap=document.getElementById('confirmToggleWrap');
+      const lbl=document.getElementById('confirmToggleLabel');
+      const chk=document.getElementById('confirmToggleCheck');
+      if(opts&&opts.toggle){
+        if(wrap)wrap.style.display='';
+        if(lbl)lbl.textContent=opts.toggle.label||'';
+        if(chk){chk.checked=opts.toggle.default===true;}
+      }else{
+        if(wrap)wrap.style.display='none';
+        if(chk)chk.checked=false;
+      }
+      UI.Modals.open('modalConfirm');
+    },
+    execute(){
+      const chk=document.getElementById('confirmToggleCheck');
+      const toggleVal=chk?chk.checked:false;
+      if(this.cb)this.cb(toggleVal);
+      UI.Modals.close('modalConfirm');
+    }
+  },
   Toasts:{
     show(msg,type='success'){
       const c=document.getElementById('toastContainer'),t=document.createElement('div');
@@ -6623,7 +6651,15 @@ const App = {
     },
     Debts:{
       render(){
-        const mc4=Core.state.settings.currency||'TRY';const rC=i=>{const c=i.dir==='borç'?'color-danger':'color-success';const origStr=i.currency&&i.currency!==mc4&&i.originalAmount?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">(${Core.Utils.formatMoney(i.originalAmount,i.currency)})</div>`:'';return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
+        const mc4=Core.state.settings.currency||'TRY';const rC=i=>{const c=i.dir==='borç'?'color-danger':'color-success';
+          // Döviz satırı: (kalan borç döviz / ilk verilen borç döviz)
+          // Kalan borç: i.amount (mc4 cinsinden) → i.currency'e çevir
+          let origStr='';
+          if(i.currency&&i.currency!==mc4&&i.originalAmount){
+            const remainingInOrigCur=App.ExchangeRate.convert(i.amount,mc4,i.currency);
+            origStr=`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">(${Core.Utils.formatMoney(remainingInOrigCur,i.currency)} / ${Core.Utils.formatMoney(i.originalAmount,i.currency)})</div>`;
+          }
+          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
         const d=Core.state.debts.filter(x=>x.dir==='borç'),rec=Core.state.debts.filter(x=>x.dir==='alacak');
         document.getElementById('debtsContainer').innerHTML=d.length?d.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noDebtRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('borç')">${t('addDebt')}</button></div>`;
         document.getElementById('receivablesContainer').innerHTML=rec.length?rec.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noReceivableRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('alacak')">${t('addReceivable')}</button></div>`;
@@ -6638,21 +6674,48 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const debtCurEl=document.getElementById('debt_currency');const debtCur=debtCurEl?debtCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amt=App.ExchangeRate.convert(rawAmt,debtCur,mc);
         const p={id:id||Core.Utils.generateId(),dir,name,amount:amt,originalAmount:rawAmt,currency:debtCur,date:document.getElementById('debt_date').value||null};
         if(id){
+          // Düzenleme: eski kaydı bul, linkedTxId'yi koru + wallet bakiyesini düzelt
           const ix=Core.state.debts.findIndex(x=>x.id===id);
-          if(ix!==-1)Core.state.debts[ix]=p;
-        }else Core.state.debts.push(p);
-        if(document.getElementById('debt_link_val').value==='1'&&!id){
-          const wId=document.getElementById('debt_wallet').value;
-          const w=Core.state.wallets.find(x=>x.id===wId);
-          if(w){
-            const wc=App.Money.walletCur(w.id);
-            const tType=dir==='borç'?'income':'expense';
-            const tDesc=dir==='borç'?t('debtTaken',{name}):t('debtGiven',{name});
-            const mc=App.Money.mainCur();
-            const txId=Core.Utils.generateId();const tx={id:txId,type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:p.id};Core.state.transactions.push(tx);App.Money.applyTx(tx);p.linkedTxId=txId;
+          if(ix!==-1){
+            const old=Core.state.debts[ix];
+            p.linkedTxId=old.linkedTxId; // linkedTxId'yi koru
+            // Eğer linkedTxId varsa eski tx'i sil, wallet bakiyesini geri al, yeni tx ekle
+            if(old.linkedTxId){
+              const oldTxIdx=Core.state.transactions.findIndex(t=>t.id===old.linkedTxId);
+              if(oldTxIdx!==-1){
+                App.Money.revertTx(Core.state.transactions[oldTxIdx]);
+                Core.state.transactions.splice(oldTxIdx,1);
+              }
+              // Yeni miktarla wallet tx'ini yeniden oluştur
+              const oldTxWalId=old._linkedWalletId; // kaydedilmişse
+              // linked wallet bilgisini linkTxId üzerinden bul (silindi, artık yok)
+              // Yeni tx yok — kullanıcı düzenleme ekranında yansıt seçeneği görmüyor
+              // Bu durumda linkedTxId'yi temizle ve wallet bakiyesini olduğu gibi bırak
+              // NOT: Düzenleme modal'ında "yansıt" toggle'ı ileride eklenebilir
+              p.linkedTxId=undefined;
+            }
+            Core.state.debts[ix]=p;
+          }
+        }else{
+          Core.state.debts.push(p);
+          // Yeni borç — yansıt toggle açık ve wallet seçili ise tx oluştur
+          if(document.getElementById('debt_link_val').value==='1'){
+            const wId=document.getElementById('debt_wallet').value;
+            const w=Core.state.wallets.find(x=>x.id===wId);
+            if(w){
+              const wc=App.Money.walletCur(w.id);
+              const tType=dir==='borç'?'income':'expense';
+              const tDesc=dir==='borç'?t('debtTaken',{name}):t('debtGiven',{name});
+              const txId=Core.Utils.generateId();
+              const tx={id:txId,type:tType,amount:App.ExchangeRate.convert(amt,mc,wc),amountCurrency:wc,desc:tDesc,cat:'Borç/Alacak',wallet:wId,date:new Date().toISOString(),linkedDebtId:p.id};
+              Core.state.transactions.push(tx);App.Money.applyTx(tx);p.linkedTxId=txId;
+              // linkedTxId artık p'ye yazıldı ama push sonrası index'i güncelle
+              const newIx=Core.state.debts.findIndex(x=>x.id===p.id);
+              if(newIx!==-1)Core.state.debts[newIx].linkedTxId=txId;
+            }
           }
         }
-        Core.DB.saveNow();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(t('msgRecordAdded'));
+        Core.DB.saveNow();UI.Modals.close('modalDebt');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();UI.Toasts.show(id?t('msgRecordUpdated')||t('msgRecordAdded'):t('msgRecordAdded'));
       },
       _userPickedCur: false,
       _onActionWalletChange(){
@@ -6699,7 +6762,54 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         }
         Core.DB.saveNow();UI.Modals.close('modalDebtAction');this.render();App.Controllers.Dashboard.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
       },
-      delete(id){UI.Confirm.show(t('confDelDebt'),()=>{Core.state.debts=Core.state.debts.filter(d=>d.id!==id);Core.DB.saveNow();this.render();UI.Toasts.show(t('msgRecordDeleted'));});}
+      delete(id){
+        const debt=Core.state.debts.find(d=>d.id===id);
+        if(!debt)return;
+        const mc=Core.state.settings.currency||'TRY';
+        const remaining=debt.amount||0; // ana para biriminde kalan borç
+        const hasWallets=Core.state.wallets.length>0;
+        // Kalan borç varsa ve hesap mevcutsa toggle göster
+        const showToggle=remaining>0.01&&hasWallets;
+        const remainingStr=Core.Utils.formatMoney(remaining,mc);
+        const toggleLabel=debt.dir==='borç'
+          ? (t('debtDeleteToggleBorç')||`Kalan ${remainingStr} hesabımdan düş (ödendi say)`)
+          : (t('debtDeleteToggleAlacak')||`Kalan ${remainingStr} hesabıma ekle (tahsil edildi say)`);
+        const confirmMsg=t('confDelDebt')+(showToggle?'':('<br><span style="font-size:13px;color:var(--text-muted)">'+remainingStr+' kalan borç var.</span>'));
+        UI.Confirm.show(confirmMsg,(applyRemaining)=>{
+          // 1. Kalan bakiyeyi yansıt (toggle açıksa)
+          if(applyRemaining&&remaining>0.01){
+            // Hangi wallet? Son linkedTxId'nin wallet'ı, yoksa ilk wallet
+            let walId=null;
+            if(debt.linkedTxId){
+              const lTx=Core.state.transactions.find(t=>t.id===debt.linkedTxId);
+              if(lTx)walId=lTx.wallet;
+            }
+            if(!walId&&Core.state.wallets.length)walId=Core.state.wallets[0].id;
+            if(walId){
+              const w=Core.state.wallets.find(x=>x.id===walId);
+              if(w){
+                const wc=w.currency||mc;
+                const walAmt=App.ExchangeRate.convert(remaining,mc,wc);
+                // borç aldık → kalan ödendi say → expense
+                // alacak verdik → kalan tahsil edildi say → income
+                const tType=debt.dir==='borç'?'expense':'income';
+                const tDesc=debt.dir==='borç'
+                  ?(t('debtClosedExpense')||`Borç kapatıldı - ${debt.name}`)
+                  :(t('debtClosedIncome')||`Alacak kapatıldı - ${debt.name}`);
+                const tx={id:Core.Utils.generateId(),type:tType,amount:walAmt,amountCurrency:wc,
+                  desc:tDesc,cat:'Borç/Alacak',wallet:walId,date:new Date().toISOString()};
+                Core.state.transactions.push(tx);App.Money.applyTx(tx);
+              }
+            }
+          }
+          // 2. Borcu sil
+          Core.state.debts=Core.state.debts.filter(d=>d.id!==id);
+          Core.DB.saveNow();this.render();
+          App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+          App.Controllers.Dashboard.render();
+          UI.Toasts.show(t('msgRecordDeleted'));
+        },showToggle?{toggle:{label:toggleLabel,default:true}}:null);
+      }
     },
     NotifInbox:{
       _filter:'all',

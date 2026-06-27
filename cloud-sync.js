@@ -325,7 +325,8 @@
         // ── Başarılı push ───────────────────────────────────────────
         _lastSyncedVersion = newVersion;
         _lastPushedVersion = newVersion;
-        Core.DB.clearPendingPush();
+        Core.DB.clearPendingPush(); // her iki key'i siler (v4 + v5)
+        try { localStorage.removeItem(PENDING_KEY); } catch(_) {}
         this.lastError = '';
         this._emitStatus('ok');
 
@@ -390,6 +391,9 @@
             return;
           }
 
+          // Aynı version — offline cache'den gelen yansıma, skip
+          if (remoteVer > 0 && remoteVer === _lastSyncedVersion) return;
+
           // Başka cihazdan gelen gerçek update
           _lastSyncedVersion = remoteVer;
 
@@ -446,8 +450,10 @@
         // kısa pencerede gelen update'leri kaçırmayız.
         this._attachListener(key);
         await this._pull();
-        // Pending (offline iken birikmiş) push varsa gönder
-        if (localStorage.getItem(PENDING_KEY)) {
+        // Pending (offline iken birikmiş) push varsa gönder — her iki key kontrol
+        var _bootHasPending = !!(localStorage.getItem(PENDING_KEY) ||
+          (Core.DB && Core.DB.hasPendingPush && Core.DB.hasPendingPush()));
+        if (_bootHasPending) {
           await this._push();
         }
         this._emitStatus('ok');
@@ -722,8 +728,10 @@
   window.addEventListener('pagehide', function () {
     if (!Core || !Core.state || !Core.DB) return;
     localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-    if (Core.state.settings.syncKey) {
+    // Sadece bekleyen push varsa flag'i set et
+    if (Core.state.settings.syncKey && (_pushTimer || (Core.DB.hasPendingPush && Core.DB.hasPendingPush()))) {
       try { localStorage.setItem(PENDING_KEY, '1'); } catch (_) {}
+      if (Core.DB.markPendingPush) Core.DB.markPendingPush();
     }
   });
 
@@ -735,10 +743,11 @@
     // Listener kopmuşsa yeniden bağla
     if (!_unsub) Cloud._attachListener(Core.state.settings.syncKey);
 
-    // Taze pull + pending push
+    // Taze pull + pending push (her iki key kontrol edilir)
+    var _hasPending = !!(localStorage.getItem(PENDING_KEY) || (Core.DB && Core.DB.hasPendingPush && Core.DB.hasPendingPush()));
     Cloud._pull()
       .then(function () {
-        if (localStorage.getItem(PENDING_KEY)) {
+        if (_hasPending) {
           return Cloud._push();
         }
       })
