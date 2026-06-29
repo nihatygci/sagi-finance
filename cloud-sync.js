@@ -78,7 +78,7 @@
     if (typeof mergeState === 'function') {
       return mergeState(local, remote);
     }
-    // Fallback: basit _updatedAt merge (mergeState yoksa)
+    // Fallback: mergeState yoksa — per-field settings + _updatedAt item merge
     const merged = JSON.parse(JSON.stringify(local));
     ['wallets','transactions','recurring','goals','debts','categories','budgets'].forEach(function (col) {
       const la = Array.isArray(local[col])  ? local[col]  : [];
@@ -90,8 +90,34 @@
         const r = map.get(i.id);
         if (!r || (i._updatedAt || 0) >= (r._updatedAt || 0)) map.set(i.id, i);
       });
-      merged[col] = Array.from(map.values());
+      // Tombstone filtresi
+      const allTomb = Object.assign({}, local._tombstones || {}, remote._tombstones || {});
+      merged[col] = Array.from(map.values()).filter(function(i) { return i && i.id && !allTomb[i.id]; });
     });
+    // Tombstone birleştirme
+    merged._tombstones = Object.assign({}, local._tombstones || {}, remote._tombstones || {});
+    // Settings per-field merge (fallback)
+    const localMod  = (local.settings  && local.settings.lastModified)  || 0;
+    const remoteMod = (remote.settings && remote.settings.lastModified) || 0;
+    const localStTs  = (local.settings  && local.settings._settingsTs)  || {};
+    const remoteStTs = (remote.settings && remote.settings._settingsTs) || {};
+    const PER_FIELD = ['theme','lang','anim','privacy','currency','name',
+      'plusFont','plusColor','plusCustomColors','plusPlan',
+      'bnavItems','notifMaster','notifications'];
+    const mergedSettings = Object.assign({}, remote.settings || {}, local.settings || {});
+    PER_FIELD.forEach(function(k) {
+      const lTs = localStTs[k]  || localMod;
+      const rTs = remoteStTs[k] || remoteMod;
+      if (rTs > lTs) mergedSettings[k] = (remote.settings || {})[k];
+    });
+    const mergedStTs = Object.assign({}, remoteStTs, localStTs);
+    PER_FIELD.forEach(function(k) {
+      const rTs = remoteStTs[k] || 0;
+      if (rTs > (localStTs[k] || 0)) mergedStTs[k] = rTs;
+    });
+    mergedSettings._settingsTs  = mergedStTs;
+    mergedSettings.lastModified = Math.max(localMod, remoteMod);
+    merged.settings = mergedSettings;
     return merged;
   }
 
@@ -225,7 +251,9 @@
 
       Core.state = merged;
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-      Core.DB.clearPendingPush();
+      // NOT: clearPendingPush burada YOK — pending flag sadece push başarıyla
+      // tamamlandığında silinir. Pull, remote'tan veri alsa bile local'de
+      // push edilmemiş değişiklikler olabilir.
 
       try { Core.emit('stateChanged', Core.state); } catch (e) {}
       try { Core.emit('cloudRemoteUpdate'); } catch (e) {}
@@ -237,16 +265,15 @@
     // ══════════════════════════════════════════════════════════════════════
     // PUSH — Local state'i Firestore'a yaz
     //
-    // Conflict resolution — Firestore Transaction:
-    //   1. Transaction içinde doc'u oku.
-    //   2. remote.version !== _lastSyncedVersion ise başka cihaz yazmış:
-    //      a. Remote'u local ile merge et (veri kaybı yok).
-    //      b. _lastSyncedVersion'ı güncelle.
-    //      c. Transaction'ı iptal et (throw) — Firestore otomatik retry yapar.
-    //   3. Eşleşiyorsa: yaz, version++.
+    // Conflict resolution — tek Firestore Transaction içinde:
+    //   1. Doc'u oku.
+    //   2. remote.version !== _lastSyncedVersion → başka cihaz yazmış.
+    //      Transaction içinde merge yap, merge'li state'i yaz, version++.
+    //      (Merge transaction dışına taşınmıyor — convergence garantisi için
+    //       merge + write atomik olmalı.)
+    //   3. Eşleşiyorsa direkt yaz, version++.
     //
-    // Uygulama katmanında da max 3 kez deniyoruz (her deneme taze merge
-    // ile başlar).
+    // Uygulama katmanında max PUSH_MAX_RETRIES kez deniyoruz.
     // ══════════════════════════════════════════════════════════════════════
     async _push(retryCount) {
       const key = Core.state.settings.syncKey;
@@ -256,6 +283,8 @@
       retryCount = retryCount || 0;
       if (retryCount >= PUSH_MAX_RETRIES) {
         console.warn('[Cloud] Max retry aşıldı — push iptal.');
+        try { Core.DB.markPendingPush(); } catch (_) {}
+        try { localStorage.setItem(PENDING_KEY, '1'); } catch (_) {}
         this._emitStatus('error');
         return;
       }
@@ -264,34 +293,33 @@
       this._emitStatus('syncing');
 
       try {
-        const db      = window._fbDB;
-        const ref     = this._docRef(key);
-        const self    = this;
-        let   conflictDetected = false;
-        let   remoteStateForMerge = null;
-        let   newVersion = 0;
+        const db   = window._fbDB;
+        const ref  = this._docRef(key);
+        const self = this;
+        let newVersion = 0;
+        let didMerge   = false;
 
         await db.runTransaction(async function (tx) {
           const snap = await tx.get(ref);
 
           if (snap.exists) {
-            const data       = snap.data() || {};
-            const remoteVer  = typeof data.version === 'number' ? data.version : 0;
+            const data      = snap.data() || {};
+            const remoteVer = typeof data.version === 'number' ? data.version : 0;
 
             if (remoteVer !== _lastSyncedVersion) {
-              // ── Conflict! Başka cihaz yazmış. ──────────────────────
-              // Merge'i transaction dışında yapacağız (Core.state değiştirir).
-              // Şimdi sadece remote'u kaydet ve transaction'ı iptal et.
-              conflictDetected   = true;
-              remoteStateForMerge = data.state || null;
-              newVersion          = remoteVer;
-              // Transaction'ı abort et
-              throw new Error('CONFLICT');
+              // ── Conflict: başka cihaz yazmış — merge et ve yaz ──────
+              console.info('[Cloud] Conflict — transaction içinde merge yapılıyor. remote v' + remoteVer + ' local v' + _lastSyncedVersion);
+              const remoteState = data.state || {};
+              const merged = _merge(Core.state, remoteState);
+              merged.settings.syncKey = key;
+              // Core.state'i güncelle — transaction commit olursa bu geçerli
+              Core.state = merged;
+              _lastSyncedVersion = remoteVer;
+              didMerge = true;
             }
 
-            newVersion = remoteVer + 1;
+            newVersion = (typeof data.version === 'number' ? data.version : 0) + 1;
           } else {
-            // Doc yok — ilk yazma (createAccount'tan gelmiş olmalı, ama safety)
             newVersion = 1;
           }
 
@@ -303,44 +331,31 @@
           tx.set(ref, payload);
         });
 
-        if (conflictDetected && remoteStateForMerge) {
-          // Conflict vardı — remote ile merge yap, sonra tekrar push dene.
-          console.info('[Cloud] Conflict — merge yapılıyor, retry:', retryCount + 1);
-          _lastSyncedVersion = newVersion;
+        // ── Transaction başarılı ────────────────────────────────────
+        _lastSyncedVersion = newVersion;
+        _lastPushedVersion = newVersion;
+        Core.DB.clearPendingPush();
+        try { localStorage.removeItem(PENDING_KEY); } catch (_) {}
+        this.lastError = '';
 
-          const merged = _merge(Core.state, remoteStateForMerge);
-          merged.settings.syncKey = key;
-          Core.state = merged;
+        // Merge olduysa localStorage'ı güncelle ve UI'ı yenile
+        if (didMerge) {
           localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
           try { Core.emit('stateChanged', Core.state); } catch (e) {}
           try { Core.emit('cloudRemoteUpdate'); } catch (e) {}
           self._rerenderActiveView();
-
-          _pushInFlight = false;
-          // Kısa gecikme sonra retry (Firestore backoff'u taklit et)
-          await new Promise(function (res) { setTimeout(res, 150 * Math.pow(2, retryCount)); });
-          return self._push(retryCount + 1);
         }
 
-        // ── Başarılı push ───────────────────────────────────────────
-        _lastSyncedVersion = newVersion;
-        _lastPushedVersion = newVersion;
-        Core.DB.clearPendingPush(); // her iki key'i siler (v4 + v5)
-        try { localStorage.removeItem(PENDING_KEY); } catch(_) {}
-        this.lastError = '';
         this._emitStatus('ok');
 
       } catch (e) {
-        if (e && e.message === 'CONFLICT') {
-          // Bu artık yukarıda handle edildi — buraya düşmemeli,
-          // ama güvenlik için: flag açık bırakma
-          _pushInFlight = false;
-          return;
-        }
         console.warn('[Cloud] push hatası:', e);
         this.lastError = e.message || '';
-        // Offline veya ağ hatası: pending flag bırak, online gelince retry
+
+        // Firestore transaction'ı kendi retry'ını yapar (ABORTED, UNAVAILABLE).
+        // Biz sadece ağ hatalarında pending bırakıp çıkıyoruz.
         try { localStorage.setItem(PENDING_KEY, '1'); } catch (_) {}
+        try { Core.DB.markPendingPush(); } catch (_) {}
         this._emitStatus(navigator.onLine === false ? 'offline' : 'error');
       } finally {
         _pushInFlight = false;
@@ -705,12 +720,17 @@
   document.addEventListener('visibilitychange', function () {
     if (!Cloud.isAvailable() || !Core.state.settings.syncKey) return;
     if (document.visibilityState === 'hidden') {
+      // Bekleyen timer varsa debounce'u iptal et ve hemen push yap
       if (_pushTimer) {
         clearTimeout(_pushTimer);
         _pushTimer = null;
         Cloud._push();
-        // localStorage'a da yaz (sayfa kapanırsa beacon olmadan failsafe)
+      }
+      // Push devam ediyorsa veya timer vardıysa failsafe pending flag yaz.
+      // Sayfa kapanırsa bir sonraki açılışta retry yapılır.
+      if (_pushTimer || _pushInFlight) {
         try { localStorage.setItem(PENDING_KEY, '1'); } catch (_) {}
+        try { Core.DB.markPendingPush(); } catch (_) {}
       }
     } else if (document.visibilityState === 'visible') {
       // Listener kopmuşsa yeniden bağlan
