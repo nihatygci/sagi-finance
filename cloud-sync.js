@@ -103,13 +103,23 @@
     const remoteStTs = (remote.settings && remote.settings._settingsTs) || {};
     const PER_FIELD = ['theme','lang','anim','privacy','currency','name',
       'plusFont','plusColor','plusCustomColors','plusPlan',
-      'bnavItems','notifMaster','notifications'];
+      'bnavItems','notifMaster','notifications','chatTrialStart'];
     const mergedSettings = Object.assign({}, remote.settings || {}, local.settings || {});
     PER_FIELD.forEach(function(k) {
       const lTs = localStTs[k]  || localMod;
       const rTs = remoteStTs[k] || remoteMod;
       if (rTs > lTs) mergedSettings[k] = (remote.settings || {})[k];
     });
+    // chatTrialStart — özel kural: "en erken başlayan kazanır"
+    (function() {
+      var lTrial = parseInt((local.settings  || {}).chatTrialStart) || 0;
+      var rTrial = parseInt((remote.settings || {}).chatTrialStart) || 0;
+      if (lTrial && rTrial) {
+        mergedSettings.chatTrialStart = Math.min(lTrial, rTrial).toString();
+      } else if (lTrial || rTrial) {
+        mergedSettings.chatTrialStart = (lTrial || rTrial).toString();
+      }
+    })();
     const mergedStTs = Object.assign({}, remoteStTs, localStTs);
     PER_FIELD.forEach(function(k) {
       const rTs = remoteStTs[k] || 0;

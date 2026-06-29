@@ -2928,6 +2928,7 @@ const SETTINGS_PER_FIELD_KEYS = [
   'theme','lang','anim','privacy','currency','name',
   'plusFont','plusColor','plusCustomColors','plusPlan',
   'bnavItems','notifMaster','notifications',
+  'chatTrialStart',
 ];
 
 // Bir veya daha fazla settings alanı değiştiğinde Core.DB.save()'dan ÖNCE çağrılır.
@@ -3086,6 +3087,23 @@ function mergeState(localState, remoteState){
     if (rTs > lTs) mergedSettings[k] = (remoteState.settings || {})[k];
   });
 
+  // chatTrialStart — özel kural: "en erken başlayan kazanır"
+  // Normal merge "daha yeni timestamp kazanır" yapıyor ama trial için
+  // kim önce başlattıysa o geçerli (trial süresi o andan sayılmalı).
+  // İki cihazdan biri daha önce trial başlatmışsa küçük olan değeri al.
+  (function() {
+    const lTrial = parseInt((localState.settings  || {}).chatTrialStart) || 0;
+    const rTrial = parseInt((remoteState.settings || {}).chatTrialStart) || 0;
+    if (lTrial && rTrial) {
+      // İkisi de var — daha eskiyi al
+      mergedSettings.chatTrialStart = Math.min(lTrial, rTrial).toString();
+    } else if (lTrial || rTrial) {
+      // Biri var, diğeri yok — var olanı al (trial başlatılmış, korunmalı)
+      mergedSettings.chatTrialStart = (lTrial || rTrial).toString();
+    }
+    // İkisi de yoksa zaten mergedSettings'te yok — dokunma
+  })();
+
   // _settingsTs: union — her alan için en yüksek timestamp
   const mergedStTs = Object.assign({}, remoteStTs, localStTs);
   SETTINGS_PER_FIELD_KEYS.forEach(function(k) {
@@ -3175,7 +3193,7 @@ const Core = {
           this._markDirtyFromSnapshots();
           Core.Cloud.queuePush();
         }
-      }catch(e){}
+      }catch(e){ console.warn('[DB.save] hata:',e); }
     },
     saveNow(){
       try{
@@ -3189,7 +3207,7 @@ const Core = {
           this._markDirtyFromSnapshots();
           Core.Cloud.queuePush(true);
         }
-      }catch(e){}
+      }catch(e){ console.warn('[DB.saveNow] hata:',e); }
     },
     _markDirtyFromSnapshots(){
       if(!Core.Cloud||!Core.Cloud.markDirty) return;
