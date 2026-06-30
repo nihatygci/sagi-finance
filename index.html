@@ -1270,6 +1270,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 <symbol id="icon-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
 <symbol id="icon-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
 <symbol id="icon-arrow-down" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></symbol>
+<symbol id="icon-arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></symbol>
+<symbol id="icon-arrow-down-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></symbol>
 <symbol id="icon-transfer" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="17 1 21 5 17 9"/><path d="M3 5h18"/><polyline points="7 23 3 19 7 15"/><path d="M21 19H3"/></symbol>
 <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
 <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="4.22" x2="19.78" y2="5.64"/></symbol>
@@ -2907,6 +2909,50 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
 <script>
 // ═══════════════════════════════════════
+// ACCENT TONE HESAPLAMA — Global
+// plus.js'deki _applyColorHex bu fonksiyonu çağırır.
+// Wallet modal ve analiz sayfası da buradan ton alır.
+// ═══════════════════════════════════════
+window._sagiAccentTones = function(hex) {
+  if (!hex || !hex.startsWith('#')) return;
+  // HEX → RGB
+  const h = hex.replace('#','');
+  const r = parseInt(h.length===3 ? h[0]+h[0] : h.slice(0,2), 16);
+  const g = parseInt(h.length===3 ? h[1]+h[1] : h.slice(2,4), 16);
+  const b = parseInt(h.length===3 ? h[2]+h[2] : h.slice(4,6), 16);
+  const rgb = r+','+g+','+b;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const el = document.documentElement;
+  el.style.setProperty('--brand-accent', hex);
+  el.style.setProperty('--brand-accent-subtle',  'rgba('+rgb+','+(isDark?'.08':'.07')+')');
+  el.style.setProperty('--brand-accent-soft',    'rgba('+rgb+','+(isDark?'.13':'.10')+')');
+  el.style.setProperty('--brand-accent-medium',  'rgba('+rgb+','+(isDark?'.20':'.15')+')');
+  el.style.setProperty('--brand-accent-glow-sm', '0 0 0 3px rgba('+rgb+','+(isDark?'.20':'.12')+')');
+  el.style.setProperty('--brand-accent-glow-md', '0 4px 16px rgba('+rgb+','+(isDark?'.38':'.28')+')');
+  el.style.setProperty('--brand-accent-glow-lg', '0 8px 28px rgba('+rgb+','+(isDark?'.52':'.38')+')');
+  el.style.setProperty('--brand-accent-glow-pulse-0',  'rgba('+rgb+',0)');
+  el.style.setProperty('--brand-accent-glow-pulse-50', 'rgba('+rgb+','+(isDark?'.20':'.12')+')');
+  // Wallet için hazır tonlar — modal openModal() bunları okur
+  window._sagiAccentRgb = rgb;
+  // Ton 1: %15 daha koyu (gradient başlangıcı)
+  const darken = (c, amt) => Math.max(0, Math.min(255, c - amt));
+  const tone1 = '#' + [darken(r,35),darken(g,20),darken(b,10)].map(v=>v.toString(16).padStart(2,'0')).join('');
+  // Ton 2: brand accent'in kendisi ama biraz daha canlı/açık
+  const lighten = (c, amt) => Math.max(0, Math.min(255, c + amt));
+  const tone2 = '#' + [lighten(r,30),lighten(g,25),lighten(b,40)].map(v=>v.toString(16).padStart(2,'0')).join('');
+  window._sagiAccentTone1 = tone1;
+  window._sagiAccentTone2 = tone2;
+};
+
+// İlk yüklemede CSS'deki default accent ile çalıştır
+(function() {
+  try {
+    const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim();
+    if (acc) window._sagiAccentTones(acc);
+  } catch(e) {}
+})();
+
+// ═══════════════════════════════════════
 // DİL / i18n — languages.js modülünden gelir
 // LANG, L(), t(), applyLang(), setLang(), CATEGORIES(), CAT_GROUPS()
 // global olarak window'a export edilmiştir.
@@ -3460,38 +3506,94 @@ const UI = {
       const c=document.getElementById(id);if(!c)return;
       if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">'+t('noData')+'</div>';return;}
       const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)),1);
+      const isDark=document.documentElement.getAttribute('data-theme')==='dark';
       // Renk: CSS değişkenlerine bağlı olmayan sabit HEX — SVG fill= içinde CSS var() çalışmaz
       const INC_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-success').trim()||'#22a06b';
       const EXP_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-danger').trim()||'#e5534b';
-      const MUTED='#9ca3af';
-      const W=360,H=200,PAD_B=32,CHART_H=H-PAD_B-10;
+      const NET_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim()||'#6257f0';
+      const MUTED=isDark?'#9ca3af':'#9ca3af';
+      const GRID=isDark?'rgba(255,255,255,.10)':'#e5e7eb';
+      const W=360,H=210,PAD_T=18,PAD_B=34,CHART_H=H-PAD_B-PAD_T;
       const n=data.length;
       const slotW=W/n;
       // Çift bar: her slot içinde 2 bar yan yana
-      const barW=Math.min(slotW*0.32,18);
+      const barW=Math.min(slotW*0.30,16);
       const gap=2;
-      let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
-      // Grid çizgileri (3 adet)
+      const fmtShort=v=>{
+        const av=Math.abs(v);
+        const s=av>=1000000?(v/1000000).toFixed(1)+'M':av>=1000?(v/1000).toFixed(0)+'K':v.toFixed(0);
+        return s;
+      };
+      let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">`;
+      // Grid çizgileri (3 adet) — tema duyarlı
       [0.33,0.66,1].forEach(f=>{
         const y=H-PAD_B-CHART_H*f;
-        svg+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,3"/>`;
+        svg+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${GRID}" stroke-width="1" stroke-dasharray="4,3"/>`;
         const val=maxVal*f;
-        const label=val>=1000000?(val/1000000).toFixed(1)+'M':val>=1000?(val/1000).toFixed(0)+'K':val.toFixed(0);
-        svg+=`<text x="4" y="${y-3}" fill="${MUTED}" font-size="8" font-weight="600">${label}</text>`;
+        svg+=`<text x="4" y="${y-3}" fill="${MUTED}" font-size="8" font-weight="600">${fmtShort(val)}</text>`;
+      });
+      // Net trend çizgisi (gelir-gider farkı) — brand accent
+      const netPoints=data.map((d,i)=>{
+        const cx=i*slotW+slotW/2;
+        const net=d.inc-d.exp;
+        const netRatio=Math.max(-1,Math.min(1,net/maxVal));
+        const y=H-PAD_B-(CHART_H/2)-(netRatio*CHART_H/2);
+        return {x:cx,y:Math.max(PAD_T,Math.min(H-PAD_B,y))};
       });
       data.forEach((d,i)=>{
         const cx=i*slotW+slotW/2;
         const hI=Math.max(2,(d.inc/maxVal)*CHART_H);
         const hE=Math.max(2,(d.exp/maxVal)*CHART_H);
         const baseY=H-PAD_B;
+        // Hover/tap için görünmez geniş hit-alanı + gerçek barlar bir grup içinde
+        svg+=`<g class="sagi-bar-slot" data-inc="${Core.Utils.formatMoney(d.inc)}" data-exp="${Core.Utils.formatMoney(d.exp)}" data-net="${Core.Utils.formatMoney(d.inc-d.exp)}" data-label="${d.label}" style="cursor:pointer">`;
+        svg+=`<rect x="${cx-slotW/2}" y="${PAD_T}" width="${slotW}" height="${CHART_H}" fill="transparent"/>`;
         // Gelir bar
-        svg+=`<rect x="${cx-barW-gap/2}" y="${baseY-hI}" width="${barW}" height="${hI}" fill="${INC_COLOR}" rx="3" opacity="0.9"><title>${t('chartIncomeLabel')}: ${Core.Utils.formatMoney(d.inc)}</title></rect>`;
+        svg+=`<rect x="${cx-barW-gap/2}" y="${baseY-hI}" width="${barW}" height="${hI}" fill="${INC_COLOR}" rx="3" opacity="0.9"/>`;
         // Gider bar
-        svg+=`<rect x="${cx+gap/2}" y="${baseY-hE}" width="${barW}" height="${hE}" fill="${EXP_COLOR}" rx="3" opacity="0.9"><title>${t('chartExpenseLabel')}: ${Core.Utils.formatMoney(d.exp)}</title></rect>`;
+        svg+=`<rect x="${cx+gap/2}" y="${baseY-hE}" width="${barW}" height="${hE}" fill="${EXP_COLOR}" rx="3" opacity="0.9"/>`;
+        svg+=`</g>`;
         // Etiket
         svg+=`<text x="${cx}" y="${H-6}" fill="${MUTED}" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.02em">${d.label}</text>`;
       });
-      svg+='</svg>';c.innerHTML=svg;
+      // Net trend çizgisi (üstte ince çizgi, brand accent)
+      if(netPoints.length>1){
+        const pathD=netPoints.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+        svg+=`<path d="${pathD}" fill="none" stroke="${NET_COLOR}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" stroke-dasharray="3,2"/>`;
+        netPoints.forEach(p=>{ svg+=`<circle cx="${p.x}" cy="${p.y}" r="2" fill="${NET_COLOR}"/>`; });
+      }
+      svg+='</svg>';
+      // Legend (Gelir / Gider / Net) — chart üstüne
+      const legendHtml=`<div style="display:flex;gap:14px;justify-content:center;margin-bottom:6px;font-size:11px;font-weight:600;color:var(--text-muted)">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:${INC_COLOR};display:inline-block"></span>${t('chartIncomeLabel')}</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:${EXP_COLOR};display:inline-block"></span>${t('chartExpenseLabel')}</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:1.5px;background:${NET_COLOR};display:inline-block"></span>${t('chartNetLabel')||'Net'}</span>
+      </div>`;
+      const tooltipHtml=`<div id="${id}_tooltip" style="display:none;position:absolute;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:8px;padding:8px 10px;font-size:11px;box-shadow:var(--shadow-md);pointer-events:none;z-index:5;white-space:nowrap"></div>`;
+      c.style.position='relative';
+      c.innerHTML=legendHtml+svg+tooltipHtml;
+      // Tap/hover interaktivite
+      const tooltip=c.querySelector('#'+id+'_tooltip');
+      c.querySelectorAll('.sagi-bar-slot').forEach(slot=>{
+        const show=(evt)=>{
+          if(!tooltip)return;
+          tooltip.innerHTML=`<div style="font-weight:700;margin-bottom:3px">${slot.dataset.label}</div>
+            <div style="color:${INC_COLOR}">${t('chartIncomeLabel')}: ${slot.dataset.inc}</div>
+            <div style="color:${EXP_COLOR}">${t('chartExpenseLabel')}: ${slot.dataset.exp}</div>
+            <div style="color:${NET_COLOR};font-weight:600">Net: ${slot.dataset.net}</div>`;
+          tooltip.style.display='block';
+          const rect=c.getBoundingClientRect();
+          const evtX=(evt.touches?evt.touches[0].clientX:evt.clientX)-rect.left;
+          tooltip.style.left=Math.min(Math.max(evtX-50,4),rect.width-150)+'px';
+          tooltip.style.top='4px';
+        };
+        const hide=()=>{ if(tooltip) tooltip.style.display='none'; };
+        slot.addEventListener('mouseenter',show);
+        slot.addEventListener('mousemove',show);
+        slot.addEventListener('mouseleave',hide);
+        slot.addEventListener('touchstart',(e)=>{show(e);},{passive:true});
+      });
+      document.addEventListener('touchstart',function hideOnOutside(e){ if(!c.contains(e.target)&&tooltip) tooltip.style.display='none'; },{passive:true});
     }
   },
   toggleSelect(dropId,btnId){
@@ -4740,7 +4842,56 @@ const App = {
         if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c='var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
 
         const dd=document.getElementById('dashDebts');
-        if(dd){const dB=Core.state.debts.filter(x=>x.dir==='borç').reduce((a,b)=>a+b.amount,0),dA=Core.state.debts.filter(x=>x.dir==='alacak').reduce((a,b)=>a+b.amount,0);if(dB===0&&dA===0)dd.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noDebt')}</span></div>`;else{const net=dA-dB,nc=net>=0?'var(--status-success)':'var(--status-danger)';dd.innerHTML=`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body);margin-bottom:10px"><div class="flex justify-between items-center mb-2"><span class="color-danger font-bold">${t('debtDir_borc')}</span><span class="font-display font-bold color-danger" style="font-size:17px">${Core.Utils.formatMoney(dB)}</span></div><div class="flex justify-between items-center"><span class="color-success font-bold">${t('debtDir_alacak')}</span><span class="font-display font-bold color-success" style="font-size:17px">${Core.Utils.formatMoney(dA)}</span></div></div><div class="flex justify-between items-center"><span class="text-subtitle font-medium">Net</span><span class="font-display font-bold" style="font-size:19px;color:${nc}">${Core.Utils.formatMoney(Math.abs(net))}</span></div>`;}}
+        if(dd){
+          const debts=Core.state.debts||[];
+          const dB=debts.filter(x=>x.dir==='borç').reduce((a,b)=>a+b.amount,0);
+          const dA=debts.filter(x=>x.dir==='alacak').reduce((a,b)=>a+b.amount,0);
+          if(dB===0&&dA===0){
+            dd.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noDebt')}</span></div>`;
+          }else{
+            const net=dA-dB,nc=net>=0?'var(--status-success)':'var(--status-danger)';
+            // Üst özet — borç/alacak toplamları
+            let html=`<div style="display:flex;gap:10px;margin-bottom:12px">
+              <div style="flex:1;padding:12px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)">
+                <div class="text-caption color-muted" style="margin-bottom:4px">${t('debtDir_borc')}</div>
+                <div class="font-display font-bold color-danger" style="font-size:16px">${Core.Utils.formatMoney(dB)}</div>
+              </div>
+              <div style="flex:1;padding:12px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)">
+                <div class="text-caption color-muted" style="margin-bottom:4px">${t('debtDir_alacak')}</div>
+                <div class="font-display font-bold color-success" style="font-size:16px">${Core.Utils.formatMoney(dA)}</div>
+              </div>
+            </div>`;
+            // Kişi bazlı en yakın 3 kayıt — borç ve alacak karışık, en büyük tutardan küçüğe
+            const sorted=debts.slice().sort((a,b)=>b.amount-a.amount).slice(0,3);
+            if(sorted.length){
+              html+=`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">`;
+              html+=sorted.map(d=>{
+                const isOwed=d.dir==='borç'; // sen borçlusun
+                const icon=isOwed?'icon-arrow-up-right':'icon-arrow-down-left';
+                const color=isOwed?'var(--status-danger)':'var(--status-success)';
+                const bg=isOwed?'var(--status-danger-bg)':'var(--status-success-bg)';
+                const amt=Core.Utils.formatMoney(d.amount,d.currency||Core.state.settings.currency||'TRY');
+                return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)">
+                  <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${bg};color:${color};flex-shrink:0">
+                    <svg class="nav-icon" style="width:16px;height:16px"><use href="#${icon}"/></svg>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div class="font-bold" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name||'—'}</div>
+                    <div class="text-caption color-muted" style="margin-top:1px">${isOwed?t('debtDir_borc'):t('debtDir_alacak')}</div>
+                  </div>
+                  <div class="font-display font-bold" style="font-size:14px;color:${color};flex-shrink:0">${amt}</div>
+                </div>`;
+              }).join('');
+              html+=`</div>`;
+              if(debts.length>3){
+                html+=`<button class="upcoming-show-more" onclick="UI.Router.go('/debts')">${t('showAll')} (${debts.length})</button>`;
+              }
+            }
+            // Net satırı en altta
+            html+=`<div class="flex justify-between items-center" style="margin-top:6px;padding-top:10px;border-top:1px solid var(--border-light)"><span class="text-subtitle font-medium">Net</span><span class="font-display font-bold" style="font-size:17px;color:${nc}">${net>=0?'+':'-'}${Core.Utils.formatMoney(Math.abs(net))}</span></div>`;
+            dd.innerHTML=html;
+          }
+        }
 
         this._recentTxAll=Core.state.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
         this._recentTxShown=5;
@@ -5283,13 +5434,14 @@ const App = {
         const ccBlock=document.getElementById('walCcFields');if(ccBlock)ccBlock.style.display='none';
         const balLbl=document.getElementById('walBalanceLabel');if(balLbl)balLbl.style.display='';
         const bin=document.getElementById('wal_balance');if(bin)bin.parentElement.style.display='';
-        document.getElementById('wal_c1_custom').value = '#111827';
-        document.getElementById('wal_c2_custom').value = '#374151';
-        document.getElementById('wal_c1').value = '#111827';
-        document.getElementById('wal_c2').value = '#374151';
+        // Yeni hesap rengi: brand accent'ten önceden hesaplanmış 2 ton — gri yerine
+        const _defC1 = window._sagiAccentTone1 || '#111827';
+        const _defC2 = window._sagiAccentTone2 || '#374151';
+        document.getElementById('wal_c1_custom').value = _defC1;
+        document.getElementById('wal_c2_custom').value = _defC2;
+        document.getElementById('wal_c1').value = _defC1;
+        document.getElementById('wal_c2').value = _defC2;
         this.updateColorPreview();
-        document.getElementById('wal_c1').value='#111827';
-        document.getElementById('wal_c2').value='#374151';
         UI.Modals.open('modalWallet');
       },
       edit(id){
@@ -7320,7 +7472,10 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';_touchSettingsTs(['privacy']);Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
       applyPrivacy(){const isOn=Core.state.settings.privacy==='on';const sBtn=document.getElementById('sidePrivacyBtn'),hBtn=document.getElementById('headerPrivacyBtn'),sIcon=document.getElementById('sidePrivacyIcon'),hIcon=document.getElementById('headerPrivacyIcon');if(isOn){if(sBtn)sBtn.classList.add('active');if(hBtn)hBtn.classList.add('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye-off"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye-off"/>';}else{if(sBtn)sBtn.classList.remove('active');if(hBtn)hBtn.classList.remove('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye"/>'; }},
       setTheme(mode){Core.state.settings.theme=mode;_touchSettingsTs(['theme']);Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
-      applyTheme(){document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');const anim=Core.state.settings.anim||'on';if(anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light',lang=Core.state.settings.lang||'tr';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active')});const animBtn=document.getElementById('set_anim_'+anim);if(animBtn)animBtn.classList.add('active');const langBtn=document.getElementById('set_lang_'+lang);if(langBtn)langBtn.classList.add('active')},
+      applyTheme(){
+        // Tema değişince accent tonlarını da güncelle
+        try { const acc=getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim(); if(acc&&window._sagiAccentTones) window._sagiAccentTones(acc); } catch(e){}
+        document.documentElement.setAttribute('data-theme',Core.state.settings.theme||'light');const anim=Core.state.settings.anim||'on';if(anim==='off')document.body.classList.add('no-anim');else document.body.classList.remove('no-anim');const theme=Core.state.settings.theme||'light',lang=Core.state.settings.lang||'tr';document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));['tb_'+theme,'tb_'+theme+'2'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.classList.add('active')});const animBtn=document.getElementById('set_anim_'+anim);if(animBtn)animBtn.classList.add('active');const langBtn=document.getElementById('set_lang_'+lang);if(langBtn)langBtn.classList.add('active')},
       setLang(lang){window.LANG=lang;Core.state.settings.lang=lang;_touchSettingsTs(['lang']);Core.DB.save();applyLang();['set_lang_tr','set_lang_en'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});const btn=document.getElementById('set_lang_'+lang);if(btn)btn.classList.add('active');UI.Toasts.show(lang==='tr'?t('msgTrSelected'):t('msgEnSelected'));},
       setAnim(val){
         Core.state.settings.anim=val;
