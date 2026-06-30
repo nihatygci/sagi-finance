@@ -607,22 +607,67 @@
     },
 
     // ── loginWithKey ──────────────────────────────────────────────────────
-    async loginWithKey(rawKey) {
+    // mode:
+    //   'merge'   (varsayılan) — local ve remote'u birleştirir. Onboarding'de
+    //             (local zaten boş/yeni kurulum) güvenli davranış budur.
+    //   'replace' — remote veriyi OLDUĞU GİBİ alır, local'i merge etmeden
+    //             üzerine yazar. "Mevcut bir hesaba bağlan" senaryosunda
+    //             kullanıcı zaten dolu bir local state'ten geliyorsa ve
+    //             hedef hesabın verisini istiyorsa kullanılır — boş/farklı
+    //             bir hesaba kendi local verisinin sessizce sızmasını önler.
+    async loginWithKey(rawKey, mode) {
+      mode = mode || 'merge';
       const key = this.normalizeKey(rawKey);
       if (!this.isValidKey(key))   throw new Error('INVALID_KEY');
       if (!this.isAvailable())     throw new Error('CLOUD_UNAVAILABLE');
 
       const fwd = await this._resolvePlusKey(key);
-      if (fwd && fwd !== key) return this.loginWithKey(fwd);
+      if (fwd && fwd !== key) return this.loginWithKey(fwd, mode);
 
       const exists = await this._docExists(key);
       if (!exists) throw new Error('NOT_FOUND');
 
+      if (mode === 'replace') {
+        // Remote state'i doğrudan al, local'i merge etmeden değiştir.
+        const snap = await this._docRef(key).get();
+        const data = snap.data() || {};
+        const remoteState = data.state || {};
+        _lastSyncedVersion = typeof data.version === 'number' ? data.version : 0;
+        _lastPushedVersion = -1;
+
+        const fresh = JSON.parse(JSON.stringify(remoteState));
+        fresh.settings = fresh.settings || {};
+        fresh.settings.syncKey = key;
+        // Kullanıcının yerel tema/dil tercihini koru (cloud'da olmayabilir)
+        fresh.settings.theme = fresh.settings.theme || Core.state.settings.theme;
+        fresh.settings.lang  = fresh.settings.lang  || Core.state.settings.lang;
+
+        Core.state = fresh;
+        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        Core.DB.clearPendingPush();
+
+        this._attachListener(key);
+        try { Core.emit('stateChanged', Core.state); } catch (e) {}
+        try { Core.emit('cloudRemoteUpdate'); } catch (e) {}
+        this._emitStatus('ok');
+        return Core.state;
+      }
+
+      // mode === 'merge' (eski/varsayılan davranış)
       Core.state.settings.syncKey = key;
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
 
       await this._boot();
       return Core.state;
+    },
+
+    // Local state'te kullanıcı için anlamlı sayılacak veri var mı?
+    // "replace" uyarısı gösterip göstermeyeceğimize karar vermek için kullanılır.
+    hasMeaningfulLocalData() {
+      const s = Core.state;
+      if (!s) return false;
+      const arrays = ['wallets','transactions','goals','debts','categories','budgets','recurring'];
+      return arrays.some(k => Array.isArray(s[k]) && s[k].length > 0);
     },
 
     // ── signOut ───────────────────────────────────────────────────────────

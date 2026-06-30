@@ -2266,6 +2266,23 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   </div>
 </div>
 
+<!-- ÇOK SEÇENEKLİ ONAY MODALI — örn. cloud login merge/replace seçimi -->
+<div class="modal-overlay" id="modalConfirmOptions">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon warn"><svg><use href="#icon-alert"/></svg></div>
+        <h3 class="modal-title" data-i18n="confirmTitle">Onay Gerekiyor</h3>
+      </div>
+      <button class="act-btn" onclick="UI.Confirm._closeOptions()"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmOptionsMsg" style="font-size:15px;color:var(--text-secondary);line-height:1.6;margin-bottom:14px"></p>
+      <div id="confirmOptionsList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
 <!-- İŞLEM MODAL -->
 <div class="modal-overlay" id="modalTx">
   <div class="modal-content modal-md">
@@ -3465,6 +3482,35 @@ const UI = {
       const toggleVal=chk?chk.checked:false;
       if(this.cb)this.cb(toggleVal);
       UI.Modals.close('modalConfirm');
+    },
+    // ── showOptions: 2-3 seçenekli karar modalı ──────────────────────────
+    // options: [{label, action}], cb(action) seçilen action ile çağrılır.
+    // "cancel" action'ı her zaman modalı kapatır, cb yine çağrılır.
+    _optionsCb: null,
+    showOptions(msg, options, cb){
+      this._optionsCb = cb;
+      const msgEl = document.getElementById('confirmOptionsMsg');
+      const list  = document.getElementById('confirmOptionsList');
+      if(!msgEl||!list) return;
+      msgEl.innerHTML = msg;
+      list.innerHTML = (options||[]).map((o,i)=>{
+        const isCancel = o.action==='cancel';
+        const cls = isCancel ? 'btn btn-outline' : (i===0 ? 'btn btn-primary' : 'btn btn-outline');
+        return `<button class="${cls} w-full" style="justify-content:center" onclick="UI.Confirm._selectOption('${o.action}')">${o.label}</button>`;
+      }).join('');
+      UI.Modals.open('modalConfirmOptions');
+    },
+    _selectOption(action){
+      UI.Modals.close('modalConfirmOptions');
+      const cb = this._optionsCb;
+      this._optionsCb = null;
+      if(cb) cb(action);
+    },
+    _closeOptions(){
+      UI.Modals.close('modalConfirmOptions');
+      const cb = this._optionsCb;
+      this._optionsCb = null;
+      if(cb) cb('cancel');
     }
   },
   Toasts:{
@@ -7395,16 +7441,33 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
 
       cloudDeleteAccount(){
+        const hasKey = !!(Core.state.settings.syncKey);
+        if (!hasKey) {
+          // Key bağlı değil — cloud'da silinecek hesap yok. Kullanıcıya
+          // bunu açıkça belirt ve yerel veriyi silmek isteyip istemediğini sor.
+          UI.Confirm.show(t('confNoKeyDeleteLocal') || 'Bir bulut anahtarına bağlı değilsiniz, silinecek bir hesap yok. Yine de bu cihazdaki tüm yerel verileri silmek ister misiniz?', ()=>{
+            this.factoryReset();
+          });
+          return;
+        }
         UI.Confirm.show(t('confDeleteAccount'), async ()=>{
           await Core.Cloud.deleteAccount();
-          // Plus ayarlarını temizle (font, renk, custom renkler)
-          localStorage.removeItem('sagi_plus_font');
-          localStorage.removeItem('sagi_plus_color');
-          localStorage.removeItem('sagi_plus_custom_colors');
-          // Plus CSS değişkenlerini varsayılana döndür
+          // TÜM sagi_ prefix'li localStorage key'lerini tara ve sil
+          try {
+            const toRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
+            }
+            toRemove.forEach(k => localStorage.removeItem(k));
+          } catch(e) {}
+          // CSS değişkenlerini varsayılana döndür
           try{
             document.documentElement.style.removeProperty('--brand-accent');
             document.documentElement.style.removeProperty('--brand-accent-light');
+            document.documentElement.style.removeProperty('--brand-accent-subtle');
+            document.documentElement.style.removeProperty('--brand-accent-soft');
+            document.documentElement.style.removeProperty('--brand-accent-medium');
             document.documentElement.style.removeProperty('--font-display');
             document.documentElement.style.removeProperty('--font-sans');
             document.body.style.fontFamily = '';
@@ -7451,6 +7514,37 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           err.textContent = t('obKeyInvalid'); err.style.display='block'; return;
         }
         err.style.display='none';
+
+        // Local'de zaten anlamlı veri varsa (işlem, cüzdan, vb.) kullanıcıya sor:
+        // mevcut verisini bu hesaba taşımak mı istiyor, yoksa hesabın kendi
+        // verisini mi kullanmak istiyor. Aksi halde sessizce merge olup
+        // local veri yanlışlıkla başka/boş bir hesaba sızabilir.
+        const hasLocal = Core.Cloud.hasMeaningfulLocalData && Core.Cloud.hasMeaningfulLocalData();
+        if (hasLocal) {
+          UI.Modals.close('modalCloudConnect');
+          UI.Confirm.showOptions(
+            t('confCloudConnectHasData') || 'Cihazınızda kayıtlı veri var. Ne yapmak istersiniz?',
+            [
+              { label: t('cloudConnectKeepRemote') || 'Hesabın verisini kullan (yerel veriyi at)', action: 'replace' },
+              { label: t('cloudConnectMergeLocal')  || 'Mevcut verilerimi bu hesaba taşı (birleştir)', action: 'merge' },
+              { label: t('cancel') || 'Vazgeç', action: 'cancel' },
+            ],
+            async (action) => {
+              if (action === 'cancel') return;
+              btn.disabled=true; btn.textContent=t('obKeyChecking');
+              try{
+                await Core.Cloud.loginWithKey(norm, action === 'replace' ? 'replace' : 'merge');
+                UI.Toasts.show(t('cloudLoginOk'),'success');
+                setTimeout(()=>location.reload(), 600);
+              }catch(e){
+                btn.disabled=false; btn.textContent=t('cloudConnectBtn');
+                UI.Toasts.show((e&&e.message==='NOT_FOUND') ? t('obKeyNotFound') : t('cloudLoginFail'), 'error');
+              }
+            }
+          );
+          return;
+        }
+
         btn.disabled=true; btn.textContent=t('obKeyChecking');
         try{
           await Core.Cloud.loginWithKey(norm);
@@ -7746,24 +7840,41 @@ _executeImport(){
         };
         reader.readAsText(f,'UTF-8');
       },
-      factoryReset(){UI.Confirm.show(t('confFactory'),()=>{
-        // Bulut listener'ı kapat
-        try{ Core.Cloud.detachListener(); }catch(e){}
-        // Plus ayarlarını temizle (font, renk, custom renkler)
-        localStorage.removeItem('sagi_plus_font');
-        localStorage.removeItem('sagi_plus_color');
-        localStorage.removeItem('sagi_plus_custom_colors');
-        // Plus CSS değişkenlerini varsayılana döndür
-        try{
-          document.documentElement.style.removeProperty('--brand-accent');
-          document.documentElement.style.removeProperty('--brand-accent-light');
-          document.documentElement.style.removeProperty('--font-display');
-          document.documentElement.style.removeProperty('--font-sans');
-          document.body.style.fontFamily = '';
-        }catch(e){}
-        localStorage.removeItem(Core.DB.key);
-        location.reload();
-      });}
+      factoryReset(){
+        const hasKey = !!(Core.state.settings.syncKey);
+        const msg = hasKey ? (t('confFactoryWithKey') || 'Bu işlem hem bu cihazdaki hem de bulut hesabınızdaki TÜM verileri kalıcı olarak silecek. Emin misiniz?') : t('confFactory');
+        UI.Confirm.show(msg, async ()=>{
+          // Key bağlıysa: cloud'daki veriyi de sil (sadece local değil)
+          if (hasKey) {
+            try { await Core.Cloud.deleteAccount(); }
+            catch(e) { console.warn('[factoryReset] cloud silme hatası:', e); }
+          } else {
+            try{ Core.Cloud.detachListener(); }catch(e){}
+          }
+          // TÜM sagi_ prefix'li localStorage key'lerini tara ve sil —
+          // dinamik isimli key'ler dahil (sagi_nt_*, sagi_pending_*, vs.)
+          try {
+            const toRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
+            }
+            toRemove.forEach(k => localStorage.removeItem(k));
+          } catch(e) {}
+          // CSS değişkenlerini varsayılana döndür
+          try{
+            document.documentElement.style.removeProperty('--brand-accent');
+            document.documentElement.style.removeProperty('--brand-accent-light');
+            document.documentElement.style.removeProperty('--brand-accent-subtle');
+            document.documentElement.style.removeProperty('--brand-accent-soft');
+            document.documentElement.style.removeProperty('--brand-accent-medium');
+            document.documentElement.style.removeProperty('--font-display');
+            document.documentElement.style.removeProperty('--font-sans');
+            document.body.style.fontFamily = '';
+          }catch(e){}
+          location.reload();
+        });
+      },
     }
   }
 };
