@@ -314,6 +314,14 @@ const LANGS = {
       confNotifPerm:'SAGI Finance size abonelik, borç vadeleri ve bütçe uyarıları için bildirim gönderebilir. İzin vermek ister misiniz?',
       confCloudCreate:'Mevcut yerel verileriniz anonim bir anahtarla Firebase\'e yüklenecek ve senkronizasyon başlayacak.\n\n⚠️ Anahtarınızı kaydedin — kaybederseniz bulut verilerinize bir daha erişemezsiniz.\n\nGizlilik Politikamızda belirttiğimiz üzere kimlik bilgisi toplanmaz. Devam etmek istiyor musunuz?',
       confCloudSignOut:'Bu cihazdan bulut bağlantısı kesilecek. Verileriniz bu cihazda kalmaya devam eder. Devam?',
+      confFactoryWithKey:'<strong style=\"color:var(--status-danger)\">Bu işlem geri alınamaz.</strong><br><br><strong>Silinecekler:</strong><br>• Tüm işlemler, hesaplar, abonelikler, hedefler, borçlar<br>• Bu cihazdaki yerel veriler<br>• Bulut anahtarınıza bağlı tüm veriler<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Not:</strong> Anahtarınız silinmez; ancak içindeki tüm veriler gider.</span><br><br>Devam etmek istiyor musunuz?',
+      confNoKeyDeleteLocal:'Bir bulut anahtarına bağlı değilsiniz, silinecek bir hesap yok.<br><br>Yine de bu cihazdaki tüm yerel verileri silmek ister misiniz?',
+      confCloudConnectHasData:'Cihazınızda kayıtlı veri var. Bu anahtara bağlanırken ne yapmak istersiniz?',
+      cloudConnectKeepRemote:'Hesabın verisini kullan (yerel veriyi at)',
+      cloudConnectMergeLocal:'Mevcut verilerimi bu hesaba taşı (birleştir)',
+      confCloudCreateHasData:'Cihazınızda kayıtlı veri ve/veya Plus ayarları var. Yeni hesap nasıl oluşturulsun?',
+      cloudCreateFresh:'Tertemiz başla (yerel verileri sıfırla, yeni boş hesap)',
+      cloudCreateWithLocal:'Mevcut verilerimle başla (yeni hesaba taşı)',
 
       // Ayarlar menü ipuçları
       personalizationHint:'İsim, para birimi, tema, dil',
@@ -945,6 +953,14 @@ const LANGS = {
       confNotifPerm:'SAGI Finance can send reminders for subscriptions, debt deadlines, and budget alerts. Allow notifications?',
       confCloudCreate:'Your local data will be uploaded to Firebase under an anonymous key and sync will begin.\n\n⚠️ Save your key — if you lose it, you will not be able to access your cloud data again.\n\nAs stated in our Privacy Policy, no identity information is collected. Continue?',
       confCloudSignOut:'Cloud connection will be disconnected on this device. Your data will remain here. Continue?',
+      confFactoryWithKey:'<strong style="color:var(--status-danger)">This action cannot be undone.</strong><br><br><strong>What will be deleted:</strong><br>• All transactions, accounts, subscriptions, goals, debts<br>• Locally stored data on this device<br>• All data linked to your cloud key<br><br><span style="color:var(--text-muted);font-size:13px"><strong>Note:</strong> Your key itself is not deleted, but all data inside it will be gone.</span><br><br>Continue?',
+      confNoKeyDeleteLocal:'You are not connected to a cloud key, so there is no account to delete.<br><br>Do you still want to delete all local data on this device?',
+      confCloudConnectHasData:'There is data stored on this device. What would you like to do when connecting to this key?',
+      cloudConnectKeepRemote:'Use the account\'s data (discard local)',
+      cloudConnectMergeLocal:'Move my current data to this account (merge)',
+      confCloudCreateHasData:'There is data and/or Plus settings stored on this device. How should the new account be created?',
+      cloudCreateFresh:'Start fresh (reset local data, new empty account)',
+      cloudCreateWithLocal:'Start with my current data (move to new account)',
 
       // Cloud sync
       cloudUnavailTitle:'Cloud Service Unavailable',

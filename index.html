@@ -7445,7 +7445,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         if (!hasKey) {
           // Key bağlı değil — cloud'da silinecek hesap yok. Kullanıcıya
           // bunu açıkça belirt ve yerel veriyi silmek isteyip istemediğini sor.
-          UI.Confirm.show(t('confNoKeyDeleteLocal') || 'Bir bulut anahtarına bağlı değilsiniz, silinecek bir hesap yok. Yine de bu cihazdaki tüm yerel verileri silmek ister misiniz?', ()=>{
+          UI.Confirm.show(t('confNoKeyDeleteLocal'), ()=>{
             this.factoryReset();
           });
           return;
@@ -7479,6 +7479,47 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
 
       async cloudCreate(){
         if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
+
+        const hasLocal = Core.Cloud.hasMeaningfulLocalData && Core.Cloud.hasMeaningfulLocalData();
+        const hasPlusLocal = !!(Core.state.settings.plusPlan) || !!localStorage.getItem('sagi_plus_font') || !!localStorage.getItem('sagi_plus_color');
+
+        if (hasLocal || hasPlusLocal) {
+          // Local'de zaten veri/Plus ayarı varsa sessizce yeni key'e taşımak yerine sor.
+          // signOut() veriyi cihazda bırakır (kasıtlı) — bu yüzden "yeni hesap oluştur"
+          // burada otomatik olarak o eski veriyi yeni key'e taşımamalı.
+          UI.Confirm.showOptions(
+            t('confCloudCreateHasData'),
+            [
+              { label: t('cloudCreateFresh'), action: 'fresh' },
+              { label: t('cloudCreateWithLocal'), action: 'keep' },
+              { label: t('cancel'), action: 'cancel' },
+            ],
+            async (action) => {
+              if (action === 'cancel') return;
+              if (action === 'fresh') {
+                Core.state.wallets = []; Core.state.transactions = []; Core.state.goals = [];
+                Core.state.debts = []; Core.state.categories = []; Core.state.budgets = [];
+                Core.state.recurring = []; Core.state._tombstones = {};
+                Core.state.settings.plusPlan = '';
+                try {
+                  localStorage.removeItem('sagi_plus_font');
+                  localStorage.removeItem('sagi_plus_color');
+                  localStorage.removeItem('sagi_plus_custom_colors');
+                } catch(e) {}
+              }
+              try{
+                const key = await Core.Cloud.createAccount();
+                UI.Toasts.show(t('cloudCreated',{key}),'success');
+                this.renderCloudBox();
+              }catch(e){
+                console.warn(e);
+                UI.Toasts.show(t('cloudCreateFail'),'error');
+              }
+            }
+          );
+          return;
+        }
+
         UI.Confirm.show(t('confCloudCreate'), async ()=>{
           try{
             const key = await Core.Cloud.createAccount();
@@ -7523,11 +7564,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         if (hasLocal) {
           UI.Modals.close('modalCloudConnect');
           UI.Confirm.showOptions(
-            t('confCloudConnectHasData') || 'Cihazınızda kayıtlı veri var. Ne yapmak istersiniz?',
+            t('confCloudConnectHasData'),
             [
-              { label: t('cloudConnectKeepRemote') || 'Hesabın verisini kullan (yerel veriyi at)', action: 'replace' },
-              { label: t('cloudConnectMergeLocal')  || 'Mevcut verilerimi bu hesaba taşı (birleştir)', action: 'merge' },
-              { label: t('cancel') || 'Vazgeç', action: 'cancel' },
+              { label: t('cloudConnectKeepRemote'), action: 'replace' },
+              { label: t('cloudConnectMergeLocal'), action: 'merge' },
+              { label: t('cancel'), action: 'cancel' },
             ],
             async (action) => {
               if (action === 'cancel') return;
@@ -7842,7 +7883,7 @@ _executeImport(){
       },
       factoryReset(){
         const hasKey = !!(Core.state.settings.syncKey);
-        const msg = hasKey ? (t('confFactoryWithKey') || 'Bu işlem hem bu cihazdaki hem de bulut hesabınızdaki TÜM verileri kalıcı olarak silecek. Emin misiniz?') : t('confFactory');
+        const msg = hasKey ? t('confFactoryWithKey') : t('confFactory');
         UI.Confirm.show(msg, async ()=>{
           // Key bağlıysa: cloud'daki veriyi de sil (sadece local değil)
           if (hasKey) {

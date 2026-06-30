@@ -578,6 +578,14 @@
         throw err;
       }
 
+      // Güvenlik notu: createAccount, Core.state'in o anki içeriğini yeni key'e
+      // yazar. Eğer local'de anlamlı veri varsa (örn. önceki signOut'tan kalan),
+      // bu veri otomatik olarak yeni hesaba taşınmış olur. UI katmanı
+      // (cloudCreate) bunu kullanıcıya sormalı — burası sadece görünürlük için log basar.
+      if (this.hasMeaningfulLocalData && this.hasMeaningfulLocalData()) {
+        console.warn('[Cloud] createAccount: local state\'te veri var, yeni hesaba taşınacak. UI katmanı kullanıcıya sormuş olmalı.');
+      }
+
       const key = this.generateKey();
       Core.state.settings.syncKey      = key;
       Core.state.settings.lastModified = Date.now();
