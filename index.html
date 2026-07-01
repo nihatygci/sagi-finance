@@ -7443,16 +7443,16 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       cloudDeleteAccount(){
         const hasKey = !!(Core.state.settings.syncKey);
         if (!hasKey) {
-          // Key bağlı değil — cloud'da silinecek hesap yok. Kullanıcıya
-          // bunu açıkça belirt ve yerel veriyi silmek isteyip istemediğini sor.
           UI.Confirm.show(t('confNoKeyDeleteLocal'), ()=>{
             this.factoryReset();
           });
           return;
         }
         UI.Confirm.show(t('confDeleteAccount'), async ()=>{
-          await Core.Cloud.deleteAccount();
-          // TÜM sagi_ prefix'li localStorage key'lerini tara ve sil
+          // Firestore'daki key'i ve tüm veriyi sil
+          try { await Core.Cloud.deleteAccount(); } catch(e) { console.warn('[deleteAccount]', e); }
+
+          // TÜM sagi_* localStorage key'lerini sil (key dahil)
           try {
             const toRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -7461,17 +7461,21 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             }
             toRemove.forEach(k => localStorage.removeItem(k));
           } catch(e) {}
-          // CSS değişkenlerini varsayılana döndür
+
+          // CSS sıfırla
           try{
-            document.documentElement.style.removeProperty('--brand-accent');
-            document.documentElement.style.removeProperty('--brand-accent-light');
-            document.documentElement.style.removeProperty('--brand-accent-subtle');
-            document.documentElement.style.removeProperty('--brand-accent-soft');
-            document.documentElement.style.removeProperty('--brand-accent-medium');
-            document.documentElement.style.removeProperty('--font-display');
-            document.documentElement.style.removeProperty('--font-sans');
+            const el = document.documentElement;
+            el.style.removeProperty('--brand-accent');
+            el.style.removeProperty('--brand-accent-light');
+            el.style.removeProperty('--brand-accent-subtle');
+            el.style.removeProperty('--brand-accent-soft');
+            el.style.removeProperty('--brand-accent-medium');
+            el.style.removeProperty('--font-display');
+            el.style.removeProperty('--font-sans');
             document.body.style.fontFamily = '';
           }catch(e){}
+
+          // onboarded=false → reload → onboarding/login ekranı
           UI.Toasts.show(t('accountDeleted'),'success');
           setTimeout(()=>location.reload(), 800);
         });
@@ -7894,37 +7898,66 @@ _executeImport(){
         reader.readAsText(f,'UTF-8');
       },
       factoryReset(){
-        const hasKey = !!(Core.state.settings.syncKey);
-        const msg = hasKey ? t('confFactoryWithKey') : t('confFactory');
-        UI.Confirm.show(msg, async ()=>{
-          // Key bağlıysa: cloud'daki veriyi de sil (sadece local değil)
-          if (hasKey) {
-            try { await Core.Cloud.deleteAccount(); }
-            catch(e) { console.warn('[factoryReset] cloud silme hatası:', e); }
-          } else {
-            try{ Core.Cloud.detachListener(); }catch(e){}
-          }
-          // TÜM sagi_ prefix'li localStorage key'lerini tara ve sil —
-          // dinamik isimli key'ler dahil (sagi_nt_*, sagi_pending_*, vs.)
+        UI.Confirm.show(t('confFactory'), async ()=>{
+          // Listener'ı kapat ama key'i TUTUYORUZ
+          try{ Core.Cloud.detachListener(); }catch(e){}
+
+          // Finansal veriyi ve Plus ayarlarını sıfırla
+          const key  = Core.state.settings.syncKey;
+          const lang = Core.state.settings.lang  || 'tr';
+          const theme= Core.state.settings.theme || 'light';
+          // Temel state sıfırla ama key + onboarded + tema/dil kalsın
+          Core.state.wallets      = [];
+          Core.state.transactions = [];
+          Core.state.recurring    = [];
+          Core.state.goals        = [];
+          Core.state.debts        = [];
+          Core.state.budgets      = [];
+          Core.state.categories   = [];
+          Core.state._tombstones  = {};
+          Core.state.settings.plusPlan         = '';
+          Core.state.settings.plusFont         = '';
+          Core.state.settings.plusColor        = '';
+          Core.state.settings.plusCustomColors = [];
+          Core.state.settings.plusKey          = '';
+          Core.state.settings.chatTrialStart   = '';
+          Core.state.settings.lastModified     = Date.now();
+          // key + onboarded korunuyor → reload'da ana sayfaya gider
+          Core.state.settings.syncKey  = key;
+          Core.state.settings.onboarded= true;
+          Core.state.settings.lang     = lang;
+          Core.state.settings.theme    = theme;
+
+          // localStorage: sagi_* sil ama ana DB key'ini temizlenmiş state ile yaz
           try {
             const toRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
               const k = localStorage.key(i);
-              if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
+              if (k && k.indexOf('sagi_') === 0 && k !== Core.DB.key) toRemove.push(k);
             }
             toRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
           } catch(e) {}
-          // CSS değişkenlerini varsayılana döndür
+
+          // CSS sıfırla
           try{
-            document.documentElement.style.removeProperty('--brand-accent');
-            document.documentElement.style.removeProperty('--brand-accent-light');
-            document.documentElement.style.removeProperty('--brand-accent-subtle');
-            document.documentElement.style.removeProperty('--brand-accent-soft');
-            document.documentElement.style.removeProperty('--brand-accent-medium');
-            document.documentElement.style.removeProperty('--font-display');
-            document.documentElement.style.removeProperty('--font-sans');
+            const el = document.documentElement;
+            el.style.removeProperty('--brand-accent');
+            el.style.removeProperty('--brand-accent-light');
+            el.style.removeProperty('--brand-accent-subtle');
+            el.style.removeProperty('--brand-accent-soft');
+            el.style.removeProperty('--brand-accent-medium');
+            el.style.removeProperty('--font-display');
+            el.style.removeProperty('--font-sans');
             document.body.style.fontFamily = '';
           }catch(e){}
+
+          // Key bağlıysa listener'ı yeniden bağla (temiz veri cloud'a push edilecek)
+          if (key) {
+            try { Core.Cloud.attachListener(); } catch(e) {}
+            try { Core.DB.saveNow(); } catch(e) {}
+          }
+
           location.reload();
         });
       },
