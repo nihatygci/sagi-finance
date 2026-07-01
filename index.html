@@ -7500,11 +7500,27 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
                 Core.state.wallets = []; Core.state.transactions = []; Core.state.goals = [];
                 Core.state.debts = []; Core.state.categories = []; Core.state.budgets = [];
                 Core.state.recurring = []; Core.state._tombstones = {};
-                Core.state.settings.plusPlan = '';
+                // Plus ayarlarını tamamen sıfırla — hem state'ten hem localStorage'dan
+                Core.state.settings.plusPlan         = '';
+                Core.state.settings.plusFont         = '';
+                Core.state.settings.plusColor        = '';
+                Core.state.settings.plusCustomColors = [];
+                Core.state.settings.plusKey          = '';
+                // localStorage temizle
                 try {
-                  localStorage.removeItem('sagi_plus_font');
-                  localStorage.removeItem('sagi_plus_color');
-                  localStorage.removeItem('sagi_plus_custom_colors');
+                  ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors'].forEach(k => localStorage.removeItem(k));
+                } catch(e) {}
+                // CSS değişkenlerini default'a döndür (renk/font görsel olarak sıfırlansın)
+                try {
+                  const el = document.documentElement;
+                  el.style.removeProperty('--brand-accent');
+                  el.style.removeProperty('--brand-accent-light');
+                  el.style.removeProperty('--brand-accent-subtle');
+                  el.style.removeProperty('--brand-accent-soft');
+                  el.style.removeProperty('--brand-accent-medium');
+                  el.style.removeProperty('--font-display');
+                  el.style.removeProperty('--font-sans');
+                  document.body.style.fontFamily = '';
                 } catch(e) {}
               }
               try{

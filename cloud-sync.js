@@ -586,6 +586,34 @@
         console.warn('[Cloud] createAccount: local state\'te veri var, yeni hesaba taşınacak. UI katmanı kullanıcıya sormuş olmalı.');
       }
 
+      // Plus kimlik bilgilerini HER ZAMAN sıfırla — yeni hesap Plus'sız başlar.
+      // Eski bir Plus key'den çıkıp yeni hesap oluşturulsa bile, önceki hesabın
+      // Plus rengi/fontu/planı yeni hesaba sızmamalı.
+      Core.state.settings.plusPlan         = '';
+      Core.state.settings.plusFont         = '';
+      Core.state.settings.plusColor        = '';
+      Core.state.settings.plusCustomColors = [];
+      Core.state.settings.plusKey          = '';
+      Core.state.settings.chatTrialStart   = '';
+      // CSS görsel sıfırla
+      try {
+        const el = document.documentElement;
+        el.style.removeProperty('--brand-accent');
+        el.style.removeProperty('--brand-accent-light');
+        el.style.removeProperty('--brand-accent-subtle');
+        el.style.removeProperty('--brand-accent-soft');
+        el.style.removeProperty('--brand-accent-medium');
+        el.style.removeProperty('--font-display');
+        el.style.removeProperty('--font-sans');
+        document.body.style.fontFamily = '';
+      } catch(e) {}
+      // localStorage'dan Plus key'lerini temizle
+      try {
+        ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors','sagi_chat_trial_start'].forEach(k => {
+          try { localStorage.removeItem(k); } catch(_) {}
+        });
+      } catch(e) {}
+
       const key = this.generateKey();
       Core.state.settings.syncKey      = key;
       Core.state.settings.lastModified = Date.now();
@@ -597,6 +625,7 @@
         version:      1,
         createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
       };
+
 
       try {
         await this._docRef(key).set(payload);
