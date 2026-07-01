@@ -201,6 +201,27 @@
       return window._fbDB.collection('users').doc(this._docId(key));
     },
 
+    // ── Remote'da key bulunamadı durumu ──────────────────────────────────
+    // Firebase'deki doc kaybolmuşsa (deleteAccount, admin silmesi, vb.)
+    // OTOMATİK sign-out yapmıyoruz ve key'i sıfırlamıyoruz — çünkü bu durum
+    // bir daha o key'e asla otomatik yazılmaması gerektiği anlamına gelir.
+    // Kullanıcı ekranda net bir uyarı görüp kendisi "Çıkış Yap" demeli.
+    // Bu fonksiyon çağrıldıktan sonra: listener kapanır, hiçbir push/pull
+    // denemesi yapılmaz, key localStorage'da AYNEN durur (silinmez) —
+    // böylece "Çıkış Yap" butonuna basılana kadar üzerine bir daha
+    // otomatik yazma denemesi olmaz.
+    _keyNotFoundShown: false,
+    _handleRemoteDeleted() {
+      this._detachListener();
+      if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
+      this._emitStatus('idle');
+      if (this._keyNotFoundShown) return; // modal zaten açık
+      this._keyNotFoundShown = true;
+      try {
+        if (window.UI && UI.Modals) UI.Modals.open('modalKeyNotFound');
+      } catch (_) {}
+    },
+
     // ── PLUS yönlendirme ─────────────────────────────────────────────────
     async _resolvePlusKey(key) {
       if (!this.isAvailable() || !key) return null;
@@ -370,28 +391,13 @@
         this.lastError = e.message || '';
 
         if (e && e.message === 'REMOTE_DELETED') {
-          // Firebase'deki key silinmiş — bu key'e artık yazma.
-          // Pending flag bırakma, listener'ı kapat, key'i sıfırla.
-          console.warn('[Cloud] Remote doc silindi, key sıfırlanıyor.');
-          this._detachListener();
-          if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
-          _lastSyncedVersion = 0;
-          _lastPushedVersion = -1;
-          Core.state.settings.syncKey = '';
-          Core.state.settings.lastModified = Date.now();
-          try { localStorage.setItem(Core.DB.key, JSON.stringify(Core.state)); } catch (_) {}
+          // Firebase'deki key silinmiş — bir daha bu key'e otomatik yazma
+          // denemesi yapma. Key'i sıfırlamıyoruz; kullanıcı zorunlu uyarı
+          // modalından kendisi "Çıkış Yap" demeli.
+          console.warn('[Cloud] Remote doc silindi.');
+          this._handleRemoteDeleted();
           try { localStorage.removeItem(PENDING_KEY); } catch (_) {}
           try { Core.DB.clearPendingPush(); } catch (_) {}
-          this._emitStatus('idle');
-          try { Core.emit('stateChanged', Core.state); } catch (_) {}
-          // Kullanıcıya bildir
-          try {
-            const lang = (Core.state.settings && Core.state.settings.lang) || 'tr';
-            const msg = lang === 'en'
-              ? 'Your cloud account was deleted. The connection has been removed.'
-              : 'Bulut hesabınız silinmiş. Bağlantı kaldırıldı.';
-            if (window.UI && UI.Toasts) UI.Toasts.show(msg, 'error');
-          } catch (_) {}
           return;
         }
 
@@ -436,29 +442,14 @@
           if (!snap.exists) {
             // Doc yok — iki senaryo:
             // a) İlk kez listener bağlandı, createAccount henüz yazılmadı → normal
-            // b) Daha önce data vardı (_lastSyncedVersion > 0) → cloud'da silindi
-            if (_lastSyncedVersion > 0) {
-              console.warn('[Cloud] onSnapshot: remote doc silindi, key sıfırlanıyor.');
-              self._detachListener();
-              _lastSyncedVersion = 0;
-              _lastPushedVersion = -1;
-              Core.state.settings.syncKey = '';
-              Core.state.settings.lastModified = Date.now();
-              try { localStorage.setItem(Core.DB.key, JSON.stringify(Core.state)); } catch (_) {}
-              try {
-                var PENDING_KEY_REF = 'sagi_pending_push_v5';
-                localStorage.removeItem(PENDING_KEY_REF);
-              } catch (_) {}
-              try { Core.DB.clearPendingPush(); } catch (_) {}
-              self._emitStatus('idle');
-              try { Core.emit('stateChanged', Core.state); } catch (_) {}
-              try {
-                var lang = (Core.state.settings && Core.state.settings.lang) || 'tr';
-                var msg = lang === 'en'
-                  ? 'Your cloud account was deleted. The connection has been removed.'
-                  : 'Bulut hesabınız silinmiş. Bağlantı kaldırıldı.';
-                if (window.UI && UI.Toasts) UI.Toasts.show(msg, 'error');
-              } catch (_) {}
+            // b) Local'de zaten anlamlı veri var → daha önce sync olunmuştu,
+            //    cloud'da doc yok → hesap silinmiş demektir.
+            // NOT: _lastSyncedVersion burada güvenilir değil (sayfa yenilemede
+            // sıfırlanır, boot sırasında henüz pull tamamlanmamış olabilir).
+            var hasLocalData = self.hasMeaningfulLocalData && self.hasMeaningfulLocalData();
+            if (hasLocalData) {
+              console.warn('[Cloud] onSnapshot: local\'de veri var ama remote doc yok — silinmiş kabul ediliyor.');
+              self._handleRemoteDeleted();
             }
             return;
           }
@@ -538,28 +529,24 @@
         const pullResult = await this._pull();
 
         // pull false döndü → doc yok. İki senaryo:
-        // a) İlk kez bağlanılıyor (createAccount henüz yazılmadı) → normal, bekle
-        // b) Daha önce pull başarılıydı (_lastSyncedVersion > 0) → doc silindi
-        if (!pullResult && _lastSyncedVersion > 0) {
-          console.warn('[Cloud] Boot: remote doc silinmiş, key sıfırlanıyor.');
-          this._detachListener();
-          _lastSyncedVersion = 0;
-          _lastPushedVersion = -1;
-          Core.state.settings.syncKey = '';
-          Core.state.settings.lastModified = Date.now();
-          try { localStorage.setItem(Core.DB.key, JSON.stringify(Core.state)); } catch (_) {}
-          try { localStorage.removeItem(PENDING_KEY); } catch (_) {}
-          try { Core.DB.clearPendingPush(); } catch (_) {}
-          this._emitStatus('idle');
-          try { Core.emit('stateChanged', Core.state); } catch (_) {}
-          try {
-            const lang = (Core.state.settings && Core.state.settings.lang) || 'tr';
-            const msg = lang === 'en'
-              ? 'Your cloud account was deleted. The connection has been removed.'
-              : 'Bulut hesabınız silinmiş. Bağlantı kaldırıldı.';
-            if (window.UI && UI.Toasts) UI.Toasts.show(msg, 'error');
-          } catch (_) {}
-          return;
+        // a) Gerçekten yeni bir hesap (createAccount henüz hiç push edememiş,
+        //    local de boş) → normal, devam et.
+        // b) Bu key'den daha önce sync olunmuş, local'de veri var, ama cloud'da
+        //    doc yok → hesap SİLİNMİŞ demektir.
+        // NOT: _lastSyncedVersion burada güvenilir DEĞİL — sayfa her yenilendiğinde
+        // 0'a resetlenir, boot anında henüz hiç pull yapılmadığı için doğal olarak
+        // hep 0'dır. Onun yerine local state'te gerçek veri olup olmadığına bakıyoruz:
+        // key varken local'de anlamlı veri varsa, bu veri mutlaka daha önce bir
+        // cloud hesabından gelmiş olmalıdır — cloud'da doc yoksa demek ki silinmiş.
+        if (!pullResult) {
+          const hasLocalData = this.hasMeaningfulLocalData && this.hasMeaningfulLocalData();
+          if (hasLocalData) {
+            console.warn('[Cloud] Boot: local\'de veri var ama remote doc yok — hesap silinmiş kabul ediliyor.');
+            this._handleRemoteDeleted();
+            return;
+          }
+          // Local de boşsa gerçekten yeni/henüz push edilmemiş bir hesaptır,
+          // normal akışa devam ediyoruz.
         }
 
         // Pending (offline iken birikmiş) push varsa gönder — her iki key kontrol

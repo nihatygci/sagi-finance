@@ -2283,6 +2283,26 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   </div>
 </div>
 
+<!-- ANAHTAR BULUNAMADI UYARISI — kapatılamaz (X yok), tek çıkış yolu "Çıkış Yap" -->
+<div class="modal-overlay" id="modalKeyNotFound" style="z-index:9999">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon danger"><svg><use href="#icon-alert"/></svg></div>
+        <h3 class="modal-title" data-i18n="keyNotFoundTitle">Bulut Anahtarı Bulunamadı</h3>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:15px;color:var(--text-secondary);line-height:1.7" data-i18n="keyNotFoundDesc">
+        Bu cihaza kayıtlı bulut anahtarı Firebase'de bulunamadı. Hesap silinmiş veya başka bir yerden kaldırılmış olabilir. Devam edebilmek için bu cihazdaki bağlantıyı kaldırmanız gerekiyor.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger w-full" style="justify-content:center" onclick="App.Controllers.Settings.handleKeyNotFoundSignOut()" data-i18n="keyNotFoundBtn">Çıkış Yap</button>
+    </div>
+  </div>
+</div>
+
 <!-- İŞLEM MODAL -->
 <div class="modal-overlay" id="modalTx">
   <div class="modal-content modal-md">
@@ -7438,6 +7458,15 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           UI.Toasts.show(t('cloudSignedOut'),'success');
           this.renderCloudBox();
         });
+      },
+
+      // Key Firebase'de bulunamadığında gösterilen zorunlu uyarı modalının
+      // tek çıkış butonu. Onay istemiyor (kullanıcı zaten uyarıyı gördü),
+      // direkt sign out yapıp reload ediyor.
+      handleKeyNotFoundSignOut(){
+        Core.Cloud.signOut();
+        UI.Modals.close('modalKeyNotFound');
+        location.reload();
       },
 
       cloudDeleteAccount(){
