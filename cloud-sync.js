@@ -678,6 +678,23 @@
       return arrays.some(k => Array.isArray(s[k]) && s[k].length > 0);
     },
 
+    // Bağlanılmak istenen key'in (henüz giriş yapılmadan) cloud'daki verisi
+    // anlamlı bir şey içeriyor mu? "İki hesapta da veri var" uyarısı için kullanılır.
+    async hasMeaningfulRemoteData(rawKey) {
+      try {
+        const key = this.normalizeKey(rawKey);
+        if (!this.isValidKey(key) || !this.isAvailable()) return false;
+        const snap = await this._docRef(key).get();
+        if (!snap.exists) return false;
+        const data = snap.data() || {};
+        const remoteState = data.state || {};
+        const arrays = ['wallets','transactions','goals','debts','categories','budgets','recurring'];
+        return arrays.some(k => Array.isArray(remoteState[k]) && remoteState[k].length > 0);
+      } catch (e) {
+        return false;
+      }
+    },
+
     // ── signOut ───────────────────────────────────────────────────────────
     signOut() {
       this._detachListener();

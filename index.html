@@ -7556,47 +7556,43 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         }
         err.style.display='none';
 
-        // Local'de zaten anlamlı veri varsa (işlem, cüzdan, vb.) kullanıcıya sor:
-        // mevcut verisini bu hesaba taşımak mı istiyor, yoksa hesabın kendi
-        // verisini mi kullanmak istiyor. Aksi halde sessizce merge olup
-        // local veri yanlışlıkla başka/boş bir hesaba sızabilir.
+        // Bağlanmak = her zaman hedef hesabın (B) gerçek verisine geçmek.
+        // A'nın local verisi B'ye asla karıştırılmaz (merge seçeneği yok —
+        // iki farklı hesabın finansal verisi birleştirilmemeli).
+        // Tek kontrol: A'da DA B'de DE veri varsa, A'nın yerel verisinin
+        // sessizce silineceğini açıkça söyleyip onay al.
         const hasLocal = Core.Cloud.hasMeaningfulLocalData && Core.Cloud.hasMeaningfulLocalData();
+
+        const proceed = async () => {
+          btn.disabled=true; btn.textContent=t('obKeyChecking');
+          try{
+            await Core.Cloud.loginWithKey(norm, 'replace');
+            UI.Modals.close('modalCloudConnect');
+            UI.Toasts.show(t('cloudLoginOk'),'success');
+            setTimeout(()=>location.reload(), 600);
+          }catch(e){
+            btn.disabled=false; btn.textContent=t('cloudConnectBtn');
+            err.textContent = (e&&e.message==='NOT_FOUND') ? t('obKeyNotFound') : t('cloudLoginFail');
+            err.style.display='block';
+          }
+        };
+
         if (hasLocal) {
-          UI.Modals.close('modalCloudConnect');
-          UI.Confirm.showOptions(
-            t('confCloudConnectHasData'),
-            [
-              { label: t('cloudConnectKeepRemote'), action: 'replace' },
-              { label: t('cloudConnectMergeLocal'), action: 'merge' },
-              { label: t('cancel'), action: 'cancel' },
-            ],
-            async (action) => {
-              if (action === 'cancel') return;
-              btn.disabled=true; btn.textContent=t('obKeyChecking');
-              try{
-                await Core.Cloud.loginWithKey(norm, action === 'replace' ? 'replace' : 'merge');
-                UI.Toasts.show(t('cloudLoginOk'),'success');
-                setTimeout(()=>location.reload(), 600);
-              }catch(e){
-                btn.disabled=false; btn.textContent=t('cloudConnectBtn');
-                UI.Toasts.show((e&&e.message==='NOT_FOUND') ? t('obKeyNotFound') : t('cloudLoginFail'), 'error');
-              }
-            }
-          );
-          return;
+          // A'da veri var. B'de de veri var mı kontrol et (cloud'a tek sorgu).
+          btn.disabled=true; btn.textContent=t('obKeyChecking');
+          const remoteHasData = await Core.Cloud.hasMeaningfulRemoteData(norm);
+          btn.disabled=false; btn.textContent=t('cloudConnectBtn');
+
+          if (remoteHasData) {
+            // İkisi de dolu — A'nın yerel verisi silineceğini açıkça söyle.
+            UI.Modals.close('modalCloudConnect');
+            UI.Confirm.show(t('confCloudConnectBothHaveData'), proceed);
+            return;
+          }
+          // B boş — sormaya gerek yok, direkt geç (B'nin zaten boş verisi gelir).
         }
 
-        btn.disabled=true; btn.textContent=t('obKeyChecking');
-        try{
-          await Core.Cloud.loginWithKey(norm);
-          UI.Modals.close('modalCloudConnect');
-          UI.Toasts.show(t('cloudLoginOk'),'success');
-          setTimeout(()=>location.reload(), 600);
-        }catch(e){
-          btn.disabled=false; btn.textContent=t('cloudConnectBtn');
-          err.textContent = (e&&e.message==='NOT_FOUND') ? t('obKeyNotFound') : t('cloudLoginFail');
-          err.style.display='block';
-        }
+        await proceed();
       },
 
       cloudConnectFormatInput(el){
