@@ -322,7 +322,6 @@
               const remoteState = data.state || {};
               const merged = _merge(Core.state, remoteState);
               merged.settings.syncKey = key;
-              // Core.state'i güncelle — transaction commit olursa bu geçerli
               Core.state = merged;
               _lastSyncedVersion = remoteVer;
               didMerge = true;
@@ -330,6 +329,14 @@
 
             newVersion = (typeof data.version === 'number' ? data.version : 0) + 1;
           } else {
+            // Doc yok.
+            // _lastSyncedVersion > 0 → daha önce var olan bir doc'tu, Firebase'den
+            // SİLİNMİŞ (admin, deleteAccount veya başka cihaz sildi).
+            // Silinen key'i yeniden YARATMA — push'u durdur.
+            // _lastSyncedVersion === 0 → createAccount'tan gelen ilk yazma, normal.
+            if (_lastSyncedVersion > 0) {
+              throw new Error('REMOTE_DELETED');
+            }
             newVersion = 1;
           }
 
@@ -361,6 +368,32 @@
       } catch (e) {
         console.warn('[Cloud] push hatası:', e);
         this.lastError = e.message || '';
+
+        if (e && e.message === 'REMOTE_DELETED') {
+          // Firebase'deki key silinmiş — bu key'e artık yazma.
+          // Pending flag bırakma, listener'ı kapat, key'i sıfırla.
+          console.warn('[Cloud] Remote doc silindi, key sıfırlanıyor.');
+          this._detachListener();
+          if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
+          _lastSyncedVersion = 0;
+          _lastPushedVersion = -1;
+          Core.state.settings.syncKey = '';
+          Core.state.settings.lastModified = Date.now();
+          try { localStorage.setItem(Core.DB.key, JSON.stringify(Core.state)); } catch (_) {}
+          try { localStorage.removeItem(PENDING_KEY); } catch (_) {}
+          try { Core.DB.clearPendingPush(); } catch (_) {}
+          this._emitStatus('idle');
+          try { Core.emit('stateChanged', Core.state); } catch (_) {}
+          // Kullanıcıya bildir
+          try {
+            const lang = (Core.state.settings && Core.state.settings.lang) || 'tr';
+            const msg = lang === 'en'
+              ? 'Your cloud account was deleted. The connection has been removed.'
+              : 'Bulut hesabınız silinmiş. Bağlantı kaldırıldı.';
+            if (window.UI && UI.Toasts) UI.Toasts.show(msg, 'error');
+          } catch (_) {}
+          return;
+        }
 
         // Firestore transaction'ı kendi retry'ını yapar (ABORTED, UNAVAILABLE).
         // Biz sadece ağ hatalarında pending bırakıp çıkıyoruz.
@@ -400,7 +433,35 @@
 
       _unsub = this._docRef(key).onSnapshot(
         function (snap) {
-          if (!snap.exists) return;
+          if (!snap.exists) {
+            // Doc yok — iki senaryo:
+            // a) İlk kez listener bağlandı, createAccount henüz yazılmadı → normal
+            // b) Daha önce data vardı (_lastSyncedVersion > 0) → cloud'da silindi
+            if (_lastSyncedVersion > 0) {
+              console.warn('[Cloud] onSnapshot: remote doc silindi, key sıfırlanıyor.');
+              self._detachListener();
+              _lastSyncedVersion = 0;
+              _lastPushedVersion = -1;
+              Core.state.settings.syncKey = '';
+              Core.state.settings.lastModified = Date.now();
+              try { localStorage.setItem(Core.DB.key, JSON.stringify(Core.state)); } catch (_) {}
+              try {
+                var PENDING_KEY_REF = 'sagi_pending_push_v5';
+                localStorage.removeItem(PENDING_KEY_REF);
+              } catch (_) {}
+              try { Core.DB.clearPendingPush(); } catch (_) {}
+              self._emitStatus('idle');
+              try { Core.emit('stateChanged', Core.state); } catch (_) {}
+              try {
+                var lang = (Core.state.settings && Core.state.settings.lang) || 'tr';
+                var msg = lang === 'en'
+                  ? 'Your cloud account was deleted. The connection has been removed.'
+                  : 'Bulut hesabınız silinmiş. Bağlantı kaldırıldı.';
+                if (window.UI && UI.Toasts) UI.Toasts.show(msg, 'error');
+              } catch (_) {}
+            }
+            return;
+          }
 
           const data       = snap.data() || {};
           const remoteVer  = typeof data.version === 'number' ? data.version : 0;
@@ -474,7 +535,33 @@
         // Listener'ı ÖNCE bağla, sonra pull — böylece pull ve listener arasındaki
         // kısa pencerede gelen update'leri kaçırmayız.
         this._attachListener(key);
-        await this._pull();
+        const pullResult = await this._pull();
+
+        // pull false döndü → doc yok. İki senaryo:
+        // a) İlk kez bağlanılıyor (createAccount henüz yazılmadı) → normal, bekle
+        // b) Daha önce pull başarılıydı (_lastSyncedVersion > 0) → doc silindi
+        if (!pullResult && _lastSyncedVersion > 0) {
+          console.warn('[Cloud] Boot: remote doc silinmiş, key sıfırlanıyor.');
+          this._detachListener();
+          _lastSyncedVersion = 0;
+          _lastPushedVersion = -1;
+          Core.state.settings.syncKey = '';
+          Core.state.settings.lastModified = Date.now();
+          try { localStorage.setItem(Core.DB.key, JSON.stringify(Core.state)); } catch (_) {}
+          try { localStorage.removeItem(PENDING_KEY); } catch (_) {}
+          try { Core.DB.clearPendingPush(); } catch (_) {}
+          this._emitStatus('idle');
+          try { Core.emit('stateChanged', Core.state); } catch (_) {}
+          try {
+            const lang = (Core.state.settings && Core.state.settings.lang) || 'tr';
+            const msg = lang === 'en'
+              ? 'Your cloud account was deleted. The connection has been removed.'
+              : 'Bulut hesabınız silinmiş. Bağlantı kaldırıldı.';
+            if (window.UI && UI.Toasts) UI.Toasts.show(msg, 'error');
+          } catch (_) {}
+          return;
+        }
+
         // Pending (offline iken birikmiş) push varsa gönder — her iki key kontrol
         var _bootHasPending = !!(localStorage.getItem(PENDING_KEY) ||
           (Core.DB && Core.DB.hasPendingPush && Core.DB.hasPendingPush()));
