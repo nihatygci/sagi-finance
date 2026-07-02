@@ -606,6 +606,27 @@
       setTimeout(function () { self._waitForFirebaseAndNotify(attempts + 1); }, BOOT_POLL_MS);
     },
 
+    // Promise-tabanlı bekleme — App.init() bunu await edebilir.
+    // isAvailable() asenkron olarak true olur (Firestore persistence ayarı
+    // resolve olunca); App.init() loading ekranındayken bu resolve olmadan
+    // key kontrolüne geçmemeli, yoksa kontrol tamamen atlanıp dashboard
+    // key silinmiş olsa bile render edilir. maxWaitMs dolarsa false ile
+    // resolve olur (gerçekten offline/engelliyse sonsuza kadar beklemeyiz).
+    _awaitAvailable(maxWaitMs) {
+      var self = this;
+      if (this.isAvailable()) return Promise.resolve(true);
+      return new Promise(function (resolve) {
+        var waited = 0;
+        var step = 50;
+        (function poll() {
+          if (self.isAvailable()) { resolve(true); return; }
+          waited += step;
+          if (waited >= maxWaitMs) { resolve(false); return; }
+          setTimeout(poll, step);
+        })();
+      });
+    },
+
     // ── forceSync ────────────────────────────────────────────────────────
     async forceSync() {
       if (!this.isAvailable() || !Core.state.settings.syncKey) return;

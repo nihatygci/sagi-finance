@@ -4440,14 +4440,22 @@ const App = {
         // Key Firebase'de bulunamazsa (silinmişse) dashboard, router, bildirimler —
         // HİÇBİRİ hiç çalışmaz. Kullanıcı "önce uygulamayı gördüm sonra uyarı çıktı"
         // hissi yaşamaz; loader'dan direkt uyarı modalına geçilir.
-        if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud && Core.Cloud.isAvailable()){
+        if(Core.state.settings && Core.state.settings.syncKey && Core.Cloud){
           if(lBar){lBar.style.width='85%';lBar.classList.add('pulsing');}
-          try{
-            await Promise.race([
-              Core.Cloud._boot(),
-              new Promise(res=>setTimeout(res,8000))
-            ]);
-          }catch(e){ console.warn('[SAGI] Boot hatasi:', e); }
+          // Firebase henüz hazır olmayabilir (persistence ayarı asenkron settle
+          // olur) — isAvailable() senkron kontrolü bu noktada YANLIŞLIKLA false
+          // dönebilir, bu da tüm key kontrolünü atlar ve silinmiş bir key'in
+          // fark edilmeden dashboard'un render edilmesine yol açar. Bu yüzden
+          // önce Firebase'in gerçekten hazır olmasını (max 3sn) bekliyoruz.
+          const fbReady = await Core.Cloud._awaitAvailable(3000);
+          if(fbReady){
+            try{
+              await Promise.race([
+                Core.Cloud._boot(),
+                new Promise(res=>setTimeout(res,8000))
+              ]);
+            }catch(e){ console.warn('[SAGI] Boot hatasi:', e); }
+          }
           if(lBar)lBar.classList.remove('pulsing');
 
           if(Core.Cloud._keyNotFoundShown){
