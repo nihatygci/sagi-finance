@@ -201,6 +201,26 @@
       return window._fbDB.collection('users').doc(this._docId(key));
     },
 
+    // ── "Bu key gerçekten Firestore'da var oldu mu" kaydı ────────────────
+    // _lastSyncedVersion ve hasMeaningfulLocalData() ikisi de sayfa
+    // yenilemesinde veya boş-ama-gerçek bir hesapta yanıltıcı olabiliyor:
+    //   - _lastSyncedVersion her sayfa yüklemesinde 0'a resetlenir.
+    //   - hasMeaningfulLocalData() yeni oluşturulmuş ama içine hiç veri
+    //     eklenmemiş bir hesapta (wallets=[], transactions=[]) false döner,
+    //     oysa key gerçekten Firestore'da var olmuştu.
+    // Bunun yerine: bir key'in var olduğu doğrulandığı AN localStorage'a
+    // kalıcı olarak yazıyoruz. Sayfa yenilense de bu bilgi kaybolmaz.
+    _KEY_CONFIRMED_LS: 'sagi_key_confirmed',
+    _markKeyConfirmed(key) {
+      try { localStorage.setItem(this._KEY_CONFIRMED_LS, this._docId(key)); } catch (_) {}
+    },
+    _isKeyConfirmed(key) {
+      try {
+        const saved = localStorage.getItem(this._KEY_CONFIRMED_LS);
+        return !!saved && saved === this._docId(key);
+      } catch (_) { return false; }
+    },
+
     // ── Remote'da key bulunamadı durumu ──────────────────────────────────
     // Firebase'deki doc kaybolmuşsa (deleteAccount, admin silmesi, vb.)
     // OTOMATİK sign-out yapmıyoruz ve key'i sıfırlamıyoruz — çünkü bu durum
@@ -267,7 +287,10 @@
       if (!key || !this.isAvailable()) return false;
 
       const snap = await this._docRef(key).get();
-      if (!snap.exists) return false; // createAccount yapılmamış
+      if (!snap.exists) return false; // createAccount yapılmamış veya silinmiş
+
+      // Doc gerçekten var — bu key'in geçerliliğini kalıcı olarak işaretle.
+      this._markKeyConfirmed(key);
 
       const data = snap.data() || {};
       const remoteState = data.state;
@@ -351,11 +374,13 @@
             newVersion = (typeof data.version === 'number' ? data.version : 0) + 1;
           } else {
             // Doc yok.
-            // _lastSyncedVersion > 0 → daha önce var olan bir doc'tu, Firebase'den
-            // SİLİNMİŞ (admin, deleteAccount veya başka cihaz sildi).
-            // Silinen key'i yeniden YARATMA — push'u durdur.
-            // _lastSyncedVersion === 0 → createAccount'tan gelen ilk yazma, normal.
-            if (_lastSyncedVersion > 0) {
+            // Bu key daha önce Firestore'da var olduğu doğrulanmışsa (createAccount
+            // veya başarılı bir pull ile) → Firebase'den SİLİNMİŞ demektir
+            // (admin, deleteAccount veya başka cihaz sildi). Silinen key'i
+            // yeniden YARATMA — push'u durdur.
+            // NOT: _lastSyncedVersion yerine kalıcı _isKeyConfirmed kullanıyoruz —
+            // sayfa yenilemesinde _lastSyncedVersion sıfırlanır ama bu kayıt kalır.
+            if (self._isKeyConfirmed(key)) {
               throw new Error('REMOTE_DELETED');
             }
             newVersion = 1;
@@ -441,14 +466,12 @@
         function (snap) {
           if (!snap.exists) {
             // Doc yok — iki senaryo:
-            // a) İlk kez listener bağlandı, createAccount henüz yazılmadı → normal
-            // b) Local'de zaten anlamlı veri var → daha önce sync olunmuştu,
-            //    cloud'da doc yok → hesap silinmiş demektir.
-            // NOT: _lastSyncedVersion burada güvenilir değil (sayfa yenilemede
-            // sıfırlanır, boot sırasında henüz pull tamamlanmamış olabilir).
-            var hasLocalData = self.hasMeaningfulLocalData && self.hasMeaningfulLocalData();
-            if (hasLocalData) {
-              console.warn('[Cloud] onSnapshot: local\'de veri var ama remote doc yok — silinmiş kabul ediliyor.');
+            // a) İlk kez listener bağlandı, bu key hiç confirm edilmemiş → normal
+            // b) Bu key daha önce Firestore'da var olduğu doğrulanmıştı
+            //    (createAccount veya başarılı pull ile) → şimdi doc yok →
+            //    hesap silinmiş demektir.
+            if (self._isKeyConfirmed(key)) {
+              console.warn('[Cloud] onSnapshot: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
               self._handleRemoteDeleted();
             }
             return;
@@ -529,24 +552,22 @@
         const pullResult = await this._pull();
 
         // pull false döndü → doc yok. İki senaryo:
-        // a) Gerçekten yeni bir hesap (createAccount henüz hiç push edememiş,
-        //    local de boş) → normal, devam et.
-        // b) Bu key'den daha önce sync olunmuş, local'de veri var, ama cloud'da
-        //    doc yok → hesap SİLİNMİŞ demektir.
-        // NOT: _lastSyncedVersion burada güvenilir DEĞİL — sayfa her yenilendiğinde
-        // 0'a resetlenir, boot anında henüz hiç pull yapılmadığı için doğal olarak
-        // hep 0'dır. Onun yerine local state'te gerçek veri olup olmadığına bakıyoruz:
-        // key varken local'de anlamlı veri varsa, bu veri mutlaka daha önce bir
-        // cloud hesabından gelmiş olmalıdır — cloud'da doc yoksa demek ki silinmiş.
+        // a) Gerçekten yeni bir hesap (createAccount henüz hiç confirm edilmemiş)
+        //    → normal, devam et.
+        // b) Bu key daha önce Firestore'da VAR OLDUĞU doğrulanmıştı (createAccount
+        //    veya başarılı bir pull ile), şimdi doc yok → hesap SİLİNMİŞ demektir.
+        // NOT: hasMeaningfulLocalData() burada YETERLİ DEĞİL — yeni oluşturulmuş
+        // ama içine hiç veri eklenmemiş bir hesapta (wallets=[], transactions=[])
+        // false döner, oysa key gerçekten var olmuştu. Onun yerine kalıcı
+        // "confirmed key" işaretini kontrol ediyoruz (bkz. _isKeyConfirmed).
         if (!pullResult) {
-          const hasLocalData = this.hasMeaningfulLocalData && this.hasMeaningfulLocalData();
-          if (hasLocalData) {
-            console.warn('[Cloud] Boot: local\'de veri var ama remote doc yok — hesap silinmiş kabul ediliyor.');
+          if (this._isKeyConfirmed(key)) {
+            console.warn('[Cloud] Boot: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
             this._handleRemoteDeleted();
             return;
           }
-          // Local de boşsa gerçekten yeni/henüz push edilmemiş bir hesaptır,
-          // normal akışa devam ediyoruz.
+          // Key hiç confirm edilmemişse gerçekten yeni/henüz hiç bağlanılmamış
+          // bir hesap olabilir — normal akışa devam ediyoruz.
         }
 
         // Pending (offline iken birikmiş) push varsa gönder — her iki key kontrol
@@ -705,6 +726,7 @@
         await this._docRef(key).set(payload);
         _lastSyncedVersion = 1;
         _lastPushedVersion = 1;
+        this._markKeyConfirmed(key);
       } catch (e) {
         console.error('[Cloud] createAccount yazma hatası:', e);
         this.lastError = e.message || 'write-failed';
@@ -745,6 +767,7 @@
         const remoteState = data.state || {};
         _lastSyncedVersion = typeof data.version === 'number' ? data.version : 0;
         _lastPushedVersion = -1;
+        this._markKeyConfirmed(key);
 
         const fresh = JSON.parse(JSON.stringify(remoteState));
         fresh.settings = fresh.settings || {};
@@ -804,6 +827,7 @@
       if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
       _lastSyncedVersion = 0;
       _lastPushedVersion = -1;
+      this._keyNotFoundShown = false; // sonraki bir key için modal tekrar açılabilsin
 
       Core.state.settings.syncKey      = '';
       Core.state.settings.lastModified = Date.now();
