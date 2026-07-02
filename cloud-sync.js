@@ -284,9 +284,15 @@
     // ══════════════════════════════════════════════════════════════════════
     async _pull() {
       const key = Core.state.settings.syncKey;
-      if (!key || !this.isAvailable()) return false;
+      if (!key || !this.isAvailable()) { this._lastPullDocExists = null; return false; }
 
       const snap = await this._docRef(key).get();
+      // Doc'un GERÇEKTEN var olup olmadığını ayrı işaretliyoruz — bu fonksiyon
+      // false döndürebilir hem "doc yok" hem "doc var ama state alanı boş/bozuk"
+      // durumunda. Bu ikisi ÇOK FARKLI şeyler: biri "hesap silinmiş", diğeri
+      // "hesap var ama veri formatı sorunlu". _boot() bu ikisini karıştırmasın
+      // diye net bir sinyal veriyoruz.
+      this._lastPullDocExists = snap.exists;
       if (!snap.exists) return false; // createAccount yapılmamış veya silinmiş
 
       // Doc gerçekten var — bu key'in geçerliliğini kalıcı olarak işaretle.
@@ -294,7 +300,7 @@
 
       const data = snap.data() || {};
       const remoteState = data.state;
-      if (!remoteState) return false;
+      if (!remoteState) return false; // Doc var ama state alanı yok — silinmiş DEĞİL
 
       // Version'ı kaydet — conflict detection için
       _lastSyncedVersion = typeof data.version === 'number' ? data.version : 0;
@@ -551,16 +557,14 @@
         this._attachListener(key);
         const pullResult = await this._pull();
 
-        // pull false döndü → doc yok. İki senaryo:
-        // a) Gerçekten yeni bir hesap (createAccount henüz hiç confirm edilmemiş)
-        //    → normal, devam et.
-        // b) Bu key daha önce Firestore'da VAR OLDUĞU doğrulanmıştı (createAccount
-        //    veya başarılı bir pull ile), şimdi doc yok → hesap SİLİNMİŞ demektir.
-        // NOT: hasMeaningfulLocalData() burada YETERLİ DEĞİL — yeni oluşturulmuş
-        // ama içine hiç veri eklenmemiş bir hesapta (wallets=[], transactions=[])
-        // false döner, oysa key gerçekten var olmuştu. Onun yerine kalıcı
-        // "confirmed key" işaretini kontrol ediyoruz (bkz. _isKeyConfirmed).
-        if (!pullResult) {
+        // pull false döndü → iki AYRI durum olabilir, ayırt etmemiz lazım:
+        // a) this._lastPullDocExists === false → doc GERÇEKTEN yok (silinmiş
+        //    ya da hiç yazılmamış).
+        // b) this._lastPullDocExists === true  → doc VAR ama içindeki state
+        //    alanı boş/bozuk — bu SİLİNME değil, farklı bir sorun. Bu durumda
+        //    key-not-found uyarısı YANLIŞ olur (geçerli bir hesaba "silinmiş"
+        //    denip kullanıcı gereksiz yere çıkışa zorlanır).
+        if (!pullResult && this._lastPullDocExists === false) {
           if (this._isKeyConfirmed(key)) {
             console.warn('[Cloud] Boot: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
             this._handleRemoteDeleted();
