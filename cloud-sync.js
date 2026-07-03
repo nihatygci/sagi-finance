@@ -221,6 +221,31 @@
       } catch (_) { return false; }
     },
 
+    // ── "Silinmiş sayılsın mı?" — asıl karar noktası ──────────────────────
+    // SADECE _isKeyConfirmed()'e (tek slotlu, kırılgan bir localStorage
+    // bayrağı) güvenmek YETERSİZ çıktı: testte bir key başarıyla
+    // oluşturulup Firestore'a yazılmasına rağmen bu bayrak boş (null)
+    // kalabiliyor (ör. bayrak farklı bir temizlik işleminde silinmiş,
+    // farklı sekme/oturumda set edilmiş, vb.) — sonuç: silinme fark
+    // edilmiyor, kullanıcı sessizce ölü key'in üzerine yeni veri yazıp
+    // hesabı "diriltiyor". Bunu önlemek için İKİNCİ, DAHA GÜVENİLİR bir
+    // sinyal daha ekliyoruz: Core.state.settings.onboarded === true.
+    // Onboarding tamamlanmışsa bu cihaz zaten kurulu, gerçek bir hesaba
+    // sahip demektir — o an aktif olan syncKey de (bu fonksiyona giren
+    // `key` parametresi) ZATEN o gerçek hesabın key'idir. Böyle bir
+    // cihazda remote doc'un birden "yok" çıkması, %99 ihtimalle key
+    // hiç var olmadı değil — SİLİNDİ demektir. Tek istisna: createAccount()
+    // henüz onboarding bitmeden (ör. yeni cihaz kurulumu ortasında)
+    // yazma denemesi başarısız olduysa — o durumda onboarded zaten
+    // false'tur, bu yüzden yanlış alarm vermez.
+    _isKeyDeletionConfirmed(key) {
+      if (this._isKeyConfirmed(key)) return true;
+      if (Core.state && Core.state.settings && Core.state.settings.onboarded && Core.state.settings.syncKey === key) {
+        return true;
+      }
+      return false;
+    },
+
     // ── Remote'da key bulunamadı durumu ──────────────────────────────────
     // Firebase'deki doc kaybolmuşsa (deleteAccount, admin silmesi, vb.)
     // OTOMATİK sign-out yapmıyoruz ve key'i sıfırlamıyoruz — çünkü bu durum
@@ -365,11 +390,12 @@
         // REMOTE_DELETED kontrolü yapıyordu). Kontrolü tek noktada (_pull)
         // merkezileştirip onu çağıran HER yeri (boot, visibilitychange,
         // online, forceSync) otomatik olarak kapsıyoruz.
-        if (this._isKeyConfirmed(key)) {
-          console.warn('[Cloud] _pull: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor. key=' + key);
+        if (this._isKeyDeletionConfirmed(key)) {
+          console.warn('[Cloud] _pull: bu key silinmiş kabul ediliyor (confirmedLS veya onboarded sinyali). key=' + key +
+            ' isKeyConfirmedLS=' + this._isKeyConfirmed(key) + ' onboarded=' + !!(Core.state.settings && Core.state.settings.onboarded));
           this._handleRemoteDeleted();
         } else {
-          console.warn('[Cloud] _pull: remote doc yok AMA bu key hiç confirm edilmemiş (yeni/hiç bağlanılmamış hesap olabilir) — modal AÇILMIYOR. key=' + key + ' confirmedLS=' + (function(){try{return localStorage.getItem('sagi_key_confirmed');}catch(_){return '(okunamadı)';}})());
+          console.warn('[Cloud] _pull: remote doc yok AMA bu key hiç confirm edilmemiş VE onboarded=false (yeni/hiç bağlanılmamış hesap olabilir) — modal AÇILMIYOR. key=' + key);
         }
         return false; // createAccount yapılmamış veya silinmiş
       }
@@ -465,7 +491,7 @@
             // yeniden YARATMA — push'u durdur.
             // NOT: _lastSyncedVersion yerine kalıcı _isKeyConfirmed kullanıyoruz —
             // sayfa yenilemesinde _lastSyncedVersion sıfırlanır ama bu kayıt kalır.
-            if (self._isKeyConfirmed(key)) {
+            if (self._isKeyDeletionConfirmed(key)) {
               throw new Error('REMOTE_DELETED');
             }
             newVersion = 1;
@@ -555,8 +581,8 @@
             // b) Bu key daha önce Firestore'da var olduğu doğrulanmıştı
             //    (createAccount veya başarılı pull ile) → şimdi doc yok →
             //    hesap silinmiş demektir.
-            if (self._isKeyConfirmed(key)) {
-              console.warn('[Cloud] onSnapshot: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
+            if (self._isKeyDeletionConfirmed(key)) {
+              console.warn('[Cloud] onSnapshot: bu key silinmiş kabul ediliyor (confirmedLS veya onboarded sinyali). key=' + key);
               self._handleRemoteDeleted();
             }
             return;
