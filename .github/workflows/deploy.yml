@@ -5,6 +5,14 @@ on:
     branches: [main]
   repository_dispatch:
     types: [plus-updated]
+  # Manuel "fresh" tetikleme için — Actions sekmesinden "Run workflow" ile
+  # BRAND NEW bir run_id başlatılır, hiçbir kalıntı artifact taşımaz.
+  # "Re-run failed jobs" YERİNE bunu kullan: re-run AYNI run_id'yi tekrar
+  # kullanır, kalıntı artifact temizliği her denemede %100 garanti değildir
+  # (GitHub API'nin ara sıra gecikmeli/başarısız DELETE yanıtları verebilmesi
+  # yüzünden) — art arda re-run'lar artifact sayısını 1→2→3... diye
+  # biriktirebilir. workflow_dispatch her zaman temiz sıfırdan başlar.
+  workflow_dispatch:
 
 # Aynı anda (push + repository_dispatch üst üste gelirse) birden fazla
 # deploy run'ı çakışmasın diye — yenisi başlayınca eskisi iptal edilir.
@@ -124,16 +132,22 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Bu run (${{ github.run_id }}) için mevcut 'github-pages' artifact'ları kontrol ediliyor..."
-          ids=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name=="github-pages") | .id' || true)
+          echo "Bu run (${{ github.run_id }}, attempt ${{ github.run_attempt }}) için mevcut 'github-pages' artifact'ları kontrol ediliyor..."
+          ids=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name=="github-pages") | .id')
           if [ -z "$ids" ]; then
             echo "Temizlenecek eski artifact yok."
           else
             for id in $ids; do
               echo "Siliniyor: artifact id=$id"
-              gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id" || echo "  (silinemedi, önemli değil: $id)"
+              # Silme HATASINI artık YUTMUYORUZ — set -e ile job burada patlar.
+              # Sessizce yutulan bir silme hatası, artifact'ın kalıp bir
+              # sonraki denemede sayının 1→2→3 diye birikmesine sebep oluyordu.
+              gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
+              echo "  Silindi: $id"
             done
           fi
+          echo "Doğrulama: kalan 'github-pages' artifact sayısı:"
+          gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '[.artifacts[] | select(.name=="github-pages")] | length'
 
       - name: Dosyaları yükle
         uses: actions/upload-pages-artifact@v3
