@@ -3719,6 +3719,10 @@ const UI = {
     close(){UI.Modals.close('modalCatPicker');}
   }
 };
+// cloud-sync.js (ve varsa diğer harici scriptler) window.UI üzerinden erişebilsin
+// diye Core ile aynı örüntüde global'e bağlıyoruz — top-level const/let
+// window nesnesine otomatik eklenmez (bkz. window.App bugı, aynı sebep).
+window.UI = UI;
 
 document.addEventListener('click',e=>{
   if(!e.target.closest('.custom-select-wrap')){

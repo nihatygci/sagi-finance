@@ -298,7 +298,12 @@
     // olabilir) — birkaç kez kısa aralıklarla dener, sessizce vazgeçmez.
     _openKeyNotFoundModal(attempt) {
       try {
-        if (window.UI && UI.Modals && typeof UI.Modals.open === 'function') {
+        // NOT: window.UI KULLANMA — index.html'de `const UI = {...}` top-level
+        // script scope'ta tanımlı, bu yüzden window.UI HER ZAMAN undefined
+        // döner (tıpkı daha önce bulunan window.App bugında olduğu gibi:
+        // let/const ile tanımlanan top-level değişkenler window nesnesine
+        // eklenmez). typeof kontrolü kullanmak zorundayız.
+        if (typeof UI !== 'undefined' && UI.Modals && typeof UI.Modals.open === 'function') {
           var el = document.getElementById('modalKeyNotFound');
           if (!el) {
             console.error('[Cloud] modalKeyNotFound elementi DOM\'da bulunamadı!');
