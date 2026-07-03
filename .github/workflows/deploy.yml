@@ -6,10 +6,17 @@ on:
   repository_dispatch:
     types: [plus-updated]
 
+# Aynı anda (push + repository_dispatch üst üste gelirse) birden fazla
+# deploy run'ı çakışmasın diye — yenisi başlayınca eskisi iptal edilir.
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write   # eski artifact'ları silebilmek için gerekli
 
 jobs:
   deploy:
@@ -107,6 +114,26 @@ jobs:
 
       - name: Pages için hazırla
         uses: actions/configure-pages@v5
+
+      # KRİTİK FIX: "Re-run failed jobs" ile bu job tekrar çalıştırılırsa,
+      # önceki denemenin yüklediği "github-pages" artifact'ı run'da kalıyor.
+      # Bu step yeniden upload yapmadan ÖNCE, bu run_id'ye ait aynı isimli
+      # eski artifact'ları siler — böylece "Deploy et" adımında
+      # "Multiple artifacts named github-pages" hatası bir daha oluşmaz.
+      - name: Eski github-pages artifact'larını temizle
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Bu run (${{ github.run_id }}) için mevcut 'github-pages' artifact'ları kontrol ediliyor..."
+          ids=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name=="github-pages") | .id' || true)
+          if [ -z "$ids" ]; then
+            echo "Temizlenecek eski artifact yok."
+          else
+            for id in $ids; do
+              echo "Siliniyor: artifact id=$id"
+              gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id" || echo "  (silinemedi, önemli değil: $id)"
+            done
+          fi
 
       - name: Dosyaları yükle
         uses: actions/upload-pages-artifact@v3
