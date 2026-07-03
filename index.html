@@ -7505,11 +7505,47 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
 
       // Key Firebase'de bulunamadığında gösterilen zorunlu uyarı modalının
-      // tek çıkış butonu. Onay istemiyor (kullanıcı zaten uyarıyı gördü),
-      // direkt sign out yapıp reload ediyor.
+      // tek çıkış butonu. Onay istemiyor (kullanıcı zaten uyarıyı gördü).
+      //
+      // KRİTİK: Burada normal signOut() KULLANILMAZ. signOut() sadece
+      // syncKey'i temizler, wallets/transactions/vb. yerel veriyi ve
+      // onboarded bayrağını olduğu gibi bırakır — bu da reload sonrası
+      // kullanıcının, artık hiçbir yerde var olmayan (silinmiş) bir hesabın
+      // "hayalet" verisiyle dolu bir dashboard'a düşmesine, hiç fark
+      // etmeden o veriyi düzenlemeye devam etmesine yol açar (bir daha
+      // asla senkronlanmayacak, sessizce kaybolacak veri). Silinmiş bir
+      // hesaptan sonra yerel veri de anlamsızdır — kullanıcı sıfırdan
+      // başlamalı. Bu yüzden cloudDeleteAccount() ile AYNI tam-sıfırlama
+      // örüntüsünü kullanıyoruz (sadece uzaktan silme denemesi yok, çünkü
+      // doc zaten silinmiş durumda).
       handleKeyNotFoundSignOut(){
-        Core.Cloud.signOut();
+        try { Core.Cloud.signOut(); } catch(e) {}
+
+        // TÜM sagi_* localStorage key'lerini sil (onboarded dahil her şey)
+        try {
+          const toRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
+          }
+          toRemove.forEach(k => localStorage.removeItem(k));
+        } catch(e) {}
+
+        // Marka/font CSS override'larını sıfırla (Plus kullanıcısıydıysa)
+        try{
+          const el = document.documentElement;
+          el.style.removeProperty('--brand-accent');
+          el.style.removeProperty('--brand-accent-light');
+          el.style.removeProperty('--brand-accent-subtle');
+          el.style.removeProperty('--brand-accent-soft');
+          el.style.removeProperty('--brand-accent-medium');
+          el.style.removeProperty('--font-display');
+          el.style.removeProperty('--font-sans');
+          document.body.style.fontFamily = '';
+        }catch(e){}
+
         UI.Modals.close('modalKeyNotFound');
+        // onboarded=false → reload → onboarding ekranı (ana sayfa DEĞİL)
         location.reload();
       },
 
