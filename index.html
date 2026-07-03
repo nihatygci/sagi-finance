@@ -1241,11 +1241,11 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
     </div>
     <!-- Zorunlu onay checkbox -->
-    <div id="ob_consent_box" class="settings-cell" style="flex-direction:row;align-items:flex-start;gap:12px;margin-top:16px;margin-bottom:0;padding:13px 14px">
+    <div id="ob_consent_box" class="settings-cell" style="flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:12px;margin-top:16px;margin-bottom:0;padding:13px 14px">
       <input type="checkbox" id="ob_consent_chk"
         style="width:17px;height:17px;min-width:17px;margin-top:2px;accent-color:var(--brand-accent);cursor:pointer;flex-shrink:0"
         onchange="App.Controllers.Onboarding.onConsentChange(this.checked)">
-      <label for="ob_consent_chk" style="font-size:13px;color:var(--text-muted);line-height:1.6;cursor:pointer;margin:0">
+      <label for="ob_consent_chk" style="font-size:13px;color:var(--text-muted);line-height:1.6;cursor:pointer;margin:0;flex:1;min-width:0;text-align:left">
         <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentTerms">Kullanım Şartları</a><span data-i18n="obConsentAnd">'nı ve </span><a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentPrivacy">Gizlilik Politikası</a><span data-i18n="obConsentSuffix">'nı okudum, kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.</span>
       </label>
     </div>
