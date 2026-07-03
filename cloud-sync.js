@@ -211,14 +211,36 @@
     // Bunun yerine: bir key'in var olduğu doğrulandığı AN localStorage'a
     // kalıcı olarak yazıyoruz. Sayfa yenilense de bu bilgi kaybolmaz.
     _KEY_CONFIRMED_LS: 'sagi_key_confirmed',
+    // Bir key'i "gerçekten Firestore'da var olduğu doğrulandı" olarak
+    // işaretledikten sonra kısa bir SÜRE (grace period) tanıyoruz.
+    //
+    // KRİTİK BUG (bulundu): createAccount() → doc'u yazıp await ile
+    // ONAY ALDIKTAN SONRA _attachListener(key) çağırıyor. Ama Firestore'un
+    // multi-tab IndexedDB persistence'ı ile YENİ takılan bir onSnapshot
+    // listener'ın İLK event'i, henüz o an tazelenmemiş yerel cache'ten
+    // gelebiliyor ve "doc yok" diyebiliyor — RACE CONDITION, doc aslında
+    // saniyenin onda biri önce yazıldı ve gerçekten var. Bizim silinme
+    // kontrolümüz bunu görünce anında "silinmiş!" deyip kullanıcıyı YENİ
+    // OLUŞTURDUĞU hesaptan atıyordu (test: "yeni anahtar oluşturdum,
+    // zaten anında modal düşüyor önüme"). Çözüm: _markKeyConfirmed()
+    // çağrıldıktan sonraki birkaç saniye içinde gelen "doc yok" sinyallerini
+    // silinme kanıtı SAYMIYORUZ — cache'in yetişmesi için zaman tanıyoruz.
+    // Gerçek bir silinme bu pencere kapandıktan hemen sonra zaten bir
+    // sonraki pull/onSnapshot event'inde yakalanır, hiçbir şey kaçmaz.
+    _GRACE_MS: 6000,
+    _graceUntil: 0,
     _markKeyConfirmed(key) {
       try { localStorage.setItem(this._KEY_CONFIRMED_LS, this._docId(key)); } catch (_) {}
+      this._graceUntil = Date.now() + this._GRACE_MS;
     },
     _isKeyConfirmed(key) {
       try {
         const saved = localStorage.getItem(this._KEY_CONFIRMED_LS);
         return !!saved && saved === this._docId(key);
       } catch (_) { return false; }
+    },
+    _inGracePeriod() {
+      return Date.now() < this._graceUntil;
     },
 
     // ── "Silinmiş sayılsın mı?" — asıl karar noktası ──────────────────────
@@ -238,6 +260,11 @@
     // henüz onboarding bitmeden (ör. yeni cihaz kurulumu ortasında)
     // yazma denemesi başarısız olduysa — o durumda onboarded zaten
     // false'tur, bu yüzden yanlış alarm vermez.
+    //
+    // NOT: _inGracePeriod() kontrolü BURADA DEĞİL, çağıran taraflarda
+    // yapılıyor (_pull, push transaction, onSnapshot) — çünkü grace
+    // period'da bile "silinmiş mi" sorusunun cevabı teknik olarak aynı
+    // kalır, sadece o cevaba göre AKSİYON ALIP ALMAYACAĞIMIZ değişir.
     _isKeyDeletionConfirmed(key) {
       if (this._isKeyConfirmed(key)) return true;
       if (Core.state && Core.state.settings && Core.state.settings.onboarded && Core.state.settings.syncKey === key) {
@@ -395,7 +422,9 @@
         // REMOTE_DELETED kontrolü yapıyordu). Kontrolü tek noktada (_pull)
         // merkezileştirip onu çağıran HER yeri (boot, visibilitychange,
         // online, forceSync) otomatik olarak kapsıyoruz.
-        if (this._isKeyDeletionConfirmed(key)) {
+        if (this._inGracePeriod()) {
+          console.warn('[Cloud] _pull: doc yok ama grace period içindeyiz (yeni oluşturuldu/login olundu, cache henüz yetişmemiş olabilir) — modal AÇILMIYOR, bekleniyor. key=' + key);
+        } else if (this._isKeyDeletionConfirmed(key)) {
           console.warn('[Cloud] _pull: bu key silinmiş kabul ediliyor (confirmedLS veya onboarded sinyali). key=' + key +
             ' isKeyConfirmedLS=' + this._isKeyConfirmed(key) + ' onboarded=' + !!(Core.state.settings && Core.state.settings.onboarded));
           this._handleRemoteDeleted();
@@ -496,7 +525,7 @@
             // yeniden YARATMA — push'u durdur.
             // NOT: _lastSyncedVersion yerine kalıcı _isKeyConfirmed kullanıyoruz —
             // sayfa yenilemesinde _lastSyncedVersion sıfırlanır ama bu kayıt kalır.
-            if (self._isKeyDeletionConfirmed(key)) {
+            if (!self._inGracePeriod() && self._isKeyDeletionConfirmed(key)) {
               throw new Error('REMOTE_DELETED');
             }
             newVersion = 1;
@@ -581,12 +610,20 @@
       _unsub = this._docRef(key).onSnapshot(
         function (snap) {
           if (!snap.exists) {
-            // Doc yok — iki senaryo:
+            // Doc yok — üç senaryo:
             // a) İlk kez listener bağlandı, bu key hiç confirm edilmemiş → normal
             // b) Bu key daha önce Firestore'da var olduğu doğrulanmıştı
             //    (createAccount veya başarılı pull ile) → şimdi doc yok →
             //    hesap silinmiş demektir.
-            if (self._isKeyDeletionConfirmed(key)) {
+            // c) GRACE PERIOD: az önce createAccount/login ile confirm edildi —
+            //    bu onSnapshot'ın İLK event'i cache henüz yetişmediği için
+            //    yanlışlıkla "yok" diyor olabilir (bulunan gerçek bug buydu:
+            //    yeni hesap oluşturunca anında kendi kendini "silinmiş" sayıp
+            //    kullanıcıyı yeni oluşturduğu hesaptan atıyordu). Bu durumda
+            //    sessizce yok say, birazdan gelecek doğru event'i bekle.
+            if (self._inGracePeriod()) {
+              console.warn('[Cloud] onSnapshot: doc yok ama grace period içindeyiz (muhtemelen cache race) — modal AÇILMIYOR. key=' + key);
+            } else if (self._isKeyDeletionConfirmed(key)) {
               console.warn('[Cloud] onSnapshot: bu key silinmiş kabul ediliyor (confirmedLS veya onboarded sinyali). key=' + key);
               self._handleRemoteDeleted();
             }
