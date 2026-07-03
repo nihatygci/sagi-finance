@@ -8546,6 +8546,11 @@ document.addEventListener('keydown', function(e) {
   // 1. Açık modal varsa kapat
   const openModal = document.querySelector('.modal-overlay.active');
   if (openModal) {
+    // modalKeyNotFound KAPATILAMAZ — X yok, backdrop click yok, ESC de yok.
+    // Tek çıkış yolu "Çıkış Yap" butonu (handleKeyNotFoundSignOut). Aksi
+    // halde kullanıcı ESC ile modalı kapatıp "hayalet" bir oturumda
+    // (key silinmiş ama session localStorage'da duruyor) kalmaya devam eder.
+    if (openModal.id === 'modalKeyNotFound') return;
     const closeBtn = openModal.querySelector('[onclick*="close"], [onclick*="Close"], [onclick*="cancel"], [onclick*="Cancel"]');
     if (closeBtn) { closeBtn.click(); return; }
     openModal.classList.remove('active');

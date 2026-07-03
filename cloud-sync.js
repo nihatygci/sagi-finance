@@ -315,7 +315,26 @@
       // "hesap var ama veri formatı sorunlu". _boot() bu ikisini karıştırmasın
       // diye net bir sinyal veriyoruz.
       this._lastPullDocExists = snap.exists;
-      if (!snap.exists) return false; // createAccount yapılmamış veya silinmiş
+      if (!snap.exists) {
+        // KRİTİK FIX: Bu kontrol BURADA, _pull()'un içinde olmalı — sadece
+        // _boot()'ta değil. Çünkü _pull() sadece açılışta değil,
+        // visibilitychange ('visible' — sekme/uygulama tekrar öne geldiğinde)
+        // ve 'online' (internet geri geldiğinde) event'lerinden de SESSİZCE
+        // çağrılıyor ve sonucu hiç kontrol edilmiyordu (`.catch(()=>{})` /
+        // `.then()`). Kontrol sadece _boot()'ta olduğu için: kullanıcı
+        // uygulamayı açık bırakıp başka cihazdan hesabını silerse, bu cihaz
+        // sekmeye geri dönüldüğünde veya wifi toparlandığında key'in
+        // silindiğini ASLA fark etmiyordu — ta ki kullanıcı bir kayıt/
+        // değişiklik yapıp push tetiklenene kadar (push zaten kendi içinde
+        // REMOTE_DELETED kontrolü yapıyordu). Kontrolü tek noktada (_pull)
+        // merkezileştirip onu çağıran HER yeri (boot, visibilitychange,
+        // online, forceSync) otomatik olarak kapsıyoruz.
+        if (this._isKeyConfirmed(key)) {
+          console.warn('[Cloud] _pull: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
+          this._handleRemoteDeleted();
+        }
+        return false; // createAccount yapılmamış veya silinmiş
+      }
 
       // Doc gerçekten var — bu key'in geçerliliğini kalıcı olarak işaretle.
       this._markKeyConfirmed(key);
@@ -586,14 +605,12 @@
         //    alanı boş/bozuk — bu SİLİNME değil, farklı bir sorun. Bu durumda
         //    key-not-found uyarısı YANLIŞ olur (geçerli bir hesaba "silinmiş"
         //    denip kullanıcı gereksiz yere çıkışa zorlanır).
-        if (!pullResult && this._lastPullDocExists === false) {
-          if (this._isKeyConfirmed(key)) {
-            console.warn('[Cloud] Boot: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
-            this._handleRemoteDeleted();
-            return;
-          }
-          // Key hiç confirm edilmemişse gerçekten yeni/henüz hiç bağlanılmamış
-          // bir hesap olabilir — normal akışa devam ediyoruz.
+        // NOT: Silinme kontrolü artık _pull()'un içinde merkezi olarak
+        // yapılıyor (bkz. _pull), _handleRemoteDeleted() zaten çağrılmış
+        // ve loader kapatılmış olur. Bu blok sadece _keyNotFoundShown
+        // set edildiyse fonksiyondan erken çıkmak için bir emniyet katmanı.
+        if (!pullResult && this._lastPullDocExists === false && this._keyNotFoundShown) {
+          return;
         }
 
         // Pending (offline iken birikmiş) push varsa gönder — her iki key kontrol
