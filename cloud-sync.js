@@ -237,31 +237,67 @@
       this._emitStatus('idle');
       if (this._keyNotFoundShown) return; // modal zaten açık
       this._keyNotFoundShown = true;
+      console.warn('[Cloud] _handleRemoteDeleted tetiklendi — key silinmiş kabul edildi, modal açılıyor.');
+
+      // ── Loader'ı kapat ────────────────────────────────────────────────
+      // KRİTİK: Bu, modal açma kodundan AYRI bir try/catch'te olmalı.
+      // Önceki sürümde ikisi TEK bir try bloğundaydı — loader'ı kapatan
+      // satırlardan biri (herhangi bir sebeple) exception fırlatırsa, aynı
+      // try bloğundaki modal açma satırı da HİÇ ÇALIŞMIYORDU ve hata
+      // sessizce yutuluyordu (boş catch). Sonuç: loader gider, modal asla
+      // açılmaz, kullanıcı boş ve etkileşimsiz bir ekranda kalır. Artık
+      // birbirinden bağımsızlar; biri patlasa bile diğeri çalışır.
       try {
-        // Loader'ı BURADA, garantili şekilde kapat — App.init()'in bu flag'i
-        // sonradan kontrol edip kapatmasına GÜVENME. _handleRemoteDeleted()
-        // hangi noktadan (onSnapshot, boot, push) tetiklenirse tetiklensin,
-        // loader ekranda asılı kalmamalı.
-        //
-        // KRİTİK: opacity ile AYNI ANDA pointer-events:none de veriyoruz.
-        // Sadece opacity=0 verip remove()'un gecikmeli setTimeout'una
-        // güvenmek tehlikeli — remove() herhangi bir sebeple hiç çalışmazsa
-        // (başka bir hata JS akışını kesmişse), opacity=0 olan ama DOM'da
-        // hâlâ duran loader (position:fixed;inset:0) TÜM TIKLAMALARI
-        // YUTMAYA devam eder — kullanıcı görünmez bir katmanın arkasında
-        // "donmuş" bir ekranla kalır. pointer-events:none senkron olarak
-        // hemen uygulanırsa bu asla olmaz.
         var loaderEl = document.getElementById('appLoader');
         if (loaderEl) {
+          // Senkron olarak HEM opacity HEM display:none — fade animasyonuna
+          // ve gecikmeli remove()'a güvenmiyoruz; loader anında görsel ve
+          // etkileşimsel olarak devre dışı kalsın (z-index 999999 olduğu
+          // için opacity:0 bile olsa stacking'de en üstte kalabilir).
           loaderEl.style.pointerEvents = 'none';
-          loaderEl.classList.add('fading-fast');
           loaderEl.style.opacity = '0';
+          loaderEl.style.display = 'none';
           setTimeout(function () {
             try { if (loaderEl.parentNode) loaderEl.remove(); } catch (_) {}
-          }, 300);
+          }, 50);
         }
-        if (window.UI && UI.Modals) UI.Modals.open('modalKeyNotFound');
-      } catch (_) {}
+      } catch (e) {
+        console.error('[Cloud] _handleRemoteDeleted: loader kapatma hatası:', e);
+      }
+
+      // ── Modalı aç ────────────────────────────────────────────────────
+      this._openKeyNotFoundModal(0);
+    },
+
+    // UI henüz hazır olmayabilir (script sırası / DOM henüz kurulmamış
+    // olabilir) — birkaç kez kısa aralıklarla dener, sessizce vazgeçmez.
+    _openKeyNotFoundModal(attempt) {
+      try {
+        if (window.UI && UI.Modals && typeof UI.Modals.open === 'function') {
+          var el = document.getElementById('modalKeyNotFound');
+          if (!el) {
+            console.error('[Cloud] modalKeyNotFound elementi DOM\'da bulunamadı!');
+            return;
+          }
+          UI.Modals.open('modalKeyNotFound');
+          // Emniyet: .active class'ı gerçekten eklendi mi doğrula.
+          setTimeout(function () {
+            if (!el.classList.contains('active')) {
+              console.error('[Cloud] modalKeyNotFound açılamadı (active class eklenmedi) — zorla ekleniyor.');
+              el.classList.add('active');
+            }
+          }, 50);
+          return;
+        }
+      } catch (e) {
+        console.error('[Cloud] _openKeyNotFoundModal hatası:', e);
+      }
+      if (attempt < 20) { // max ~4sn dener (20 × 200ms)
+        var self = this;
+        setTimeout(function () { self._openKeyNotFoundModal(attempt + 1); }, 200);
+      } else {
+        console.error('[Cloud] modalKeyNotFound hiç açılamadı — UI hazır olmadı.');
+      }
     },
 
     // ── PLUS yönlendirme ─────────────────────────────────────────────────
@@ -330,8 +366,10 @@
         // merkezileştirip onu çağıran HER yeri (boot, visibilitychange,
         // online, forceSync) otomatik olarak kapsıyoruz.
         if (this._isKeyConfirmed(key)) {
-          console.warn('[Cloud] _pull: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor.');
+          console.warn('[Cloud] _pull: bu key daha önce doğrulanmıştı ama remote doc yok — silinmiş kabul ediliyor. key=' + key);
           this._handleRemoteDeleted();
+        } else {
+          console.warn('[Cloud] _pull: remote doc yok AMA bu key hiç confirm edilmemiş (yeni/hiç bağlanılmamış hesap olabilir) — modal AÇILMIYOR. key=' + key + ' confirmedLS=' + (function(){try{return localStorage.getItem('sagi_key_confirmed');}catch(_){return '(okunamadı)';}})());
         }
         return false; // createAccount yapılmamış veya silinmiş
       }
