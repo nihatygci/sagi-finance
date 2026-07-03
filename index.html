@@ -840,7 +840,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 @keyframes loaderPulse{0%,100%{opacity:1}50%{opacity:.45}}
 
 /* ONBOARDING */
-.onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
+.onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden;background:var(--bg-body)}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
@@ -4484,6 +4484,50 @@ const App = {
           }
         }
 
+        // ── ONBOARDING KAPISI: Router/BottomBar/Dashboard'dan ÖNCE kontrol ──
+        // KRİTİK FIX: Bu kontrol daha önce Router.init()'ten SONRA
+        // yapılıyordu. Sorun: reload sonrası URL hash'i (ör. "#/dashboard",
+        // kullanıcı modalı görmeden önce hangi sayfadaysa) SİLİNMEDEN
+        // kalıyor — Router.init() bu hash'i okuyup dashboard'u GERÇEKTEN
+        // render ediyordu (#app-main içine, boş veriyle de olsa). Onboarding
+        // overlay'in kendi arkaplanı yok (sadece ortadaki kart opak), bu
+        // yüzden arkada render edilmiş dashboard etraftan görünüyor,
+        // kullanıcıya "silinmiş hesaptan çıkış yapınca hâlâ dashboard'a
+        // atıyor" hissi veriyordu — aslında onboarding kartı ÜSTTE açıktı
+        // ama arkası şeffaf olduğu için fark edilmiyordu.
+        //
+        // Çözüm: onboarded değilse Router/BottomBar/Dashboard'u HİÇ
+        // ÇALIŞTIRMADAN, URL hash'ini temizleyip onboarding'i göster ve
+        // fonksiyondan dön — key-not-found durumunda kullandığımız aynı
+        // "erken çıkış" örüntüsü.
+        if(!Core.state.settings.onboarded){
+          try{ history.replaceState(null,'',window.location.pathname+window.location.search); }catch(e){}
+          if(lBar){ lBar.style.width='100%'; }
+          if(loader){loader.style.pointerEvents='none';loader.style.opacity='0';setTimeout(()=>{ try{ loader.remove(); }catch(e){} },300);}
+          setTimeout(()=>{
+            document.getElementById('onboardingScreen').classList.remove('hidden');
+            // Refresh koruması: anahtar oluşturulmuş ama onboarding bitmemişse kaldığı yerden devam et
+            const pendingKey = (() => { try{ return localStorage.getItem('sagi_pending_key'); }catch(e){ return null; } })();
+            if(pendingKey){
+              const ob = App.Controllers.Onboarding;
+              ob.nextStep('key');
+              ob._generatedKey = pendingKey;
+              // Anahtar gösterimini hazırla
+              setTimeout(()=>{
+                document.getElementById('ob_key_value').textContent = pendingKey;
+                document.getElementById('ob_key_display').style.display = 'block';
+                const modeSeg = document.querySelector('#ob_step_key .tx-type-seg');
+                if(modeSeg) modeSeg.style.display = 'none';
+                const createBtn = document.getElementById('ob_btn_create');
+                if(createBtn) createBtn.style.display = 'none';
+                var _knBtn=document.getElementById('ob_btn_keynext');if(_knBtn)_knBtn.style.display='block';
+                var _backBtn=document.getElementById('ob_btn_back');if(_backBtn)_backBtn.style.display='none';
+              }, 50);
+            }
+          },100);
+          return;
+        }
+
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
         UI.Router.init();
@@ -4541,29 +4585,10 @@ const App = {
           });
         }
         if(loader){loader.style.pointerEvents='none';loader.style.opacity='0';setTimeout(()=>{ try{ loader.remove(); }catch(e){} },500);}
-        if(!Core.state.settings.onboarded){
-          setTimeout(()=>{
-            document.getElementById('onboardingScreen').classList.remove('hidden');
-            // Refresh koruması: anahtar oluşturulmuş ama onboarding bitmemişse kaldığı yerden devam et
-            const pendingKey = (() => { try{ return localStorage.getItem('sagi_pending_key'); }catch(e){ return null; } })();
-            if(pendingKey){
-              const ob = App.Controllers.Onboarding;
-              ob.nextStep('key');
-              ob._generatedKey = pendingKey;
-              // Anahtar gösterimini hazırla
-              setTimeout(()=>{
-                document.getElementById('ob_key_value').textContent = pendingKey;
-                document.getElementById('ob_key_display').style.display = 'block';
-                const modeSeg = document.querySelector('#ob_step_key .tx-type-seg');
-                if(modeSeg) modeSeg.style.display = 'none';
-                const createBtn = document.getElementById('ob_btn_create');
-                if(createBtn) createBtn.style.display = 'none';
-                var _knBtn=document.getElementById('ob_btn_keynext');if(_knBtn)_knBtn.style.display='block';
-                var _backBtn=document.getElementById('ob_btn_back');if(_backBtn)_backBtn.style.display='none';
-              }, 50);
-            }
-          },100);
-        } else if(!Core.state.wallets.length){
+        // NOT: onboarded=false durumu artık YUKARIDA (Router/BottomBar'dan
+        // önce) erken return ile hallediliyor — buraya sadece onboarded=true
+        // olan normal akış ulaşır.
+        if(!Core.state.wallets.length){
           setTimeout(()=>App.Controllers.Wallets.openModal(),600);
         }
       },400);
