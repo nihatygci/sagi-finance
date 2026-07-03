@@ -238,6 +238,28 @@
       if (this._keyNotFoundShown) return; // modal zaten açık
       this._keyNotFoundShown = true;
       try {
+        // Loader'ı BURADA, garantili şekilde kapat — App.init()'in bu flag'i
+        // sonradan kontrol edip kapatmasına GÜVENME. _handleRemoteDeleted()
+        // hangi noktadan (onSnapshot, boot, push) tetiklenirse tetiklensin,
+        // loader ekranda asılı kalmamalı.
+        //
+        // KRİTİK: opacity ile AYNI ANDA pointer-events:none de veriyoruz.
+        // Sadece opacity=0 verip remove()'un gecikmeli setTimeout'una
+        // güvenmek tehlikeli — remove() herhangi bir sebeple hiç çalışmazsa
+        // (başka bir hata JS akışını kesmişse), opacity=0 olan ama DOM'da
+        // hâlâ duran loader (position:fixed;inset:0) TÜM TIKLAMALARI
+        // YUTMAYA devam eder — kullanıcı görünmez bir katmanın arkasında
+        // "donmuş" bir ekranla kalır. pointer-events:none senkron olarak
+        // hemen uygulanırsa bu asla olmaz.
+        var loaderEl = document.getElementById('appLoader');
+        if (loaderEl) {
+          loaderEl.style.pointerEvents = 'none';
+          loaderEl.classList.add('fading-fast');
+          loaderEl.style.opacity = '0';
+          setTimeout(function () {
+            try { if (loaderEl.parentNode) loaderEl.remove(); } catch (_) {}
+          }, 300);
+        }
         if (window.UI && UI.Modals) UI.Modals.open('modalKeyNotFound');
       } catch (_) {}
     },

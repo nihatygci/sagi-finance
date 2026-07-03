@@ -4459,13 +4459,15 @@ const App = {
           if(lBar)lBar.classList.remove('pulsing');
 
           if(Core.Cloud._keyNotFoundShown){
-            // _boot() zaten uyarı modalını açtı. Loader'ı hızlıca kapat ve
-            // init()'in geri kalanını (router, dashboard, bildirimler,
-            // exchange rate) HİÇ ÇALIŞTIRMADAN dur.
-            if(loader){
+            // _boot() zaten uyarı modalını açtı VE loader'ı kendi içinde kapattı
+            // (_handleRemoteDeleted). Bu blok sadece yedek/emniyet katmanı —
+            // loader hâlâ DOM'daysa (beklenmedik bir gecikme olduysa) burada da
+            // garantili şekilde kapatılır.
+            if(loader && loader.parentNode){
+              loader.style.pointerEvents='none';
               loader.classList.add('fading-fast');
               loader.style.opacity='0';
-              setTimeout(()=>loader.remove(),260);
+              setTimeout(()=>{ try{ loader.remove(); }catch(e){} },260);
             }
             return;
           }
@@ -4527,7 +4529,7 @@ const App = {
             setTimeout(finish,500); // transition tetiklenmezse (örn. zaten %100'deyse) güvenlik freni
           });
         }
-        if(loader){loader.style.opacity='0';setTimeout(()=>loader.remove(),500);}
+        if(loader){loader.style.pointerEvents='none';loader.style.opacity='0';setTimeout(()=>{ try{ loader.remove(); }catch(e){} },500);}
         if(!Core.state.settings.onboarded){
           setTimeout(()=>{
             document.getElementById('onboardingScreen').classList.remove('hidden');
