@@ -430,6 +430,14 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
   .settings-cell{flex-direction:column;align-items:flex-start;gap:10px}
   .settings-cell > .form-control,.settings-cell > select,.settings-cell > input,.settings-cell > .theme-toggle-group{width:100% !important;max-width:none !important}
 }
+/* Onboarding onay kutusu (checkbox + label) — bilerek .settings-cell'den AYRI.
+   .settings-cell'in mobil kuralı (>600px altında input'lara width:100%!important
+   vermesi) checkbox'ı da yakalayıp satırın tamamına yayıyordu; bu class hep
+   satır (row) düzeninde, checkbox sabit boyutta, metin yanında sarar. */
+.consent-cell{display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:12px;padding:13px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid transparent;transition:border-color .2s}
+.consent-cell:hover{border-color:var(--border-light)}
+.consent-cell > input[type="checkbox"]{width:17px;height:17px;min-width:17px;flex:0 0 17px;margin-top:2px;accent-color:var(--brand-accent);cursor:pointer}
+.consent-cell > label{flex:1;min-width:0;text-align:left;font-size:13px;color:var(--text-muted);line-height:1.6;cursor:pointer;margin:0}
 /* settings grid: ≥1024px 2 kolon, <1024px tek kolon */
 .settings-layout{display:grid;gap:14px;grid-template-columns:repeat(2,1fr);align-items:start}
 @media(min-width:1024px){.settings-layout{gap:22px}}
@@ -1241,11 +1249,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
     </div>
     <!-- Zorunlu onay checkbox -->
-    <div id="ob_consent_box" class="settings-cell" style="flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:12px;margin-top:16px;margin-bottom:0;padding:13px 14px">
+    <div id="ob_consent_box" class="consent-cell" style="margin-top:16px">
       <input type="checkbox" id="ob_consent_chk"
-        style="width:17px;height:17px;min-width:17px;margin-top:2px;accent-color:var(--brand-accent);cursor:pointer;flex-shrink:0"
         onchange="App.Controllers.Onboarding.onConsentChange(this.checked)">
-      <label for="ob_consent_chk" style="font-size:13px;color:var(--text-muted);line-height:1.6;cursor:pointer;margin:0;flex:1;min-width:0;text-align:left">
+      <label for="ob_consent_chk">
         <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentTerms">Kullanım Şartları</a><span data-i18n="obConsentAnd">'nı ve </span><a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--brand-accent);font-weight:600" data-i18n="obConsentPrivacy">Gizlilik Politikası</a><span data-i18n="obConsentSuffix">'nı okudum, kabul ediyorum. 18 yaşını doldurduğumu beyan ederim.</span>
       </label>
     </div>
