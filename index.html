@@ -4591,6 +4591,16 @@ const App = {
         if(!Core.state.wallets.length){
           setTimeout(()=>App.Controllers.Wallets.openModal(),600);
         }
+        // "Senkronize Et" akışı: forceSync() başarılı olup reload attıktan
+        // sonra buraya düşüyoruz. Bayrak varsa temizle ve "tamamlandı"
+        // toast'ını göster — reload JS belleğini sıfırladığı için bu
+        // bilgiyi localStorage üzerinden taşımak zorundaydık.
+        try{
+          if(localStorage.getItem('sagi_sync_toast_pending')==='1'){
+            localStorage.removeItem('sagi_sync_toast_pending');
+            setTimeout(()=>UI.Toasts.show(t('cloudMerged'),'success'),700);
+          }
+        }catch(e){}
       },400);
     },200);
   },
@@ -7461,6 +7471,46 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         }
       },
 
+      // Kategori adı (wallets/transactions/vb.) → kullanıcı dostu i18n etiketi.
+      // Sync önizleme modalında hangi veri türünden kaç kayıt gideceğini/
+      // geleceğini göstermek için kullanılıyor.
+      _syncColLabel(col){
+        const map = { wallets:'wallets', transactions:'transactions', recurring:'recurring', goals:'goals', debts:'debts', categories:'categories', budgets:'catBudgets' };
+        return t(map[col] || col);
+      },
+
+      // analyzeSync() sonucundan (status: 'no-remote' | 'diff') detaylı,
+      // kategori bazlı bir önizleme mesajı üretir. UI.Confirm.show() bunu
+      // innerHTML olarak basıyor, bu yüzden sadece satır-içi etiketler
+      // (<br>, <strong>) kullanıyoruz — <p> içine <div> gibi blok eleman
+      // koymuyoruz (geçersiz HTML'e / bozuk render'a yol açar).
+      _buildSyncPreviewMsg(analysis){
+        const details = analysis.details || {};
+        const fromCloudLines = [], toCloudLines = [];
+        Object.keys(details).forEach(col=>{
+          const d = details[col];
+          const label = this._syncColLabel(col);
+          if(d.newFromRemote) fromCloudLines.push(t('syncPreviewItem',{label, count:d.newFromRemote}));
+          if(d.newFromLocal)  toCloudLines.push(t('syncPreviewItem',{label, count:d.newFromLocal}));
+        });
+
+        let html = '';
+        if(analysis.status === 'no-remote'){
+          html += `<strong>${t('syncPreviewNoRemoteIntro')}</strong>`;
+          if(toCloudLines.length) html += '<br>' + toCloudLines.join('<br>');
+        } else {
+          if(fromCloudLines.length){
+            html += `<strong>${t('syncPreviewFromCloud')}</strong><br>${fromCloudLines.join('<br>')}`;
+          }
+          if(toCloudLines.length){
+            if(html) html += '<br><br>';
+            html += `<strong>${t('syncPreviewToCloud')}</strong><br>${toCloudLines.join('<br>')}`;
+          }
+        }
+        html += `<br><br>${t('syncPreviewConfirm')}`;
+        return html;
+      },
+
       async cloudForceSync(){
         if(!Core.state.settings.syncKey) return;
         if(!Core.Cloud || !Core.Cloud.isAvailable()){
@@ -7468,8 +7518,8 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           return;
         }
 
-        // Önce analiz et
-        UI.Toasts.show(t('cloudAnalyzing'),'success');
+        // 1) Kontrol ediliyor
+        UI.Toasts.show(t('cloudChecking'),'success');
         let analysis;
         try {
           analysis = await Core.Cloud.analyzeSync();
@@ -7488,37 +7538,28 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           return;
         }
 
-        // Zaten senkronize et butonuna bastı — onay dialogu istemeden direkt yap.
-        // Analiz sonucunu toast olarak göster (ne olacağını bilsin), sonra işlemi başlat.
-        let infoMsg;
-        if(analysis.status === 'cloud-empty'){
-          infoMsg = t('cloudPreviewWillPush');
-        } else {
-          infoMsg = t('cloudPreviewMerge', {
-            fromCloud: analysis.totalNewFromRemote,
-            toCloud: analysis.totalNewFromLocal
-          });
-        }
-        UI.Toasts.show(infoMsg, 'success');
-
-        // Kısa bekleme — kullanıcı mesajı okusun
-        await new Promise(res=>setTimeout(res,1200));
-
-        UI.Toasts.show(t('cloudSyncing'),'success');
-        try {
-          const result = await Core.Cloud.forceSync();
-          this.renderCloudBox();
-          if(result === 'merged'){
-            UI.Toasts.show(t('cloudMerged'),'success');
-          } else if(result === 'in-sync'){
-            UI.Toasts.show(t('cloudAlreadyUpToDate'),'success');
-          } else {
-            UI.Toasts.show(t('cloudPushedToCloud'),'success');
+        // 2) GERÇEK onay modalı — detaylı döküm + Evet/Hayır.
+        // NOT: analysis.status burada her zaman 'no-remote' veya 'diff'.
+        // (Eski kod 'cloud-empty' diye bir status bekliyordu ama
+        // analyzeSync() bunu HİÇBİR ZAMAN döndürmüyordu — o kontrol
+        // sessizce hiç çalışmıyordu. Burada doğru status adını kullanıyoruz.)
+        const previewMsg = this._buildSyncPreviewMsg(analysis);
+        UI.Confirm.show(previewMsg, async () => {
+          // "İptal" butonu bu callback'i hiç çağırmaz (UI.Modals.close
+          // direkt çağrılıyor) — yani buraya girdiysek kullanıcı onayladı.
+          UI.Toasts.show(t('cloudSyncing'),'success');
+          try {
+            await Core.Cloud.forceSync();
+            // Reload sonrası "tamamlandı" toast'ını göstermek için bayrak
+            // bırakıyoruz — reload JS belleğini sıfırlıyor, bu yüzden
+            // localStorage üzerinden taşımak zorundayız.
+            try{ localStorage.setItem('sagi_sync_toast_pending','1'); }catch(e){}
+            location.reload();
+          } catch(e) {
+            UI.Toasts.show(t('cloudInitFail'),'error');
+            this.renderCloudBox();
           }
-        } catch(e) {
-          UI.Toasts.show(t('cloudInitFail'),'error');
-          this.renderCloudBox();
-        }
+        });
       },
 
       cloudSignOut(){

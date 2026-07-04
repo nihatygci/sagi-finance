@@ -660,9 +660,16 @@ const LANGS = {
       cloudAlreadyUpToDate:'Zaten güncel ✓',
       cloudPushedToCloud:'Buluta gönderildi ✓',
       cloudAnalyzing:'Karşılaştırılıyor...',
+      cloudChecking:'Kontrol ediliyor...',
       cloudPreviewWillPush:'Buluta veri gönderilecek. Devam edilsin mi?',
       cloudPreviewMerge:(args)=>`Buluttan ${args&&args.fromCloud!=null?args.fromCloud:0} kayıt gelecek, buluta ${args&&args.toCloud!=null?args.toCloud:0} kayıt gönderilecek. Devam edilsin mi?`,
       cloudMerged:'Senkronizasyon tamamlandı ✓',
+      // Senkronizasyon önizleme modalı (Senkronize Et → detaylı onay)
+      syncPreviewNoRemoteIntro:'Bulutta henüz veri yok. Aşağıdaki veriler buluta gönderilecek:',
+      syncPreviewFromCloud:'Buluttan gelecek:',
+      syncPreviewToCloud:'Buluta gönderilecek:',
+      syncPreviewConfirm:'Devam edilsin mi?',
+      syncPreviewItem:(args)=>`${args&&args.label||''}: ${args&&args.count!=null?args.count:0}`,
 
       // ── Hesap dropdown fallback ───────────────────────────────────────
       noWalletOption:'Hesap yok',
@@ -1154,9 +1161,16 @@ const LANGS = {
       cloudAlreadyUpToDate:'Already up to date ✓',
       cloudPushedToCloud:'Pushed to cloud ✓',
       cloudAnalyzing:'Comparing...',
+      cloudChecking:'Checking...',
       cloudPreviewWillPush:'Data will be pushed to the cloud. Continue?',
       cloudPreviewMerge:(args)=>`${args&&args.fromCloud!=null?args.fromCloud:0} record(s) will come from the cloud, ${args&&args.toCloud!=null?args.toCloud:0} will be sent to the cloud. Continue?`,
       cloudMerged:'Sync complete ✓',
+      // Sync preview modal (Sync button → detailed confirmation)
+      syncPreviewNoRemoteIntro:'There is no data in the cloud yet. The following will be sent to the cloud:',
+      syncPreviewFromCloud:'Will come from the cloud:',
+      syncPreviewToCloud:'Will be sent to the cloud:',
+      syncPreviewConfirm:'Continue?',
+      syncPreviewItem:(args)=>`${args&&args.label||''}: ${args&&args.count!=null?args.count:0}`,
       cloudInactive: 'Cloud not connected',
       
 

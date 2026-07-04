@@ -792,19 +792,42 @@
     forcePush() { return this.forceSync(); },
 
     // ── analyzeSync ──────────────────────────────────────────────────────
+    // Kolon listesi tek yerde tanımlı — hem burada hem preview modalının
+    // kategori etiketleme kısmında (index.html) AYNI liste kullanılmalı.
+    _SYNC_COLS: ['wallets','transactions','recurring','goals','debts','categories','budgets'],
+    _localBreakdown() {
+      const details = {};
+      let total = 0;
+      this._SYNC_COLS.forEach(function (col) {
+        const n = (Core.state[col] || []).length;
+        if (n) details[col] = { newFromRemote: 0, newFromLocal: n };
+        total += n;
+      });
+      return { details, total };
+    },
     async analyzeSync() {
       if (!this.isAvailable() || !Core.state.settings.syncKey) {
         return { status: 'unavailable' };
       }
       try {
         const snap = await this._docRef().get();
-        if (!snap.exists) return { status: 'no-remote' };
+        if (!snap.exists) {
+          // Bulutta doc hiç yok — UI'nin "şu veriler buluta gönderilecek"
+          // önizlemesini gösterebilmesi için yerel veri dökümünü de
+          // hesaplayıp dönüyoruz (diff durumuyla AYNI şekil: details +
+          // totalNewFromRemote/totalNewFromLocal).
+          const lb = this._localBreakdown();
+          return { status: 'no-remote', totalNewFromRemote: 0, totalNewFromLocal: lb.total, details: lb.details };
+        }
 
         const data = snap.data() || {};
         const remoteState = data.state;
-        if (!remoteState) return { status: 'no-remote' };
+        if (!remoteState) {
+          const lb = this._localBreakdown();
+          return { status: 'no-remote', totalNewFromRemote: 0, totalNewFromLocal: lb.total, details: lb.details };
+        }
 
-        const COLS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
+        const COLS = this._SYNC_COLS;
         let totalNew = 0, totalLocal = 0;
         const details = {};
         COLS.forEach(function (col) {
