@@ -1122,7 +1122,19 @@
   });
 
   // ── Sayfa kapanıyor: son hali localStorage'a kaydet ──────────────────
+  //
+  // KRİTİK: window.__sagiForceLocalWipe kontrolü BURADA olmak zorunda.
+  // Bulunan bug: handleKeyNotFoundSignOut() localStorage'daki sagi_v1_data'yı
+  // silip location.reload() çağırıyordu — ama bu handler, reload'un
+  // tetiklediği unload sürecinde araya girip hafızadaki (hâlâ eski
+  // onboarded:true değerini taşıyan) Core.state'i AYNEN GERİ YAZIYORDU.
+  // Sonuç: wipe localStorage'da doğrulanmış şekilde başarılıydı ama
+  // reload tamamlanmadan saniyenin küçük bir kısmında sessizce geri
+  // alınıyordu — kullanıcı "Çıkış Yap"a basınca hâlâ dashboard'a
+  // düşüyordu. Bilinçli bir yerel wipe sırasında bu handler'ın araya
+  // girmemesi için bayrak kontrolü ekliyoruz.
   window.addEventListener('pagehide', function () {
+    if (window.__sagiForceLocalWipe) return;
     if (!Core || !Core.state || !Core.DB) return;
     localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
     // Sadece bekleyen push varsa flag'i set et
