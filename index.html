@@ -3545,12 +3545,12 @@ const UI = {
     }
   },
   Toasts:{
-    show(msg,type='success'){
+    show(msg,type='success',duration=3000){
       const c=document.getElementById('toastContainer'),t=document.createElement('div');
       t.className=`toast ${type}`;
       t.innerHTML=`<svg class="nav-icon"><use href="#icon-${type==='success'?'check':'alert'}"/></svg><span>${msg}</span>`;
       c.appendChild(t);void t.offsetWidth;t.classList.add('show');
-      setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3000);
+      setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},duration);
     }
   },
   ChartEngine:{
@@ -4601,6 +4601,26 @@ const App = {
             setTimeout(()=>UI.Toasts.show(t('cloudMerged'),'success'),700);
           }
         }catch(e){}
+        // Buluta gidemeyen (bekleyen) değişiklik var mı kontrolü.
+        // NOT: cloud-sync.js'nin _boot() fonksiyonu, sayfa her açıldığında
+        // bekleyen bir push varsa BİR KERE otomatik olarak tekrar dener
+        // (yukarıdaki cloud-check bloğunda, biz buraya gelmeden önce zaten
+        // await edildi). Yani bu noktada bayrak hâlâ set'liyse, o otomatik
+        // deneme de başarısız olmuş demektir (hâlâ offline, kalıcı bir
+        // sorun var, vb.) — kullanıcıya sessizce veri kaybı hissi
+        // yaşatmamak için AÇIKÇA haber veriyoruz.
+        if(Core.Cloud && Core.state.settings.syncKey){
+          setTimeout(async ()=>{
+            try{
+              const stillPending = !!(localStorage.getItem('sagi_pending_push_v5') || (Core.DB.hasPendingPush && Core.DB.hasPendingPush()));
+              if(!stillPending) return;
+              const analysis = await Core.Cloud.analyzeSync();
+              if(!analysis) return;
+              const msg = App.Controllers.Settings._buildPendingPushMsg(analysis);
+              if(msg) UI.Toasts.show(msg,'error',5000);
+            }catch(e){}
+          }, 2000);
+        }
       },400);
     },200);
   },
@@ -7474,6 +7494,21 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       // Kategori adı (wallets/transactions/vb.) → kullanıcı dostu i18n etiketi.
       // Sync önizleme modalında hangi veri türünden kaç kayıt gideceğini/
       // geleceğini göstermek için kullanılıyor.
+      // analyzeSync() sonucundan, HENÜZ BULUTA GİTMEMİŞ (sadece yerelde
+      // olan) verinin dökümünü çıkarır. _buildSyncPreviewMsg ile aynı
+      // satır formatını kullanır ("Etiket: sayı"), sadece "toCloud" tarafı.
+      // Boş dönerse (gösterilecek bir şey yoksa) null döner.
+      _buildPendingPushMsg(analysis){
+        const details = analysis.details || {};
+        const lines = [];
+        Object.keys(details).forEach(col=>{
+          const d = details[col];
+          if(d.newFromLocal) lines.push(t('syncPreviewItem',{label:this._syncColLabel(col), count:d.newFromLocal}));
+        });
+        if(!lines.length) return null;
+        return `<strong>${t('syncPendingPushIntro')}</strong><br>${lines.join('<br>')}`;
+      },
+
       _syncColLabel(col){
         const map = { wallets:'wallets', transactions:'transactions', recurring:'recurring', goals:'goals', debts:'debts', categories:'categories', budgets:'catBudgets' };
         return t(map[col] || col);

@@ -670,6 +670,7 @@ const LANGS = {
       syncPreviewToCloud:'Buluta gönderilecek:',
       syncPreviewConfirm:'Devam edilsin mi?',
       syncPreviewItem:(args)=>`${args&&args.label||''}: ${args&&args.count!=null?args.count:0}`,
+      syncPendingPushIntro:'Buluta gönderilemeyen veriler var:',
 
       // ── Hesap dropdown fallback ───────────────────────────────────────
       noWalletOption:'Hesap yok',
@@ -1171,6 +1172,7 @@ const LANGS = {
       syncPreviewToCloud:'Will be sent to the cloud:',
       syncPreviewConfirm:'Continue?',
       syncPreviewItem:(args)=>`${args&&args.label||''}: ${args&&args.count!=null?args.count:0}`,
+      syncPendingPushIntro:'There is data that could not be sent to the cloud:',
       cloudInactive: 'Cloud not connected',
       
 
