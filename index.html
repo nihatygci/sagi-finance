@@ -3411,6 +3411,22 @@ const Core = {
 // cloud-sync.js window.Core'a inject ediyor — aynı nesneyi göster
 window.Core = Core;
 
+// ── TEŞHİS ARACI (geçici) ──────────────────────────────────────────────
+// "Çıkış Yap → reload sonrası hâlâ dashboard'a atıyor" bugını yakalamak
+// için: sagi_ ile BAŞLAMAYAN ayrı bir key'e (__sagi_diag) iz düşüyoruz —
+// böylece handleKeyNotFoundSignOut()'un kendi wipe'ı bunu SİLMİYOR ve
+// reload sonrasında da okunabiliyor. DevTools/console GEREKMEZ — sonunda
+// düz bir alert() penceresi olarak otomatik çıkar.
+function sagiDiag(msg){
+  try{
+    const arr = JSON.parse(localStorage.getItem('__sagi_diag')||'[]');
+    const t = new Date();
+    const ts = String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0')+'.'+String(t.getMilliseconds()).padStart(3,'0');
+    arr.push(ts+' — '+msg);
+    localStorage.setItem('__sagi_diag', JSON.stringify(arr));
+  }catch(e){}
+}
+
 // ═══════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════
@@ -4500,15 +4516,19 @@ const App = {
         // ÇALIŞTIRMADAN, URL hash'ini temizleyip onboarding'i göster ve
         // fonksiyondan dön — key-not-found durumunda kullandığımız aynı
         // "erken çıkış" örüntüsü.
+        sagiDiag('App.init onboarding kontrolü: onboarded='+Core.state.settings.onboarded+' syncKey="'+Core.state.settings.syncKey+'" wallets.length='+Core.state.wallets.length+' hash='+window.location.hash+' pendingKey='+(function(){try{return localStorage.getItem('sagi_pending_key');}catch(e){return '(err)';}})());
         if(!Core.state.settings.onboarded){
+          sagiDiag('→ ONBOARDING dalı seçildi. Router/BottomBar ATLANACAK.');
           try{ history.replaceState(null,'',window.location.pathname+window.location.search); }catch(e){}
           if(lBar){ lBar.style.width='100%'; }
           if(loader){loader.style.pointerEvents='none';loader.style.opacity='0';setTimeout(()=>{ try{ loader.remove(); }catch(e){} },300);}
           setTimeout(()=>{
             document.getElementById('onboardingScreen').classList.remove('hidden');
+            sagiDiag('onboardingScreen .hidden kaldırıldı. Şu an classList: '+document.getElementById('onboardingScreen').className);
             // Refresh koruması: anahtar oluşturulmuş ama onboarding bitmemişse kaldığı yerden devam et
             const pendingKey = (() => { try{ return localStorage.getItem('sagi_pending_key'); }catch(e){ return null; } })();
             if(pendingKey){
+              sagiDiag('pendingKey bulundu, "key" adımına atlanıyor: '+pendingKey);
               const ob = App.Controllers.Onboarding;
               ob.nextStep('key');
               ob._generatedKey = pendingKey;
@@ -4527,6 +4547,7 @@ const App = {
           },100);
           return;
         }
+        sagiDiag('→ NORMAL dalı seçildi (onboarded=true). Router/BottomBar/Dashboard çalışacak.');
 
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
@@ -7544,7 +7565,10 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       // örüntüsünü kullanıyoruz (sadece uzaktan silme denemesi yok, çünkü
       // doc zaten silinmiş durumda).
       handleKeyNotFoundSignOut(){
-        try { Core.Cloud.signOut(); } catch(e) {}
+        try{ localStorage.removeItem('__sagi_diag'); }catch(e){} // önceki teşhis izini temizle
+        sagiDiag('handleKeyNotFoundSignOut çağrıldı. onboarded='+Core.state.settings.onboarded+' syncKey='+Core.state.settings.syncKey+' hash='+location.hash);
+        try { Core.Cloud.signOut(); } catch(e) { sagiDiag('signOut HATASI: '+e); }
+        sagiDiag('signOut() tamamlandı. onboarded='+Core.state.settings.onboarded);
 
         // TÜM sagi_* localStorage key'lerini sil (onboarded dahil her şey)
         try {
@@ -7553,8 +7577,9 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const k = localStorage.key(i);
             if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
           }
+          sagiDiag('silinecek key\'ler: ['+toRemove.join(', ')+']');
           toRemove.forEach(k => localStorage.removeItem(k));
-        } catch(e) {}
+        } catch(e) { sagiDiag('wipe HATASI: '+e); }
 
         // Marka/font CSS override'larını sıfırla (Plus kullanıcısıydıysa)
         try{
@@ -7569,7 +7594,18 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           document.body.style.fontFamily = '';
         }catch(e){}
 
+        // DOĞRULAMA: wipe gerçekten işe yaradı mı?
+        try {
+          let kalan = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sagi_') === 0) kalan.push(k);
+          }
+          sagiDiag('wipe SONRASI kalan sagi_ key\'ler: ['+kalan.join(', ')+'] (boş olmalı)');
+        } catch(e) {}
+
         UI.Modals.close('modalKeyNotFound');
+        sagiDiag('reload çağrılıyor, hash şu an: ' + location.hash);
         // onboarded=false → reload → onboarding ekranı (ana sayfa DEĞİL)
         location.reload();
       },
@@ -8610,7 +8646,22 @@ App.Controllers.BottomBar = {
   }
 };
 
-document.addEventListener('DOMContentLoaded',()=>App.init());
+document.addEventListener('DOMContentLoaded',()=>{
+  App.init();
+  // Teşhis penceresi: __sagi_diag varsa (handleKeyNotFoundSignOut tarafından
+  // bırakılmış), 1.8sn sonra (init akışı post-reload kararını verdikten
+  // sonra) otomatik bir alert() ile göster. DevTools/console GEREKMEZ.
+  setTimeout(()=>{
+    try{
+      const raw = localStorage.getItem('__sagi_diag');
+      if(raw){
+        localStorage.removeItem('__sagi_diag');
+        const lines = JSON.parse(raw);
+        alert('SAGI TEŞHİS (Çıkış Yap testi)\n\n' + lines.join('\n'));
+      }
+    }catch(e){}
+  }, 1800);
+});
 // ESC ile modal/panel/settings kapama
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
