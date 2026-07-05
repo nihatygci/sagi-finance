@@ -3556,7 +3556,7 @@ const UI = {
       list.innerHTML = (options||[]).map((o,i)=>{
         const isCancel = o.action==='cancel';
         const cls = isCancel ? 'btn btn-outline' : (i===0 ? 'btn btn-primary' : 'btn btn-outline');
-        return `<button class="${cls} w-full" style="justify-content:center" onclick="UI.Confirm._selectOption('${o.action}')">${o.label}</button>`;
+        return `<button class="${cls} w-full" style="justify-content:center;white-space:normal;text-align:center;height:auto;min-height:44px;line-height:1.3" onclick="UI.Confirm._selectOption('${o.action}')">${o.label}</button>`;
       }).join('');
       UI.Modals.open('modalConfirmOptions');
     },
@@ -4027,7 +4027,16 @@ const Notifications = {
     if(notifs.doviz){
       const cached=Core.state.settings._prevRates;
       const current=App.ExchangeRate.rates;
-      if(cached&&cached.TRY&&current.TRY){
+      // KRİTİK FIX (savunma katmanı): App.ExchangeRate.rates, henüz hiç
+      // fetch/cache yüklenmemişse kodun başındaki HARDCODED VARSAYILAN
+      // değerleri taşır (TRY:38.5 gibi) — bu, gerçek bir kur DEĞİL, sadece
+      // bir placeholder. Bunu gerçek kurla kıyaslamak (ya da _prevRates'e
+      // kaydetmek) %20 civarı SAHTE "kur değişimi" bildirimlerine yol
+      // açıyordu. cachedRates gerçekten set edilmeden bu kontrolü hiç
+      // yapmıyoruz — çağrı sırası nereden gelirse gelsin (boot, cloud
+      // update, vs.) artık garantili şekilde korunuyoruz.
+      const rateLoaded = !!(Core.state.settings.cachedRates && Core.state.settings.cachedRates.TRY);
+      if(rateLoaded && cached&&cached.TRY&&current.TRY){
         const change=Math.abs((current.TRY-cached.TRY)/cached.TRY*100);
         if(change>=3){
           const nk='sagi_nt_fx_'+now.getFullYear()+'_'+now.getMonth()+'_'+now.getDate();
@@ -4038,8 +4047,11 @@ const Notifications = {
           }
         }
       }
-      // Bir sonraki check için kaydet
-      if(current.TRY)Core.state.settings._prevRates={...current};
+      // Bir sonraki check için kaydet — SADECE gerçekten yüklenmiş bir kur
+      // varsa. Aksi halde placeholder değer _prevRates'e sızıp bir sonraki
+      // (gerçek kurun yüklü olduğu) kontrolde ters yönde sahte bir
+      // bildirim daha tetikler — asıl bug zincirinin ikinci ayağı buydu.
+      if(rateLoaded && current.TRY)Core.state.settings._prevRates={...current};
     }
 
     // 7. HAFTALIK ÖZET — Pazartesi
@@ -4563,6 +4575,15 @@ const App = {
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         // Cloud sync (varsa) bu noktadan önce zaten tamamlandı — güncel veriyle kontrol et
         App.processRecurring();
+        // KRİTİK FIX: App.ExchangeRate._loadCache() burada, Notifications.check()'ten
+        // ÖNCE çağrılmalı. Eskiden sırası tersti (_loadCache() aşağıda, satır
+        // sonuna yakındı) — bu yüzden check() çalıştığında App.ExchangeRate.rates.TRY
+        // henüz cache'ten yüklenmemiş oluyordu, hâlâ kodun başındaki HARDCODED
+        // VARSAYILAN (38.5) duruyordu. Gerçek kur (~46-47) ile bu placeholder
+        // kıyaslanınca %20 civarı SAHTE bir "kur değişimi" bildirimi
+        // üretiliyordu — üstelik bu sahte değer _prevRates'e kaydedilip bir
+        // sonraki günde TERS yönde bir sahte bildirim daha tetikliyordu.
+        App.ExchangeRate._loadCache();
         Notifications.check();
         // Periyodik bildirim kontrolü — sekme açık kaldığında da çalışsın (her saat)
         setInterval(()=>{ try{ App.processRecurring(); Notifications.check(); }catch(e){} }, 60*60*1000);
@@ -6863,13 +6884,13 @@ const App = {
         const amountInGoalCur=App.ExchangeRate.convert(a,txCur,gc);
         if(Core.temp.goalType==='add'){
           g.current+=amountInGoalCur;
-          const tx={id:Core.Utils.generateId(),type:'expense',amount:deductFromWallet,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0],rateSnapshot:{...App.ExchangeRate.rates}};
+          const tx={id:Core.Utils.generateId(),type:'expense',amount:deductFromWallet,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }else{
           const remGoalCur=Math.min(g.current,amountInGoalCur);
           g.current-=remGoalCur;
           const backInWalletCur=App.ExchangeRate.convert(remGoalCur,gc,wc);
-          const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString().split('T')[0],rateSnapshot:{...App.ExchangeRate.rates}};
+          const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }
         Core.DB.saveNow();UI.Modals.close('modalGoalAction');this.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();App.Controllers.Dashboard.render();UI.Toasts.show(t('msgActionDone'));
@@ -7707,8 +7728,13 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       cloudDeleteAccount(){
         const hasKey = !!(Core.state.settings.syncKey);
         if (!hasKey) {
+          // NOT: this.factoryReset() ÇAĞIRMA — o kendi onay modalını
+          // açar ve bu, zaten açık olan bu onayla çakışıp hiçbir şey
+          // silinmeden modalın anında kapanmasına yol açardı (bkz.
+          // _doFactoryReset() üzerindeki açıklama). Tek onay yeterli,
+          // direkt asıl silme mantığını çağırıyoruz.
           UI.Confirm.show(t('confNoKeyDeleteLocal'), ()=>{
-            this.factoryReset();
+            this._doFactoryReset();
           });
           return;
         }
@@ -8162,68 +8188,86 @@ _executeImport(){
         reader.readAsText(f,'UTF-8');
       },
       factoryReset(){
-        UI.Confirm.show(t('confFactory'), async ()=>{
-          // Listener'ı kapat ama key'i TUTUYORUZ
-          try{ Core.Cloud.detachListener(); }catch(e){}
+        UI.Confirm.show(t('confFactory'), ()=>this._doFactoryReset());
+      },
 
-          // Finansal veriyi ve Plus ayarlarını sıfırla
-          const key  = Core.state.settings.syncKey;
-          const lang = Core.state.settings.lang  || 'tr';
-          const theme= Core.state.settings.theme || 'light';
-          // Temel state sıfırla ama key + onboarded + tema/dil kalsın
-          Core.state.wallets      = [];
-          Core.state.transactions = [];
-          Core.state.recurring    = [];
-          Core.state.goals        = [];
-          Core.state.debts        = [];
-          Core.state.budgets      = [];
-          Core.state.categories   = [];
-          Core.state._tombstones  = {};
-          Core.state.settings.plusPlan         = '';
-          Core.state.settings.plusFont         = '';
-          Core.state.settings.plusColor        = '';
-          Core.state.settings.plusCustomColors = [];
-          Core.state.settings.plusKey          = '';
-          Core.state.settings.chatTrialStart   = '';
-          Core.state.settings.lastModified     = Date.now();
-          // key + onboarded korunuyor → reload'da ana sayfaya gider
-          Core.state.settings.syncKey  = key;
-          Core.state.settings.onboarded= true;
-          Core.state.settings.lang     = lang;
-          Core.state.settings.theme    = theme;
+      // Asıl "tüm verileri sil" mantığı — kendi onayını GÖSTERMEZ, çağıran
+      // yer zaten kendi onayını almış olmalı.
+      //
+      // KRİTİK FIX: Bu mantık eskiden factoryReset() içinde, kendi
+      // UI.Confirm.show() çağrısına gömülüydü. cloudDeleteAccount()'un
+      // key-yok dalı ise ZATEN bir onay almış olmasına rağmen callback'i
+      // içinde factoryReset()'i çağırıyordu — bu da İKİNCİ bir onay
+      // modalı açmaya çalışıyordu. UI.Confirm tek modal/tek callback
+      // slotu üzerinden çalıştığı için (execute() ÖNCE callback'i
+      // çağırıp SONRA modalı kapatıyor), şu çakışma oluşuyordu: callback
+      // içindeki factoryReset() yeni modalı açıyor, callback bitince
+      // execute() kendi kapatma satırını çalıştırıp AZ ÖNCE AÇILAN o
+      // modalı hemen kapatıyordu — kullanıcı ikinci onaya hiç "Evet"
+      // diyemeden modal kapanıyor, silme hiç gerçekleşmiyordu ("1 saniye
+      // görünüp gidiyor, hiçbir şey olmuyor" bug'ı buydu). Çözüm: iç içe
+      // onayı tamamen kaldırıp, tek onayla direkt asıl işlemi çağırmak.
+      async _doFactoryReset(){
+        // Listener'ı kapat ama key'i TUTUYORUZ
+        try{ Core.Cloud.detachListener(); }catch(e){}
 
-          // localStorage: sagi_* sil ama ana DB key'ini temizlenmiş state ile yaz
-          try {
-            const toRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const k = localStorage.key(i);
-              if (k && k.indexOf('sagi_') === 0 && k !== Core.DB.key) toRemove.push(k);
-            }
-            toRemove.forEach(k => localStorage.removeItem(k));
-            localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
-          } catch(e) {}
+        // Finansal veriyi ve Plus ayarlarını sıfırla
+        const key  = Core.state.settings.syncKey;
+        const lang = Core.state.settings.lang  || 'tr';
+        const theme= Core.state.settings.theme || 'light';
+        // Temel state sıfırla ama key + onboarded + tema/dil kalsın
+        Core.state.wallets      = [];
+        Core.state.transactions = [];
+        Core.state.recurring    = [];
+        Core.state.goals        = [];
+        Core.state.debts        = [];
+        Core.state.budgets      = [];
+        Core.state.categories   = [];
+        Core.state._tombstones  = {};
+        Core.state.settings.plusPlan         = '';
+        Core.state.settings.plusFont         = '';
+        Core.state.settings.plusColor        = '';
+        Core.state.settings.plusCustomColors = [];
+        Core.state.settings.plusKey          = '';
+        Core.state.settings.chatTrialStart   = '';
+        Core.state.settings.lastModified     = Date.now();
+        // key + onboarded korunuyor → reload'da ana sayfaya gider
+        Core.state.settings.syncKey  = key;
+        Core.state.settings.onboarded= true;
+        Core.state.settings.lang     = lang;
+        Core.state.settings.theme    = theme;
 
-          // CSS sıfırla
-          try{
-            const el = document.documentElement;
-            el.style.removeProperty('--brand-accent');
-            el.style.removeProperty('--brand-accent-light');
-            el.style.removeProperty('--brand-accent-subtle');
-            el.style.removeProperty('--brand-accent-soft');
-            el.style.removeProperty('--brand-accent-medium');
-            el.style.removeProperty('--font-display');
-            el.style.removeProperty('--font-sans');
-            document.body.style.fontFamily = '';
-          }catch(e){}
-
-          // Key bağlıysa listener'ı yeniden bağla (temiz veri cloud'a push edilecek)
-          if (key) {
-            try { Core.Cloud.attachListener(); } catch(e) {}
-            try { Core.DB.saveNow(); } catch(e) {}
+        // localStorage: sagi_* sil ama ana DB key'ini temizlenmiş state ile yaz
+        try {
+          const toRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sagi_') === 0 && k !== Core.DB.key) toRemove.push(k);
           }
+          toRemove.forEach(k => localStorage.removeItem(k));
+          localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        } catch(e) {}
 
-          location.reload();
-        });
+        // CSS sıfırla
+        try{
+          const el = document.documentElement;
+          el.style.removeProperty('--brand-accent');
+          el.style.removeProperty('--brand-accent-light');
+          el.style.removeProperty('--brand-accent-subtle');
+          el.style.removeProperty('--brand-accent-soft');
+          el.style.removeProperty('--brand-accent-medium');
+          el.style.removeProperty('--font-display');
+          el.style.removeProperty('--font-sans');
+          document.body.style.fontFamily = '';
+        }catch(e){}
+
+        // Key bağlıysa listener'ı yeniden bağla (temiz veri cloud'a push edilecek)
+        if (key) {
+          try { Core.Cloud.attachListener(); } catch(e) {}
+          try { Core.DB.saveNow(); } catch(e) {}
+        }
+
+        location.reload();
       },
     }
   }
