@@ -3062,6 +3062,35 @@ function _collectIdSet(state){
   });
   return sets;
 }
+
+// ── KRİTİK FIX: pull/onSnapshot sonrası tombstone taban çizgisini tazele ──
+// Bulunan bug: cloud-sync.js'nin _pull()/onSnapshot merge noktaları,
+// Core.state'i buluttan gelen merge sonucuyla DEĞİŞTİRİYORDU ama
+// _prevIdSets / _prevItemSnapshots'ı (yani "bir önceki bilinen durum"
+// referansını) hiç güncellemiyordu — bu sadece Core.DB.load() içinde
+// tazeleniyordu (sayfa ilk açılışta, PULL'DAN ÖNCE).
+//
+// Sonuç: Cihaz A'dan bir kayıt pull ile gelip Core.state'e eklendiğinde,
+// _prevIdSets bu kaydı HİÇ görmemiş oluyordu. Kullanıcı hemen o kaydı
+// silerse, _updateTombstones() "önceki liste"yle "şimdiki liste"yi
+// kıyaslarken kaydı zaten önceki listede bulamıyor, dolayısıyla
+// hiçbir tombstone üretmiyordu. Push, kaydı diziden çıkarılmış ama
+// tombstone'suz olarak buluta yazıyordu. Başka bir cihaz (ör. kaydın
+// asıl kaynağı) senkronladığında, tombstone olmadığı için mergeState()
+// bu kaydı "yerel-yeni, korunması gereken bir ekleme" sanıp GERİ
+// EKLİYORDU — silinen kayıt diğer cihazda hayalet gibi geri geliyordu.
+//
+// Çözüm: cloud-sync.js, Core.state'i bir merge sonucuyla değiştirdiği
+// HER noktada bu fonksiyonu çağırıyor — böylece bir sonraki silme
+// işlemi doğru "önceki durum" referansına göre kıyaslanıp doğru
+// şekilde tombstone'lanıyor.
+window._refreshMergeBaseline = function(){
+  try {
+    _prevIdSets = _collectIdSet(Core.state);
+    _captureItemSnapshots();
+  } catch(e) {}
+};
+
 function _updateTombstones(state){
   const currentSets = _collectIdSet(state);
   if(_prevIdSets){

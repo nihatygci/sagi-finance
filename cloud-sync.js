@@ -449,6 +449,10 @@
       merged.settings.syncKey = key;
 
       Core.state = merged;
+      // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
+      // Bu çağrı olmadan, buradan gelen yeni kayıtlar hemen silinirse
+      // tombstone üretilmez, silme diğer cihazlara yansımaz.
+      if (typeof window._refreshMergeBaseline === 'function') window._refreshMergeBaseline();
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
       // NOT: clearPendingPush burada YOK — pending flag sadece push başarıyla
       // tamamlandığında silinir. Pull, remote'tan veri alsa bile local'de
@@ -512,6 +516,8 @@
               const merged = _merge(Core.state, remoteState);
               merged.settings.syncKey = key;
               Core.state = merged;
+              // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
+              if (typeof window._refreshMergeBaseline === 'function') window._refreshMergeBaseline();
               _lastSyncedVersion = remoteVer;
               didMerge = true;
             }
@@ -654,6 +660,8 @@
           merged.settings.syncKey = Core.state.settings.syncKey;
 
           Core.state = merged;
+          // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
+          if (typeof window._refreshMergeBaseline === 'function') window._refreshMergeBaseline();
           localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
 
           try { Core.emit('stateChanged', Core.state); } catch (e) {}
@@ -970,6 +978,11 @@
         fresh.settings.lang  = fresh.settings.lang  || Core.state.settings.lang;
 
         Core.state = fresh;
+        // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
+        // Burada "merge" değil tam bir REPLACE var ama sonuç aynı: Core.state
+        // dışarıdan değişti, taban çizgisi (_prevIdSets) buna göre tazelenmezse
+        // sonraki bir silme işlemi tombstone'suz kalır.
+        if (typeof window._refreshMergeBaseline === 'function') window._refreshMergeBaseline();
         localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
         Core.DB.clearPendingPush();
 
@@ -1059,6 +1072,8 @@
         },
         wallets: [], transactions: [], recurring: [], goals: [], debts: [], categories: [], budgets: [], _tombstones: {},
       };
+      // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
+      if (typeof window._refreshMergeBaseline === 'function') window._refreshMergeBaseline();
       this._emitStatus('idle');
       try { Core.emit('stateChanged', Core.state); } catch (e) {}
     },
