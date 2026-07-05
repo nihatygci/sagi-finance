@@ -8213,7 +8213,14 @@ _executeImport(){
 
         // Finansal veriyi ve Plus ayarlarını sıfırla
         const key  = Core.state.settings.syncKey;
-        const lang = Core.state.settings.lang  || 'tr';
+        // KRİTİK FIX: "Tüm Verileri Sil" de bir "hesap verisi sıfırlama"
+        // senaryosu — kullanıcı bunu ilk kurulummuş gibi cihaz diline göre
+        // yeniden başlamasını istiyor. Eskiden burada eski dil aynen
+        // KORUNUYORDU (Core.state.settings.lang || 'tr'); artık cihaz
+        // dilini (navigator.language) yeniden algılıyoruz — tıpkı ilk
+        // açılıştaki LANG IIFE'nin yaptığı gibi.
+        const navLang = (navigator.language || navigator.userLanguage || 'tr').toLowerCase();
+        const lang = navLang.startsWith('tr') ? 'tr' : 'en';
         const theme= Core.state.settings.theme || 'light';
         // Temel state sıfırla ama key + onboarded + tema/dil kalsın
         Core.state.wallets      = [];

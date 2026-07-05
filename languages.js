@@ -1448,6 +1448,22 @@ function applyLang() {
     }
   });
 
+  // Dil seçim butonlarının "aktif" görünümünü senkronize et.
+  // KRİTİK FIX: Bu senkronizasyon eskiden SADECE manuel setLang()
+  // tıklamasında yapılıyordu. Cihaz dili otomatik algılandığında
+  // (navigator.language, bkz. LANG IIFE) applyLang() metinleri doğru
+  // çeviriyordu ama TR/EN seçim butonları bunu hiç yansıtmıyordu —
+  // kullanıcı ekranı İngilizce görürken dil seçici hâlâ "Türkçe"
+  // seçili gösterebiliyordu (ya da ikisi de seçili görünmüyordu).
+  ['ob_lang_tr','ob_lang_en'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b) b.classList.toggle('active', id==='ob_lang_'+LANG);
+  });
+  ['set_lang_tr','set_lang_en'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b) b.classList.toggle('active', id==='set_lang_'+LANG);
+  });
+
   // Aktif sayfayı yeniden render et — dinamik render edilen kategoriler/empty state
   if (typeof App !== 'undefined' && App.Controllers) {
     const hash = window.location.hash.replace('#','') || '/dashboard';
