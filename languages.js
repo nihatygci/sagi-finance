@@ -375,6 +375,12 @@ const LANGS = {
       selectCsvFile:'CSV Dosyası Seç',
       confDeleteAccount:'<strong style=\"color:var(--status-danger)\">Bu işlem geri alınamaz.</strong><br><br><strong>Silinecekler:</strong><br>• Tüm işlemler, hesaplar, abonelikler, hedefler, borçlar<br>• Bu cihazdaki yerel veriler<br>• Bulut anahtarınıza bağlı tüm veriler<br>• Bulut anahtarının kendisi<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Not:</strong> Anahtar da silineceği için hiçbir cihazdan erişim kalmaz. Yalnızca bu cihazdan çıkmak istiyorsanız <em>Bulut Bağlantısını Kes</em> seçeneğini kullanın.</span><br><br>Hesabı kalıcı olarak silmek istiyor musunuz?',
       accountDeleted:'Hesabınız silindi.',
+      deleteAccountConfirmTitle:'Hesabı Sil',
+      deleteAccountPlusWarnTitle:'SAGI Plus üyeliğiniz var.',
+      deleteAccountPlusWarnBody:' Bu hesabı silmek Plus erişiminizi de kalıcı olarak sonlandırır. Ödemeniz otomatik iade edilmez — iade için satın alma platformunuzun (Google Play vb.) iade politikasına başvurmanız gerekir.',
+      deleteAccountYourKey:'Anahtarınız:',
+      deleteAccountTypeKey:'Silmeyi onaylamak için anahtarınızı tam olarak yazın:',
+      deleteAccountConfirmBtn:'Hesabımı Sil',
 
       // Analiz sayfası — hardcoded
       forecastLabel:'Tahmini',
@@ -1291,6 +1297,12 @@ const LANGS = {
       selectCsvFile:'Select CSV File',
       confDeleteAccount:'<strong style=\"color:var(--status-danger)\">This action cannot be undone.</strong><br><br><strong>What will be deleted:</strong><br>• All transactions, accounts, subscriptions, goals, debts<br>• Locally stored data on this device<br>• All data linked to your cloud key<br>• The cloud key itself<br><br><span style=\"color:var(--text-muted);font-size:13px\"><strong>Note:</strong> Since the key is also deleted, no device will be able to access this account. If you only want to disconnect this device, use <em>Disconnect Cloud</em> instead.</span><br><br>Permanently delete your account?',
       accountDeleted:'Your account has been deleted.',
+      deleteAccountConfirmTitle:'Delete Account',
+      deleteAccountPlusWarnTitle:'You have a SAGI Plus membership.',
+      deleteAccountPlusWarnBody:' Deleting this account will also permanently end your Plus access. Your payment will not be refunded automatically — for a refund, contact your purchase platform (Google Play, etc.) directly.',
+      deleteAccountYourKey:'Your key:',
+      deleteAccountTypeKey:'Type your key exactly to confirm deletion:',
+      deleteAccountConfirmBtn:'Delete My Account',
 
       // Analytics page — hardcoded
       forecastLabel:'Forecast',

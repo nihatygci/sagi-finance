@@ -2294,6 +2294,37 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
   </div>
 </div>
 
+<!-- HESABI SİL — güçlendirilmiş onay: anahtarın tam halini yazma zorunlu.
+     Yanlışlıkla tek tık ile hesap/Plus kaybını önlemek için. -->
+<div class="modal-overlay" id="modalDeleteAccountConfirm">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon danger"><svg><use href="#icon-alert"/></svg></div>
+        <h3 class="modal-title" data-i18n="deleteAccountConfirmTitle">Hesabı Sil</h3>
+      </div>
+      <button class="act-btn" onclick="UI.Modals.close('modalDeleteAccountConfirm')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:15px;color:var(--text-secondary);line-height:1.6" data-i18n-html="confDeleteAccount">Bu işlem geri alınamaz. Bulut verileriniz kalıcı olarak silinecek.</p>
+      <div id="deleteAccountPlusWarning" style="display:none;margin-top:12px;padding:12px 14px;background:var(--status-danger-bg);border:1px solid var(--status-danger);border-radius:var(--radius-md);font-size:13.5px;color:var(--status-danger);line-height:1.5">
+        <strong data-i18n="deleteAccountPlusWarnTitle">SAGI Plus üyeliğiniz var.</strong>
+        <span data-i18n="deleteAccountPlusWarnBody"> Bu hesabı silmek Plus erişiminizi de kalıcı olarak sonlandırır. Ödemeniz otomatik iade edilmez — iade için satın alma platformunuzun (Google Play vb.) iade politikasına başvurmanız gerekir.</span>
+      </div>
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg-body);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px" data-i18n="deleteAccountYourKey">Anahtarınız:</div>
+        <div id="deleteAccountKeyDisplay" style="font-family:monospace;font-size:15px;font-weight:700;letter-spacing:.5px;color:var(--text-main);user-select:all"></div>
+      </div>
+      <label style="display:block;margin-top:14px;font-size:13px;color:var(--text-secondary)" data-i18n="deleteAccountTypeKey">Silmeyi onaylamak için anahtarınızı tam olarak yazın:</label>
+      <input type="text" id="deleteAccountKeyInput" class="form-control" style="margin-top:6px;font-family:monospace;letter-spacing:.5px" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="App.Controllers.Settings._checkDeleteAccountInput()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" data-i18n="cancel" onclick="UI.Modals.close('modalDeleteAccountConfirm')">İptal</button>
+      <button class="btn btn-danger" id="deleteAccountConfirmBtn" disabled style="opacity:.5;cursor:not-allowed" onclick="App.Controllers.Settings._executeDeleteAccount()" data-i18n="deleteAccountConfirmBtn">Hesabımı Sil</button>
+    </div>
+  </div>
+</div>
+
 <!-- ANAHTAR BULUNAMADI UYARISI — kapatılamaz (X yok), tek çıkış yolu "Çıkış Yap" -->
 <div class="modal-overlay" id="modalKeyNotFound" style="z-index:9999">
   <div class="modal-content modal-sm">
@@ -7738,37 +7769,82 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           });
           return;
         }
-        UI.Confirm.show(t('confDeleteAccount'), async ()=>{
-          // Firestore'daki key'i ve tüm veriyi sil
-          try { await Core.Cloud.deleteAccount(); } catch(e) { console.warn('[deleteAccount]', e); }
 
-          // TÜM sagi_* localStorage key'lerini sil (key dahil)
-          try {
-            const toRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const k = localStorage.key(i);
-              if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
-            }
-            toRemove.forEach(k => localStorage.removeItem(k));
-          } catch(e) {}
+        // GÜÇLENDİRİLMİŞ ONAY: kullanıcı gerçek parayla Plus almış olabilir
+        // ("kullanıcı para ödüyor, yanlışlıkla silindi tüh mü diyeceğiz" —
+        // hayır demeyeceğiz). Tek tık "Evet" yerine anahtarın TAM halini
+        // yazdırıyoruz. Plus'sa ekstra, göz ardı edilemez bir uyarı da
+        // gösteriyoruz. Kullanıcı kendi key'inden sorumlu — bizim işimiz
+        // yanlışlıkla/dikkatsizce silmeyi mümkün olduğunca zorlaştırmak.
+        const key = Core.state.settings.syncKey;
+        const isPlus = key.startsWith('PLUS-');
 
-          // CSS sıfırla
-          try{
-            const el = document.documentElement;
-            el.style.removeProperty('--brand-accent');
-            el.style.removeProperty('--brand-accent-light');
-            el.style.removeProperty('--brand-accent-subtle');
-            el.style.removeProperty('--brand-accent-soft');
-            el.style.removeProperty('--brand-accent-medium');
-            el.style.removeProperty('--font-display');
-            el.style.removeProperty('--font-sans');
-            document.body.style.fontFamily = '';
-          }catch(e){}
+        document.getElementById('deleteAccountKeyDisplay').textContent = key;
+        document.getElementById('deleteAccountPlusWarning').style.display = isPlus ? 'block' : 'none';
+        const input = document.getElementById('deleteAccountKeyInput');
+        input.value = '';
+        this._checkDeleteAccountInput(); // buton disabled state'ini sıfırla
 
-          // onboarded=false → reload → onboarding/login ekranı
-          UI.Toasts.show(t('accountDeleted'),'success');
-          setTimeout(()=>location.reload(), 800);
-        });
+        UI.Modals.open('modalDeleteAccountConfirm');
+        setTimeout(()=>input.focus(), 150);
+      },
+
+      // Girilen metin key ile eşleşiyor mu — eşleşiyorsa sil butonunu aç.
+      // Tire ve büyük/küçük harf farkını tolere ediyoruz (kullanıcı deneyimi
+      // için makul bir esneklik — güvenlik açığı değil, zaten kendi key'i).
+      _checkDeleteAccountInput(){
+        const input = document.getElementById('deleteAccountKeyInput');
+        const btn   = document.getElementById('deleteAccountConfirmBtn');
+        if (!input || !btn) return;
+        const norm = s => (s||'').replace(/-/g,'').toUpperCase();
+        const match = input.value.length>0 && norm(input.value)===norm(Core.state.settings.syncKey);
+        btn.disabled = !match;
+        btn.style.opacity = match ? '1' : '.5';
+        btn.style.cursor = match ? 'pointer' : 'not-allowed';
+      },
+
+      // Asıl silme mantığı — modaldaki "Hesabımı Sil" butonuna bağlı.
+      // Buton zaten anahtar tam eşleşmeden disabled kalıyor ama burada da
+      // ikinci bir güvenlik kontrolü yapıyoruz (ör. disabled attribute'u
+      // devtools'tan manuel kaldırılırsa bile silme gerçekleşmesin).
+      async _executeDeleteAccount(){
+        const btn = document.getElementById('deleteAccountConfirmBtn');
+        if (btn && btn.disabled) return;
+        const input = document.getElementById('deleteAccountKeyInput');
+        const norm = s => (s||'').replace(/-/g,'').toUpperCase();
+        if (!input || norm(input.value) !== norm(Core.state.settings.syncKey)) return;
+
+        UI.Modals.close('modalDeleteAccountConfirm');
+
+        // Firestore'daki key'i ve tüm veriyi sil
+        try { await Core.Cloud.deleteAccount(); } catch(e) { console.warn('[deleteAccount]', e); }
+
+        // TÜM sagi_* localStorage key'lerini sil (key dahil)
+        try {
+          const toRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
+          }
+          toRemove.forEach(k => localStorage.removeItem(k));
+        } catch(e) {}
+
+        // CSS sıfırla
+        try{
+          const el = document.documentElement;
+          el.style.removeProperty('--brand-accent');
+          el.style.removeProperty('--brand-accent-light');
+          el.style.removeProperty('--brand-accent-subtle');
+          el.style.removeProperty('--brand-accent-soft');
+          el.style.removeProperty('--brand-accent-medium');
+          el.style.removeProperty('--font-display');
+          el.style.removeProperty('--font-sans');
+          document.body.style.fontFamily = '';
+        }catch(e){}
+
+        // onboarded=false → reload → onboarding/login ekranı
+        UI.Toasts.show(t('accountDeleted'),'success');
+        setTimeout(()=>location.reload(), 800);
       },
 
       async cloudCreate(){
