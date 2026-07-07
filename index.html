@@ -4433,6 +4433,7 @@ const App = {
     const loader=document.getElementById('appLoader'),lBar=document.getElementById('loaderBar');
     if(lBar)lBar.style.width='30%';
     Core.DB.load();
+    if(App.Plus&&typeof App.Plus.checkExpiry==='function')App.Plus.checkExpiry();
     if(Core.state.settings&&Core.state.settings.lang)window.LANG=Core.state.settings.lang;
     if(Core.state.settings.theme)App.Controllers.Settings.applyTheme();
     setTimeout(()=>{
@@ -7871,11 +7872,16 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
                 Core.state.debts = []; Core.state.categories = []; Core.state.budgets = [];
                 Core.state.recurring = []; Core.state._tombstones = {};
                 // Plus ayarlarını tamamen sıfırla — hem state'ten hem localStorage'dan
-                Core.state.settings.plusPlan         = '';
-                Core.state.settings.plusFont         = '';
-                Core.state.settings.plusColor        = '';
-                Core.state.settings.plusCustomColors = [];
-                Core.state.settings.plusKey          = '';
+                Core.state.settings.plusPlan          = '';
+                Core.state.settings.plusFont          = '';
+                Core.state.settings.plusColor         = '';
+                Core.state.settings.plusCustomColors  = [];
+                Core.state.settings.plusKey           = '';
+                Core.state.settings.plusStatus        = '';
+                Core.state.settings.plusExpiresAt     = null;
+                Core.state.settings.plusCancelledAt   = '';
+                Core.state.settings.plusProvider      = '';
+                Core.state.settings.plusPurchaseToken = '';
                 // localStorage temizle
                 try {
                   ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors'].forEach(k => localStorage.removeItem(k));
@@ -8307,13 +8313,18 @@ _executeImport(){
         Core.state.budgets      = [];
         Core.state.categories   = [];
         Core.state._tombstones  = {};
-        Core.state.settings.plusPlan         = '';
-        Core.state.settings.plusFont         = '';
-        Core.state.settings.plusColor        = '';
-        Core.state.settings.plusCustomColors = [];
-        Core.state.settings.plusKey          = '';
-        Core.state.settings.chatTrialStart   = '';
-        Core.state.settings.lastModified     = Date.now();
+        Core.state.settings.plusPlan          = '';
+        Core.state.settings.plusFont          = '';
+        Core.state.settings.plusColor         = '';
+        Core.state.settings.plusCustomColors  = [];
+        Core.state.settings.plusKey           = '';
+        Core.state.settings.chatTrialStart    = '';
+        Core.state.settings.plusStatus        = '';
+        Core.state.settings.plusExpiresAt     = null;
+        Core.state.settings.plusCancelledAt   = '';
+        Core.state.settings.plusProvider      = '';
+        Core.state.settings.plusPurchaseToken = '';
+        Core.state.settings.lastModified      = Date.now();
         // key + onboarded korunuyor → reload'da ana sayfaya gider
         Core.state.settings.syncKey  = key;
         Core.state.settings.onboarded= true;

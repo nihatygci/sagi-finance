@@ -885,12 +885,17 @@
       // Plus kimlik bilgilerini HER ZAMAN sıfırla — yeni hesap Plus'sız başlar.
       // Eski bir Plus key'den çıkıp yeni hesap oluşturulsa bile, önceki hesabın
       // Plus rengi/fontu/planı yeni hesaba sızmamalı.
-      Core.state.settings.plusPlan         = '';
-      Core.state.settings.plusFont         = '';
-      Core.state.settings.plusColor        = '';
-      Core.state.settings.plusCustomColors = [];
-      Core.state.settings.plusKey          = '';
-      Core.state.settings.chatTrialStart   = '';
+      Core.state.settings.plusPlan          = '';
+      Core.state.settings.plusFont          = '';
+      Core.state.settings.plusColor         = '';
+      Core.state.settings.plusCustomColors  = [];
+      Core.state.settings.plusKey           = '';
+      Core.state.settings.chatTrialStart    = '';
+      Core.state.settings.plusStatus        = '';
+      Core.state.settings.plusExpiresAt     = null;
+      Core.state.settings.plusCancelledAt   = '';
+      Core.state.settings.plusProvider      = '';
+      Core.state.settings.plusPurchaseToken = '';
       // CSS görsel sıfırla
       try {
         const el = document.documentElement;
@@ -999,6 +1004,119 @@
 
       await this._boot();
       return Core.state;
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    // PLUS SATIN ALMA — upgrade / cancel / restore
+    // syncKey'in PLUS- prefix'i KALICIDIR, asla değiştirilmez (doc ID key'den
+    // türetiliyor — prefix değişirse kullanıcı farklı bir Firestore dokümanına
+    // düşer ve verisi "kaybolmuş" görünür). Gerçek erişim plusStatus/
+    // plusExpiresAt alanlarıyla kontrol edilir.
+    // ══════════════════════════════════════════════════════════════════════
+
+    // purchaseInfo: { purchaseToken, provider ('google_play'), plan ('monthly'|'yearly'|'lifetime'), expiresAt (ms epoch|null — lifetime için null) }
+    // Worker tarafında purchaseToken DOĞRULANDIKTAN SONRA çağrılmalı.
+    async upgradeToPlus(purchaseInfo) {
+      if (!this.isAvailable()) throw new Error('CLOUD_UNAVAILABLE');
+      const currentKey = Core.state.settings.syncKey;
+      if (!currentKey) throw new Error('NO_SYNC_KEY');
+
+      const alreadyPlusKey = currentKey.startsWith('PLUS-');
+      const plusKey = alreadyPlusKey ? currentKey : ('PLUS-' + currentKey.replace(/^PLUS-/, ''));
+
+      Core.state.settings.plusStatus        = 'active';
+      Core.state.settings.plusExpiresAt     = purchaseInfo.expiresAt || null; // lifetime = null
+      Core.state.settings.plusCancelledAt   = '';
+      Core.state.settings.plusProvider      = purchaseInfo.provider || 'google_play';
+      Core.state.settings.plusPurchaseToken = purchaseInfo.purchaseToken || '';
+      Core.state.settings.plusPlan          = purchaseInfo.plan || 'lifetime';
+      Core.state.settings.lastModified      = Date.now();
+
+      if (alreadyPlusKey) {
+        // Zaten PLUS- key'deyiz (yeniden abone olma / restore) — sadece push et.
+        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        await this._docRef(plusKey).set({
+          state:        _stateForCloud(Core.state),
+          lastModified: Core.state.settings.lastModified,
+          version:      firebase.firestore.FieldValue.increment(1),
+        }, { merge: true });
+        this._emitStatus('ok');
+        try { Core.emit('stateChanged', Core.state); } catch (e) {}
+        return plusKey;
+      }
+
+      // İlk kez Plus'a geçiliyor: finansal veriyi PLUS-{key} dokümanına kopyala,
+      // plain dokümanda forwardKey bırak (böylece _resolvePlusKey eski
+      // cihaz/sekmeleri otomatik olarak PLUS-key'e yönlendirir).
+      Core.state.settings.syncKey = plusKey;
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+
+      const payload = {
+        state:        _stateForCloud(Core.state),
+        lastModified: Core.state.settings.lastModified,
+        version:      1,
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      };
+
+      try {
+        await this._docRef(plusKey).set(payload);
+      } catch (e) {
+        console.error('[Cloud] upgradeToPlus yazma hatası:', e);
+        this.lastError = e.message || 'write-failed';
+        this._emitStatus('error');
+        throw e;
+      }
+
+      try {
+        await this._docRef(currentKey).set({ forwardKey: plusKey }, { merge: true });
+      } catch (e) {
+        console.warn('[Cloud] upgradeToPlus: forwardKey yazılamadı (kritik değil):', e);
+      }
+
+      _lastSyncedVersion = 1;
+      _lastPushedVersion = 1;
+      this._markKeyConfirmed(plusKey);
+      this._attachListener(plusKey);
+      this._emitStatus('ok');
+      try { Core.emit('stateChanged', Core.state); } catch (e) {}
+      return plusKey;
+    },
+
+    // ── COPF: Cancellation of Plus Features ──────────────────────────────
+    // Anında erişimi KESMEZ — plusExpiresAt'e kadar Plus özellikleri çalışmaya
+    // devam eder (standart abonelik iptali UX'i). syncKey DEĞİŞMEZ.
+    async cancelPlus() {
+      if (!(typeof App !== 'undefined' && App.Plus && App.Plus.isPlusUser())) {
+        throw new Error('NOT_PLUS_USER');
+      }
+      const s = Core.state.settings;
+
+      s.plusStatus      = 'cancelled';
+      s.plusCancelledAt = Date.now();
+      s.lastModified     = Date.now();
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+
+      if (this.isAvailable() && s.syncKey) {
+        try {
+          await this._docRef(s.syncKey).set({
+            state:        _stateForCloud(Core.state),
+            lastModified: s.lastModified,
+            version:      firebase.firestore.FieldValue.increment(1),
+          }, { merge: true });
+        } catch (e) {
+          console.warn('[Cloud] cancelPlus: push hatası (local zaten güncellendi):', e);
+        }
+      }
+      try { Core.emit('stateChanged', Core.state); } catch (e) {}
+      return true;
+    },
+
+    // ── Restore Purchases (iskelet) ───────────────────────────────────────
+    // Google Play Billing / Digital Goods API'den purchase geçmişini okuyup
+    // purchaseToken'ı worker'a gönderip doğrulatarak upgradeToPlus() çağıracak.
+    // Billing entegrasyonu (ayrı iş) kodlanınca burası doldurulacak.
+    async restorePurchases() {
+      throw new Error('NOT_IMPLEMENTED');
     },
 
     // Local state'te kullanıcı için anlamlı sayılacak veri var mı?
