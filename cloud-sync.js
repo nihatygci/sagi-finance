@@ -1082,6 +1082,23 @@
       return plusKey;
     },
 
+    // ── Gerçek satın alma akışı bunu kullanır ─────────────────────────────
+    // Worker'ın /verify-purchase endpoint'i purchaseToken'ı Play API'ye
+    // doğrulattıktan SONRA Firestore'a authoritative veriyi zaten yazdı.
+    // Client'ın işi: syncKey'i plusKey'e çevirip cloud'dan TAZE veriyi çekmek.
+    // (upgradeToPlus() client-side yazan eski/manuel yol — worker akışı
+    // kurulduktan sonra sadece dev/test fallback'i olarak kalır.)
+    async applyVerifiedPlusKey(plusKey) {
+      if (!this.isValidKey(plusKey)) throw new Error('INVALID_KEY');
+      Core.state.settings.syncKey = plusKey;
+      localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+      if (this.isAvailable()) {
+        await this.loginWithKey(plusKey, 'replace');
+      }
+      try { Core.emit('stateChanged', Core.state); } catch (e) {}
+      return Core.state;
+    },
+
     // ── COPF: Cancellation of Plus Features ──────────────────────────────
     // Anında erişimi KESMEZ — plusExpiresAt'e kadar Plus özellikleri çalışmaya
     // devam eder (standart abonelik iptali UX'i). syncKey DEĞİŞMEZ.
