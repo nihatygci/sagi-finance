@@ -3659,9 +3659,17 @@ const UI = {
       const GRID=isDark?'rgba(255,255,255,.10)':'#e5e7eb';
       const W=360,H=210,PAD_T=18,PAD_B=34,CHART_H=H-PAD_B-PAD_T;
       const n=data.length;
-      const slotW=W/n;
+      // KRİTİK FIX: barW sabit 16px'te tavan yapıyordu — 1/3 ay seçiminde
+      // (n küçük) barlar aşırı ince kalıp geniş grafikte "kaybolmuş" görünüyordu.
+      // Artık slot genişliği MAX_SLOT ile sınırlanıp içerik ortalanıyor; n
+      // küçükken barlar orantılı şekilde genişliyor, n büyükken (12 ay) eski
+      // sıkı yerleşim korunuyor.
+      const MAX_SLOT=70;
+      const effW=Math.min(W,n*MAX_SLOT);
+      const xOffset=(W-effW)/2;
+      const slotW=effW/n;
       // Çift bar: her slot içinde 2 bar yan yana
-      const barW=Math.min(slotW*0.30,16);
+      const barW=Math.min(slotW*0.32,26);
       const gap=2;
       const fmtShort=v=>{
         const av=Math.abs(v);
@@ -3678,14 +3686,14 @@ const UI = {
       });
       // Net trend çizgisi (gelir-gider farkı) — brand accent
       const netPoints=data.map((d,i)=>{
-        const cx=i*slotW+slotW/2;
+        const cx=xOffset+i*slotW+slotW/2;
         const net=d.inc-d.exp;
         const netRatio=Math.max(-1,Math.min(1,net/maxVal));
         const y=H-PAD_B-(CHART_H/2)-(netRatio*CHART_H/2);
         return {x:cx,y:Math.max(PAD_T,Math.min(H-PAD_B,y))};
       });
       data.forEach((d,i)=>{
-        const cx=i*slotW+slotW/2;
+        const cx=xOffset+i*slotW+slotW/2;
         const hI=Math.max(2,(d.inc/maxVal)*CHART_H);
         const hE=Math.max(2,(d.exp/maxVal)*CHART_H);
         const baseY=H-PAD_B;
@@ -6593,19 +6601,19 @@ const App = {
         const aS = document.getElementById('analyticsSummary');
         if(aS) aS.innerHTML = `
           <div class="kpi-card">
-            <div class="kpi-icon" style="background:rgba(34,160,107,.1);color:var(--status-success)"><svg class="nav-icon"><use href="#icon-wallet"/></svg></div>
+            <div class="kpi-icon" style="background:var(--brand-accent-soft);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-wallet"/></svg></div>
             <div class="kpi-label">${periodLabel} ${t('analyticsKpiIncome')}</div>
             <div class="kpi-val color-success">${fmt(totalInc)}</div>
             ${period===1 ? delta(curInc, prevInc) : ''}
           </div>
           <div class="kpi-card">
-            <div class="kpi-icon" style="background:rgba(229,83,75,.1);color:var(--status-danger)"><svg class="nav-icon"><use href="#icon-list"/></svg></div>
+            <div class="kpi-icon" style="background:var(--brand-accent-soft);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-list"/></svg></div>
             <div class="kpi-label">${periodLabel} ${t('analyticsKpiExpense')}</div>
             <div class="kpi-val color-danger">${fmt(totalExp)}</div>
             ${period===1 ? delta(curExp, prevExp, true) : ''}
           </div>
           <div class="kpi-card">
-            <div class="kpi-icon" style="background:rgba(217,119,6,.1);color:var(--status-warn)"><svg class="nav-icon"><use href="#icon-target"/></svg></div>
+            <div class="kpi-icon" style="background:var(--brand-accent-soft);color:var(--brand-accent)"><svg class="nav-icon"><use href="#icon-target"/></svg></div>
             <div class="kpi-label">${t('analyticsKpiNet')}</div>
             <div class="kpi-val ${net>=0?'color-success':'color-danger'}">${fmt(net)}</div>
             <div class="kpi-delta ${net>=0?'up':'down'}" style="font-size:11px">${t('analyticsKpiSavingsOf')} %${Math.abs(savingsRate).toFixed(0)}</div>
@@ -7874,7 +7882,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         setTimeout(()=>location.reload(), 800);
       },
 
-      async cloudCreate(){
+      async cloudCreate(onSuccess){
         if(!Core.Cloud || !Core.Cloud.isAvailable()){ UI.Toasts.show(t('cloudInitFail'),'error'); return; }
 
         const hasLocal = Core.Cloud.hasMeaningfulLocalData && Core.Cloud.hasMeaningfulLocalData();
@@ -7929,6 +7937,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
                 const key = await Core.Cloud.createAccount();
                 UI.Toasts.show(t('cloudCreated',{key}),'success');
                 this.renderCloudBox();
+                if (typeof onSuccess === 'function') onSuccess(key);
               }catch(e){
                 console.warn(e);
                 UI.Toasts.show(t('cloudCreateFail'),'error');
@@ -7943,6 +7952,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             const key = await Core.Cloud.createAccount();
             UI.Toasts.show(t('cloudCreated',{key}),'success');
             this.renderCloudBox();
+            if (typeof onSuccess === 'function') onSuccess(key);
           }catch(e){
             console.warn(e);
             UI.Toasts.show(t('cloudCreateFail'),'error');
@@ -8316,6 +8326,10 @@ _executeImport(){
       // görünüp gidiyor, hiçbir şey olmuyor" bug'ı buydu). Çözüm: iç içe
       // onayı tamamen kaldırıp, tek onayla direkt asıl işlemi çağırmak.
       async _doFactoryReset(){
+        // Diğer iki sıfırlama akışıyla (Hesabımı Sil, key-not-found) aynı
+        // savunma: reload sırasında pagehide listener'ının araya girip
+        // henüz yazılmamış/eski bir state'i geri yazmasını engeller.
+        window.__sagiForceLocalWipe = true;
         // Listener'ı kapat ama key'i TUTUYORUZ
         try{ Core.Cloud.detachListener(); }catch(e){}
 
@@ -8350,10 +8364,20 @@ _executeImport(){
         Core.state.settings.plusCancelledAt   = '';
         Core.state.settings.plusProvider      = '';
         Core.state.settings.plusPurchaseToken = '';
+        delete Core.state.settings.bnavItems;
+        delete Core.state.settings.qaItems;
         Core.state.settings.lastModified      = Date.now();
         // key + onboarded korunuyor → reload'da ana sayfaya gider
+        //
+        // KRİTİK FIX: onboarded burada KOŞULSUZ true yazılıyordu. Bir bulut
+        // key'i bağlıyken bu doğru (hesabı sıfırla, aynı hesapta devam et,
+        // dashboard'a dön) — ama key YOKSA (cihaz hiç senkronize olmamış/
+        // "keysiz" kullanım), bu satır "0 hesap" davranışını bozup, verisi
+        // tamamen silinmiş bir kullanıcıyı sanki onboarding'i çoktan
+        // bitirmiş gibi doğrudan (boş) dashboard'a düşürüyordu. Artık
+        // onboarded, sadece bağlı bir key varsa true oluyor.
         Core.state.settings.syncKey  = key;
-        Core.state.settings.onboarded= true;
+        Core.state.settings.onboarded= !!key;
         Core.state.settings.lang     = lang;
         Core.state.settings.theme    = theme;
 

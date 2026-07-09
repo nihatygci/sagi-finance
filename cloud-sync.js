@@ -904,6 +904,12 @@
       // olarak bırakır — bkz. Settings.handleKeyNotFoundSignOut yorumu).
       Core.state.settings.name  = '';
       Core.state.settings.theme = 'light';
+      // KRİTİK FIX: Alt menü (bnavItems) ve Hızlı İşlemler (qaItems) özelleştirmesi
+      // de aynı "0 hesap = default" prensibine tabi olmalı — bu alanlar silinince
+      // App.Controllers.BottomBar/QuickActions.getActive() zaten kendi DEFAULT_IDS
+      // listesine düşüyor, burada sabit listeyi tekrar yazmaya gerek yok.
+      delete Core.state.settings.bnavItems;
+      delete Core.state.settings.qaItems;
       // CSS görsel sıfırla
       try {
         const el = document.documentElement;
@@ -919,7 +925,7 @@
       // localStorage'dan Plus + sohbet key'lerini temizle (sohbet geçmişi ve
       // deneme süresi cache'i "sagi_chat_*" — yeni hesaba asla taşınmamalı)
       try {
-        ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors','sagi_chat_trial_start','sagi_chat_messages'].forEach(k => {
+        ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors','sagi_chat_trial_start','sagi_chat_messages','sagi_qa_order','sagi_bnav_order'].forEach(k => {
           try { localStorage.removeItem(k); } catch(_) {}
         });
       } catch(e) {}
@@ -1020,9 +1026,13 @@
       // belirleyici kılıyoruz.
       delete Core.state.settings.chatTrialStart;
       Core.state.settings.name = '';
+      delete Core.state.settings.bnavItems;
+      delete Core.state.settings.qaItems;
       try {
         localStorage.removeItem('sagi_chat_trial_start');
         localStorage.removeItem('sagi_chat_messages');
+        localStorage.removeItem('sagi_qa_order');
+        localStorage.removeItem('sagi_bnav_order');
       } catch(e) {}
 
       Core.state.settings.syncKey = key;
