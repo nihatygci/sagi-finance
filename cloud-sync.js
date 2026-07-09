@@ -896,6 +896,14 @@
       Core.state.settings.plusCancelledAt   = '';
       Core.state.settings.plusProvider      = '';
       Core.state.settings.plusPurchaseToken = '';
+      // KRİTİK FIX: Aynı prensip kişiselleştirme/kimlik alanları için de
+      // geçerli olmalı — yeni key oluşturmak, 0'dan giriş yapmakla AYNI
+      // hesaba gelmeli. Önceden sadece Plus alanları sıfırlanıyordu; isim,
+      // tema (koyu/açık mod) ve sohbet geçmişi eski hesaptan sızmaya devam
+      // ediyordu (özellikle signOut() sonrası, ki o local veriyi kasıtlı
+      // olarak bırakır — bkz. Settings.handleKeyNotFoundSignOut yorumu).
+      Core.state.settings.name  = '';
+      Core.state.settings.theme = 'light';
       // CSS görsel sıfırla
       try {
         const el = document.documentElement;
@@ -908,9 +916,10 @@
         el.style.removeProperty('--font-sans');
         document.body.style.fontFamily = '';
       } catch(e) {}
-      // localStorage'dan Plus key'lerini temizle
+      // localStorage'dan Plus + sohbet key'lerini temizle (sohbet geçmişi ve
+      // deneme süresi cache'i "sagi_chat_*" — yeni hesaba asla taşınmamalı)
       try {
-        ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors','sagi_chat_trial_start'].forEach(k => {
+        ['sagi_plus_font','sagi_plus_color','sagi_plus_custom_colors','sagi_chat_trial_start','sagi_chat_messages'].forEach(k => {
           try { localStorage.removeItem(k); } catch(_) {}
         });
       } catch(e) {}
@@ -999,6 +1008,23 @@
       }
 
       // mode === 'merge' (eski/varsayılan davranış)
+      //
+      // KRİTİK FIX: Bu cihazda ÖNCEKİ bir hesaptan kalma yerel chatTrialStart
+      // (ör. daha önce bu cihazda kullanılmış BAŞKA bir key'in deneme
+      // damgası) burada temizlenmezse, mergeState()'teki "chatTrialStart:
+      // hangi taraf varsa o kazanır" kuralı bu eski/bitmiş damgayı, şimdi
+      // giriş yapılan (ve belki de hiç deneme başlatmamış) hesaba taşırdı.
+      // Sonuç: "yeni/başka key'e giriş yaptım, sohbete girer girmez deneme
+      // süresi dolmuş" görünürdü. Aynı sızıntı isim ve sohbet geçmişi için
+      // de geçerli — bu alanları temizleyip asıl kaynağı (remote pull/merge)
+      // belirleyici kılıyoruz.
+      delete Core.state.settings.chatTrialStart;
+      Core.state.settings.name = '';
+      try {
+        localStorage.removeItem('sagi_chat_trial_start');
+        localStorage.removeItem('sagi_chat_messages');
+      } catch(e) {}
+
       Core.state.settings.syncKey = key;
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
 

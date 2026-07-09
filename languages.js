@@ -142,6 +142,7 @@ const LANGS = {
       notifCCMsgN:(name,n,amt)=>`${name} ödeme gününe ${n} gün kaldı. Borç: ${amt}`,
       chartIncomeLabel:'Gelir',
       chartExpenseLabel:'Gider',
+      chartNetLabel:'Net',
       payCard:'Karta Ödeme Yap', payCardTitle:'Kredi Kartı Ödemesi',
       payAmount:'Ödenecek Tutar', payFromWhich:'Hangi hesaptan ödenecek?',
 
@@ -799,6 +800,7 @@ const LANGS = {
       notifCCMsgN:(name,n,amt)=>`${name} payment due in ${n} days. Balance: ${amt}`,
       chartIncomeLabel:'Income',
       chartExpenseLabel:'Expense',
+      chartNetLabel:'Net',
       payCard:'Pay Card', payCardTitle:'Credit Card Payment',
       payAmount:'Payment Amount', payFromWhich:'Pay from which account?',
 

@@ -817,6 +817,11 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .bar-chart-wrap{width:100%;overflow:hidden}
 .bar-chart-wrap svg{display:block;width:100%;height:180px}
 .upcoming-item{padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;background:var(--bg-body)}
+/* Ana sayfa: Hedeflerim / Borç&Alacak / Son İşlemler / Yaklaşan Ödemeler — webde sabit kart yüksekliği + iç scroll (mobilde doğal sayfa akışı korunur) */
+.dash-scroll-panel{scrollbar-width:thin}
+@media(min-width:1024px){
+  .dash-scroll-panel{max-height:23rem;overflow-y:auto;padding-right:4px}
+}
 .comparison-bar{display:flex;height:10px;border-radius:var(--radius-full);overflow:hidden;background:var(--bg-body)}
 
 /* COLOR PALETTE */
@@ -1448,17 +1453,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       <div class="css-grid grid-cols-2 mb-5 stagger-2">
         <div class="card">
           <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-target"/></svg><span data-i18n="goals">Hedeflerim</span></h2><a href="#/goals" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
-          <div id="dashGoals" class="flex flex-col gap-4"></div>
+          <div id="dashGoals" class="flex flex-col gap-4 dash-scroll-panel"></div>
         </div>
         <div class="card">
           <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-briefcase"/></svg><span data-i18n="debtSummary">Borç & Alacak</span></h2><a href="#/debts" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
-          <div id="dashDebts"></div>
+          <div id="dashDebts" class="dash-scroll-panel"></div>
         </div>
       </div>
       <div class="css-grid grid-cols-2 mb-5 stagger-3">
         <div class="card" style="padding:0;padding-top:20px">
           <div class="card-header px-6"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-list"/></svg><span data-i18n="recentTx">Son İşlemler</span></h2><a href="#/transactions" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
-          <div id="dashRecentTxsList" style="display:flex;flex-direction:column"></div>
+          <div id="dashRecentTxsList" class="dash-scroll-panel" style="display:flex;flex-direction:column"></div>
           <div id="dashRecentTxsMore" style="display:none;padding:10px 16px;border-top:1px solid var(--border-light)">
             <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Controllers.Dashboard._showMoreRecent()">
               <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-chevron-down"/></svg>
@@ -1468,8 +1473,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
         <div class="card">
           <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-bell"/></svg><span data-i18n="upcoming">Yaklaşan Ödemeler</span></h2></div>
-          <div id="dashCCAlerts"></div>
-          <div id="dashUpcoming" class="flex flex-col gap-3"></div>
+          <div class="dash-scroll-panel">
+            <div id="dashCCAlerts"></div>
+            <div id="dashUpcoming" class="flex flex-col gap-3"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4485,6 +4492,17 @@ const App = {
         try { if(typeof Notifications !== 'undefined') Notifications.check(); } catch(e) {}
         // Alt menüyü güncelle
         try { App.Controllers.BottomBar.renderNav(); } catch(e) {}
+        // KRİTİK FIX: Analiz sayfası açıkken remote'tan yeni veri gelirse
+        // (başka cihazdan işlem eklendi/silindi vb.) sayfa daha önce render
+        // edilmiş haliyle donuk kalıyordu — SAGI Asistan yorumu, Tasarruf
+        // Skoru ve Tahmin route değişmeden asla yeniden hesaplanmıyordu.
+        // Bu da "aynı hesap ama farklı/eski metin görünüyor" şikayetine yol
+        // açıyordu (aslında motor deterministik ama beslediği veri bayattı).
+        try {
+          if (location.hash.startsWith('#/analytics') && App.Controllers.Analytics.render) {
+            App.Controllers.Analytics.render();
+          }
+        } catch(e) {}
         // Ayarlar sayfası açıksa ilgili section'ı yeniden render et
         try {
           const _hash = location.hash;
@@ -5174,7 +5192,7 @@ const App = {
                 const recCur=s.currency||Core.state.settings.currency||'TRY';
                 const dispAmt=Core.Utils.formatMoney(s.amount);
                 const origInfo=recCur!==(Core.state.settings.currency||'TRY')&&s.originalAmount?` (${Core.Utils.formatMoney(s.originalAmount,recCur)})`:'';
-                const payBtn=`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')">${t('payBtn')}</button>`;
+                const payBtn=s.autoPay?`<span class="text-caption" style="font-size:11px;font-weight:700;color:var(--text-secondary);white-space:nowrap" title="${t('autoPayBtnDisabledTitle')}">${t('autoPayLabel')}</span>`:`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')">${t('payBtn')}</button>`;
                 return`<div class="upcoming-item" style="${urgency}"><div style="flex:1;min-width:0"><div class="font-bold" style="font-size:14px">${s.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="upcoming-item-actions"><div class="font-display font-bold color-danger" style="font-size:15px;text-align:right">-${dispAmt}${origInfo}</div>${payBtn}</div></div>`;
               };
               const sorted=[...list].sort((a,b)=>{
@@ -6749,7 +6767,7 @@ const App = {
           const isPaid=paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
           const autoPayBadge=s.autoPay?`<span class="autopay-badge">${t('autoPayLabel')}</span>`:'';
-          const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:(!isPaid&&s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;opacity:.55;cursor:default" disabled title="${t('autoPayBtnDisabledTitle')}">Oto</button>`:'');
+          const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:'';
           const dayLabel=t('onDayOfMonth',{day:s.day});
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:var(--brand-accent-medium)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
@@ -7814,6 +7832,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const input = document.getElementById('deleteAccountKeyInput');
         const norm = s => (s||'').replace(/-/g,'').toUpperCase();
         if (!input || norm(input.value) !== norm(Core.state.settings.syncKey)) return;
+
+        // KRİTİK FIX: handleKeyNotFoundSignOut()'taki AYNI pagehide yarış
+        // durumu burada da mevcuttu — bu bayrak set edilmediği için reload
+        // sırasında cloud-sync.js'deki 'pagehide' listener'ı araya girip
+        // hafızadaki state'i (henüz reload tamamlanmadan) localStorage'a
+        // geri yazabiliyordu. "Hesabımı Sil" sonrası chat/isim/tema gibi
+        // verilerin yeni hesaba sızmasının kök nedenlerinden biri buydu.
+        window.__sagiForceLocalWipe = true;
 
         UI.Modals.close('modalDeleteAccountConfirm');
 
