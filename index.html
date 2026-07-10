@@ -4964,6 +4964,49 @@ const App = {
         try{ localStorage.removeItem('sagi_pending_key'); }catch(e){}
         const obs=document.getElementById('onboardingScreen');obs.style.opacity='0';obs.style.visibility='hidden';
         App.Controllers.Wallets.upd();
+
+        // KRİTİK FIX: "Onboarding bitince boş ekran / refresh atmadan hiçbir
+        // şey görünmüyor" bug'ı. Onboarding tamamlanınca sayfa reload OLMUYOR
+        // — ama uygulamanın kabuğu (Router.init(), BottomBar.renderNav(),
+        // Dashboard.render() ve devamındaki tüm init zinciri) normalde SADECE
+        // boot() içinde, onboarded=true İSE çalıştırılıyordu. Onboarded false
+        // iken boot bu kurulumu TAMAMEN atlayıp erken dönüyor (bkz. boot
+        // içindeki "ONBOARDING KAPISI" bloğu). Onboarding tam da burada bitip
+        // onboarded=true yapıldığı için, o kurulum zinciri bu oturumda hiç
+        // çalışmamış oluyordu: ne bottom bar ne de herhangi bir route içeriği
+        // (#app-main altında hiçbir .view'a "active" class'ı hiç eklenmemiş)
+        // — sonuç tamamen boş bir ekran. Kullanıcı manuel refresh atınca
+        // (artık onboarded=true localStorage'a yazılı olduğundan) boot normal
+        // akışını çalıştırıp her şeyi kuruyordu; "refresh atmadan dashboard
+        // gelmiyor" şikayetinin kök nedeni tam olarak buydu. Çözüm: reload'a
+        // hiç gerek kalmadan, boot'un onboarded=true dalında yaptığı kurulum
+        // zincirini burada da AYNI SIRAYLA tetikliyoruz.
+        App.Controllers.BottomBar.renderNav();
+        UI.Router.init();
+        setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
+        App.processRecurring();
+        App.ExchangeRate._loadCache();
+        Notifications.check();
+        setInterval(()=>{ try{ App.processRecurring(); Notifications.check(); }catch(e){} }, 60*60*1000);
+        Core.on('cloudStatusChanged', ()=>{
+          App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
+          App.Controllers.Onboarding && App.Controllers.Onboarding._refreshKeyAvailability && App.Controllers.Onboarding._refreshKeyAvailability();
+        });
+        if(Core.Cloud && Core.Cloud.isAvailable()){
+          setTimeout(()=>Core.emit('cloudStatusChanged', Core.Cloud.status), 0);
+        } else {
+          Core.Cloud && Core.Cloud._waitForFirebaseAndNotify
+            ? Core.Cloud._waitForFirebaseAndNotify()
+            : setTimeout(()=>{ if(Core.Cloud && Core.Cloud.isAvailable()) Core.emit('cloudStatusChanged', Core.Cloud.status); }, 300);
+        }
+        if(Notifications.supported && Notification.permission==='default'){
+          setTimeout(()=>{ UI.Confirm.show(t('confNotifPerm'),()=>Notifications.requestPermission()); }, 2000);
+        }
+        App.ExchangeRate.ensureFresh().then(()=>{
+          App.Controllers.Dashboard.render();
+          App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+        });
+
         setTimeout(()=>{obs.remove();App.Controllers.Wallets.openModal();},600);
       }
     },
