@@ -40,6 +40,7 @@
      Cloud.createAccount()
      Cloud.loginWithKey(raw)
      Cloud.signOut()
+     Cloud.rememberCurrentPrefs() — aktif key için tema+isim önbelleğini günceller
      Cloud.deleteAccount()
      Cloud.forceSync()
      Cloud.forcePush()            — alias → forceSync
@@ -65,6 +66,52 @@
   const BOOT_POLL_MS     = 250;    // Firebase hazır beklemede polling aralığı
   const BOOT_POLL_MAX    = 40;     // × 250ms = 10sn max bekleme
   const PENDING_KEY      = 'sagi_pending_push_v5'; // localStorage flag
+
+  // ── Key-özel yerel tercih önbelleği (tema + isim) ────────────────────────
+  // Amaç: dark/light mod ve görünen isim, CİHAZ üzerinde her key'e özgü
+  // hatırlansın. Bir key'den çıkış yapıldığında (signOut) o anki tema+isim
+  // bu key'e karşılık kaydedilir; aynı key'e (veya başka bir key'e) tekrar
+  // giriş yapıldığında (loginWithKey) o key için daha önce kaydedilmiş
+  // tema+isim varsa geri yüklenir. Bu SADECE bu cihaza özgü bir hafızadır
+  // (localStorage) — cloud/Firestore'a yazılmaz, diğer cihazlara sızmaz.
+  const KEY_PREFS_STORAGE = 'sagi_key_prefs_v1';
+
+  function _loadAllKeyPrefs() {
+    try { return JSON.parse(localStorage.getItem(KEY_PREFS_STORAGE) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function _getKeyPrefs(key) {
+    if (!key) return null;
+    const all = _loadAllKeyPrefs();
+    return all[key] || null;
+  }
+  function _saveKeyPrefs(key, prefs) {
+    if (!key) return;
+    try {
+      const all = _loadAllKeyPrefs();
+      all[key] = Object.assign({}, all[key], prefs);
+      localStorage.setItem(KEY_PREFS_STORAGE, JSON.stringify(all));
+    } catch (e) {}
+  }
+  function _forgetKeyPrefs(key) {
+    if (!key) return;
+    try {
+      const all = _loadAllKeyPrefs();
+      delete all[key];
+      localStorage.setItem(KEY_PREFS_STORAGE, JSON.stringify(all));
+    } catch (e) {}
+  }
+  // Tema değişimini görsel olarak hemen uygula (varsa) — DOM'a data-theme
+  // atamak tek başına Core.state.settings.theme değişince otomatik olmuyor.
+  function _applyThemeNow() {
+    try {
+      if (typeof App !== 'undefined' && App.Controllers && App.Controllers.Settings && App.Controllers.Settings.applyTheme) {
+        App.Controllers.Settings.applyTheme();
+      } else {
+        document.documentElement.setAttribute('data-theme', Core.state.settings.theme || 'light');
+      }
+    } catch (e) {}
+  }
 
   // ── State kopyası — syncKey'i çıkar ──────────────────────────────────────
   function _stateForCloud(state) {
@@ -981,6 +1028,18 @@
       const exists = await this._docExists(key);
       if (!exists) throw new Error('NOT_FOUND');
 
+      // Doğrudan bir key'den başka bir key'e geçiliyorsa (signOut() çağrılmadan,
+      // ör. "Mevcut Hesaba Bağlan" akışı) — eski key'in tema+isim tercihini
+      // kaybetmeden önbelleğe al.
+      const previousKey = Core.state.settings.syncKey;
+      if (previousKey && previousKey !== key) {
+        _saveKeyPrefs(previousKey, {
+          theme: Core.state.settings.theme,
+          name:  Core.state.settings.name,
+        });
+      }
+      const cachedForKey = _getKeyPrefs(key);
+
       if (mode === 'replace') {
         // Remote state'i doğrudan al, local'i merge etmeden değiştir.
         const snap = await this._docRef(key).get();
@@ -993,8 +1052,24 @@
         const fresh = JSON.parse(JSON.stringify(remoteState));
         fresh.settings = fresh.settings || {};
         fresh.settings.syncKey = key;
-        // Kullanıcının yerel tema/dil tercihini koru (cloud'da olmayabilir)
-        fresh.settings.theme = fresh.settings.theme || Core.state.settings.theme;
+        const _restoredFieldsReplace = [];
+        if (cachedForKey && cachedForKey.theme) {
+          // Bu cihazda bu key için daha önce hatırlanmış tema — öncelikli.
+          fresh.settings.theme = cachedForKey.theme;
+          _restoredFieldsReplace.push('theme');
+        } else {
+          // Kullanıcının yerel tema/dil tercihini koru (cloud'da olmayabilir)
+          fresh.settings.theme = fresh.settings.theme || Core.state.settings.theme;
+        }
+        if (cachedForKey && cachedForKey.name) {
+          fresh.settings.name = cachedForKey.name;
+          _restoredFieldsReplace.push('name');
+        }
+        if (_restoredFieldsReplace.length) {
+          fresh.settings._settingsTs = fresh.settings._settingsTs || {};
+          const _now = Date.now();
+          _restoredFieldsReplace.forEach(f => { fresh.settings._settingsTs[f] = _now; });
+        }
         fresh.settings.lang  = fresh.settings.lang  || Core.state.settings.lang;
 
         Core.state = fresh;
@@ -1007,6 +1082,7 @@
         Core.DB.clearPendingPush();
 
         this._attachListener(key);
+        _applyThemeNow();
         try { Core.emit('stateChanged', Core.state); } catch (e) {}
         try { Core.emit('cloudRemoteUpdate'); } catch (e) {}
         this._emitStatus('ok');
@@ -1025,7 +1101,25 @@
       // de geçerli — bu alanları temizleyip asıl kaynağı (remote pull/merge)
       // belirleyici kılıyoruz.
       delete Core.state.settings.chatTrialStart;
-      Core.state.settings.name = '';
+      // İsim: bu cihazda bu key için önbellekte bir isim varsa onu kullan,
+      // yoksa boşalt (remote pull/merge asıl kaynağı belirleyecek).
+      // Tema: bu key için cihazda hatırlanmış bir tema varsa hemen uygula —
+      // pull/merge'den önce bile doğru görünüm için.
+      // Her iki alan için de _settingsTs'i şimdi'ye çekiyoruz ki mergeState()
+      // bu cihazda hatırlanan değeri remote'daki (muhtemelen eski/başka
+      // cihazdan kalma) değere karşı kazandırsın.
+      const _restoredFields = [];
+      if (cachedForKey && cachedForKey.name) {
+        Core.state.settings.name = cachedForKey.name;
+        _restoredFields.push('name');
+      } else {
+        Core.state.settings.name = '';
+      }
+      if (cachedForKey && cachedForKey.theme) {
+        Core.state.settings.theme = cachedForKey.theme;
+        _restoredFields.push('theme');
+      }
+      if (_restoredFields.length && typeof window._touchSettingsTs === 'function') window._touchSettingsTs(_restoredFields);
       delete Core.state.settings.bnavItems;
       delete Core.state.settings.qaItems;
       try {
@@ -1039,6 +1133,7 @@
       localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
 
       await this._boot();
+      _applyThemeNow();
       return Core.state;
     },
 
@@ -1198,8 +1293,32 @@
       }
     },
 
+    // ── rememberCurrentPrefs ─────────────────────────────────────────────
+    // Aktif key için tema+isim önbelleğini ANINDA günceller — kullanıcı
+    // temayı veya ismini değiştirdiğinde çağrılır (index.html: setTheme,
+    // savePreferences). Böylece uygulama signOut() olmadan kapansa/
+    // reload olsa bile bu key'in son tercihi kaybolmaz.
+    rememberCurrentPrefs() {
+      const key = Core.state.settings.syncKey;
+      if (!key) return;
+      _saveKeyPrefs(key, {
+        theme: Core.state.settings.theme,
+        name:  Core.state.settings.name,
+      });
+    },
+
     // ── signOut ───────────────────────────────────────────────────────────
     signOut() {
+      // Çıkılan key'in son kullanılan tema+isim tercihini bu cihaza özgü
+      // önbelleğe kaydet — aynı key'e tekrar girildiğinde geri yüklenecek.
+      const outgoingKey = Core.state.settings.syncKey;
+      if (outgoingKey) {
+        _saveKeyPrefs(outgoingKey, {
+          theme: Core.state.settings.theme,
+          name:  Core.state.settings.name,
+        });
+      }
+
       this._detachListener();
       if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
       _lastSyncedVersion = 0;
@@ -1218,6 +1337,7 @@
     // ── deleteAccount ─────────────────────────────────────────────────────
     async deleteAccount() {
       const key = Core.state.settings.syncKey;
+      _forgetKeyPrefs(key);
       this._detachListener();
       if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
       _lastSyncedVersion = 0;

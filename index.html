@@ -8095,7 +8095,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       togglePrivacy(){Core.state.settings.privacy=Core.state.settings.privacy==='on'?'off':'on';_touchSettingsTs(['privacy']);Core.DB.save();this.applyPrivacy();UI.Router.handleRoute();UI.Toasts.show(Core.state.settings.privacy==='on'?t('msgPrivacyOn'):t('msgPrivacyOff'));},
       applyPrivacy(){const isOn=Core.state.settings.privacy==='on';const sBtn=document.getElementById('sidePrivacyBtn'),hBtn=document.getElementById('headerPrivacyBtn'),sIcon=document.getElementById('sidePrivacyIcon'),hIcon=document.getElementById('headerPrivacyIcon');if(isOn){if(sBtn)sBtn.classList.add('active');if(hBtn)hBtn.classList.add('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye-off"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye-off"/>';}else{if(sBtn)sBtn.classList.remove('active');if(hBtn)hBtn.classList.remove('active');if(sIcon)sIcon.innerHTML='<use href="#icon-eye"/>';if(hIcon)hIcon.innerHTML='<use href="#icon-eye"/>'; }},
-      setTheme(mode){Core.state.settings.theme=mode;_touchSettingsTs(['theme']);Core.DB.save();this.applyTheme();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
+      setTheme(mode){Core.state.settings.theme=mode;_touchSettingsTs(['theme']);Core.DB.save();this.applyTheme();if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();UI.Toasts.show(mode==='dark'?t('msgDark'):t('msgLight'));},
       applyTheme(){
         // Tema değişince accent tonlarını da güncelle
         try { const acc=getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim(); if(acc&&window._sagiAccentTones) window._sagiAccentTones(acc); } catch(e){}
@@ -8142,7 +8142,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             });
           }
         }
-        _touchSettingsTs(['currency','name']);Core.DB.save();this.applyTheme();UI.Toasts.show(t('msgPrefsSaved'));
+        _touchSettingsTs(['currency','name']);Core.DB.save();this.applyTheme();if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();UI.Toasts.show(t('msgPrefsSaved'));
         setTimeout(()=>location.reload(),800);
       },
       exportJSON(){
