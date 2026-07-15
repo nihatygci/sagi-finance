@@ -3648,6 +3648,24 @@ const UI = {
     },
     drawBarChart(id,data){
       const c=document.getElementById(id);if(!c)return;
+      c._sagiLastData=data;
+      // DÜZELTME: SVG sabit viewBox (360x210) ile width:100%/height:180px CSS'e
+      // zorlanınca preserveAspectRatio="meet" oranı korumak için içeriği
+      // küçültüp yanlara boşluk (letterbox) bırakıyordu — geniş kartlarda
+      // grafik ortada dar bir şerit gibi kalıyordu. Artık viewBox genişliği
+      // konteynerin gerçek piksel genişliğine eşitleniyor (yükseklik de CSS'teki
+      // 180px'e sabitleniyor), böylece oran her zaman gerçek kutuyla birebir
+      // eşleşip boşluk oluşmuyor. Ekran/kart boyutu değiştiğinde (resize,
+      // yönlendirme, tablet/mobil) ResizeObserver ile yeniden çiziliyor.
+      if(!c._sagiRO){
+        let rTimer=null;
+        const ro=new ResizeObserver(()=>{
+          clearTimeout(rTimer);
+          rTimer=setTimeout(()=>{ if(c._sagiLastData) this.drawBarChart(id,c._sagiLastData); },120);
+        });
+        ro.observe(c.parentElement||c);
+        c._sagiRO=ro;
+      }
       if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">'+t('noData')+'</div>';return;}
       const maxVal=Math.max(...data.map(d=>Math.max(d.inc,d.exp)),1);
       const isDark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -3657,7 +3675,8 @@ const UI = {
       const NET_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim()||'#6257f0';
       const MUTED=isDark?'#9ca3af':'#9ca3af';
       const GRID=isDark?'rgba(255,255,255,.10)':'#e5e7eb';
-      const W=360,H=210,PAD_T=18,PAD_B=34,CHART_H=H-PAD_B-PAD_T;
+      const measuredW=Math.round((c.parentElement||c).getBoundingClientRect().width);
+      const W=measuredW>0?measuredW:360, H=180, PAD_T=15, PAD_B=29, CHART_H=H-PAD_B-PAD_T;
       const n=data.length;
       // KRİTİK FIX: barW sabit 16px'te tavan yapıyordu — 1/3 ay seçiminde
       // (n küçük) barlar aşırı ince kalıp geniş grafikte "kaybolmuş" görünüyordu.
@@ -3745,7 +3764,10 @@ const UI = {
         slot.addEventListener('mouseleave',hide);
         slot.addEventListener('touchstart',(e)=>{show(e);},{passive:true});
       });
-      document.addEventListener('touchstart',function hideOnOutside(e){ if(!c.contains(e.target)&&tooltip) tooltip.style.display='none'; },{passive:true});
+      if(!c._sagiOutsideTouchBound){
+        c._sagiOutsideTouchBound=true;
+        document.addEventListener('touchstart',function hideOnOutside(e){ const tt=c.querySelector('#'+id+'_tooltip'); if(!c.contains(e.target)&&tt) tt.style.display='none'; },{passive:true});
+      }
     }
   },
   toggleSelect(dropId,btnId){
