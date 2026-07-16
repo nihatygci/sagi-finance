@@ -40,7 +40,7 @@
      Cloud.createAccount()
      Cloud.loginWithKey(raw)
      Cloud.signOut()
-     Cloud.rememberCurrentPrefs() — aktif key için tema+isim önbelleğini günceller
+     Cloud.rememberCurrentPrefs() — aktif key için tema+isim+bildirim (gelen kutusu + tür tercihleri) önbelleğini günceller
      Cloud.deleteAccount()
      Cloud.forceSync()
      Cloud.forcePush()            — alias → forceSync
@@ -67,13 +67,18 @@
   const BOOT_POLL_MAX    = 40;     // × 250ms = 10sn max bekleme
   const PENDING_KEY      = 'sagi_pending_push_v5'; // localStorage flag
 
-  // ── Key-özel yerel tercih önbelleği (tema + isim) ────────────────────────
-  // Amaç: dark/light mod ve görünen isim, CİHAZ üzerinde her key'e özgü
-  // hatırlansın. Bir key'den çıkış yapıldığında (signOut) o anki tema+isim
-  // bu key'e karşılık kaydedilir; aynı key'e (veya başka bir key'e) tekrar
-  // giriş yapıldığında (loginWithKey) o key için daha önce kaydedilmiş
-  // tema+isim varsa geri yüklenir. Bu SADECE bu cihaza özgü bir hafızadır
-  // (localStorage) — cloud/Firestore'a yazılmaz, diğer cihazlara sızmaz.
+  // ── Key-özel yerel tercih önbelleği (tema + isim + bildirimler) ─────────
+  // Amaç: dark/light mod, görünen isim, bildirim gelen kutusu (notifInbox)
+  // VE bildirim TÜR tercihleri (abonelik/borç/bütçe/... aç-kapa switch'leri
+  // + master switch), CİHAZ üzerinde her key'e özgü hatırlansın. Bir
+  // key'den çıkış yapıldığında (signOut) veya başka bir key'e geçildiğinde
+  // o anki tüm bu değerler bu key'e karşılık kaydedilir; aynı key'e (veya
+  // başka bir key'e) tekrar giriş yapıldığında (loginWithKey) o key için
+  // daha önce kaydedilmiş değerler varsa geri yüklenir. Bu SADECE bu cihaza
+  // özgü bir hafızadır (localStorage) — notifInbox zaten ayrıca Firestore'a
+  // da senkronize olur; notifSettings/notifMaster de settings içindeki
+  // _settingsTs mekanizmasıyla cloud'a senkronize olur — bu önbellek
+  // "cihazda anlık, doğru hesabın tercihini göster" için ek bir katman.
   const KEY_PREFS_STORAGE = 'sagi_key_prefs_v1';
 
   function _loadAllKeyPrefs() {
@@ -92,6 +97,18 @@
       all[key] = Object.assign({}, all[key], prefs);
       localStorage.setItem(KEY_PREFS_STORAGE, JSON.stringify(all));
     } catch (e) {}
+  }
+  // Aktif Core.state'ten tam önbellek anlık görüntüsü çıkarır — signOut,
+  // rememberCurrentPrefs ve doğrudan key değişiminde hep aynı alan seti
+  // kaydedilsin diye tek yerden.
+  function _currentPrefsSnapshot() {
+    return {
+      theme:        Core.state.settings.theme,
+      name:         Core.state.settings.name,
+      notifInbox:   Core.state.notifInbox,
+      notifMaster:  Core.state.settings.notifMaster,
+      notifSettings: Core.state.settings.notifications,
+    };
   }
   function _forgetKeyPrefs(key) {
     if (!key) return;
@@ -1029,16 +1046,14 @@
       if (!exists) throw new Error('NOT_FOUND');
 
       // Doğrudan bir key'den başka bir key'e geçiliyorsa (signOut() çağrılmadan,
-      // ör. "Mevcut Hesaba Bağlan" akışı) — eski key'in tema+isim tercihini
+      // ör. "Mevcut Hesaba Bağlan" akışı) — eski key'in tüm tercihlerini
       // kaybetmeden önbelleğe al.
       const previousKey = Core.state.settings.syncKey;
       if (previousKey && previousKey !== key) {
-        _saveKeyPrefs(previousKey, {
-          theme: Core.state.settings.theme,
-          name:  Core.state.settings.name,
-        });
+        _saveKeyPrefs(previousKey, _currentPrefsSnapshot());
       }
       const cachedForKey = _getKeyPrefs(key);
+
 
       if (mode === 'replace') {
         // Remote state'i doğrudan al, local'i merge etmeden değiştir.
@@ -1065,14 +1080,32 @@
           fresh.settings.name = cachedForKey.name;
           _restoredFieldsReplace.push('name');
         }
+        if (cachedForKey && cachedForKey.notifMaster !== undefined) {
+          fresh.settings.notifMaster = cachedForKey.notifMaster;
+          _restoredFieldsReplace.push('notifMaster');
+        }
+        if (cachedForKey && cachedForKey.notifSettings) {
+          fresh.settings.notifications = cachedForKey.notifSettings;
+          _restoredFieldsReplace.push('notifications');
+        }
         if (_restoredFieldsReplace.length) {
           fresh.settings._settingsTs = fresh.settings._settingsTs || {};
           const _now = Date.now();
           _restoredFieldsReplace.forEach(f => { fresh.settings._settingsTs[f] = _now; });
         }
         fresh.settings.lang  = fresh.settings.lang  || Core.state.settings.lang;
+        if (!Array.isArray(fresh.notifInbox)) fresh.notifInbox = [];
 
         Core.state = fresh;
+        // Bu cihazın bu key için önbelleğini az önce çekilen remote veriyle
+        // tazele — bir sonraki offline/anlık geçişte en güncel bilgi kullanılsın.
+        _saveKeyPrefs(key, {
+          theme:         fresh.settings.theme,
+          name:          fresh.settings.name,
+          notifInbox:    fresh.notifInbox,
+          notifMaster:   fresh.settings.notifMaster,
+          notifSettings: fresh.settings.notifications,
+        });
         // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
         // Burada "merge" değil tam bir REPLACE var ama sonuç aynı: Core.state
         // dışarıdan değişti, taban çizgisi (_prevIdSets) buna göre tazelenmezse
@@ -1119,7 +1152,29 @@
         Core.state.settings.theme = cachedForKey.theme;
         _restoredFields.push('theme');
       }
+      // Bildirim TÜR tercihleri (aç-kapa switch'leri + master switch): tema
+      // gibi davranıyor — bu key için cihazda hatırlanmış bir değer varsa
+      // öncelikli, remote'daki (başka key'den/cihazdan kalma) değere karşı
+      // _settingsTs ile kazandırılıyor.
+      if (cachedForKey && cachedForKey.notifMaster !== undefined) {
+        Core.state.settings.notifMaster = cachedForKey.notifMaster;
+        _restoredFields.push('notifMaster');
+      }
+      if (cachedForKey && cachedForKey.notifSettings) {
+        Core.state.settings.notifications = cachedForKey.notifSettings;
+        _restoredFields.push('notifications');
+      }
       if (_restoredFields.length && typeof window._touchSettingsTs === 'function') window._touchSettingsTs(_restoredFields);
+      // Bildirimler (notifInbox): tıpkı isim/tema gibi — bu cihazda ÖNCEKİ
+      // key'den kalma bildirimler burada temizlenmezse, notifInbox'ın
+      // mergeState()'teki tag-bazlı birleştirme kuralı bu eski bildirimleri
+      // şimdi giriş yapılan hesaba taşırdı ("başka hesabın bildirimleri yeni
+      // hesaba sızıyor" saçmalığı). Bu key için cihazda daha önce hatırlanmış
+      // bir bildirim listesi varsa onu geri yükle (aynı hesaba dönüşse bile
+      // anlık/offline erişim için); yoksa boşalt — asıl kaynağı remote
+      // pull/merge belirleyecek, ki bu da "hesaba ait olan bildirimlerin
+      // getirilmesi" isteğini karşılıyor.
+      Core.state.notifInbox = (cachedForKey && Array.isArray(cachedForKey.notifInbox)) ? cachedForKey.notifInbox : [];
       delete Core.state.settings.bnavItems;
       delete Core.state.settings.qaItems;
       try {
@@ -1294,29 +1349,27 @@
     },
 
     // ── rememberCurrentPrefs ─────────────────────────────────────────────
-    // Aktif key için tema+isim önbelleğini ANINDA günceller — kullanıcı
-    // temayı veya ismini değiştirdiğinde çağrılır (index.html: setTheme,
-    // savePreferences). Böylece uygulama signOut() olmadan kapansa/
-    // reload olsa bile bu key'in son tercihi kaybolmaz.
+    // Aktif key için tema+isim+bildirim (gelen kutusu + tür tercihleri)
+    // önbelleğini ANINDA günceller — kullanıcı temayı/ismini değiştirdiğinde
+    // (index.html: setTheme, savePreferences), bildirim aç-kapa switch'lerini
+    // değiştirdiğinde (toggleMaster, toggleSetting) VEYA yeni bir bildirim
+    // geldiğinde/okunduğunda/silindiğinde çağrılır. Böylece uygulama
+    // signOut() olmadan kapansa/reload olsa bile bu key'in son tercihi
+    // kaybolmaz.
     rememberCurrentPrefs() {
       const key = Core.state.settings.syncKey;
       if (!key) return;
-      _saveKeyPrefs(key, {
-        theme: Core.state.settings.theme,
-        name:  Core.state.settings.name,
-      });
+      _saveKeyPrefs(key, _currentPrefsSnapshot());
     },
 
     // ── signOut ───────────────────────────────────────────────────────────
     signOut() {
-      // Çıkılan key'in son kullanılan tema+isim tercihini bu cihaza özgü
-      // önbelleğe kaydet — aynı key'e tekrar girildiğinde geri yüklenecek.
+      // Çıkılan key'in son kullanılan tüm tercihlerini (tema+isim+bildirim
+      // gelen kutusu+bildirim tür ayarları) bu cihaza özgü önbelleğe kaydet —
+      // aynı key'e tekrar girildiğinde geri yüklenecek.
       const outgoingKey = Core.state.settings.syncKey;
       if (outgoingKey) {
-        _saveKeyPrefs(outgoingKey, {
-          theme: Core.state.settings.theme,
-          name:  Core.state.settings.name,
-        });
+        _saveKeyPrefs(outgoingKey, _currentPrefsSnapshot());
       }
 
       this._detachListener();

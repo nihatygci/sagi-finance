@@ -3862,6 +3862,7 @@ const Notifications = {
       });
       if(Core.state.notifInbox.length>50) Core.state.notifInbox.length=50;
       Core.DB.save();
+      if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();
       App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge();
     }
     if(!this.granted)return;
@@ -3967,13 +3968,13 @@ const Notifications = {
     if(!this.supported){UI.Toasts.show(t('msgNotifUnsup'),'error');return;}
     if(!this.granted){
       this.requestPermission().then(()=>{
-        if(this.granted){Core.state.settings.notifMaster=true;_touchSettingsTs(['notifMaster','notifications']);Core.DB.save();this.updateUI();}
+        if(this.granted){Core.state.settings.notifMaster=true;_touchSettingsTs(['notifMaster','notifications']);Core.DB.save();if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();this.updateUI();}
       });
       return;
     }
     const current=Core.state.settings.notifMaster!==false;
     Core.state.settings.notifMaster=!current;
-    _touchSettingsTs(['notifMaster']);Core.DB.save();this.updateUI();
+    _touchSettingsTs(['notifMaster']);Core.DB.save();if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();this.updateUI();
     UI.Toasts.show(Core.state.settings.notifMaster?t('msgNotifAllOn'):t('msgNotifAllOff'));
   },
   toggleSetting(key){
@@ -3981,7 +3982,7 @@ const Notifications = {
     if(!this.granted){this.toggleMaster();return;}
     if(!Core.state.settings.notifications)Core.state.settings.notifications={};
     Core.state.settings.notifications[key]=!Core.state.settings.notifications[key];
-    _touchSettingsTs(['notifications']);Core.DB.save();this.updateUI();
+    _touchSettingsTs(['notifications']);Core.DB.save();if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();this.updateUI();
     UI.Toasts.show(Core.state.settings.notifications[key]?t('msgNotifOn'):t('msgNotifOff'));
   },
   check(){
@@ -7389,6 +7390,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         if(!n)return;
         n.read=true;
         Core.DB.save();
+        if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();
         this.render();
         this.updateBadge();
         if(n.action)App.Notifications.handleNotifAction(n.action);
@@ -7396,12 +7398,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       remove(id){
         Core.state.notifInbox=(Core.state.notifInbox||[]).filter(x=>x.id!==id);
         Core.DB.save();
+        if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();
         this.render();
         this.updateBadge();
       },
       markAllRead(){
         (Core.state.notifInbox||[]).forEach(n=>n.read=true);
         Core.DB.save();
+        if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();
         this.render();
         this.updateBadge();
         UI.Toasts.show(t('notifAllRead'));
@@ -7410,6 +7414,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         UI.Confirm.show(t('notifClearConfirm'),()=>{
           Core.state.notifInbox=[];
           Core.DB.save();
+          if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();
           this.render();
           this.updateBadge();
         });
@@ -7970,6 +7975,16 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
                 Core.state.wallets = []; Core.state.transactions = []; Core.state.goals = [];
                 Core.state.debts = []; Core.state.categories = []; Core.state.budgets = [];
                 Core.state.recurring = []; Core.state._tombstones = {};
+                // KRİTİK FIX: notifInbox burada unutulmuştu — "tertemiz başla"
+                // seçilse bile cihazda kalan eski bildirimler yeni/boş hesaba
+                // taşınıp Firestore'a öyle yükleniyordu. Diğer dizilerle
+                // (wallets/transactions/...) aynı muameleyi görmesi gerekiyor.
+                Core.state.notifInbox = [];
+                // Bildirim TÜR tercihleri de (aç-kapa switch'leri + master) —
+                // her hesabın kendine ait bildirim ayarı olmalı, "tertemiz
+                // başla" bunları da varsayılana döndürsün.
+                Core.state.settings.notifMaster = true;
+                Core.state.settings.notifications = {abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};
                 // Plus ayarlarını tamamen sıfırla — hem state'ten hem localStorage'dan
                 Core.state.settings.plusPlan          = '';
                 Core.state.settings.plusFont          = '';
@@ -8418,6 +8433,10 @@ _executeImport(){
         Core.state.budgets      = [];
         Core.state.categories   = [];
         Core.state._tombstones  = {};
+        // Diğer dizilerle aynı muamele — "Tüm Verileri Sil" bildirimleri de kapsamalı.
+        Core.state.notifInbox   = [];
+        Core.state.settings.notifMaster = true;
+        Core.state.settings.notifications = {abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};
         Core.state.settings.plusPlan          = '';
         Core.state.settings.plusFont          = '';
         Core.state.settings.plusColor         = '';
