@@ -4092,10 +4092,12 @@ const Notifications = {
       }
     }
 
-    // 6. DÖVİZ KURU — TRY büyük sıçrama (önceki cache'e göre %3+)
+    // 6. DÖVİZ KURU — TRY büyük sıçrama (dünün kapanışına göre %3+)
     if(notifs.doviz){
       const cached=Core.state.settings._prevRates;
+      const cachedDateKey=Core.state.settings._prevRatesDateKey;
       const current=App.ExchangeRate.rates;
+      const todayDateKey=now.getFullYear()+'_'+now.getMonth()+'_'+now.getDate();
       // KRİTİK FIX (savunma katmanı): App.ExchangeRate.rates, henüz hiç
       // fetch/cache yüklenmemişse kodun başındaki HARDCODED VARSAYILAN
       // değerleri taşır (TRY:38.5 gibi) — bu, gerçek bir kur DEĞİL, sadece
@@ -4105,23 +4107,46 @@ const Notifications = {
       // yapmıyoruz — çağrı sırası nereden gelirse gelsin (boot, cloud
       // update, vs.) artık garantili şekilde korunuyoruz.
       const rateLoaded = !!(Core.state.settings.cachedRates && Core.state.settings.cachedRates.TRY);
-      if(rateLoaded && cached&&cached.TRY&&current.TRY){
+      // KRİTİK FIX 2: _prevRates eskiden HER check() çağrısında (saatte bir +
+      // her app açılışında) ezilip güncelleniyordu. Bu yüzden "bugün %X
+      // değişti" kıyaslaması aslında "son check() çağrısından bu yana"
+      // (bazen 1 saat, bazen günler önce, session'a göre değişken) anlamına
+      // geliyordu — gerçek gün-içi dalgalanma gürültüsü + tutarsız zaman
+      // penceresi, %17-22 gibi gerçekçi olmayan "günlük değişim" bildirimleri
+      // üretiyordu. Artık _prevRates sadece GÜN DEĞİŞTİĞİNDE (takvim günü
+      // farklıysa) güncelleniyor — yani kıyaslama her zaman "dünün son bilinen
+      // kuru vs bugünün kuru" anlamına geliyor, aynı gün içindeki tekrar
+      // check() çağrıları baseline'ı bozmuyor.
+      const haveDailyBaseline = rateLoaded && cached && cached.TRY && cachedDateKey && cachedDateKey !== todayDateKey;
+      if(haveDailyBaseline && current.TRY){
         const change=Math.abs((current.TRY-cached.TRY)/cached.TRY*100);
-        if(change>=3){
-          const nk='sagi_nt_fx_'+now.getFullYear()+'_'+now.getMonth()+'_'+now.getDate();
+        // KRİTİK FIX 3: gerçekçi olmayan bir sıçrama (>%15) — TRY gibi
+        // volatil bir para birimi için bile tek günde bu kadarı neredeyse
+        // her zaman kötü/bozuk veri demektir (yanlış kaynak, birim
+        // uyuşmazlığı, vs.), gerçek bir piyasa hareketi değil. Böyle bir
+        // durumda kullanıcıya yanlış alarm göstermek yerine sessizce
+        // reddedip konsola not düşüyoruz.
+        if(change>=3 && change<=15){
+          const nk='sagi_nt_fx_'+todayDateKey;
           if(!localStorage.getItem(nk)){
             localStorage.setItem(nk,'1');
             const dir=current.TRY>cached.TRY?t('notifFxRose'):t('notifFxFell');
-            this.sendNotif(t('notifTitleFx'),t('notifFxMsg',change.toFixed(1),dir),{action:'settings:rates',tag:'fx-'+now.getDate()});
+            this.sendNotif(t('notifTitleFx'),t('notifFxMsg',change.toFixed(1),dir),{action:'settings:rates',tag:'fx-'+today});
           }
+        } else if(change>15){
+          console.warn('[SAGI] Kur değişimi sanity check\'i geçemedi ('+change.toFixed(1)+'%), muhtemelen hatalı veri — bildirim gönderilmedi.',{cached:cached.TRY,current:current.TRY});
         }
       }
-      // Bir sonraki check için kaydet — SADECE gerçekten yüklenmiş bir kur
-      // varsa. Aksi halde placeholder değer _prevRates'e sızıp bir sonraki
-      // (gerçek kurun yüklü olduğu) kontrolde ters yönde sahte bir
+      // Baseline'ı SADECE gün değiştiğinde tazele — SADECE gerçekten yüklenmiş
+      // bir kur varsa. Aksi halde placeholder değer _prevRates'e sızıp bir
+      // sonraki (gerçek kurun yüklü olduğu) kontrolde ters yönde sahte bir
       // bildirim daha tetikler — asıl bug zincirinin ikinci ayağı buydu.
-      if(rateLoaded && current.TRY)Core.state.settings._prevRates={...current};
+      if(rateLoaded && current.TRY && cachedDateKey!==todayDateKey){
+        Core.state.settings._prevRates={...current};
+        Core.state.settings._prevRatesDateKey=todayDateKey;
+      }
     }
+
 
     // 7. HAFTALIK ÖZET — Pazartesi
     if(notifs.haftalik&&now.getDay()===1){
@@ -4321,7 +4346,16 @@ const App = {
     },
   },
   ExchangeRate:{
-    rates:{USD:1,EUR:0.92,GBP:0.78,TRY:38.5},
+    // KRİTİK FIX: EUR/GBP/TRY için burada eskiden "tahmini" sabit değerler
+    // vardı (EUR:0.92, GBP:0.78, TRY:38.5). Bunlar gerçek kur değil, zamanla
+    // bayatlayan birer PLACEHOLDER'dı — convert() zaten kur yokken tutarı
+    // olduğu gibi döndürüyor (bkz. aşağıda !fromRate||!toRate guard'ı), yani
+    // bu sabitlere hiç ihtiyaç yoktu. Üstelik işlem oluşturma da AYNI
+    // rates nesnesini kullanıyor (rateSnapshot:{...App.ExchangeRate.rates})
+    // — gerçek kur yüklenmeden bir işlem oluşturulursa bu sahte değer
+    // KALICI olarak o işleme gömülüyordu. USD:1 tek istisna — bu bir tahmin
+    // değil, tanım gereği her zaman doğru olan bir birim sabiti.
+    rates:{USD:1},
     _fetching:null,
     CACHE_MINUTES:60,
     _lastSource:null,
