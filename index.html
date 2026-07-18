@@ -8049,6 +8049,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
               }
               try{
                 const key = await Core.Cloud.createAccount();
+                // Keysiz dönemden kalan chat geçmişini yeni key'e taşı
+                // (fresh→atılır, keep→taşınır+hemen cloud'a push edilir).
+                if (App.SAGIChat && App.SAGIChat.migrateLocalChatToKey) {
+                  App.SAGIChat.migrateLocalChatToKey(action === 'keep');
+                }
                 UI.Toasts.show(t('cloudCreated',{key}),'success');
                 this.renderCloudBox();
                 if (typeof onSuccess === 'function') onSuccess(key);
@@ -8064,6 +8069,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         UI.Confirm.show(t('confCloudCreate'), async ()=>{
           try{
             const key = await Core.Cloud.createAccount();
+            // Bu dalda "meaningful" finansal veri yoktu ama keysiz sohbet
+            // geçmişi olabilir — varsa yeni key'e taşı.
+            if (App.SAGIChat && App.SAGIChat.migrateLocalChatToKey) {
+              App.SAGIChat.migrateLocalChatToKey(true);
+            }
             UI.Toasts.show(t('cloudCreated',{key}),'success');
             this.renderCloudBox();
             if (typeof onSuccess === 'function') onSuccess(key);
@@ -8471,17 +8481,14 @@ _executeImport(){
         Core.state.notifInbox   = [];
         Core.state.settings.notifMaster = true;
         Core.state.settings.notifications = {abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false};
-        Core.state.settings.plusPlan          = '';
-        Core.state.settings.plusFont          = '';
-        Core.state.settings.plusColor         = '';
-        Core.state.settings.plusCustomColors  = [];
-        Core.state.settings.plusKey           = '';
-        Core.state.settings.chatTrialStart    = '';
-        Core.state.settings.plusStatus        = '';
-        Core.state.settings.plusExpiresAt     = null;
-        Core.state.settings.plusCancelledAt   = '';
-        Core.state.settings.plusProvider      = '';
-        Core.state.settings.plusPurchaseToken = '';
+        // KRİTİK FIX: Bu buton "Tüm Verileri Sil" — yani sadece finansal
+        // veriyi sıfırlar, HESABI silmez. Eskiden burada plusPlan/plusStatus/
+        // plusKey/chatTrialStart de sıfırlanıyordu — yani ödeme yapmış bir
+        // Plus abonesi sırf harcamalarını temizlemek için bu butona basınca
+        // Plus üyeliğini VE deneme süresi hakkını da kaybediyordu. Bunlar
+        // hesabın kimliğine ait, finansal veriye değil — artık dokunulmuyor.
+        // (Gerçek hesap silme — "Hesabımı Sil" — zaten bunları ayrıca,
+        // doğru yerde sıfırlıyor.)
         delete Core.state.settings.bnavItems;
         delete Core.state.settings.qaItems;
         Core.state.settings.lastModified      = Date.now();
@@ -8498,6 +8505,17 @@ _executeImport(){
         Core.state.settings.onboarded= !!key;
         Core.state.settings.lang     = lang;
         Core.state.settings.theme    = theme;
+
+        // Chat mesajlarını da temizle (Not 3: "chat silinir") — hem bu
+        // key'in kendi yerel kutusunu (aşağıdaki genel sagi_* temizleme
+        // döngüsü zaten kapsıyor) hem de Firestore'daki chat alt-dokümanını.
+        // Firestore'u silmezsek, reload sonrası realtime listener eski
+        // chat'i geri indirir ve "silindi" görünümü bozulur.
+        if (key && window._fbDB) {
+          try {
+            await window._fbDB.collection('users').doc(key.replace(/-/g,'')).collection('chat').doc('messages').delete();
+          } catch(e) { console.warn('[FactoryReset] chat cloud silme hatasi:', e); }
+        }
 
         // localStorage: sagi_* sil ama ana DB key'ini temizlenmiş state ile yaz
         try {
