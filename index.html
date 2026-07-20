@@ -157,6 +157,18 @@ if ('serviceWorker' in navigator) {
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body{font-family:var(--font-sans);background:var(--bg-body);color:var(--text-main);font-size:16px;line-height:1.5;min-height:100vh;overflow-x:hidden;transition:background-color .35s,color .35s}
+#appAmbientBg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#appAmbientBg span{position:absolute;border-radius:50%;filter:blur(60px);opacity:.10;background:var(--brand-accent)}
+#appAmbientBg span:nth-child(1){width:420px;height:420px;top:-160px;left:-120px;animation:sagiAmbientDrift1 22s ease-in-out infinite}
+#appAmbientBg span:nth-child(2){width:360px;height:360px;bottom:-140px;right:-100px;animation:sagiAmbientDrift2 26s ease-in-out infinite;opacity:.08}
+#appAmbientBg span:nth-child(3){width:260px;height:260px;top:40%;left:60%;animation:sagiAmbientDrift3 30s ease-in-out infinite;opacity:.06}
+[data-theme="dark"] #appAmbientBg span{opacity:.16}
+[data-theme="dark"] #appAmbientBg span:nth-child(2){opacity:.13}
+[data-theme="dark"] #appAmbientBg span:nth-child(3){opacity:.10}
+@keyframes sagiAmbientDrift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,30px) scale(1.08)}}
+@keyframes sagiAmbientDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,-40px) scale(1.1)}}
+@keyframes sagiAmbientDrift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-25px,25px) scale(.92)}}
+@media (prefers-reduced-motion: reduce){#appAmbientBg span{animation:none}}
 h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;color:var(--text-main)}
 a{text-decoration:none;color:inherit}
 button,input,select{font-family:inherit;font-size:inherit;color:inherit;outline:none;border:none;background:none}
@@ -1115,6 +1127,8 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+
+<div id="appAmbientBg" aria-hidden="true"><span></span><span></span><span></span></div>
 
 <div id="appLoader">
   <div class="loader-brand">
