@@ -179,7 +179,9 @@ table{width:100%;border-collapse:collapse}
 ::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.14)}
 
 /* TYPOGRAPHY */
-.text-h1{font-size:clamp(22px,5vw,28px);line-height:1.15;letter-spacing:-.025em;margin-bottom:6px;font-weight:800}
+.text-h1{font-size:clamp(22px,5vw,28px);line-height:1.15;letter-spacing:-.025em;margin-bottom:6px;font-weight:800;animation:h1In .4s cubic-bezier(.16,1,.3,1) both}
+@keyframes h1In{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.text-h1{animation:none}}
 .text-subtitle{font-size:14px;color:var(--text-secondary);font-weight:500;line-height:1.6}
 .text-caption{font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .font-display{font-family:var(--font-display)}.font-bold{font-weight:700}.font-medium{font-weight:500}
@@ -223,6 +225,7 @@ table{width:100%;border-collapse:collapse}
 .app-bottom-nav{display:flex;position:fixed;bottom:10px;left:10px;right:10px;height:var(--nav-h);background:rgba(255,255,255,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(0,0,0,.07);border-radius:26px;box-shadow:0 8px 32px -8px rgba(0,0,0,.18),0 1px 0 rgba(255,255,255,.6) inset;z-index:60;align-items:center;justify-content:space-around;padding:0 6px}
 [data-theme="dark"] .app-bottom-nav{background:rgba(22,22,26,.97);border-color:rgba(255,255,255,.08);box-shadow:0 8px 32px -8px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.04) inset}
 @media(min-width:1024px){.app-bottom-nav{display:none}}
+.bnav-active-pill{position:absolute;top:6px;bottom:6px;border-radius:18px;background:var(--brand-accent-subtle);opacity:0;transition:transform .38s cubic-bezier(.16,1,.3,1),width .38s cubic-bezier(.16,1,.3,1),opacity .25s;pointer-events:none}
 .bnav-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);flex:1;height:100%;border-radius:20px;transition:all .22s cubic-bezier(.16,1,.3,1);padding:8px 4px;cursor:pointer;position:relative}
 .bnav-link.active{color:var(--brand-accent)}
 .bnav-link.active .nav-icon{stroke-width:2.5;transform:translateY(-1px)}
@@ -300,24 +303,30 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none !impo
 @media(min-width:1024px){.css-grid{gap:22px}}
 
 /* CARDS */
-.card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:18px 16px;box-shadow:var(--shadow-sm);transition:box-shadow .25s,transform .25s;position:relative;overflow:hidden}
+.card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:18px 16px;box-shadow:var(--shadow-sm);transition:box-shadow .3s,transform .3s,border-color .3s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--brand-accent),transparent);opacity:0;transition:opacity .35s;pointer-events:none}
+.card:hover::before{opacity:.55}
 @media(min-width:768px){.card{padding:clamp(18px,3vw,26px)}}
-.card:hover{box-shadow:var(--shadow-md)}
-@media(min-width:1024px){.card:hover{transform:translateY(-1px)}}
+.card:hover{box-shadow:var(--shadow-md),0 0 0 1px var(--brand-accent-subtle)}
+@media(min-width:1024px){.card:hover{transform:translateY(-2px)}}
 .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .card-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:44px 20px;background:var(--bg-surface-hover);border:1.5px dashed var(--border-light);border-radius:var(--radius-lg);grid-column:1/-1;animation:fadeIn .5s ease}
-.empty-state .icon-wrapper{width:64px;height:64px;border-radius:50%;background:var(--bg-body);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--brand-accent);box-shadow:var(--shadow-sm)}
+.empty-state .icon-wrapper{width:64px;height:64px;border-radius:50%;background:var(--bg-body);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--brand-accent);box-shadow:var(--shadow-sm);animation:emptyIconFloat 3.6s ease-in-out infinite}
 .empty-state .icon-wrapper .nav-icon{width:32px;height:32px;stroke-width:1.5}
 .empty-state h3{font-size:17px;font-weight:700;margin-bottom:8px}
 .empty-state p{color:var(--text-muted);font-size:14px;margin-bottom:20px;max-width:300px}
+@keyframes emptyIconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion: reduce){.empty-state .icon-wrapper{animation:none}}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 20px;border-radius:var(--radius-md);font-size:14.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .18s cubic-bezier(.4,0,.2,1);white-space:nowrap;-webkit-user-select:none;user-select:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 20px;border-radius:var(--radius-md);font-size:14.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .18s cubic-bezier(.4,0,.2,1);white-space:nowrap;-webkit-user-select:none;user-select:none;position:relative;overflow:hidden}
 .btn:active{transform:scale(.95)}
 @media(max-width:768px){.btn{min-height:46px}}
 .btn-primary{background:var(--brand-primary);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 [data-theme="dark"] .btn-primary{color:#000}
+.btn-primary::after{content:'';position:absolute;top:0;left:-70%;width:35%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-20deg);transition:left .6s ease}
+.btn-primary:hover::after{left:130%}
 .btn-primary:hover{opacity:.86;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .btn-primary:active{transform:scale(.95) translateY(0)}
 .btn-outline{background:transparent;border-color:var(--border-light);color:var(--text-main)}
@@ -785,7 +794,9 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .kpi-slide.active{transform:translateX(0);opacity:1}
 .kpi-slide.prev{transform:translateX(-50px);opacity:0;pointer-events:none}
 .kpi-slide.next{transform:translateX(50px);opacity:0;pointer-events:none}
-.kpi-slide-val{font-family:var(--font-display);font-size:clamp(24px,6vw,28px);font-weight:800;letter-spacing:-.04em;line-height:1}
+.kpi-slide-val{font-family:var(--font-display);font-size:clamp(24px,6vw,28px);font-weight:800;letter-spacing:-.04em;line-height:1;animation:kpiValIn .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes kpiValIn{from{opacity:0;transform:translateY(4px) scale(.94)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.kpi-slide-val{animation:none}}
 .kpi-dots{display:flex;gap:4px;margin-top:10px}
 .kpi-dot{width:5px;height:5px;border-radius:50%;background:var(--border-light);transition:background .2s,width .2s}
 .kpi-dot.active{width:14px;border-radius:3px;background:var(--brand-accent)}
@@ -2180,6 +2191,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
   <!-- BOTTOM NAV -->
   <nav class="app-bottom-nav" id="appBottomNav">
+    <div class="bnav-active-pill" id="bnavActivePill"></div>
   </nav>
 </div>
 
@@ -3495,6 +3507,22 @@ window.Core = Core;
 // ═══════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════
+// Alt navigasyondaki "kayan pill" — aktif linkin arkasına, offsetLeft/offsetWidth
+// üzerinden konumlanır (nav'ın kendisi position:fixed olduğu için offsetParent
+// olarak çalışır, viewport hesaplamasına gerek yok). Route değişince ve
+// renderNav() her çalıştığında çağrılır.
+function _syncBnavPill() {
+  const nav  = document.getElementById('appBottomNav');
+  const pill = document.getElementById('bnavActivePill');
+  if (!nav || !pill) return;
+  const active = nav.querySelector('.bnav-link.active');
+  if (!active) { pill.style.opacity = '0'; return; }
+  pill.style.opacity = '1';
+  pill.style.width = active.offsetWidth + 'px';
+  pill.style.transform = `translateX(${active.offsetLeft}px)`;
+}
+window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
+
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
@@ -3542,6 +3570,7 @@ const UI = {
       // Nav link highlight — settings alt route'larında da /settings aktif
       document.querySelectorAll('.nav-link,.bnav-link').forEach(n=>n.classList.remove('active'));
       document.querySelectorAll(`[data-route="${hash}"]`).forEach(n=>n.classList.add('active'));
+      if (typeof _syncBnavPill === 'function') _syncBnavPill();
     }
   },
   Modals:{
@@ -8864,7 +8893,7 @@ App.Controllers.BottomBar = {
     if(!nav) return;
     const activeIds = this.getActive();
     const currentRoute = window.location.hash.replace('#','') || '/dashboard';
-    nav.innerHTML = activeIds.map((id, i) => {
+    nav.innerHTML = '<div class="bnav-active-pill" id="bnavActivePill"></div>' + activeIds.map((id, i) => {
       const item = ALL_BNAV_ITEMS.find(x => x.id === id);
       if(!item) return '';
 
@@ -8898,6 +8927,7 @@ App.Controllers.BottomBar = {
     // Aktif rotayı işaretle
     document.querySelectorAll('.nav-link,.bnav-link').forEach(n => n.classList.remove('active'));
     document.querySelectorAll(`[data-route="${currentRoute}"]`).forEach(n => n.classList.add('active'));
+    if (typeof _syncBnavPill === 'function') _syncBnavPill();
   },
 
   renderEditor(){
