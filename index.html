@@ -122,6 +122,7 @@ if ('serviceWorker' in navigator) {
    SAGI FINANCE v18 — Mobile-first
    ══════════════════════════════════ */
 :root {
+  --sagi-safe-top:env(safe-area-inset-top,0px); --sagi-safe-bottom:env(safe-area-inset-bottom,0px);
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
   --border-light:rgba(0,0,0,0.07); --border-focus:rgba(98,87,240,0.28);
   --brand-primary:#111827; --brand-accent:#6257f0; --brand-accent-subtle:rgba(98,87,240,.07); --brand-accent-soft:rgba(98,87,240,.10); --brand-accent-medium:rgba(98,87,240,.15);
@@ -877,36 +878,40 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden;background:var(--bg-body)}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-/* SAGI TOUR — canlı tanıtım turu */
-#sagiTourDim{position:fixed;inset:0;z-index:9797;background:rgba(10,10,14,.55);backdrop-filter:blur(7px) saturate(1.05);-webkit-backdrop-filter:blur(7px) saturate(1.05);opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s ease}
+/* SAGI TOUR — canlı, blur-çerçeve tabanlı tanıtım turu */
+/* Merkezli adımlar (karşılama/bitiş) için tam ekran karartma+blur */
+#sagiTourDim{position:fixed;inset:0;z-index:9797;background:rgba(10,10,14,.55);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
 [data-theme="light"] #sagiTourDim{background:rgba(20,20,30,.42)}
 #sagiTourDim.active{opacity:1;visibility:visible}
-.sagi-tour-highlight-wrap{position:fixed;z-index:9798;pointer-events:none;opacity:0;transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),width .45s cubic-bezier(.16,1,.3,1),height .45s cubic-bezier(.16,1,.3,1),opacity .3s;border-radius:16px;overflow:visible}
-.sagi-tour-highlight-wrap.active{opacity:1}
-.sagi-tour-highlight-glow{position:absolute;inset:-14px;border-radius:22px;background:radial-gradient(circle,var(--brand-accent-soft) 0%,transparent 72%);filter:blur(6px);animation:sagiTourGlowPulse 2.2s ease-in-out infinite}
-@keyframes sagiTourGlowPulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.95;transform:scale(1.05)}}
-@media (prefers-reduced-motion: reduce){.sagi-tour-highlight-glow{animation:none}}
-.sagi-tour-highlight-ring{position:absolute;inset:0;border-radius:16px;box-shadow:0 0 0 2px var(--brand-accent),0 0 24px 4px var(--brand-accent-medium),0 6px 28px rgba(0,0,0,.35)}
-.sagi-tour-highlight-clone{position:relative;border-radius:14px;overflow:hidden;filter:brightness(1.06) saturate(1.08);box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
-[data-theme="light"] .sagi-tour-highlight-clone{filter:brightness(1.03) saturate(1.05)}
-.sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px);background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),opacity .3s;pointer-events:none}
-.sagi-tour-tooltip.active{opacity:1;pointer-events:auto;animation:sagiTourTipIn .4s cubic-bezier(.16,1,.3,1)}
-@keyframes sagiTourTipIn{from{transform:scale(.94) translateY(4px)}to{transform:none}}
-.sagi-tour-step-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--brand-accent);letter-spacing:.03em;flex-shrink:0}
-.sagi-tour-step-badge svg{width:13px;height:13px}
+/* Hedefi saran 4 dinamik panel — hedefin ÜSTÜNE hiçbir şey çizilmez, o
+   tamamen net/dokunulmamış kalır. Sadece konum/boyut animasyonlanır —
+   blur miktarı SABİT (backdrop-filter'ı animasyonlamak pahalıdır). */
+.sagi-tour-blur-panel{position:fixed;z-index:9797;background:rgba(10,10,14,.5);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;pointer-events:none;transition:top .32s cubic-bezier(.22,1,.36,1),left .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease}
+[data-theme="light"] .sagi-tour-blur-panel{background:rgba(20,20,30,.38)}
+.sagi-tour-blur-panel.active{opacity:1;pointer-events:auto}
+.sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100vh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;transition:top .3s cubic-bezier(.22,1,.36,1),left .3s cubic-bezier(.22,1,.36,1),opacity .22s;pointer-events:none}
+.sagi-tour-tooltip.active{opacity:1;pointer-events:auto;animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes sagiTourTipIn{from{transform:scale(.96) translateY(3px)}to{transform:none}}
 .sagi-tour-title{font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:6px;font-family:var(--font-display)}
-.sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:16px}
-.sagi-tour-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px}
-.sagi-tour-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:14px}
+.sagi-tour-progress{height:3px;border-radius:2px;background:var(--border-light);overflow:hidden;margin-bottom:12px}
+.sagi-tour-progress-fill{height:100%;background:var(--brand-accent);border-radius:2px;transition:width .3s ease}
+.sagi-tour-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sagi-tour-count{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.02em;flex-shrink:0}
+.sagi-tour-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sagi-tour-prev{width:32px;height:32px;border-radius:50%;background:var(--bg-surface-hover);border:1px solid var(--border-light);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s}
+.sagi-tour-prev:active{transform:scale(.9)}
+.sagi-tour-prev svg{width:15px;height:15px}
 .sagi-tour-skip{font-size:12.5px;font-weight:700;color:var(--text-muted);cursor:pointer;padding:8px 4px;background:none;border:none}
 .sagi-tour-skip:hover{color:var(--text-secondary)}
-.sagi-tour-next{font-size:13px;font-weight:800;color:#fff;background:var(--brand-accent);border:none;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s}
+.sagi-tour-next{font-size:13px;font-weight:800;color:#fff;background:var(--brand-accent);border:none;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s;white-space:nowrap}
 .sagi-tour-next:active{transform:scale(.95)}
 .sagi-tour-next svg{width:14px;height:14px}
-.sagi-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9801;max-width:340px;width:calc(100vw - 48px);background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:28px 24px;text-align:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
-.sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourTipIn .4s cubic-bezier(.16,1,.3,1)}
+.sagi-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9801;max-width:340px;width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:28px 24px;text-align:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
 .sagi-tour-center-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(98,87,240,.35)}
 .sagi-tour-center-icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.6}
+@media (prefers-reduced-motion: reduce){.sagi-tour-blur-panel,.sagi-tour-tooltip,.sagi-tour-progress-fill{transition:opacity .15s !important}}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 [data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-soft),transparent 70%);background-color:#000;filter:blur(3px);}
@@ -1513,7 +1518,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="kpi-dots" id="kpiDotsFlow"></div>
         </div>
       </div>
-      <div class="css-grid grid-cols-2 mb-5 stagger-2">
+      <div class="css-grid grid-cols-2 mb-5 stagger-2" id="dashGoalsDebtsGrid">
         <div class="card">
           <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-target"/></svg><span data-i18n="goals">Hedeflerim</span></h2><a href="#/goals" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
           <div id="dashGoals" class="flex flex-col gap-4 dash-scroll-panel"></div>
@@ -1523,7 +1528,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div id="dashDebts" class="dash-scroll-panel"></div>
         </div>
       </div>
-      <div class="css-grid grid-cols-2 mb-5 stagger-3">
+      <div class="css-grid grid-cols-2 mb-5 stagger-3" id="dashTxUpcomingGrid">
         <div class="card" style="padding:0;padding-top:20px">
           <div class="card-header px-6"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-list"/></svg><span data-i18n="recentTx">Son İşlemler</span></h2><a href="#/transactions" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
           <div id="dashRecentTxsList" class="dash-scroll-panel" style="display:flex;flex-direction:column"></div>
@@ -1574,7 +1579,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <span data-i18n="deleteSelected">Seçilenleri Sil</span> (<span id="txSelectedCountTop">0</span>)
         </button>
       </div>
-      <div class="card p-4 stagger-1" style="margin-bottom:14px">
+      <div class="card p-4 stagger-1" id="txFilterCard" style="margin-bottom:14px">
         <div class="tx-filter-header">
           <div class="tx-filter-header-left">
             <svg class="nav-icon" style="width:15px;height:15px;color:var(--text-muted)"><use href="#icon-list"/></svg>
@@ -1688,7 +1693,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
 
       <!-- Gider Dağılımı + Kategoriler -->
-      <div class="css-grid grid-cols-2 mb-5 stagger-3">
+      <div class="css-grid grid-cols-2 mb-5 stagger-3" id="analyticsDonutGridWrap">
         <div class="card">
           <h2 class="card-title mb-3" data-i18n="donutTitle">Harcama Dağılımı</h2>
           <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px" data-i18n="donutHint">Kategoriye tıklayın, işlemleri görün</p>
@@ -1728,7 +1733,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div><h1 class="text-h1" data-i18n="debts">Borç & Alacak</h1><p class="text-subtitle" data-i18n="debtsSubtitle">Finansal yükümlülükleriniz</p></div>
         <button class="btn btn-primary" onclick="App.Controllers.Debts.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addTx">İşlem Ekle</span></button>
       </div>
-      <div class="css-grid grid-cols-2 stagger-1">
+      <div class="css-grid grid-cols-2 stagger-1" id="debtsGridWrap">
         <div class="card"><h2 class="card-title color-danger mb-5" data-i18n="myDebts">Borçlarım</h2><div id="debtsContainer" class="flex flex-col gap-4"></div></div>
         <div class="card"><h2 class="card-title color-success mb-5" data-i18n="myReceivables">Alacaklarım</h2><div id="receivablesContainer" class="flex flex-col gap-4"></div></div>
       </div>
@@ -1743,7 +1748,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <h1 class="text-h1" data-i18n="notifInboxTitle">Bildirimler</h1>
         <p class="text-subtitle" data-i18n="notifInboxSubtitle">Tüm bildirimleriniz burada</p>
       </div>
-      <div class="flex gap-2 items-center">
+      <div class="flex gap-2 items-center" id="notifHeaderActions">
         <button class="btn btn-outline btn-sm" onclick="App.Controllers.NotifInbox.markAllRead()" data-i18n="notifMarkAllRead">Tümünü Okundu İşaretle</button>
         <button class="btn btn-outline btn-sm color-danger" onclick="App.Controllers.NotifInbox.clearAll()" data-i18n="notifClearAll">Temizle</button>
         <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.openSection('notifications')" data-i18n="notifSettingsBtn">Bildirim Ayarları</button>
@@ -1774,7 +1779,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <p class="text-subtitle" data-i18n="settingsSubtitle">Uygulama tercihlerinizi yönetin</p>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('plus')">
+          <div id="settingsRowPlus" onclick="App.Controllers.Settings.openSection('plus')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1789,7 +1794,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('personalization')">
+          <div id="settingsRowPersonalization" onclick="App.Controllers.Settings.openSection('personalization')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1804,7 +1809,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('notifications')">
+          <div id="settingsRowNotifications" onclick="App.Controllers.Settings.openSection('notifications')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1819,7 +1824,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('rates')">
+          <div id="settingsRowRates" onclick="App.Controllers.Settings.openSection('rates')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1834,7 +1839,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('bottombar')">
+          <div id="settingsRowBottombar" onclick="App.Controllers.Settings.openSection('bottombar')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1849,7 +1854,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('cloud')">
+          <div id="settingsRowCloud" onclick="App.Controllers.Settings.openSection('cloud')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1864,7 +1869,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('data')">
+          <div id="settingsRowData" onclick="App.Controllers.Settings.openSection('data')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -1879,7 +1884,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div onclick="App.Controllers.Settings.openSection('legal')">
+          <div id="settingsRowLegal" onclick="App.Controllers.Settings.openSection('legal')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
@@ -3581,127 +3586,202 @@ function _syncBnavPill() {
 window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
 
 // ═══════════════════════════════════════
-// SAGI TOUR — canlı, spotlight tabanlı tanıtım turu
-// Ok/işaretçi YOK; her adımda gerçek elemanın etrafı karartılıp
-// aydınlatılıyor (spotlight), yanında akıllı konumlanan bir tooltip kartı
-// açıklama yapıyor. Tamamen Dashboard üzerinde çalışır (route değiştirmeye
-// gerek yok) — yeni kullanıcıya bir kere otomatik gösterilir, Ayarlar'dan
-// istendiğinde tekrar oynatılabilir.
+// SAGI TOUR — canlı, "blur çerçeve" tabanlı tanıtım turu
+// Ok/işaretçi ve tek renkli kutu YOK: hedef eleman OLDUĞU GİBİ (bulanıksız,
+// net) kalır; ekranın geri kalanı 4 dinamik panelle (üst/alt/sol/sağ)
+// bulanıklaştırılıp karartılır — "delik" gerçek bir maske değil, hedefin
+// etrafını saran 4 panelin BIRAKTIĞI boşluktur. Bulanıklık miktarı SABİT
+// tutulur (sadece panellerin konum/boyutu animasyonlanır) — backdrop-filter
+// animasyonu pahalıdır, konum/boyut animasyonu ucuzdur ve GPU dostu.
+// Uygulamadaki HER ana ekranı gezer (route değişimi otomatik), mobil ve
+// masaüstünde responsive çalışır.
 // ═══════════════════════════════════════
+function _safeAreaInset(side) {
+  try {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(`--sagi-safe-${side}`);
+    return parseFloat(v) || 0;
+  } catch (e) { return 0; }
+}
+
 const SagiTour = {
   _idx: 0,
   _steps: [],
+  _active: false,
   _resizeBound: false,
+  _currentTarget: null,
+  _currentStep: null,
 
   _buildSteps() {
     const isEn = window.LANG === 'en';
+    const S = (tr, en) => isEn ? en : tr;
     return [
       { center: true,
         icon: '<path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-        title: isEn ? 'Welcome to SAGI Finance' : 'SAGI Finance\'e Hoş Geldin',
-        desc: isEn ? 'A full tour of every screen — about a minute, skip anytime.' : 'Tüm ekranların tam bir turu — yaklaşık bir dakika, istediğin an atlayabilirsin.' },
+        title: S('SAGI Finance\'e Hoş Geldin', 'Welcome to SAGI Finance'),
+        desc: S('Tüm ekranların tam bir turu — istediğin an atlayabilirsin.', 'A full tour of every screen — skip anytime.') },
+
       // ── DASHBOARD ──────────────────────────────────────────────
       { route: '/dashboard', sel: '#kpiCardNetWorth', whole: true,
-        title: isEn ? 'Your net worth' : 'Net Varlığın',
-        desc: isEn ? 'All your accounts combined, at a glance. Swipe to see it per currency.' : 'Tüm hesapların toplamı, tek bakışta. Kaydırarak para birimine göre de görebilirsin.' },
-      { route: '/dashboard', sel: '#view-dashboard .css-grid.grid-cols-4', whole: false,
-        title: isEn ? 'Monthly snapshot' : 'Aylık Özet',
-        desc: isEn ? 'Expenses, income and net cash flow for this month, updated live.' : 'Bu ayki gider, gelir ve net nakit akışın, anlık güncelleniyor.' },
-      { route: '/dashboard', sel: '#dashGoals', whole: true,
-        title: isEn ? 'Savings goals' : 'Birikim Hedeflerin',
-        desc: isEn ? 'Track progress toward what you\'re saving for.' : 'Ne için biriktirdiğini ve ne kadar yaklaştığını burada takip et.' },
-      { route: '/dashboard', sel: '#dashRecentTxsList', whole: true,
-        title: isEn ? 'Recent activity' : 'Son İşlemlerin',
-        desc: isEn ? 'Your latest transactions land here first.' : 'En son eklediğin işlemler önce burada görünür.' },
-      // ── HESAPLAR / CÜZDANLAR ───────────────────────────────────
-      { route: '/wallets', sel: '#view-wallets .btn-primary',
-        title: isEn ? 'Add an account' : 'Hesap Ekle',
-        desc: isEn ? 'Bank accounts, cash, credit cards — add as many as you need, in any currency.' : 'Banka hesabı, nakit, kredi kartı — istediğin kadar, istediğin para biriminde ekleyebilirsin.' },
+        title: S('Net Varlığın', 'Your net worth'),
+        desc: S('Tüm hesapların toplamı, tek bakışta. Kaydırarak para birimine göre de görebilirsin.', 'All your accounts combined, at a glance. Swipe to see it per currency.') },
+      { route: '/dashboard', sel: '#view-dashboard .css-grid.grid-cols-4',
+        title: S('Aylık Özet', 'Monthly snapshot'),
+        desc: S('Bu ayki gider, gelir ve net nakit akışın, anlık güncelleniyor.', 'Expenses, income and net cash flow for this month, updated live.') },
+      { route: '/dashboard', sel: '#dashGoalsDebtsGrid',
+        title: S('Hedeflerin ve Borç/Alacak Özetin', 'Goals & debt summary'),
+        desc: S('Birikim hedeflerin ve kime borçlu/alacaklı olduğun, tek bakışta.', 'Your savings goals and who you owe or are owed, at a glance.') },
+      { route: '/dashboard', sel: '#dashTxUpcomingGrid',
+        title: S('Son İşlemler ve Yaklaşan Ödemeler', 'Recent activity & upcoming payments'),
+        desc: S('En son eklediğin işlemler ve yaklaşan sabit ödemelerin burada.', 'Your latest transactions and upcoming fixed payments live here.') },
+
+      // ── HESAPLAR ───────────────────────────────────────────────
+      { route: '/wallets', sel: '#view-wallets .transfer-actions-row',
+        title: S('Hesap Ekle ve Para Aktar', 'Add accounts & transfer money'),
+        desc: S('Banka hesabı, nakit, kredi kartı — istediğin kadar ekle, hesaplar arasında para aktar.', 'Bank accounts, cash, credit cards — add as many as you need, transfer between them.') },
+      { route: '/wallets', sel: '#walletsGrid',
+        title: S('Tüm Hesapların', 'All your accounts'),
+        desc: S('Bakiyeler burada — bir hesaba dokunarak detaylarını ve geçmişini görebilirsin.', 'Balances live here — tap any account to see its details and history.') },
+
       // ── İŞLEMLER ───────────────────────────────────────────────
-      { route: '/transactions', sel: '#view-transactions .btn-primary',
-        title: isEn ? 'Log a transaction' : 'İşlem Ekle',
-        desc: isEn ? 'Every income and expense lives here, fully filterable and searchable.' : 'Tüm gelir ve giderlerin burada, filtrelenebilir ve aranabilir şekilde.' },
+      { route: '/transactions', sel: '#txPageTitleRow .btn-primary',
+        title: S('İşlem Ekle', 'Log a transaction'),
+        desc: S('Her gelir ve gideri buradan saniyeler içinde ekleyebilirsin.', 'Add every income and expense here in seconds.') },
+      { route: '/transactions', sel: '#txFilterCard',
+        title: S('Filtrele ve Ara', 'Filter & search'),
+        desc: S('Tarih, açıklama, tür veya hesaba göre işlemlerini daralt.', 'Narrow down your transactions by date, description, type or account.') },
+      { route: '/transactions', sel: '#txCardContainer',
+        title: S('İşlem Listen', 'Your transaction list'),
+        desc: S('Tüm işlemlerin burada — düzenleyebilir, silebilir, toplu seçim yapabilirsin.', 'All your transactions here — edit, delete, or bulk-select them.') },
+
       // ── ABONELİKLER ────────────────────────────────────────────
       { route: '/recurring', sel: '#view-recurring .btn-primary',
-        title: isEn ? 'Recurring payments' : 'Abonelikler',
-        desc: isEn ? 'Netflix, rent, any fixed monthly cost — add once, SAGI reminds you every cycle.' : 'Netflix, kira, her ay tekrar eden sabit gider — bir kere ekle, SAGI her döngüde hatırlatsın.' },
+        title: S('Abonelik Ekle', 'Add a subscription'),
+        desc: S('Netflix, kira, her ay tekrar eden sabit gider — bir kere ekle, SAGI her döngüde hatırlatsın.', 'Netflix, rent, any fixed monthly cost — add once, SAGI reminds you every cycle.') },
+      { route: '/recurring', sel: '#recurringGrid',
+        title: S('Aboneliklerin', 'Your subscriptions'),
+        desc: S('Tüm düzenli ödemelerin ve ödeme tarihleri burada.', 'All your recurring payments and their due dates live here.') },
+
       // ── HEDEFLER ───────────────────────────────────────────────
       { route: '/goals', sel: '#view-goals .btn-primary',
-        title: isEn ? 'Set a savings goal' : 'Hedef Belirle',
-        desc: isEn ? 'A trip, an emergency fund, anything — set a target and track your progress.' : 'Bir tatil, acil durum fonu, ne olursa olsun — bir hedef koy, ilerlemeni takip et.' },
+        title: S('Hedef Belirle', 'Set a savings goal'),
+        desc: S('Bir tatil, acil durum fonu, ne olursa olsun — bir hedef koy, ilerlemeni takip et.', 'A trip, an emergency fund, anything — set a target and track your progress.') },
+      { route: '/goals', sel: '#goalsGrid',
+        title: S('Hedeflerin', 'Your goals'),
+        desc: S('Her hedefin ilerleme yüzdesini burada görürsün.', 'You can see each goal\'s progress percentage here.') },
+
       // ── BORÇ & ALACAK ──────────────────────────────────────────
       { route: '/debts', sel: '#view-debts .btn-primary',
-        title: isEn ? 'Debts & receivables' : 'Borç & Alacak',
-        desc: isEn ? 'Track what you owe and what\'s owed to you, with due dates.' : 'Kime borçlusun, kimden alacaklısın — vade tarihleriyle birlikte takip et.' },
+        title: S('Borç veya Alacak Ekle', 'Add a debt or receivable'),
+        desc: S('Kime borçlusun, kimden alacaklısın — vade tarihleriyle birlikte kaydet.', 'Who you owe, who owes you — log it with a due date.') },
+      { route: '/debts', sel: '#debtsGridWrap',
+        title: S('Borçların ve Alacakların', 'Your debts & receivables'),
+        desc: S('İki liste ayrı ayrı burada, vadesi yaklaşanlar öne çıkar.', 'Both lists live here separately, upcoming due dates surface first.') },
+
       // ── ANALİZ ─────────────────────────────────────────────────
       { route: '/analytics', sel: '#analyticsPeriodBar',
-        title: isEn ? 'Pick your timeframe' : 'Zaman Aralığını Seç',
-        desc: isEn ? 'This month, 3, 6, or 12 months — every chart updates instantly.' : 'Bu ay, 3, 6 veya 12 ay — tüm grafikler anında güncellenir.' },
+        title: S('Zaman Aralığını Seç', 'Pick your timeframe'),
+        desc: S('Bu ay, 3, 6 veya 12 ay — tüm grafikler anında güncellenir.', 'This month, 3, 6, or 12 months — every chart updates instantly.') },
+      { route: '/analytics', sel: '#analyticsSummary',
+        title: S('Dönem Özeti', 'Period summary'),
+        desc: S('Seçtiğin dönem için gelir, gider ve net durum.', 'Income, expenses and net position for the period you picked.') },
       { route: '/analytics', sel: '#trendBarChart', whole: true,
-        title: isEn ? 'Income vs. expense trend' : 'Gelir / Gider Trendi',
-        desc: isEn ? 'Plus unlocks the Savings Score, forecast and month-over-month comparison too.' : 'Plus ile Tasarruf Skoru, gelecek ay tahmini ve aylık karşılaştırma da açılıyor.' },
+        title: S('Gelir / Gider Trendi', 'Income vs. expense trend'),
+        desc: S('Zaman içindeki değişimi gör — Plus ile Tasarruf Skoru, tahmin ve aylık karşılaştırma da açılıyor.', 'See how things change over time — Plus also unlocks the Savings Score, forecast and month-over-month comparison.') },
+      { route: '/analytics', sel: '#analyticsDonutGridWrap',
+        title: S('Harcama Dağılımı ve Kategoriler', 'Spending breakdown & categories'),
+        desc: S('Paranın nereye gittiğini kategori bazında gör, dilimlere dokunarak işlemleri incele.', 'See where your money goes by category — tap a slice to inspect transactions.') },
+      { route: '/analytics', sel: '#view-analytics .card:last-child',
+        title: S('Kategori Bütçeleri', 'Category budgets'),
+        desc: S('Kategorilere aylık harcama limiti koy, aşınca uyarı al.', 'Set a monthly spending limit per category and get warned when you go over.') },
+
       // ── BİLDİRİMLER ────────────────────────────────────────────
-      { route: '/notifications', sel: '#notifFilterTabs',
-        title: isEn ? 'All your alerts in one place' : 'Tüm Uyarıların Tek Yerde',
-        desc: isEn ? 'Filter by type, mark as read, or jump straight to notification settings.' : 'Türe göre filtrele, okundu işaretle veya doğrudan bildirim ayarlarına geç.' },
+      { route: '/notifications', sel: '#notifHeaderActions',
+        title: S('Bildirimlerini Yönet', 'Manage your notifications'),
+        desc: S('Tümünü okundu işaretle, temizle, ya da hangi uyarıları alacağını ayarla.', 'Mark all as read, clear them, or set which alerts you want to receive.') },
+
+      // ── HIZLI İŞLEM ────────────────────────────────────────────
+      { sel: '#qaBnavFab',
+        title: S('Hızlı İşlem', 'Quick actions'),
+        desc: S('Her yerden, her sayfadan hızlıca işlem/hedef/abonelik/borç eklemenin en kısa yolu.', 'The fastest way to add a transaction, goal, subscription or debt — from anywhere.') },
+
       // ── AYARLAR ────────────────────────────────────────────────
-      { route: '/settings', sel: '[onclick*="openSection(\'cloud\')"]',
-        title: isEn ? 'Cloud sync' : 'Bulut Senkronizasyonu',
-        desc: isEn ? 'A 16-digit anonymous key syncs your data across devices — no account, no email.' : '16 haneli anonim bir anahtar, verilerini cihazlar arasında senkronlar — hesap yok, e-posta yok.' },
-      { route: '/settings', sel: '[onclick*="openSection(\'plus\')"]',
-        title: isEn ? 'SAGI Plus' : 'SAGI Plus',
-        desc: isEn ? 'Unlimited assistant, advanced analytics, themes, ad-free — and a free 7-day Plus Trial to test it all.' : 'Sınırsız asistan, gelişmiş analiz, temalar, reklamsızlık — ve hepsini denemen için ücretsiz 7 günlük Plus Trial.' },
-      { route: '/settings', sel: '[onclick*="openSection(\'notifications\')"]',
-        title: isEn ? 'Notifications' : 'Bildirimler',
-        desc: isEn ? 'Choose exactly what you want to be alerted about.' : 'Tam olarak ne hakkında uyarılmak istediğini sen seç.' },
+      { route: '/settings', sel: '#settingsRowPlus',
+        title: 'SAGI Plus',
+        desc: S('Sınırsız asistan, gelişmiş analiz, temalar, reklamsızlık — 7 günlük ücretsiz Plus Trial ile hepsini dene.', 'Unlimited assistant, advanced analytics, themes, ad-free — try it all with a free 7-day Plus Trial.') },
+      { route: '/settings', sel: '#settingsRowPersonalization',
+        title: S('Kişiselleştirme', 'Personalization'),
+        desc: S('İsim, para birimi, tema, dil — uygulamayı kendine göre ayarla.', 'Name, currency, theme, language — make the app yours.') },
+      { route: '/settings', sel: '#settingsRowNotifications',
+        title: S('Bildirim Ayarları', 'Notification settings'),
+        desc: S('Tam olarak ne hakkında uyarılmak istediğini sen seç.', 'Choose exactly what you want to be alerted about.') },
+      { route: '/settings', sel: '#settingsRowRates',
+        title: S('Döviz Kurları', 'Exchange rates'),
+        desc: S('Güncel kurları buradan takip edebilirsin.', 'Track current exchange rates here.') },
+      { route: '/settings', sel: '#settingsRowBottombar',
+        title: S('Alt Menü Düzeni', 'Bottom menu layout'),
+        desc: S('Alt navigasyondaki sekmeleri istediğin sırada özelleştir.', 'Customize the order of tabs in the bottom navigation.') },
+      { route: '/settings', sel: '#settingsRowCloud',
+        title: S('Bulut Senkronizasyonu', 'Cloud sync'),
+        desc: S('16 haneli anonim bir anahtar, verilerini cihazlar arasında senkronlar — hesap yok, e-posta yok.', 'A 16-digit anonymous key syncs your data across devices — no account, no email.') },
+      { route: '/settings', sel: '#settingsRowData',
+        title: S('Veri Yönetimi', 'Data management'),
+        desc: S('Yedek al, geri yükle, ya da verilerini tamamen sıfırla.', 'Back up, restore, or completely reset your data.') },
+      { route: '/settings', sel: '#settingsRowLegal',
+        title: S('Yasal Bilgiler', 'Legal'),
+        desc: S('Gizlilik politikası, kullanım şartları ve daha fazlası.', 'Privacy policy, terms of service and more.') },
+
       // ── SAGI ASİSTAN ───────────────────────────────────────────
       { sel: '#sagiChatBtn',
-        title: isEn ? 'Meet SAGI Assistant' : 'SAGI Asistan ile Tanış',
-        desc: isEn ? 'Ask anything about your finances in plain language — it reads your real data.' : 'Finansal durumun hakkında ne istersen sor — gerçek verini okuyarak cevap veriyor.' },
+        title: S('SAGI Asistan ile Tanış', 'Meet SAGI Assistant'),
+        desc: S('Finansal durumun hakkında ne istersen sor — gerçek verini okuyarak cevap veriyor.', 'Ask anything about your finances in plain language — it reads your real data.') },
+
       { center: true,
         icon: '<path d="M20 6 9 17l-5-5"/>',
-        title: isEn ? 'You\'re all set' : 'Hazırsın',
-        desc: isEn ? 'Replay this tour anytime from Settings.' : 'Bu turu istediğin zaman Ayarlar\'dan tekrar izleyebilirsin.' },
+        title: S('Hazırsın', 'You\'re all set'),
+        desc: S('Bu turu istediğin zaman Ayarlar\'dan tekrar izleyebilirsin.', 'Replay this tour anytime from Settings.') },
     ];
   },
 
   _ensureDom() {
     if (document.getElementById('sagiTourDim')) return;
     const dim = document.createElement('div'); dim.id = 'sagiTourDim';
-    const wrap = document.createElement('div'); wrap.className = 'sagi-tour-highlight-wrap'; wrap.id = 'sagiTourHighlightWrap';
-    wrap.innerHTML = `<div class="sagi-tour-highlight-glow"></div><div class="sagi-tour-highlight-clone" id="sagiTourHighlightClone"></div><div class="sagi-tour-highlight-ring"></div>`;
+    document.body.appendChild(dim);
+    dim.addEventListener('click', () => this.skip());
+    // 4 blur paneli — hedefin üstü/altı/solu/sağı. Hedefin kendisi hiçbir
+    // panelle örtülmez, tamamen net kalır.
+    ['Top','Bottom','Left','Right'].forEach(pos => {
+      const p = document.createElement('div');
+      p.className = 'sagi-tour-blur-panel';
+      p.id = 'sagiTourBlur' + pos;
+      p.addEventListener('click', () => this.skip());
+      document.body.appendChild(p);
+    });
     const tip = document.createElement('div'); tip.className = 'sagi-tour-tooltip'; tip.id = 'sagiTourTooltip';
     const center = document.createElement('div'); center.className = 'sagi-tour-center'; center.id = 'sagiTourCenter';
-    document.body.appendChild(dim);
-    document.body.appendChild(wrap);
     document.body.appendChild(tip);
     document.body.appendChild(center);
-    dim.addEventListener('click', () => this.skip());
   },
 
   start() {
-    if (typeof App !== 'undefined' && App.Ads && typeof App.Ads.hide === 'function') {
-      App.Ads.hide();
-    } else {
-      const openAd = document.getElementById('sagiAdOverlay');
-      if (openAd) openAd.remove();
-    }
     if (window.location.hash.replace('#','') !== '/dashboard') window.location.hash = '/dashboard';
     this._ensureDom();
     this._steps = this._buildSteps();
     this._idx = 0;
-    setTimeout(() => this._render(), 180); // dashboard render'ının oturması için kısa bekleme
+    // Tur aktifken sayfa scrollunu kilitle — kullanıcı parmakla kaydırırsa
+    // blur panelleri (fixed konumlanmış) içerikle senkronunu kaybederdi.
+    this._prevHtmlOverflow = document.documentElement.style.overflow;
+    this._prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    this._active = true;
+    setTimeout(() => this._render(), 150);
     if (!this._resizeBound) {
       this._resizeBound = true;
-      let raf = null;
-      const scheduleReposition = () => {
-        if (raf) return;
-        raf = requestAnimationFrame(() => { raf = null; if (this._active) this._reposition(); });
-      };
-      window.addEventListener('resize', scheduleReposition);
-      window.addEventListener('scroll', scheduleReposition, true);
+      const reflow = () => { if (this._active) this._repositionCurrent(); };
+      window.addEventListener('resize', reflow);
+      window.addEventListener('orientationchange', () => setTimeout(reflow, 250));
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', reflow);
     }
-    this._active = true;
   },
 
   skip() { this._finish(); },
@@ -3721,15 +3801,13 @@ const SagiTour = {
 
   _finish() {
     this._active = false;
-    this._target = null;
+    this._currentTarget = null;
+    this._currentStep = null;
     try { localStorage.setItem('sagi_tour_seen', '1'); } catch (e) {}
-    const dim = document.getElementById('sagiTourDim');
-    const wrap = document.getElementById('sagiTourHighlightWrap');
-    const tip = document.getElementById('sagiTourTooltip');
+    document.documentElement.style.overflow = this._prevHtmlOverflow || '';
+    document.body.style.overflow = this._prevBodyOverflow || '';
+    this._hidePanels();
     const center = document.getElementById('sagiTourCenter');
-    if (dim) dim.classList.remove('active');
-    if (wrap) wrap.classList.remove('active');
-    if (tip) tip.classList.remove('active');
     if (center) center.classList.remove('active');
   },
 
@@ -3741,15 +3819,29 @@ const SagiTour = {
     } catch (e) {}
   },
 
+  _hidePanels() {
+    ['Top','Bottom','Left','Right'].forEach(pos => {
+      const el = document.getElementById('sagiTourBlur' + pos);
+      if (el) el.classList.remove('active');
+    });
+    const dim = document.getElementById('sagiTourDim');
+    const tip = document.getElementById('sagiTourTooltip');
+    if (dim) dim.classList.remove('active');
+    if (tip) tip.classList.remove('active');
+  },
+
   _iconSvg(step) {
     return `<div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>`;
   },
 
   _footerHtml(isEn, isLast) {
+    const pct = Math.round(((this._idx + 1) / this._steps.length) * 100);
     return `
+      <div class="sagi-tour-progress"><div class="sagi-tour-progress-fill" style="width:${pct}%"></div></div>
       <div class="sagi-tour-footer">
-        <div class="sagi-tour-step-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>${this._idx + 1}/${this._steps.length}</div>
+        <span class="sagi-tour-count">${this._idx + 1}/${this._steps.length}</span>
         <div class="sagi-tour-actions">
+          ${this._idx > 0 ? `<button class="sagi-tour-prev" onclick="SagiTour.prev()" aria-label="${isEn ? 'Back' : 'Geri'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}
           <button class="sagi-tour-skip" onclick="SagiTour.skip()">${isEn ? 'Skip' : 'Atla'}</button>
           <button class="sagi-tour-next" onclick="SagiTour.next()">
             ${isLast ? (isEn ? 'Done' : 'Bitir') : (isEn ? 'Next' : 'İleri')}
@@ -3763,28 +3855,39 @@ const SagiTour = {
     const step = this._steps[this._idx];
     if (!step) { this._finish(); return; }
     const targetHash = step.route ? ('#' + step.route) : null;
-    if (targetHash && window.location.hash !== targetHash) {
+    const navigating = targetHash && window.location.hash !== targetHash;
+    if (navigating) {
+      this._hidePanels(); // farklı sayfaya geçerken önce yumuşakça sıfırla
       window.location.hash = step.route;
-      // Route geçiş animasyonu + view render'ının oturması için bekleme
-      setTimeout(() => this._renderStep(step), 320);
-      return;
     }
-    this._renderStep(step);
+    this._waitFor(step, 0);
+  },
+
+  // Hedef eleman henüz DOM'a gelmemiş/render olmamış olabilir (route geçişi,
+  // ağır bir liste render'ı vs.) — sabit bir setTimeout süresine güvenmek
+  // yerine kısa aralıklarla kontrol edip hazır olunca devam ediyoruz. Yavaş
+  // cihazlarda da güvenilir çalışır; hazırsa gecikme yaşanmaz.
+  _waitFor(step, attempt) {
+    if (!this._active) return;
+    if (step.center) { this._renderStep(step); return; }
+    const el = document.querySelector(step.sel);
+    const ready = el && el.offsetParent !== null && el.getBoundingClientRect().width > 0;
+    if (ready || attempt > 20) { this._renderStep(step); return; }
+    setTimeout(() => this._waitFor(step, attempt + 1), 80);
   },
 
   _renderStep(step) {
     const isEn = window.LANG === 'en';
     const isLast = this._idx === this._steps.length - 1;
     const dim = document.getElementById('sagiTourDim');
-    const wrap = document.getElementById('sagiTourHighlightWrap');
     const tip = document.getElementById('sagiTourTooltip');
     const center = document.getElementById('sagiTourCenter');
-    if (!dim || !wrap || !tip || !center) return;
+    if (!dim || !tip || !center) return;
 
     if (step.center) {
-      wrap.classList.remove('active');
-      tip.classList.remove('active');
-      dim.classList.add('active');
+      this._currentTarget = null;
+      this._currentStep = null;
+      this._hidePanels();
       center.innerHTML = `
         ${this._iconSvg(step)}
         <div class="sagi-tour-title">${step.title}</div>
@@ -3797,78 +3900,79 @@ const SagiTour = {
     center.classList.remove('active');
     let target = document.querySelector(step.sel);
     if (target && step.whole) target = target.closest('.card') || target;
-    if (!target || !this._isVisible(target)) { this.next(); return; } // bu ekranda bu element yoksa/görünmüyorsa adımı atla
-    this._target = target;
+    if (!target || target.offsetParent === null) { this.next(); return; } // bu ekranda bu element yoksa/görünmüyorsa adımı atla
     target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    this._waitForScrollSettle(target, target.getBoundingClientRect().top, 0, () => {
+      this._currentTarget = target;
+      this._currentStep = step;
+      this._positionAt(target, step, isEn, isLast);
+    });
+  },
 
-    // Tooltip içeriği (başlık/açıklama/footer) sadece adım değişince yazılır —
-    // scroll/resize kaynaklı _reposition() çağrılarında ASLA yeniden yazılmaz,
-    // aksi halde tıklanan "İleri" butonu elden gidip tıklama kaybolabiliyordu.
+  // scrollIntoView'ın animasyonu bitene kadar bekle — sabit bir süre tahmin
+  // etmek yerine, elemanın konumu art arda ölçümlerde artık DEĞİŞMİYORSA
+  // (scroll durmuş demektir) devam ediyoruz. Kısa/uzun scroll mesafesinde
+  // eşit derecede doğru çalışır.
+  _waitForScrollSettle(el, lastTop, attempt, cb) {
+    requestAnimationFrame(() => {
+      const top = el.getBoundingClientRect().top;
+      if (Math.abs(top - lastTop) < 0.5 || attempt > 30) { cb(); return; }
+      this._waitForScrollSettle(el, top, attempt + 1, cb);
+    });
+  },
+
+  // Pencere yeniden boyutlanınca / adres çubuğu açılıp kapanınca aktif adımı
+  // yeniden konumlandır (sayfa değiştirmeden, sadece ölçüm tazelenir).
+  _repositionCurrent() {
+    if (!this._currentTarget || !this._currentStep) return;
+    if (!document.body.contains(this._currentTarget)) return;
+    this._positionAt(this._currentTarget, this._currentStep, window.LANG === 'en', this._idx === this._steps.length - 1);
+  },
+
+  _positionAt(target, step, isEn, isLast) {
+    const dim = document.getElementById('sagiTourDim');
+    const tip = document.getElementById('sagiTourTooltip');
+    const bT = document.getElementById('sagiTourBlurTop');
+    const bB = document.getElementById('sagiTourBlurBottom');
+    const bL = document.getElementById('sagiTourBlurLeft');
+    const bR = document.getElementById('sagiTourBlurRight');
+    if (!dim || !tip || !bT || !bB || !bL || !bR) return;
+    dim.classList.remove('active');
+
+    const r = target.getBoundingClientRect();
+    const pad = 8;
+    const vv = window.visualViewport;
+    const vw = vv ? vv.width : window.innerWidth;
+    const vh = vv ? vv.height : window.innerHeight;
+    const top = Math.max(0, r.top - pad), bottom = Math.min(vh, r.bottom + pad);
+    const left = Math.max(0, r.left - pad), right = Math.min(vw, r.right + pad);
+
+    // 4 panel, hedefi bir çerçeve gibi sarar — hedefin üstüne HİÇBİR panel
+    // gelmez, tamamen net/bulanıksız kalır.
+    bT.style.cssText = `top:0px;left:0px;width:${vw}px;height:${top}px`;
+    bB.style.cssText = `top:${bottom}px;left:0px;width:${vw}px;height:${Math.max(0, vh - bottom)}px`;
+    bL.style.cssText = `top:${top}px;left:0px;width:${left}px;height:${Math.max(0, bottom - top)}px`;
+    bR.style.cssText = `top:${top}px;left:${right}px;width:${Math.max(0, vw - right)}px;height:${Math.max(0, bottom - top)}px`;
+    [bT, bB, bL, bR].forEach(p => p.classList.add('active'));
+
     tip.innerHTML = `
       <div class="sagi-tour-title">${step.title}</div>
       <div class="sagi-tour-desc">${step.desc}</div>
       ${this._footerHtml(isEn, isLast)}`;
+    tip.classList.add('active');
 
-    setTimeout(() => {
-      dim.classList.remove('active');
-      this._reposition();
-      wrap.classList.add('active');
-      tip.classList.add('active');
-    }, 260); // scrollIntoView'ın oturması için kısa bekleme
-  },
-
-  _isVisible(el) {
-    // offsetParent, position:fixed elemanlarda güvenilmez (her zaman null döner) —
-    // bunun yerine gerçek layout boyutuna bakıyoruz.
-    if (!el) return false;
-    const r = el.getBoundingClientRect();
-    if (r.width === 0 && r.height === 0) return false;
-    const style = window.getComputedStyle(el);
-    if (style.display === 'none' || style.visibility === 'hidden') return false;
-    return true;
-  },
-
-  _reposition() {
-    // Sadece konum/boyut günceller — içerik (title/desc/footer/butonlar) BURADA
-    // asla yeniden yazılmaz. İçerik yalnızca _renderStep()'te bir kez basılır.
-    const target = this._target;
-    const wrap = document.getElementById('sagiTourHighlightWrap');
-    const clone = document.getElementById('sagiTourHighlightClone');
-    const tip = document.getElementById('sagiTourTooltip');
-    if (!target || !wrap || !clone || !tip || !wrap.classList.contains('active')) return;
-    if (!this._isVisible(target)) return;
-
-    const r = target.getBoundingClientRect();
-    const pad = 8;
-    wrap.style.top = (r.top - pad) + 'px';
-    wrap.style.left = (r.left - pad) + 'px';
-    wrap.style.width = (r.width + pad * 2) + 'px';
-    wrap.style.height = (r.height + pad * 2) + 'px';
-
-    // Hedef elemanın canlı görünümünü klonlayıp blur'suz üst katmanda gösteriyoruz;
-    // böylece arka plan bulanıklaşırken hedef net ve öne çıkmış görünür (rounded-rectangle
-    // çerçeve yerine ışıklandırma/parlaklık efekti — light ve dark modda çalışır).
-    clone.style.width = r.width + 'px';
-    clone.style.height = r.height + 'px';
-    clone.style.position = 'absolute';
-    clone.style.top = pad + 'px';
-    clone.style.left = pad + 'px';
-    const freshClone = target.cloneNode(true);
-    freshClone.style.margin = '0';
-    freshClone.style.pointerEvents = 'none';
-    clone.innerHTML = '';
-    clone.appendChild(freshClone);
-
-    // Tooltip'i hedefin altına/üstüne, ekran kenarına göre otomatik yerleştir
+    // Tooltip'i hedefin altına/üstüne, ekran kenarına göre otomatik yerleştir.
+    // visualViewport + safe-area-inset kullanıyoruz — mobilde adres çubuğu
+    // açıkken innerHeight yanıltıcı olabiliyor, çentik/home-bar boşluklarına da saygı duyuyoruz.
+    const safeT = _safeAreaInset('top'), safeB = _safeAreaInset('bottom');
     const tipRect = tip.getBoundingClientRect();
-    const vw = window.innerWidth, vh = window.innerHeight;
-    let top = r.bottom + pad + 14;
-    if (top + tipRect.height > vh - 16) top = r.top - pad - 14 - tipRect.height;
-    if (top < 12) top = Math.max(12, Math.min(vh - tipRect.height - 12, r.top));
-    let left = r.left + r.width / 2 - tipRect.width / 2;
-    left = Math.max(16, Math.min(vw - tipRect.width - 16, left));
-    tip.style.top = top + 'px';
-    tip.style.left = left + 'px';
+    let tTop = r.bottom + pad + 14;
+    if (tTop + tipRect.height > vh - 16 - safeB) tTop = r.top - pad - 14 - tipRect.height;
+    if (tTop < 12 + safeT) tTop = Math.max(12 + safeT, Math.min(vh - tipRect.height - 12 - safeB, r.top));
+    let tLeft = r.left + r.width / 2 - tipRect.width / 2;
+    tLeft = Math.max(16, Math.min(vw - tipRect.width - 16, tLeft));
+    tip.style.top = tTop + 'px';
+    tip.style.left = tLeft + 'px';
   },
 };
 
