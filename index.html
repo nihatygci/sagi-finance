@@ -876,6 +876,35 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* ONBOARDING */
 .onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden;background:var(--bg-body)}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+
+/* SAGI TOUR — canlı tanıtım turu */
+#sagiTourDim{position:fixed;inset:0;z-index:9799;background:rgba(0,0,0,.72);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s ease}
+#sagiTourDim.active{opacity:1;visibility:visible}
+.sagi-tour-spotlight{position:fixed;z-index:9799;border-radius:16px;border:2px solid var(--brand-accent);box-shadow:0 0 0 9999px rgba(0,0,0,.72);transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),width .45s cubic-bezier(.16,1,.3,1),height .45s cubic-bezier(.16,1,.3,1),opacity .3s;pointer-events:none;opacity:0;animation:sagiTourPulse 2.2s ease-in-out infinite}
+.sagi-tour-spotlight.active{opacity:1}
+@keyframes sagiTourPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 0 var(--brand-accent-soft)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 8px var(--brand-accent-soft)}}
+@media (prefers-reduced-motion: reduce){.sagi-tour-spotlight{animation:none}}
+.sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px);background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),opacity .3s;pointer-events:none}
+.sagi-tour-tooltip.active{opacity:1;pointer-events:auto;animation:sagiTourTipIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes sagiTourTipIn{from{transform:scale(.94) translateY(4px)}to{transform:none}}
+.sagi-tour-step-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--brand-accent);letter-spacing:.03em;margin-bottom:8px}
+.sagi-tour-step-badge svg{width:13px;height:13px}
+.sagi-tour-title{font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:6px;font-family:var(--font-display)}
+.sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:16px}
+.sagi-tour-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sagi-tour-dots{display:flex;gap:5px}
+.sagi-tour-dot{width:6px;height:6px;border-radius:50%;background:var(--border-light);transition:all .25s}
+.sagi-tour-dot.active{width:16px;border-radius:4px;background:var(--brand-accent)}
+.sagi-tour-actions{display:flex;align-items:center;gap:8px}
+.sagi-tour-skip{font-size:12.5px;font-weight:700;color:var(--text-muted);cursor:pointer;padding:8px 4px;background:none;border:none}
+.sagi-tour-skip:hover{color:var(--text-secondary)}
+.sagi-tour-next{font-size:13px;font-weight:800;color:#fff;background:var(--brand-accent);border:none;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s}
+.sagi-tour-next:active{transform:scale(.95)}
+.sagi-tour-next svg{width:14px;height:14px}
+.sagi-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9801;max-width:340px;width:calc(100vw - 48px);background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:28px 24px;text-align:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+.sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourTipIn .4s cubic-bezier(.16,1,.3,1)}
+.sagi-tour-center-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(98,87,240,.35)}
+.sagi-tour-center-icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.6}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 [data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-soft),transparent 70%);background-color:#000;filter:blur(3px);}
@@ -1327,6 +1356,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 <symbol id="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
 <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
 <symbol id="icon-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21h6"/><path d="M12 21v-4"/><path d="M12 17c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/></symbol>
+<symbol id="icon-compass" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
 <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></symbol>
 <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></symbol>
 <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></symbol>
@@ -2003,6 +2033,20 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               </div>
             </div>
             <button class="btn btn-primary w-full mt-4" data-i18n="save" onclick="App.Controllers.Settings.savePreferences()">Kaydet</button>
+          </div>
+          <div class="card mt-4">
+            <div class="settings-cell" style="cursor:pointer" onclick="document.getElementById('onboardingScreen')&&(document.getElementById('onboardingScreen').style.opacity='0');SagiTour.start()">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:10px;background:var(--brand-accent-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-compass"/></svg>
+                </div>
+                <div>
+                  <div class="font-bold" data-i18n="replayTour">Uygulama Turunu İzle</div>
+                  <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="replayTourHint">Hızlı bir tanıtım turu (30 saniye)</div>
+                </div>
+              </div>
+              <svg class="nav-icon color-muted" style="width:16px;height:16px;flex-shrink:0"><use href="#icon-chevron-right"/></svg>
+            </div>
           </div>
         </div>
 
@@ -3529,6 +3573,201 @@ function _syncBnavPill() {
 }
 window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
 
+// ═══════════════════════════════════════
+// SAGI TOUR — canlı, spotlight tabanlı tanıtım turu
+// Ok/işaretçi YOK; her adımda gerçek elemanın etrafı karartılıp
+// aydınlatılıyor (spotlight), yanında akıllı konumlanan bir tooltip kartı
+// açıklama yapıyor. Tamamen Dashboard üzerinde çalışır (route değiştirmeye
+// gerek yok) — yeni kullanıcıya bir kere otomatik gösterilir, Ayarlar'dan
+// istendiğinde tekrar oynatılabilir.
+// ═══════════════════════════════════════
+const SagiTour = {
+  _idx: 0,
+  _steps: [],
+  _resizeBound: false,
+
+  _buildSteps() {
+    const isEn = window.LANG === 'en';
+    return [
+      { center: true,
+        icon: '<path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+        title: isEn ? 'Welcome to SAGI Finance' : 'SAGI Finance\'e Hoş Geldin',
+        desc: isEn ? 'Quick 30-second tour of the essentials — you can skip anytime.' : 'Temel noktaların hızlı bir turu — istediğin an atlayabilirsin.' },
+      { sel: '#kpiCardNetWorth', whole: true,
+        title: isEn ? 'Your net worth' : 'Net Varlığın',
+        desc: isEn ? 'All your accounts combined, at a glance. Swipe to see it per currency.' : 'Tüm hesapların toplamı, tek bakışta. Kaydırarak para birimine göre de görebilirsin.' },
+      { sel: '#view-dashboard .css-grid.grid-cols-4', whole: false,
+        title: isEn ? 'Monthly snapshot' : 'Aylık Özet',
+        desc: isEn ? 'Expenses, income and net cash flow for this month, updated live.' : 'Bu ayki gider, gelir ve net nakit akışın, anlık güncelleniyor.' },
+      { sel: '#dashGoals', whole: true,
+        title: isEn ? 'Savings goals' : 'Birikim Hedeflerin',
+        desc: isEn ? 'Track progress toward what you\'re saving for.' : 'Ne için biriktirdiğini ve ne kadar yaklaştığını burada takip et.' },
+      { sel: '#dashRecentTxsList', whole: true,
+        title: isEn ? 'Recent activity' : 'Son İşlemlerin',
+        desc: isEn ? 'Your latest transactions land here first.' : 'En son eklediğin işlemler önce burada görünür.' },
+      { sel: '.bnav-link[data-route="/transactions"]',
+        title: isEn ? 'Add & manage transactions' : 'İşlem Ekle ve Yönet',
+        desc: isEn ? 'Every income and expense lives here, fully filterable.' : 'Tüm gelir ve giderlerin burada, filtrelenebilir şekilde.' },
+      { sel: '.bnav-link[data-route="/analytics"]',
+        title: isEn ? 'Analytics' : 'Analiz',
+        desc: isEn ? 'Spending trends, category breakdowns, and Plus-powered savings insights.' : 'Harcama trendleri, kategori dağılımı ve Plus ile gelişmiş tasarruf içgörüleri.' },
+      { sel: '#qaBnavFab',
+        title: isEn ? 'Quick actions' : 'Hızlı İşlem',
+        desc: isEn ? 'The fastest way to log a new transaction from anywhere.' : 'Her yerden hızlıca yeni işlem eklemenin en kısa yolu.' },
+      { sel: '.bnav-link[data-route="/settings"]',
+        title: isEn ? 'Make it yours' : 'Kendine Göre Ayarla',
+        desc: isEn ? 'Currency, notifications, cloud sync, themes and more.' : 'Para birimi, bildirimler, bulut senkronizasyonu, temalar ve daha fazlası.' },
+      { center: true,
+        icon: '<path d="M20 6 9 17l-5-5"/>',
+        title: isEn ? 'You\'re all set' : 'Hazırsın',
+        desc: isEn ? 'Replay this tour anytime from Settings.' : 'Bu turu istediğin zaman Ayarlar\'dan tekrar izleyebilirsin.' },
+    ];
+  },
+
+  _ensureDom() {
+    if (document.getElementById('sagiTourDim')) return;
+    const dim = document.createElement('div'); dim.id = 'sagiTourDim';
+    const spot = document.createElement('div'); spot.className = 'sagi-tour-spotlight'; spot.id = 'sagiTourSpotlight';
+    const tip = document.createElement('div'); tip.className = 'sagi-tour-tooltip'; tip.id = 'sagiTourTooltip';
+    const center = document.createElement('div'); center.className = 'sagi-tour-center'; center.id = 'sagiTourCenter';
+    document.body.appendChild(dim);
+    document.body.appendChild(spot);
+    document.body.appendChild(tip);
+    document.body.appendChild(center);
+    dim.addEventListener('click', () => this.skip());
+  },
+
+  start() {
+    if (window.location.hash.replace('#','') !== '/dashboard') window.location.hash = '/dashboard';
+    this._ensureDom();
+    this._steps = this._buildSteps();
+    this._idx = 0;
+    setTimeout(() => this._render(), 180); // dashboard render'ının oturması için kısa bekleme
+    if (!this._resizeBound) {
+      this._resizeBound = true;
+      window.addEventListener('resize', () => { if (this._active) this._render(); });
+    }
+    this._active = true;
+  },
+
+  skip() { this._finish(); },
+  finish() { this._finish(); },
+
+  next() {
+    if (this._idx >= this._steps.length - 1) { this._finish(); return; }
+    this._idx++;
+    this._render();
+  },
+
+  prev() {
+    if (this._idx <= 0) return;
+    this._idx--;
+    this._render();
+  },
+
+  _finish() {
+    this._active = false;
+    try { localStorage.setItem('sagi_tour_seen', '1'); } catch (e) {}
+    const dim = document.getElementById('sagiTourDim');
+    const spot = document.getElementById('sagiTourSpotlight');
+    const tip = document.getElementById('sagiTourTooltip');
+    const center = document.getElementById('sagiTourCenter');
+    if (dim) dim.classList.remove('active');
+    if (spot) spot.classList.remove('active');
+    if (tip) tip.classList.remove('active');
+    if (center) center.classList.remove('active');
+  },
+
+  maybeAutoStart() {
+    try {
+      if (localStorage.getItem('sagi_tour_seen')) return;
+      setTimeout(() => this.start(), 900);
+    } catch (e) {}
+  },
+
+  _iconSvg(step) {
+    return `<div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>`;
+  },
+
+  _dotsHtml() {
+    return `<div class="sagi-tour-dots">${this._steps.map((_, i) => `<div class="sagi-tour-dot${i === this._idx ? ' active' : ''}"></div>`).join('')}</div>`;
+  },
+
+  _footerHtml(isEn, isLast) {
+    return `
+      <div class="sagi-tour-footer">
+        ${this._dotsHtml()}
+        <div class="sagi-tour-actions">
+          <button class="sagi-tour-skip" onclick="SagiTour.skip()">${isEn ? 'Skip' : 'Atla'}</button>
+          <button class="sagi-tour-next" onclick="SagiTour.next()">
+            ${isLast ? (isEn ? 'Done' : 'Bitir') : (isEn ? 'Next' : 'İleri')}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"/></svg>
+          </button>
+        </div>
+      </div>`;
+  },
+
+  _render() {
+    const step = this._steps[this._idx];
+    if (!step) { this._finish(); return; }
+    const isEn = window.LANG === 'en';
+    const isLast = this._idx === this._steps.length - 1;
+    const dim = document.getElementById('sagiTourDim');
+    const spot = document.getElementById('sagiTourSpotlight');
+    const tip = document.getElementById('sagiTourTooltip');
+    const center = document.getElementById('sagiTourCenter');
+    if (!dim || !spot || !tip || !center) return;
+
+    if (step.center) {
+      spot.classList.remove('active');
+      tip.classList.remove('active');
+      dim.classList.add('active');
+      center.innerHTML = `
+        ${this._iconSvg(step)}
+        <div class="sagi-tour-title">${step.title}</div>
+        <div class="sagi-tour-desc">${step.desc}</div>
+        ${this._footerHtml(isEn, isLast)}`;
+      center.classList.add('active');
+      return;
+    }
+
+    center.classList.remove('active');
+    let target = document.querySelector(step.sel);
+    if (target && step.whole) target = target.closest('.card') || target;
+    if (!target || target.offsetParent === null) { this.next(); return; } // bu ekranda bu element yoksa/görünmüyorsa adımı atla
+    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+    setTimeout(() => {
+      const r = target.getBoundingClientRect();
+      const pad = 8;
+      dim.classList.remove('active');
+      spot.style.top = (r.top - pad) + 'px';
+      spot.style.left = (r.left - pad) + 'px';
+      spot.style.width = (r.width + pad * 2) + 'px';
+      spot.style.height = (r.height + pad * 2) + 'px';
+      spot.classList.add('active');
+
+      tip.innerHTML = `
+        <div class="sagi-tour-step-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>${this._idx + 1}/${this._steps.length}</div>
+        <div class="sagi-tour-title">${step.title}</div>
+        <div class="sagi-tour-desc">${step.desc}</div>
+        ${this._footerHtml(isEn, isLast)}`;
+      tip.classList.add('active');
+
+      // Tooltip'i hedefin altına/üstüne, ekran kenarına göre otomatik yerleştir
+      const tipRect = tip.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let top = r.bottom + pad + 14;
+      if (top + tipRect.height > vh - 16) top = r.top - pad - 14 - tipRect.height;
+      if (top < 12) top = Math.max(12, Math.min(vh - tipRect.height - 12, r.top));
+      let left = r.left + r.width / 2 - tipRect.width / 2;
+      left = Math.max(16, Math.min(vw - tipRect.width - 16, left));
+      tip.style.top = top + 'px';
+      tip.style.left = left + 'px';
+    }, 260); // scrollIntoView'ın oturması için kısa bekleme
+  },
+};
+
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
@@ -4736,6 +4975,7 @@ const App = {
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
         UI.Router.init();
+        SagiTour.maybeAutoStart();
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         // Cloud sync (varsa) bu noktadan önce zaten tamamlandı — güncel veriyle kontrol et
         App.processRecurring();
@@ -5089,6 +5329,7 @@ const App = {
         // zincirini burada da AYNI SIRAYLA tetikliyoruz.
         App.Controllers.BottomBar.renderNav();
         UI.Router.init();
+        SagiTour.maybeAutoStart();
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         App.processRecurring();
         App.ExchangeRate._loadCache();
