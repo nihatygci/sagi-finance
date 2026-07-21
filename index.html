@@ -878,24 +878,26 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
 /* SAGI TOUR — canlı tanıtım turu */
-#sagiTourDim{position:fixed;inset:0;z-index:9799;background:rgba(0,0,0,.72);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s ease}
+#sagiTourDim{position:fixed;inset:0;z-index:9797;background:rgba(10,10,14,.55);backdrop-filter:blur(7px) saturate(1.05);-webkit-backdrop-filter:blur(7px) saturate(1.05);opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s ease}
+[data-theme="light"] #sagiTourDim{background:rgba(20,20,30,.42)}
 #sagiTourDim.active{opacity:1;visibility:visible}
-.sagi-tour-spotlight{position:fixed;z-index:9799;border-radius:16px;border:2px solid var(--brand-accent);box-shadow:0 0 0 9999px rgba(0,0,0,.72);transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),width .45s cubic-bezier(.16,1,.3,1),height .45s cubic-bezier(.16,1,.3,1),opacity .3s;pointer-events:none;opacity:0;animation:sagiTourPulse 2.2s ease-in-out infinite}
-.sagi-tour-spotlight.active{opacity:1}
-@keyframes sagiTourPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 0 var(--brand-accent-soft)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 8px var(--brand-accent-soft)}}
-@media (prefers-reduced-motion: reduce){.sagi-tour-spotlight{animation:none}}
+.sagi-tour-highlight-wrap{position:fixed;z-index:9798;pointer-events:none;opacity:0;transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),width .45s cubic-bezier(.16,1,.3,1),height .45s cubic-bezier(.16,1,.3,1),opacity .3s;border-radius:16px;overflow:visible}
+.sagi-tour-highlight-wrap.active{opacity:1}
+.sagi-tour-highlight-glow{position:absolute;inset:-14px;border-radius:22px;background:radial-gradient(circle,var(--brand-accent-soft) 0%,transparent 72%);filter:blur(6px);animation:sagiTourGlowPulse 2.2s ease-in-out infinite}
+@keyframes sagiTourGlowPulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.95;transform:scale(1.05)}}
+@media (prefers-reduced-motion: reduce){.sagi-tour-highlight-glow{animation:none}}
+.sagi-tour-highlight-ring{position:absolute;inset:0;border-radius:16px;box-shadow:0 0 0 2px var(--brand-accent),0 0 24px 4px var(--brand-accent-medium),0 6px 28px rgba(0,0,0,.35)}
+.sagi-tour-highlight-clone{position:relative;border-radius:14px;overflow:hidden;filter:brightness(1.06) saturate(1.08);box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
+[data-theme="light"] .sagi-tour-highlight-clone{filter:brightness(1.03) saturate(1.05)}
 .sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px);background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;transition:top .45s cubic-bezier(.16,1,.3,1),left .45s cubic-bezier(.16,1,.3,1),opacity .3s;pointer-events:none}
 .sagi-tour-tooltip.active{opacity:1;pointer-events:auto;animation:sagiTourTipIn .4s cubic-bezier(.16,1,.3,1)}
 @keyframes sagiTourTipIn{from{transform:scale(.94) translateY(4px)}to{transform:none}}
-.sagi-tour-step-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--brand-accent);letter-spacing:.03em;margin-bottom:8px}
+.sagi-tour-step-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--brand-accent);letter-spacing:.03em;flex-shrink:0}
 .sagi-tour-step-badge svg{width:13px;height:13px}
 .sagi-tour-title{font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:6px;font-family:var(--font-display)}
 .sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:16px}
-.sagi-tour-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.sagi-tour-dots{display:flex;gap:5px}
-.sagi-tour-dot{width:6px;height:6px;border-radius:50%;background:var(--border-light);transition:all .25s}
-.sagi-tour-dot.active{width:16px;border-radius:4px;background:var(--brand-accent)}
-.sagi-tour-actions{display:flex;align-items:center;gap:8px}
+.sagi-tour-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.sagi-tour-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .sagi-tour-skip{font-size:12.5px;font-weight:700;color:var(--text-muted);cursor:pointer;padding:8px 4px;background:none;border:none}
 .sagi-tour-skip:hover{color:var(--text-secondary)}
 .sagi-tour-next{font-size:13px;font-weight:800;color:#fff;background:var(--brand-accent);border:none;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s}
@@ -1891,6 +1893,20 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
             </div>
           </div>
+          <div onclick="document.getElementById('onboardingScreen')&&(document.getElementById('onboardingScreen').style.opacity='0');SagiTour.start()">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-compass"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="replayTour">Uygulama Turunu İzle</div>
+                  <div class="subtitle" data-i18n="replayTourHint">Hızlı bir tanıtım turu (30 saniye)</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
         </div><!-- /settings-menu-panel -->
 
         <!-- ── YASAL ANLAŞMALAR ── -->
@@ -2038,20 +2054,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               </div>
             </div>
             <button class="btn btn-primary w-full mt-4" data-i18n="save" onclick="App.Controllers.Settings.savePreferences()">Kaydet</button>
-          </div>
-          <div class="card mt-4">
-            <div class="settings-cell" style="cursor:pointer" onclick="document.getElementById('onboardingScreen')&&(document.getElementById('onboardingScreen').style.opacity='0');SagiTour.start()">
-              <div style="display:flex;align-items:center;gap:12px">
-                <div style="width:36px;height:36px;border-radius:10px;background:var(--brand-accent-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand-accent)">
-                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-compass"/></svg>
-                </div>
-                <div>
-                  <div class="font-bold" data-i18n="replayTour">Uygulama Turunu İzle</div>
-                  <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="replayTourHint">Hızlı bir tanıtım turu (30 saniye)</div>
-                </div>
-              </div>
-              <svg class="nav-icon color-muted" style="width:16px;height:16px;flex-shrink:0"><use href="#icon-chevron-right"/></svg>
-            </div>
           </div>
         </div>
 
@@ -3638,6 +3640,10 @@ const SagiTour = {
       { route: '/analytics', sel: '#trendBarChart', whole: true,
         title: isEn ? 'Income vs. expense trend' : 'Gelir / Gider Trendi',
         desc: isEn ? 'Plus unlocks the Savings Score, forecast and month-over-month comparison too.' : 'Plus ile Tasarruf Skoru, gelecek ay tahmini ve aylık karşılaştırma da açılıyor.' },
+      // ── BİLDİRİMLER ────────────────────────────────────────────
+      { route: '/notifications', sel: '#notifFilterTabs',
+        title: isEn ? 'All your alerts in one place' : 'Tüm Uyarıların Tek Yerde',
+        desc: isEn ? 'Filter by type, mark as read, or jump straight to notification settings.' : 'Türe göre filtrele, okundu işaretle veya doğrudan bildirim ayarlarına geç.' },
       // ── AYARLAR ────────────────────────────────────────────────
       { route: '/settings', sel: '[onclick*="openSection(\'cloud\')"]',
         title: isEn ? 'Cloud sync' : 'Bulut Senkronizasyonu',
@@ -3662,11 +3668,12 @@ const SagiTour = {
   _ensureDom() {
     if (document.getElementById('sagiTourDim')) return;
     const dim = document.createElement('div'); dim.id = 'sagiTourDim';
-    const spot = document.createElement('div'); spot.className = 'sagi-tour-spotlight'; spot.id = 'sagiTourSpotlight';
+    const wrap = document.createElement('div'); wrap.className = 'sagi-tour-highlight-wrap'; wrap.id = 'sagiTourHighlightWrap';
+    wrap.innerHTML = `<div class="sagi-tour-highlight-glow"></div><div class="sagi-tour-highlight-clone" id="sagiTourHighlightClone"></div><div class="sagi-tour-highlight-ring"></div>`;
     const tip = document.createElement('div'); tip.className = 'sagi-tour-tooltip'; tip.id = 'sagiTourTooltip';
     const center = document.createElement('div'); center.className = 'sagi-tour-center'; center.id = 'sagiTourCenter';
     document.body.appendChild(dim);
-    document.body.appendChild(spot);
+    document.body.appendChild(wrap);
     document.body.appendChild(tip);
     document.body.appendChild(center);
     dim.addEventListener('click', () => this.skip());
@@ -3717,11 +3724,11 @@ const SagiTour = {
     this._target = null;
     try { localStorage.setItem('sagi_tour_seen', '1'); } catch (e) {}
     const dim = document.getElementById('sagiTourDim');
-    const spot = document.getElementById('sagiTourSpotlight');
+    const wrap = document.getElementById('sagiTourHighlightWrap');
     const tip = document.getElementById('sagiTourTooltip');
     const center = document.getElementById('sagiTourCenter');
     if (dim) dim.classList.remove('active');
-    if (spot) spot.classList.remove('active');
+    if (wrap) wrap.classList.remove('active');
     if (tip) tip.classList.remove('active');
     if (center) center.classList.remove('active');
   },
@@ -3738,14 +3745,10 @@ const SagiTour = {
     return `<div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>`;
   },
 
-  _dotsHtml() {
-    return `<div class="sagi-tour-dots">${this._steps.map((_, i) => `<div class="sagi-tour-dot${i === this._idx ? ' active' : ''}"></div>`).join('')}</div>`;
-  },
-
   _footerHtml(isEn, isLast) {
     return `
       <div class="sagi-tour-footer">
-        ${this._dotsHtml()}
+        <div class="sagi-tour-step-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>${this._idx + 1}/${this._steps.length}</div>
         <div class="sagi-tour-actions">
           <button class="sagi-tour-skip" onclick="SagiTour.skip()">${isEn ? 'Skip' : 'Atla'}</button>
           <button class="sagi-tour-next" onclick="SagiTour.next()">
@@ -3773,13 +3776,13 @@ const SagiTour = {
     const isEn = window.LANG === 'en';
     const isLast = this._idx === this._steps.length - 1;
     const dim = document.getElementById('sagiTourDim');
-    const spot = document.getElementById('sagiTourSpotlight');
+    const wrap = document.getElementById('sagiTourHighlightWrap');
     const tip = document.getElementById('sagiTourTooltip');
     const center = document.getElementById('sagiTourCenter');
-    if (!dim || !spot || !tip || !center) return;
+    if (!dim || !wrap || !tip || !center) return;
 
     if (step.center) {
-      spot.classList.remove('active');
+      wrap.classList.remove('active');
       tip.classList.remove('active');
       dim.classList.add('active');
       center.innerHTML = `
@@ -3798,10 +3801,18 @@ const SagiTour = {
     this._target = target;
     target.scrollIntoView({ block: 'center', behavior: 'smooth' });
 
+    // Tooltip içeriği (başlık/açıklama/footer) sadece adım değişince yazılır —
+    // scroll/resize kaynaklı _reposition() çağrılarında ASLA yeniden yazılmaz,
+    // aksi halde tıklanan "İleri" butonu elden gidip tıklama kaybolabiliyordu.
+    tip.innerHTML = `
+      <div class="sagi-tour-title">${step.title}</div>
+      <div class="sagi-tour-desc">${step.desc}</div>
+      ${this._footerHtml(isEn, isLast)}`;
+
     setTimeout(() => {
       dim.classList.remove('active');
       this._reposition();
-      spot.classList.add('active');
+      wrap.classList.add('active');
       tip.classList.add('active');
     }, 260); // scrollIntoView'ın oturması için kısa bekleme
   },
@@ -3818,27 +3829,35 @@ const SagiTour = {
   },
 
   _reposition() {
+    // Sadece konum/boyut günceller — içerik (title/desc/footer/butonlar) BURADA
+    // asla yeniden yazılmaz. İçerik yalnızca _renderStep()'te bir kez basılır.
     const target = this._target;
-    const spot = document.getElementById('sagiTourSpotlight');
+    const wrap = document.getElementById('sagiTourHighlightWrap');
+    const clone = document.getElementById('sagiTourHighlightClone');
     const tip = document.getElementById('sagiTourTooltip');
-    if (!target || !spot || !tip || !spot.classList.contains('active')) return;
+    if (!target || !wrap || !clone || !tip || !wrap.classList.contains('active')) return;
     if (!this._isVisible(target)) return;
 
     const r = target.getBoundingClientRect();
     const pad = 8;
-    spot.style.top = (r.top - pad) + 'px';
-    spot.style.left = (r.left - pad) + 'px';
-    spot.style.width = (r.width + pad * 2) + 'px';
-    spot.style.height = (r.height + pad * 2) + 'px';
+    wrap.style.top = (r.top - pad) + 'px';
+    wrap.style.left = (r.left - pad) + 'px';
+    wrap.style.width = (r.width + pad * 2) + 'px';
+    wrap.style.height = (r.height + pad * 2) + 'px';
 
-    const step = this._steps[this._idx];
-    const isEn = window.LANG === 'en';
-    const isLast = this._idx === this._steps.length - 1;
-    tip.innerHTML = `
-      <div class="sagi-tour-step-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>${this._idx + 1}/${this._steps.length}</div>
-      <div class="sagi-tour-title">${step.title}</div>
-      <div class="sagi-tour-desc">${step.desc}</div>
-      ${this._footerHtml(isEn, isLast)}`;
+    // Hedef elemanın canlı görünümünü klonlayıp blur'suz üst katmanda gösteriyoruz;
+    // böylece arka plan bulanıklaşırken hedef net ve öne çıkmış görünür (rounded-rectangle
+    // çerçeve yerine ışıklandırma/parlaklık efekti — light ve dark modda çalışır).
+    clone.style.width = r.width + 'px';
+    clone.style.height = r.height + 'px';
+    clone.style.position = 'absolute';
+    clone.style.top = pad + 'px';
+    clone.style.left = pad + 'px';
+    const freshClone = target.cloneNode(true);
+    freshClone.style.margin = '0';
+    freshClone.style.pointerEvents = 'none';
+    clone.innerHTML = '';
+    clone.appendChild(freshClone);
 
     // Tooltip'i hedefin altına/üstüne, ekran kenarına göre otomatik yerleştir
     const tipRect = tip.getBoundingClientRect();
