@@ -77,6 +77,7 @@ const LANGS = {
       yourName:'İsminiz', yourNameHint:'Karşılama mesajı için.',
       currency:'Para Birimi', currencyHint:'Tüm ekranlarda geçerli.',
       themeHint:'Açık veya koyu mod.', animHint:'Geçiş efektleri.', langHint:'Uygulama dili.',
+      replayTour:'Uygulama Turunu İzle', replayTourHint:'Hızlı bir tanıtım turu (30 saniye)',
 
       // Dashboard
       dashSubtitle:'Finansal durumunuzun özeti',
@@ -589,6 +590,7 @@ const LANGS = {
       fxTxCurrencyAmount:'İşlem dövizinde tutar',
 
       // ── Kredi kartı ────────────────────────────────────────────────────
+      ccLimit:'Kart Limiti',
       ccDebtBadge:'Borç',
       ccRemainingLimit:'Kalan Limit',
       ccCardDetailBtn:'Kart Detayı',
@@ -736,6 +738,7 @@ const LANGS = {
       yourName:'Your Name', yourNameHint:'For the greeting message.',
       currency:'Currency', currencyHint:'Applied to all screens.',
       themeHint:'Light or dark mode.', animHint:'Transition effects.', langHint:'Application language.',
+      replayTour:'Watch App Tour', replayTourHint:'A quick guided tour (30 seconds)',
 
       // Dashboard
       dashSubtitle:'Your financial summary',
@@ -1092,6 +1095,7 @@ const LANGS = {
       fxTxCurrencyAmount:'Amount in transaction currency',
 
       // ── Credit card ───────────────────────────────────────────────────
+      ccLimit:'Card Limit',
       ccDebtBadge:'Debt',
       ccRemainingLimit:'Remaining Limit',
       ccCardDetailBtn:'Card Detail',
