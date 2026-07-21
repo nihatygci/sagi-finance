@@ -3592,31 +3592,61 @@ const SagiTour = {
       { center: true,
         icon: '<path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
         title: isEn ? 'Welcome to SAGI Finance' : 'SAGI Finance\'e Hoş Geldin',
-        desc: isEn ? 'Quick 30-second tour of the essentials — you can skip anytime.' : 'Temel noktaların hızlı bir turu — istediğin an atlayabilirsin.' },
-      { sel: '#kpiCardNetWorth', whole: true,
+        desc: isEn ? 'A full tour of every screen — about a minute, skip anytime.' : 'Tüm ekranların tam bir turu — yaklaşık bir dakika, istediğin an atlayabilirsin.' },
+      // ── DASHBOARD ──────────────────────────────────────────────
+      { route: '/dashboard', sel: '#kpiCardNetWorth', whole: true,
         title: isEn ? 'Your net worth' : 'Net Varlığın',
         desc: isEn ? 'All your accounts combined, at a glance. Swipe to see it per currency.' : 'Tüm hesapların toplamı, tek bakışta. Kaydırarak para birimine göre de görebilirsin.' },
-      { sel: '#view-dashboard .css-grid.grid-cols-4', whole: false,
+      { route: '/dashboard', sel: '#view-dashboard .css-grid.grid-cols-4', whole: false,
         title: isEn ? 'Monthly snapshot' : 'Aylık Özet',
         desc: isEn ? 'Expenses, income and net cash flow for this month, updated live.' : 'Bu ayki gider, gelir ve net nakit akışın, anlık güncelleniyor.' },
-      { sel: '#dashGoals', whole: true,
+      { route: '/dashboard', sel: '#dashGoals', whole: true,
         title: isEn ? 'Savings goals' : 'Birikim Hedeflerin',
         desc: isEn ? 'Track progress toward what you\'re saving for.' : 'Ne için biriktirdiğini ve ne kadar yaklaştığını burada takip et.' },
-      { sel: '#dashRecentTxsList', whole: true,
+      { route: '/dashboard', sel: '#dashRecentTxsList', whole: true,
         title: isEn ? 'Recent activity' : 'Son İşlemlerin',
         desc: isEn ? 'Your latest transactions land here first.' : 'En son eklediğin işlemler önce burada görünür.' },
-      { sel: '.bnav-link[data-route="/transactions"]',
-        title: isEn ? 'Add & manage transactions' : 'İşlem Ekle ve Yönet',
-        desc: isEn ? 'Every income and expense lives here, fully filterable.' : 'Tüm gelir ve giderlerin burada, filtrelenebilir şekilde.' },
-      { sel: '.bnav-link[data-route="/analytics"]',
-        title: isEn ? 'Analytics' : 'Analiz',
-        desc: isEn ? 'Spending trends, category breakdowns, and Plus-powered savings insights.' : 'Harcama trendleri, kategori dağılımı ve Plus ile gelişmiş tasarruf içgörüleri.' },
-      { sel: '#qaBnavFab',
-        title: isEn ? 'Quick actions' : 'Hızlı İşlem',
-        desc: isEn ? 'The fastest way to log a new transaction from anywhere.' : 'Her yerden hızlıca yeni işlem eklemenin en kısa yolu.' },
-      { sel: '.bnav-link[data-route="/settings"]',
-        title: isEn ? 'Make it yours' : 'Kendine Göre Ayarla',
-        desc: isEn ? 'Currency, notifications, cloud sync, themes and more.' : 'Para birimi, bildirimler, bulut senkronizasyonu, temalar ve daha fazlası.' },
+      // ── HESAPLAR / CÜZDANLAR ───────────────────────────────────
+      { route: '/wallets', sel: '#view-wallets .btn-primary',
+        title: isEn ? 'Add an account' : 'Hesap Ekle',
+        desc: isEn ? 'Bank accounts, cash, credit cards — add as many as you need, in any currency.' : 'Banka hesabı, nakit, kredi kartı — istediğin kadar, istediğin para biriminde ekleyebilirsin.' },
+      // ── İŞLEMLER ───────────────────────────────────────────────
+      { route: '/transactions', sel: '#view-transactions .btn-primary',
+        title: isEn ? 'Log a transaction' : 'İşlem Ekle',
+        desc: isEn ? 'Every income and expense lives here, fully filterable and searchable.' : 'Tüm gelir ve giderlerin burada, filtrelenebilir ve aranabilir şekilde.' },
+      // ── ABONELİKLER ────────────────────────────────────────────
+      { route: '/recurring', sel: '#view-recurring .btn-primary',
+        title: isEn ? 'Recurring payments' : 'Abonelikler',
+        desc: isEn ? 'Netflix, rent, any fixed monthly cost — add once, SAGI reminds you every cycle.' : 'Netflix, kira, her ay tekrar eden sabit gider — bir kere ekle, SAGI her döngüde hatırlatsın.' },
+      // ── HEDEFLER ───────────────────────────────────────────────
+      { route: '/goals', sel: '#view-goals .btn-primary',
+        title: isEn ? 'Set a savings goal' : 'Hedef Belirle',
+        desc: isEn ? 'A trip, an emergency fund, anything — set a target and track your progress.' : 'Bir tatil, acil durum fonu, ne olursa olsun — bir hedef koy, ilerlemeni takip et.' },
+      // ── BORÇ & ALACAK ──────────────────────────────────────────
+      { route: '/debts', sel: '#view-debts .btn-primary',
+        title: isEn ? 'Debts & receivables' : 'Borç & Alacak',
+        desc: isEn ? 'Track what you owe and what\'s owed to you, with due dates.' : 'Kime borçlusun, kimden alacaklısın — vade tarihleriyle birlikte takip et.' },
+      // ── ANALİZ ─────────────────────────────────────────────────
+      { route: '/analytics', sel: '#analyticsPeriodBar',
+        title: isEn ? 'Pick your timeframe' : 'Zaman Aralığını Seç',
+        desc: isEn ? 'This month, 3, 6, or 12 months — every chart updates instantly.' : 'Bu ay, 3, 6 veya 12 ay — tüm grafikler anında güncellenir.' },
+      { route: '/analytics', sel: '#trendBarChart', whole: true,
+        title: isEn ? 'Income vs. expense trend' : 'Gelir / Gider Trendi',
+        desc: isEn ? 'Plus unlocks the Savings Score, forecast and month-over-month comparison too.' : 'Plus ile Tasarruf Skoru, gelecek ay tahmini ve aylık karşılaştırma da açılıyor.' },
+      // ── AYARLAR ────────────────────────────────────────────────
+      { route: '/settings', sel: '[onclick*="openSection(\'cloud\')"]',
+        title: isEn ? 'Cloud sync' : 'Bulut Senkronizasyonu',
+        desc: isEn ? 'A 16-digit anonymous key syncs your data across devices — no account, no email.' : '16 haneli anonim bir anahtar, verilerini cihazlar arasında senkronlar — hesap yok, e-posta yok.' },
+      { route: '/settings', sel: '[onclick*="openSection(\'plus\')"]',
+        title: isEn ? 'SAGI Plus' : 'SAGI Plus',
+        desc: isEn ? 'Unlimited assistant, advanced analytics, themes, ad-free — and a free 7-day Plus Trial to test it all.' : 'Sınırsız asistan, gelişmiş analiz, temalar, reklamsızlık — ve hepsini denemen için ücretsiz 7 günlük Plus Trial.' },
+      { route: '/settings', sel: '[onclick*="openSection(\'notifications\')"]',
+        title: isEn ? 'Notifications' : 'Bildirimler',
+        desc: isEn ? 'Choose exactly what you want to be alerted about.' : 'Tam olarak ne hakkında uyarılmak istediğini sen seç.' },
+      // ── SAGI ASİSTAN ───────────────────────────────────────────
+      { sel: '#sagiChatBtn',
+        title: isEn ? 'Meet SAGI Assistant' : 'SAGI Asistan ile Tanış',
+        desc: isEn ? 'Ask anything about your finances in plain language — it reads your real data.' : 'Finansal durumun hakkında ne istersen sor — gerçek verini okuyarak cevap veriyor.' },
       { center: true,
         icon: '<path d="M20 6 9 17l-5-5"/>',
         title: isEn ? 'You\'re all set' : 'Hazırsın',
@@ -3681,6 +3711,7 @@ const SagiTour = {
   maybeAutoStart() {
     try {
       if (localStorage.getItem('sagi_tour_seen')) return;
+      localStorage.setItem('sagi_tour_seen', '1'); // ilk (ve tek) otomatik gösterim — yarıda kapatılsa bile bir daha kendiliğinden açılmaz
       setTimeout(() => this.start(), 900);
     } catch (e) {}
   },
@@ -3710,6 +3741,17 @@ const SagiTour = {
   _render() {
     const step = this._steps[this._idx];
     if (!step) { this._finish(); return; }
+    const targetHash = step.route ? ('#' + step.route) : null;
+    if (targetHash && window.location.hash !== targetHash) {
+      window.location.hash = step.route;
+      // Route geçiş animasyonu + view render'ının oturması için bekleme
+      setTimeout(() => this._renderStep(step), 320);
+      return;
+    }
+    this._renderStep(step);
+  },
+
+  _renderStep(step) {
     const isEn = window.LANG === 'en';
     const isLast = this._idx === this._steps.length - 1;
     const dim = document.getElementById('sagiTourDim');
