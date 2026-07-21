@@ -1742,8 +1742,12 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <p class="text-subtitle" data-i18n="notifInboxSubtitle">Tüm bildirimleriniz burada</p>
       </div>
       <div class="flex gap-2 items-center">
-        <button class="btn btn-outline btn-sm" onclick="App.Controllers.NotifInbox.markAllRead()" data-i18n="notifMarkAllRead">Tümünü Okundu</button>
+        <button class="btn btn-outline btn-sm" onclick="App.Controllers.NotifInbox.markAllRead()" data-i18n="notifMarkAllRead">Tümünü Okundu İşaretle</button>
         <button class="btn btn-outline btn-sm color-danger" onclick="App.Controllers.NotifInbox.clearAll()" data-i18n="notifClearAll">Temizle</button>
+        <button class="btn btn-outline btn-sm" onclick="App.Controllers.Settings.openSection('notifications')">
+          <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-settings"/></svg>
+          <span data-i18n="notifSettingsBtn">Bildirim Ayarları</span>
+        </button>
       </div>
     </div>
 
@@ -1968,6 +1972,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
         <!-- ── SAGI ASİSTAN AYARLARI ── -->
         <div class="settings-detail-panel" id="settingsDetail-assistant">
+          <button class="settings-back-btn" onclick="App.Controllers.Settings._openSectionDirect('plus');window.location.hash='/settings/plus'">
+            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
+            <span>SAGI Plus</span>
+          </button>
           <div class="settings-detail-title">SAGI Asistan</div>
           <div class="settings-detail-sub">AI asistan ayarları</div>
           <div id="settingsAssistantContent"></div>
