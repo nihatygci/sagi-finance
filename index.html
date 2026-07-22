@@ -3569,19 +3569,28 @@ window.Core = Core;
 // ═══════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════
-// Alt navigasyondaki "kayan pill" — aktif linkin arkasına, offsetLeft/offsetWidth
-// üzerinden konumlanır (nav'ın kendisi position:fixed olduğu için offsetParent
-// olarak çalışır, viewport hesaplamasına gerek yok). Route değişince ve
-// renderNav() her çalıştığında çağrılır.
+// Alt navigasyondaki "kayan pill" — aktif linkin arkasına konumlanır.
+// KRİTİK FIX: renderNav() innerHTML'i değiştirir değiştirmez SENKRON olarak
+// çağrılıyordu — tarayıcı henüz yeni DOM için layout hesaplamadan
+// offsetLeft/offsetWidth okunuyordu, bu da bazen eski/sıfır/yanlış değerler
+// döndürüp pill'in gerçek butonla hizasının kaymasına yol açıyordu. Artık
+// bir sonraki animasyon frame'ine erteleniyor (layout kesin oturmuş oluyor)
+// VE ölçüm getBoundingClientRect ile yapılıyor — offsetParent zincirine
+// bağımlı değil, gerçek render edilmiş geometriyi verir.
 function _syncBnavPill() {
-  const nav  = document.getElementById('appBottomNav');
-  const pill = document.getElementById('bnavActivePill');
-  if (!nav || !pill) return;
-  const active = nav.querySelector('.bnav-link.active');
-  if (!active) { pill.style.opacity = '0'; return; }
-  pill.style.opacity = '1';
-  pill.style.width = active.offsetWidth + 'px';
-  pill.style.transform = `translateX(${active.offsetLeft}px)`;
+  requestAnimationFrame(() => {
+    const nav  = document.getElementById('appBottomNav');
+    const pill = document.getElementById('bnavActivePill');
+    if (!nav || !pill) return;
+    const actives = nav.querySelectorAll('.bnav-link.active');
+    if (actives.length !== 1) { pill.style.opacity = '0'; return; } // 0 ya da 1'den fazla eşleşme varsa (belirsiz durum) pill'i gizle
+    const active = actives[0];
+    const navRect = nav.getBoundingClientRect();
+    const actRect = active.getBoundingClientRect();
+    pill.style.opacity = '1';
+    pill.style.width = actRect.width + 'px';
+    pill.style.transform = `translateX(${actRect.left - navRect.left}px)`;
+  });
 }
 window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
 
@@ -3781,6 +3790,14 @@ const SagiTour = {
       window.addEventListener('resize', reflow);
       window.addEventListener('orientationchange', () => setTimeout(reflow, 250));
       if (window.visualViewport) window.visualViewport.addEventListener('resize', reflow);
+      // KRİTİK FIX: kullanıcı tur açıkken (ör. bottom nav'a) elle dokunup
+      // farklı bir sayfaya geçerse, tur bunu fark etmeden eski hedefi
+      // göstermeye devam ediyordu — "alakasız yerde" asılı kalan blur
+      // panelleri buradan geliyordu. Artık turun KENDİ tetiklediği hash
+      // değişimi dışında bir hashchange olursa turu temiz şekilde kapatıyoruz.
+      window.addEventListener('hashchange', () => {
+        if (this._active && window.location.hash !== this._expectedHash) this._finish();
+      });
     }
   },
 
@@ -3854,8 +3871,9 @@ const SagiTour = {
   _render() {
     const step = this._steps[this._idx];
     if (!step) { this._finish(); return; }
-    const targetHash = step.route ? ('#' + step.route) : null;
-    const navigating = targetHash && window.location.hash !== targetHash;
+    const targetHash = step.route ? ('#' + step.route) : window.location.hash;
+    const navigating = step.route && window.location.hash !== targetHash;
+    this._expectedHash = targetHash;
     if (navigating) {
       this._hidePanels(); // farklı sayfaya geçerken önce yumuşakça sıfırla
       window.location.hash = step.route;
