@@ -3578,7 +3578,7 @@ window.Core = Core;
 // VE ölçüm getBoundingClientRect ile yapılıyor — offsetParent zincirine
 // bağımlı değil, gerçek render edilmiş geometriyi verir.
 function _syncBnavPill() {
-  requestAnimationFrame(() => {
+  const doSync = () => {
     const nav  = document.getElementById('appBottomNav');
     const pill = document.getElementById('bnavActivePill');
     if (!nav || !pill) return;
@@ -3590,9 +3590,21 @@ function _syncBnavPill() {
     pill.style.opacity = '1';
     pill.style.width = actRect.width + 'px';
     pill.style.transform = `translateX(${actRect.left - navRect.left}px)`;
-  });
+  };
+  // KRİTİK FIX: renderNav() her çağrıldığında butonlar .bnav-link giriş
+  // animasyonuyla (bnavItemIn, ~.28s, translateY+scale) DOM'a giriyor.
+  // Tek bir requestAnimationFrame sadece BİR sonraki frame'i bekler —
+  // butonlar hâlâ scale(.96)/kaymış haldeyken ölçüm yapılırsa pill yanlış
+  // konum/genişlikte "donup" kalıyordu (Ana Sayfa aktifken pill'in sol üste
+  // kayması buradan kaynaklanıyordu). Çözüm: hemen bir kez senkronize et
+  // (transform geçişi görünsün diye), SONRA giriş animasyonu kesin bittiğinde
+  // (~320ms) gerçek/son geometriyle TEKRAR senkronize et.
+  requestAnimationFrame(() => requestAnimationFrame(doSync));
+  clearTimeout(window.__bnavPillFinalSync);
+  window.__bnavPillFinalSync = setTimeout(doSync, 340);
 }
 window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
+window.addEventListener('load', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
 
 // ═══════════════════════════════════════
 // SAGI TOUR — canlı, "blur çerçeve" tabanlı tanıtım turu
