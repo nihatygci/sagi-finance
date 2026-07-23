@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#6C4DFF">
+<meta name="theme-color" content="#0B0B0F">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="./manifest.json">
 <script src="./languages.js"></script>
@@ -94,27 +94,12 @@ if ('serviceWorker' in navigator) {
   appleLink.href = iconUrl;
   document.head.appendChild(appleLink);
 
-  // PWA manifest (sabit)
-  const manifest = {
-    name: "SAGI Finance",
-    short_name: "SAGI",
-    start_url: "./",
-    scope: "./",
-    display: "standalone",
-    background_color: "#6C4DFF",
-    theme_color: "#6C4DFF",
-    icons: [
-      { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "any maskable" }
-    ]
-  };
-
-  window._sagiManifestBase = manifest;
-  const manifestLink = document.createElement('link');
-  manifestLink.rel = 'manifest';
-  manifestLink.href = URL.createObjectURL(
-    new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" })
-  );
-  document.head.appendChild(manifestLink);
+  // NOT: PWA manifest artık burada dinamik (blob) olarak üretilmiyor.
+  // Statik ./manifest.json dosyası (repo kökünde) TEK gerçek kaynak —
+  // <head>'deki <link rel="manifest" href="./manifest.json"> zaten onu
+  // kullanıyor. Eskiden burada AYRICA bir blob-manifest linki de
+  // ekleniyordu; aynı anda iki rel="manifest" linki olması tarayıcıya
+  // göre değişen/garantisiz bir davranış — o karışıklığı ortadan kaldırdık.
 })();
 </script>
 <style>
@@ -878,32 +863,20 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden;background:var(--bg-body)}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-/* SAGI TOUR — canlı, tanıtım turu */
-/* 4 dinamik panel (üst/alt/sol/sağ) hedefin ETRAFINI sarar, hedefin
-   ÜZERİNE hiçbir eleman gelmez — gerçek bir "boşluk". box-shadow tabanlı
-   tek-panel denemesi geri alındı: box-shadow'un boyadığı alan
-   backdrop-filter ile bulanıklaşmıyor (CSS spesi backdrop-filter'ı
-   elemanın KENDİ kutusuna uygular, gölgesine değil) ve o teknikte hedefin
-   üstünü tam ekran şeffaf bir "dim" katmanı kaplıyordu — bu da hedefe
-   dokunulduğunda turun kapanmasına yol açıyordu. 4-panel teknikte hedef
-   üzerinde HİÇBİR eleman yok: tıklama doğrudan gerçek elemana gider, tur
-   kapanmaz. Panel dışına (karartılmış alana) dokunmak da artık turu
-   KAPATMIYOR — sadece dokunuşu yutuyor (arkadaki içeriğe geçmesin diye).
-   Tur sadece "Atla"/"Bitir" butonuyla ya da manuel sayfa değişimiyle kapanır. */
-.sagi-tour-blur-panel{position:fixed;z-index:9796;background:rgba(10,10,14,.55);backdrop-filter:blur(9px) saturate(1.05);-webkit-backdrop-filter:blur(9px) saturate(1.05);opacity:0;pointer-events:none;transition:top .32s cubic-bezier(.22,1,.36,1),left .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease}
-[data-theme="light"] .sagi-tour-blur-panel{background:rgba(20,20,30,.4)}
+/* SAGI TOUR — canlı, blur-çerçeve tabanlı tanıtım turu */
+/* Merkezli adımlar (karşılama/bitiş) için tam ekran karartma+blur */
+#sagiTourDim{position:fixed;inset:0;z-index:9797;background:rgba(10,10,14,.55);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
+[data-theme="light"] #sagiTourDim{background:rgba(20,20,30,.42)}
+#sagiTourDim.active{opacity:1;visibility:visible}
+/* Hedefi saran 4 dinamik panel — hedefin ÜSTÜNE hiçbir şey çizilmez, o
+   tamamen net/dokunulmamış kalır. Sadece konum/boyut animasyonlanır —
+   blur miktarı SABİT (backdrop-filter'ı animasyonlamak pahalıdır). */
+.sagi-tour-blur-panel{position:fixed;z-index:9797;background:rgba(10,10,14,.5);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;pointer-events:none;transition:top .32s cubic-bezier(.22,1,.36,1),left .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease}
+[data-theme="light"] .sagi-tour-blur-panel{background:rgba(20,20,30,.38)}
 .sagi-tour-blur-panel.active{opacity:1;pointer-events:auto}
-/* Tam ekran karartma — SADECE merkez adımlarda (hedef yok) kullanılır */
-#sagiTourDim{position:fixed;inset:0;z-index:9796;background:rgba(10,10,14,.55);backdrop-filter:blur(9px) saturate(1.05);-webkit-backdrop-filter:blur(9px) saturate(1.05);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease,visibility .3s ease}
-[data-theme="light"] #sagiTourDim{background:rgba(20,20,30,.4)}
-#sagiTourDim.active{opacity:1;visibility:visible;pointer-events:auto}
-/* Hedefin etrafındaki ince vurgu çerçevesi — "tam olarak burası" netliği için */
-#sagiTourRing{position:fixed;z-index:9798;border-radius:14px;pointer-events:none;opacity:0;box-shadow:0 0 0 2px var(--brand-accent),0 0 22px 2px color-mix(in srgb,var(--brand-accent) 45%,transparent);transition:top .32s cubic-bezier(.22,1,.36,1),left .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease}
-#sagiTourRing.active{opacity:1}
-.sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100vh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease;pointer-events:none}
-.sagi-tour-tooltip.active{opacity:1;visibility:visible;pointer-events:auto}
-.sagi-tour-tooltip.positioned{animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
-@keyframes sagiTourTipIn{from{transform:scale(.97) translateY(4px)}to{transform:none}}
+.sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100vh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;transition:top .3s cubic-bezier(.22,1,.36,1),left .3s cubic-bezier(.22,1,.36,1),opacity .22s;pointer-events:none}
+.sagi-tour-tooltip.active{opacity:1;pointer-events:auto;animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes sagiTourTipIn{from{transform:scale(.96) translateY(3px)}to{transform:none}}
 .sagi-tour-title{font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:6px;font-family:var(--font-display)}
 .sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:14px}
 .sagi-tour-progress{height:3px;border-radius:2px;background:var(--border-light);overflow:hidden;margin-bottom:12px}
@@ -923,7 +896,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
 .sagi-tour-center-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(98,87,240,.35)}
 .sagi-tour-center-icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.6}
-@media (prefers-reduced-motion: reduce){.sagi-tour-blur-panel,#sagiTourDim,#sagiTourRing,.sagi-tour-tooltip,.sagi-tour-progress-fill{transition:opacity .15s !important}}
+@media (prefers-reduced-motion: reduce){.sagi-tour-blur-panel,.sagi-tour-tooltip,.sagi-tour-progress-fill{transition:opacity .15s !important}}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 [data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-soft),transparent 70%);background-color:#000;filter:blur(3px);}
@@ -1722,7 +1695,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
 
       <!-- Bütçe Limitleri -->
-      <div class="card stagger-4" id="analyticsBudgetCard">
+      <div class="card stagger-4">
         <div class="flex justify-between items-center mb-5">
           <h2 class="card-title" data-i18n="budgetSectionTitle">Aylık Kategori Bütçeleri</h2>
           <button class="btn btn-outline btn-sm" onclick="App.Controllers.Budgets.openModal()"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-plus"/></svg><span data-i18n="addLimit">Limit Ekle</span></button>
@@ -3395,7 +3368,6 @@ function mergeState(localState, remoteState){
 const Core = {
   events:{},temp:{},
   on(e,l){if(!this.events[e])this.events[e]=[];this.events[e].push(l)},
-  off(e,l){if(this.events[e])this.events[e]=this.events[e].filter(x=>x!==l)},
   emit(e,d){if(this.events[e])this.events[e].forEach(l=>l(d))},
   state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],categories:[],_tombstones:{},settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,syncKey:'',notifications:{abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false}}},
   mergeState: mergeState,
@@ -3620,13 +3592,15 @@ window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function
 window.addEventListener('load', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
 
 // ═══════════════════════════════════════
-// SAGI TOUR — canlı, spotlight tabanlı tanıtım turu
-// Tek bir spotlight elemanı (box-shadow cutout) hedefin etrafında delik
-// açar; eskiden 4 ayrı panel vardı ve konum/boyut matematiği köşelerde
-// kayabiliyordu. Route geçişleri artık gerçek 'routeChanged' event'ini
-// bekliyor (sabit setTimeout tahmini yok), tooltip ölçümü her zaman
-// force-reflow sonrası yapılıyor, ve tüm hedef selector'lar gerçek
-// DOM ID'lerine karşı doğrulandı.
+// SAGI TOUR — canlı, "blur çerçeve" tabanlı tanıtım turu
+// Ok/işaretçi ve tek renkli kutu YOK: hedef eleman OLDUĞU GİBİ (bulanıksız,
+// net) kalır; ekranın geri kalanı 4 dinamik panelle (üst/alt/sol/sağ)
+// bulanıklaştırılıp karartılır — "delik" gerçek bir maske değil, hedefin
+// etrafını saran 4 panelin BIRAKTIĞI boşluktur. Bulanıklık miktarı SABİT
+// tutulur (sadece panellerin konum/boyutu animasyonlanır) — backdrop-filter
+// animasyonu pahalıdır, konum/boyut animasyonu ucuzdur ve GPU dostu.
+// Uygulamadaki HER ana ekranı gezer (route değişimi otomatik), mobil ve
+// masaüstünde responsive çalışır.
 // ═══════════════════════════════════════
 function _safeAreaInset(side) {
   try {
@@ -3642,8 +3616,6 @@ const SagiTour = {
   _resizeBound: false,
   _currentTarget: null,
   _currentStep: null,
-  _expectedHash: null,
-  _renderToken: 0, // her _render() çağrısında artar; eski async zincirler bunu kontrol edip kendini iptal eder
 
   _buildSteps() {
     const isEn = window.LANG === 'en';
@@ -3724,7 +3696,7 @@ const SagiTour = {
       { route: '/analytics', sel: '#analyticsDonutGridWrap',
         title: S('Harcama Dağılımı ve Kategoriler', 'Spending breakdown & categories'),
         desc: S('Paranın nereye gittiğini kategori bazında gör, dilimlere dokunarak işlemleri incele.', 'See where your money goes by category — tap a slice to inspect transactions.') },
-      { route: '/analytics', sel: '#analyticsBudgetCard',
+      { route: '/analytics', sel: '#view-analytics .card:last-child',
         title: S('Kategori Bütçeleri', 'Category budgets'),
         desc: S('Kategorilere aylık harcama limiti koy, aşınca uyarı al.', 'Set a monthly spending limit per category and get warned when you go over.') },
 
@@ -3764,6 +3736,11 @@ const SagiTour = {
         title: S('Yasal Bilgiler', 'Legal'),
         desc: S('Gizlilik politikası, kullanım şartları ve daha fazlası.', 'Privacy policy, terms of service and more.') },
 
+      // ── SAGI ASİSTAN ───────────────────────────────────────────
+      { sel: '#sagiChatBtn',
+        title: S('SAGI Asistan ile Tanış', 'Meet SAGI Assistant'),
+        desc: S('Finansal durumun hakkında ne istersen sor — gerçek verini okuyarak cevap veriyor.', 'Ask anything about your finances in plain language — it reads your real data.') },
+
       { center: true,
         icon: '<path d="M20 6 9 17l-5-5"/>',
         title: S('Hazırsın', 'You\'re all set'),
@@ -3774,18 +3751,17 @@ const SagiTour = {
   _ensureDom() {
     if (document.getElementById('sagiTourDim')) return;
     const dim = document.createElement('div'); dim.id = 'sagiTourDim';
-    document.body.appendChild(dim); // artık tıklanınca kapanmıyor — sadece merkez adımlarda tam ekran karartma/blur için kullanılır
-
-    ['Top', 'Bottom', 'Left', 'Right'].forEach(pos => {
+    document.body.appendChild(dim);
+    dim.addEventListener('click', () => this.skip());
+    // 4 blur paneli — hedefin üstü/altı/solu/sağı. Hedefin kendisi hiçbir
+    // panelle örtülmez, tamamen net kalır.
+    ['Top','Bottom','Left','Right'].forEach(pos => {
       const p = document.createElement('div');
       p.className = 'sagi-tour-blur-panel';
-      p.id = 'sagiTourPanel' + pos;
+      p.id = 'sagiTourBlur' + pos;
+      p.addEventListener('click', () => this.skip());
       document.body.appendChild(p);
     });
-
-    const ring = document.createElement('div'); ring.id = 'sagiTourRing';
-    document.body.appendChild(ring);
-
     const tip = document.createElement('div'); tip.className = 'sagi-tour-tooltip'; tip.id = 'sagiTourTooltip';
     const center = document.createElement('div'); center.className = 'sagi-tour-center'; center.id = 'sagiTourCenter';
     document.body.appendChild(tip);
@@ -3793,37 +3769,33 @@ const SagiTour = {
   },
 
   start() {
+    if (window.location.hash.replace('#','') !== '/dashboard') window.location.hash = '/dashboard';
     this._ensureDom();
     this._steps = this._buildSteps();
     this._idx = 0;
+    // Tur aktifken sayfa scrollunu kilitle — kullanıcı parmakla kaydırırsa
+    // blur panelleri (fixed konumlanmış) içerikle senkronunu kaybederdi.
+    this._prevHtmlOverflow = document.documentElement.style.overflow;
+    this._prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     this._active = true;
+    setTimeout(() => this._render(), 150);
     if (!this._resizeBound) {
       this._resizeBound = true;
-      // Scroll ARTIK kilitlenmiyor (eskiden document.documentElement/body'ye
-      // overflow:hidden veriliyordu — bu, ekran dışındaki bir hedefe
-      // scrollIntoView ile gitmeyi FİİLEN İMKANSIZ hale getiriyordu, çünkü
-      // overflow:hidden hem kullanıcı hem programatik scroll'u engeller.
-      // Sonuç: hedef her zaman "kaydırılmamış" konumunda ölçülüyor ve
-      // spotlight ekranın alakasız bir yerinde beliriyordu. Şimdi scroll
-      // serbest, panel/tooltip 'scroll' event'inde canlı olarak hedefe
-      // yeniden kenetleniyor.
       const reflow = () => { if (this._active) this._repositionCurrent(); };
       window.addEventListener('resize', reflow);
-      window.addEventListener('scroll', reflow, { passive: true });
       window.addEventListener('orientationchange', () => setTimeout(reflow, 250));
       if (window.visualViewport) window.visualViewport.addEventListener('resize', reflow);
-      // Kullanıcı tur açıkken elle bir nav'a dokunup farklı sayfaya geçerse,
-      // turun KENDİ tetiklediği hash değişimi dışında bir hashchange olursa
-      // turu temiz şekilde kapatıyoruz — "alakasız yerde" asılı kalan
-      // panel sorunları buradan geliyordu.
+      // KRİTİK FIX: kullanıcı tur açıkken (ör. bottom nav'a) elle dokunup
+      // farklı bir sayfaya geçerse, tur bunu fark etmeden eski hedefi
+      // göstermeye devam ediyordu — "alakasız yerde" asılı kalan blur
+      // panelleri buradan geliyordu. Artık turun KENDİ tetiklediği hash
+      // değişimi dışında bir hashchange olursa turu temiz şekilde kapatıyoruz.
       window.addEventListener('hashchange', () => {
         if (this._active && window.location.hash !== this._expectedHash) this._finish();
       });
     }
-    // İlk adım 'welcome' zaten dashboard'da gösterilebilir bir merkez adım —
-    // route zorlaması gerekmiyor, _render() zaten adımın kendi route'unu
-    // (varsa) yönetiyor. Görsel olarak DOM'un oturması için bir frame bekle.
-    requestAnimationFrame(() => requestAnimationFrame(() => this._render()));
   },
 
   skip() { this._finish(); },
@@ -3843,10 +3815,11 @@ const SagiTour = {
 
   _finish() {
     this._active = false;
-    this._renderToken++; // bekleyen tüm async zincirleri iptal et
     this._currentTarget = null;
     this._currentStep = null;
     try { localStorage.setItem('sagi_tour_seen', '1'); } catch (e) {}
+    document.documentElement.style.overflow = this._prevHtmlOverflow || '';
+    document.body.style.overflow = this._prevBodyOverflow || '';
     this._hidePanels();
     const center = document.getElementById('sagiTourCenter');
     if (center) center.classList.remove('active');
@@ -3861,16 +3834,14 @@ const SagiTour = {
   },
 
   _hidePanels() {
+    ['Top','Bottom','Left','Right'].forEach(pos => {
+      const el = document.getElementById('sagiTourBlur' + pos);
+      if (el) el.classList.remove('active');
+    });
     const dim = document.getElementById('sagiTourDim');
     const tip = document.getElementById('sagiTourTooltip');
-    const ring = document.getElementById('sagiTourRing');
-    ['Top', 'Bottom', 'Left', 'Right'].forEach(pos => {
-      const p = document.getElementById('sagiTourPanel' + pos);
-      if (p) p.classList.remove('active');
-    });
     if (dim) dim.classList.remove('active');
-    if (ring) ring.classList.remove('active');
-    if (tip) { tip.classList.remove('active', 'positioned'); }
+    if (tip) tip.classList.remove('active');
   },
 
   _iconSvg(step) {
@@ -3894,91 +3865,30 @@ const SagiTour = {
       </div>`;
   },
 
-  // ── Route bekleme: sabit setTimeout tahmini yerine gerçek 'routeChanged'
-  // event'ini dinliyoruz. Zaten hedeflenen route'daysak hiç beklemeden geçer.
-  _ensureRoute(targetRoute) {
-    return new Promise(resolve => {
-      const currentHash = window.location.hash.replace('#', '') || '/dashboard';
-      if (!targetRoute || currentHash === targetRoute) { resolve(); return; }
-      this._expectedHash = '#' + targetRoute;
-      let done = false;
-      const onChanged = () => {
-        if (done) return;
-        done = true;
-        Core.off && Core.off('routeChanged', onChanged);
-        // routeChanged tetiklendiğinde view geçiş animasyonu (200ms) henüz
-        // sürüyor olabilir (bkz. UI.Router.handleRoute) — bir sonraki
-        // mikro-görev yerine kısa ama kesin bir bekleme koyuyoruz ki yeni
-        // view'in DOM'u tam yerleşmiş olsun.
-        setTimeout(resolve, 40);
-      };
-      // Core.emit tabanlı basit bir event sistemi kullanılıyor; 'off' yoksa
-      // elle bir kerelik dinleyici simüle ediyoruz.
-      if (Core.on) {
-        Core.on('routeChanged', onChanged);
-      } else {
-        // fallback: event sistemi yoksa hashchange dinle
-        const hOnChange = () => { window.removeEventListener('hashchange', hOnChange); onChanged(); };
-        window.addEventListener('hashchange', hOnChange);
-      }
-      window.location.hash = targetRoute;
-      // Güvenlik ağı: bir şekilde event hiç gelmezse 1.2sn sonra yine de devam et
-      setTimeout(() => { if (!done) { done = true; resolve(); } }, 1200);
-    });
-  },
-
-  async _render() {
-    const myToken = ++this._renderToken;
+  _render() {
     const step = this._steps[this._idx];
     if (!step) { this._finish(); return; }
-    this._hidePanels(); // adımlar arası geçişte önce yumuşakça sıfırla
-
-    if (step.route) {
-      await this._ensureRoute(step.route);
-    } else {
-      this._expectedHash = window.location.hash;
+    const targetHash = step.route ? ('#' + step.route) : window.location.hash;
+    const navigating = step.route && window.location.hash !== targetHash;
+    this._expectedHash = targetHash;
+    if (navigating) {
+      this._hidePanels(); // farklı sayfaya geçerken önce yumuşakça sıfırla
+      window.location.hash = step.route;
     }
-    if (myToken !== this._renderToken || !this._active) return; // bu arada iptal edildi / ileri gidildi
-
-    const ok = await this._waitForTarget(step, myToken);
-    if (myToken !== this._renderToken || !this._active) return;
-    if (!ok) { this.next(); return; } // bu ekranda bu element yoksa/görünmüyorsa adımı atla
-    this._renderStep(step);
+    this._waitFor(step, 0);
   },
 
-  // Hedef eleman henüz DOM'a gelmemiş/render olmamış olabilir (ağır bir
-  // liste render'ı vs.) — kısa aralıklarla kontrol edip hazır olunca devam
-  // ediyoruz. step.center için hep true döner (hedef aranmaz).
-  _waitForTarget(step, myToken) {
-    if (step.center) return Promise.resolve(true);
-    return new Promise(resolve => {
-      const attemptCheck = (attempt) => {
-        if (myToken !== this._renderToken || !this._active) { resolve(false); return; }
-        const el = this._resolveTarget(step);
-        const ready = el && this._isVisible(el);
-        if (ready) { resolve(true); return; }
-        if (attempt > 25) { resolve(false); return; } // ~2sn denedik, yok say
-        setTimeout(() => attemptCheck(attempt + 1), 80);
-      };
-      attemptCheck(0);
-    });
-  },
-
-  _resolveTarget(step) {
-    let target = document.querySelector(step.sel);
-    if (target && step.whole) target = target.closest('.card') || target;
-    return target;
-  },
-
-  // offsetParent tek başına yetersiz (bazı sabit/absolute konumlu
-  // elemanlarda her zaman null döner) — gerçek boyut + görünürlük kontrolü.
-  _isVisible(el) {
-    if (!el || !el.isConnected) return false;
-    const r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) return false;
-    const style = getComputedStyle(el);
-    if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0) return false;
-    return true;
+  // Hedef eleman henüz DOM'a gelmemiş/render olmamış olabilir (route geçişi,
+  // ağır bir liste render'ı vs.) — sabit bir setTimeout süresine güvenmek
+  // yerine kısa aralıklarla kontrol edip hazır olunca devam ediyoruz. Yavaş
+  // cihazlarda da güvenilir çalışır; hazırsa gecikme yaşanmaz.
+  _waitFor(step, attempt) {
+    if (!this._active) return;
+    if (step.center) { this._renderStep(step); return; }
+    const el = document.querySelector(step.sel);
+    const ready = el && el.offsetParent !== null && el.getBoundingClientRect().width > 0;
+    if (ready || attempt > 20) { this._renderStep(step); return; }
+    setTimeout(() => this._waitFor(step, attempt + 1), 80);
   },
 
   _renderStep(step) {
@@ -3992,8 +3902,7 @@ const SagiTour = {
     if (step.center) {
       this._currentTarget = null;
       this._currentStep = null;
-      this._hidePanels(); // panelleri/ring'i gizle, sadece tam ekran dim kalsın
-      dim.classList.add('active');
+      this._hidePanels();
       center.innerHTML = `
         ${this._iconSvg(step)}
         <div class="sagi-tour-title">${step.title}</div>
@@ -4003,26 +3912,24 @@ const SagiTour = {
       return;
     }
 
-    dim.classList.remove('active'); // hedefli adımlarda tam ekran karartma yerine 4 panel + ring kullanılır
     center.classList.remove('active');
-    const target = this._resolveTarget(step);
-    if (!target || !this._isVisible(target)) { this.next(); return; }
-    this._currentTarget = target;
-    this._currentStep = step;
-
+    let target = document.querySelector(step.sel);
+    if (target && step.whole) target = target.closest('.card') || target;
+    if (!target || target.offsetParent === null) { this.next(); return; } // bu ekranda bu element yoksa/görünmüyorsa adımı atla
     target.scrollIntoView({ block: 'center', behavior: 'smooth' });
     this._waitForScrollSettle(target, target.getBoundingClientRect().top, 0, () => {
-      if (this._currentTarget !== target) return; // bu arada değişti
+      this._currentTarget = target;
+      this._currentStep = step;
       this._positionAt(target, step, isEn, isLast);
     });
   },
 
   // scrollIntoView'ın animasyonu bitene kadar bekle — sabit bir süre tahmin
   // etmek yerine, elemanın konumu art arda ölçümlerde artık DEĞİŞMİYORSA
-  // (scroll durmuş demektir) devam ediyoruz.
+  // (scroll durmuş demektir) devam ediyoruz. Kısa/uzun scroll mesafesinde
+  // eşit derecede doğru çalışır.
   _waitForScrollSettle(el, lastTop, attempt, cb) {
     requestAnimationFrame(() => {
-      if (!this._active) return;
       const top = el.getBoundingClientRect().top;
       if (Math.abs(top - lastTop) < 0.5 || attempt > 30) { cb(); return; }
       this._waitForScrollSettle(el, top, attempt + 1, cb);
@@ -4038,52 +3945,40 @@ const SagiTour = {
   },
 
   _positionAt(target, step, isEn, isLast) {
+    const dim = document.getElementById('sagiTourDim');
     const tip = document.getElementById('sagiTourTooltip');
-    const ring = document.getElementById('sagiTourRing');
-    const pTop = document.getElementById('sagiTourPanelTop');
-    const pBottom = document.getElementById('sagiTourPanelBottom');
-    const pLeft = document.getElementById('sagiTourPanelLeft');
-    const pRight = document.getElementById('sagiTourPanelRight');
-    if (!tip || !ring || !pTop || !pBottom || !pLeft || !pRight) return;
+    const bT = document.getElementById('sagiTourBlurTop');
+    const bB = document.getElementById('sagiTourBlurBottom');
+    const bL = document.getElementById('sagiTourBlurLeft');
+    const bR = document.getElementById('sagiTourBlurRight');
+    if (!dim || !tip || !bT || !bB || !bL || !bR) return;
+    dim.classList.remove('active');
 
     const r = target.getBoundingClientRect();
     const pad = 8;
     const vv = window.visualViewport;
     const vw = vv ? vv.width : window.innerWidth;
     const vh = vv ? vv.height : window.innerHeight;
+    const top = Math.max(0, r.top - pad), bottom = Math.min(vh, r.bottom + pad);
+    const left = Math.max(0, r.left - pad), right = Math.min(vw, r.right + pad);
 
-    // Hedefin etrafındaki "delik" dikdörtgeni.
-    const T = Math.max(0, r.top - pad);
-    const L = Math.max(0, r.left - pad);
-    const W = Math.min(vw - L, r.width + pad * 2);
-    const H = Math.min(vh - T, r.height + pad * 2);
+    // 4 panel, hedefi bir çerçeve gibi sarar — hedefin üstüne HİÇBİR panel
+    // gelmez, tamamen net/bulanıksız kalır.
+    bT.style.cssText = `top:0px;left:0px;width:${vw}px;height:${top}px`;
+    bB.style.cssText = `top:${bottom}px;left:0px;width:${vw}px;height:${Math.max(0, vh - bottom)}px`;
+    bL.style.cssText = `top:${top}px;left:0px;width:${left}px;height:${Math.max(0, bottom - top)}px`;
+    bR.style.cssText = `top:${top}px;left:${right}px;width:${Math.max(0, vw - right)}px;height:${Math.max(0, bottom - top)}px`;
+    [bT, bB, bL, bR].forEach(p => p.classList.add('active'));
 
-    // 4 panel deliğin ETRAFINI sarar, ÜZERİNE gelmez — hedef her zaman
-    // net/dokunulmamış kalır, gerçek bir DOM boşluğu (element yok) olduğu
-    // için tıklama doğrudan hedefe ulaşır.
-    pTop.style.top = '0px'; pTop.style.left = '0px'; pTop.style.width = '100%'; pTop.style.height = T + 'px';
-    pBottom.style.top = (T + H) + 'px'; pBottom.style.left = '0px'; pBottom.style.width = '100%'; pBottom.style.height = Math.max(0, vh - (T + H)) + 'px';
-    pLeft.style.top = T + 'px'; pLeft.style.left = '0px'; pLeft.style.width = L + 'px'; pLeft.style.height = H + 'px';
-    pRight.style.top = T + 'px'; pRight.style.left = (L + W) + 'px'; pRight.style.width = Math.max(0, vw - (L + W)) + 'px'; pRight.style.height = H + 'px';
-    [pTop, pBottom, pLeft, pRight].forEach(p => p.classList.add('active'));
-
-    ring.style.top = T + 'px'; ring.style.left = L + 'px'; ring.style.width = W + 'px'; ring.style.height = H + 'px';
-    ring.classList.add('active');
-
-    // Tooltip içeriğini yaz, GÖRÜNÜR ama henüz "positioned" değil (animasyon
-    // yok) — sonra force-reflow ile gerçek boyutunu ölç, öyle konumla, en
-    // son 'positioned' class'ını ekleyip giriş animasyonunu tetikle. Bu sıra
-    // önemli: içerik yazılmadan/reflow alınmadan ölçüm alırsak eski/0
-    // boyutlar okunabiliyordu.
-    tip.classList.remove('positioned');
     tip.innerHTML = `
       <div class="sagi-tour-title">${step.title}</div>
       <div class="sagi-tour-desc">${step.desc}</div>
       ${this._footerHtml(isEn, isLast)}`;
     tip.classList.add('active');
-    // eslint-disable-next-line no-unused-expressions
-    tip.offsetHeight; // force reflow — innerHTML sonrası layout'u kesinleştir
 
+    // Tooltip'i hedefin altına/üstüne, ekran kenarına göre otomatik yerleştir.
+    // visualViewport + safe-area-inset kullanıyoruz — mobilde adres çubuğu
+    // açıkken innerHeight yanıltıcı olabiliyor, çentik/home-bar boşluklarına da saygı duyuyoruz.
     const safeT = _safeAreaInset('top'), safeB = _safeAreaInset('bottom');
     const tipRect = tip.getBoundingClientRect();
     let tTop = r.bottom + pad + 14;
@@ -4093,8 +3988,6 @@ const SagiTour = {
     tLeft = Math.max(16, Math.min(vw - tipRect.width - 16, tLeft));
     tip.style.top = tTop + 'px';
     tip.style.left = tLeft + 'px';
-    // İçerik + konum kesinleşti, şimdi giriş animasyonunu tetikle.
-    requestAnimationFrame(() => tip.classList.add('positioned'));
   },
 };
 
