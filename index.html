@@ -110,7 +110,7 @@ if ('serviceWorker' in navigator) {
   --sagi-safe-top:env(safe-area-inset-top,0px); --sagi-safe-bottom:env(safe-area-inset-bottom,0px);
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
   --border-light:rgba(0,0,0,0.07); --border-focus:rgba(17,24,39,0.28);
-  --brand-primary:#111827; --brand-accent:#16181d; --brand-accent-subtle:rgba(17,24,39,.06); --brand-accent-soft:rgba(17,24,39,.09); --brand-accent-medium:rgba(17,24,39,.14);
+  --brand-primary:#111827; --brand-accent:#16181d; --brand-accent-contrast:#ffffff; --brand-accent-subtle:rgba(17,24,39,.06); --brand-accent-soft:rgba(17,24,39,.09); --brand-accent-medium:rgba(17,24,39,.14);
   --brand-accent-glow-sm:0 0 0 3px rgba(17,24,39,.12);
   --brand-accent-glow-md:0 4px 16px rgba(17,24,39,.24);
   --brand-accent-glow-lg:0 8px 28px rgba(17,24,39,.32);
@@ -130,7 +130,7 @@ if ('serviceWorker' in navigator) {
 [data-theme="dark"] {
   --bg-body:#020203; --bg-surface:#090909; --bg-surface-hover:#101012;
   --border-light:rgba(255,255,255,0.07); --border-focus:rgba(245,245,247,0.40);
-  --brand-primary:#f9fafb; --brand-accent:#f5f5f7; --brand-accent-subtle:rgba(245,245,247,.12); --brand-accent-soft:rgba(245,245,247,.18); --brand-accent-medium:rgba(245,245,247,.26);
+  --brand-primary:#f9fafb; --brand-accent:#f5f5f7; --brand-accent-contrast:#0B0B0F; --brand-accent-subtle:rgba(245,245,247,.12); --brand-accent-soft:rgba(245,245,247,.18); --brand-accent-medium:rgba(245,245,247,.26);
   --brand-accent-glow-sm:0 0 0 3px rgba(245,245,247,.20);
   --brand-accent-glow-md:0 4px 16px rgba(245,245,247,.26);
   --brand-accent-glow-lg:0 8px 28px rgba(245,245,247,.34);
@@ -560,7 +560,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .bnav-avail-chip{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius-md);background:var(--bg-body);border:1.5px dashed var(--border-light);cursor:pointer;transition:all .2s;font-size:14px;font-weight:600;color:var(--text-secondary)}
 .bnav-avail-chip:hover{border-color:var(--brand-accent);color:var(--brand-accent);background:var(--brand-accent-subtle)}
 .bnav-avail-chip .nav-icon{width:16px;height:16px;stroke-width:2.5}
-.bnav-add-icon{width:18px;height:18px;border-radius:50%;background:var(--brand-accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bnav-add-icon{width:18px;height:18px;border-radius:50%;background:var(--brand-accent);color:var(--brand-accent-contrast);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .bnav-add-icon .nav-icon{width:10px;height:10px;stroke-width:3}
 .bnav-max-warn{font-size:12px;color:var(--status-warn);font-weight:600;background:var(--status-warn-bg);border-radius:var(--radius-sm);padding:8px 12px;text-align:center;border:1px solid rgba(217,119,6,.2)}
 /* QUICK ACTIONS */
@@ -774,8 +774,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 /* THEME TOGGLE */
 .theme-toggle-group{display:flex;background:var(--bg-body);border-radius:var(--radius-full);padding:4px;border:1px solid var(--border-light)}
 .theme-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border-radius:var(--radius-full);color:var(--text-secondary);font-weight:600;font-size:13px;transition:all .3s;cursor:pointer}
-.theme-btn.active{background:var(--brand-accent);color:#fff;box-shadow:var(--shadow-sm);border:1px solid var(--brand-accent)}
-[data-theme="dark"] .theme-btn.active{background:var(--brand-accent);color:#fff}
+.theme-btn.active{background:var(--brand-accent);color:var(--brand-accent-contrast);box-shadow:var(--shadow-sm);border:1px solid var(--brand-accent)}
+[data-theme="dark"] .theme-btn.active{background:var(--brand-accent);color:var(--brand-accent-contrast)}
 .theme-btn:not(.active):hover{background:var(--bg-surface-hover);color:var(--text-main)}
 
 /* KPI */
@@ -921,10 +921,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 .brand-icon-dark  { display: none;  }
 [data-theme="dark"] .brand-icon-light { display: none;  }
 [data-theme="dark"] .brand-icon-dark  { display: block; }
-.brand-icon-bar { fill: #0B0B0F; }
-.brand-icon-stroke { stroke: #0B0B0F; fill: none; }
-[data-theme="dark"] .brand-icon-bar { fill: #FFFFFF; }
-[data-theme="dark"] .brand-icon-stroke { stroke: #FFFFFF; }
+.brand-icon-bar { fill: var(--brand-accent); }
+.brand-icon-stroke { stroke: var(--brand-accent); fill: none; }
+[data-theme="dark"] .brand-icon-bar { fill: var(--brand-accent); }
+[data-theme="dark"] .brand-icon-stroke { stroke: var(--brand-accent); }
 
 /* PROGRESS */
 .progress-track{height:7px;background:var(--bg-body);border-radius:var(--radius-full);overflow:hidden}
@@ -2190,11 +2190,11 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-copy"/></svg>JSON</button>
                 <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Plus&&App.Plus.isPlusUser()?App.Controllers.Settings.exportCSVPlus():App.PlusOnboarding&&App.PlusOnboarding.show()">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg>
-                  CSV <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
+                  CSV <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:var(--brand-accent-contrast);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:var(--brand-accent-contrast)" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
                 </button>
                 <button class="btn btn-outline btn-sm w-full" style="justify-content:center" onclick="App.Plus&&App.Plus.isPlusUser()?App.Controllers.Settings.exportPDFPlus():App.PlusOnboarding&&App.PlusOnboarding.show()">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-file"/></svg>
-                  PDF <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
+                  PDF <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:var(--brand-accent-contrast);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:var(--brand-accent-contrast)" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
                 </button>
               </div>
             </div>
@@ -2217,7 +2217,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
                 <label for="importCSVFile" class="btn btn-outline btn-sm cursor-pointer mb-0 w-full" style="justify-content:center;position:relative" onclick="if(!(App.Plus&&App.Plus.isPlusUser())){event.preventDefault();App.PlusOnboarding&&App.PlusOnboarding.show();}">
                   <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg>
                   <span data-i18n="selectCsvFile">CSV Dosyası Seç</span>
-                  <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:#fff" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
+                  <span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-accent);color:var(--brand-accent-contrast);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px"><svg style="width:9px;height:9px;fill:var(--brand-accent-contrast)" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Plus</span>
                 </label>
               </div>
             </div>
@@ -7994,7 +7994,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       _actionMeta(action){
         const page=(action||'').split(':')[0];
-        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#f5f5f7';
+        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#e4e4e7';
         const acBg = acc + '22';
         const map={
           recurring:{icon:'icon-repeat',   bg:acBg, color:'var(--brand-accent)'},
