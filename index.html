@@ -129,13 +129,13 @@ if ('serviceWorker' in navigator) {
 }
 [data-theme="dark"] {
   --bg-body:#020203; --bg-surface:#090909; --bg-surface-hover:#101012;
-  --border-light:rgba(255,255,255,0.07); --border-focus:rgba(249,250,251,0.35);
-  --brand-primary:#f9fafb; --brand-accent:#e4e4e7; --brand-accent-subtle:rgba(249,250,251,.08); --brand-accent-soft:rgba(249,250,251,.14); --brand-accent-medium:rgba(249,250,251,.20);
-  --brand-accent-glow-sm:0 0 0 3px rgba(249,250,251,.16);
-  --brand-accent-glow-md:0 4px 16px rgba(249,250,251,.22);
-  --brand-accent-glow-lg:0 8px 28px rgba(249,250,251,.30);
-  --brand-accent-glow-pulse-0:rgba(249,250,251,0);
-  --brand-accent-glow-pulse-50:rgba(249,250,251,.16);
+  --border-light:rgba(255,255,255,0.07); --border-focus:rgba(245,245,247,0.40);
+  --brand-primary:#f9fafb; --brand-accent:#f5f5f7; --brand-accent-subtle:rgba(245,245,247,.12); --brand-accent-soft:rgba(245,245,247,.18); --brand-accent-medium:rgba(245,245,247,.26);
+  --brand-accent-glow-sm:0 0 0 3px rgba(245,245,247,.20);
+  --brand-accent-glow-md:0 4px 16px rgba(245,245,247,.26);
+  --brand-accent-glow-lg:0 8px 28px rgba(245,245,247,.34);
+  --brand-accent-glow-pulse-0:rgba(245,245,247,0);
+  --brand-accent-glow-pulse-50:rgba(245,245,247,.20);
   --text-main:#f9fafb; --text-secondary:#a1a1aa; --text-muted:#71717a;
   --status-danger-bg:rgba(229,83,75,0.14); --status-success-bg:rgba(34,160,107,0.13);
   --status-warn-bg:rgba(217,119,6,0.13);
@@ -921,10 +921,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 .brand-icon-dark  { display: none;  }
 [data-theme="dark"] .brand-icon-light { display: none;  }
 [data-theme="dark"] .brand-icon-dark  { display: block; }
-.brand-icon-bar { fill: var(--brand-accent); }
-.brand-icon-stroke { stroke: var(--brand-accent); fill: none; }
-[data-theme="dark"] .brand-icon-bar { fill: var(--brand-accent); }
-[data-theme="dark"] .brand-icon-stroke { stroke: var(--brand-accent); }
+.brand-icon-bar { fill: #0B0B0F; }
+.brand-icon-stroke { stroke: #0B0B0F; fill: none; }
+[data-theme="dark"] .brand-icon-bar { fill: #FFFFFF; }
+[data-theme="dark"] .brand-icon-stroke { stroke: #FFFFFF; }
 
 /* PROGRESS */
 .progress-track{height:7px;background:var(--bg-body);border-radius:var(--radius-full);overflow:hidden}
@@ -7994,7 +7994,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       _actionMeta(action){
         const page=(action||'').split(':')[0];
-        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#e4e4e7';
+        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#f5f5f7';
         const acBg = acc + '22';
         const map={
           recurring:{icon:'icon-repeat',   bg:acBg, color:'var(--brand-accent)'},
