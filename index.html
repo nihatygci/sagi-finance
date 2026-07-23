@@ -109,13 +109,13 @@ if ('serviceWorker' in navigator) {
 :root {
   --sagi-safe-top:env(safe-area-inset-top,0px); --sagi-safe-bottom:env(safe-area-inset-bottom,0px);
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
-  --border-light:rgba(0,0,0,0.07); --border-focus:rgba(98,87,240,0.28);
-  --brand-primary:#111827; --brand-accent:#6257f0; --brand-accent-subtle:rgba(98,87,240,.07); --brand-accent-soft:rgba(98,87,240,.10); --brand-accent-medium:rgba(98,87,240,.15);
-  --brand-accent-glow-sm:0 0 0 3px rgba(98,87,240,.12);
-  --brand-accent-glow-md:0 4px 16px rgba(98,87,240,.28);
-  --brand-accent-glow-lg:0 8px 28px rgba(98,87,240,.38);
-  --brand-accent-glow-pulse-0:rgba(98,87,240,0);
-  --brand-accent-glow-pulse-50:rgba(98,87,240,.12);
+  --border-light:rgba(0,0,0,0.07); --border-focus:rgba(17,24,39,0.28);
+  --brand-primary:#111827; --brand-accent:#16181d; --brand-accent-subtle:rgba(17,24,39,.06); --brand-accent-soft:rgba(17,24,39,.09); --brand-accent-medium:rgba(17,24,39,.14);
+  --brand-accent-glow-sm:0 0 0 3px rgba(17,24,39,.12);
+  --brand-accent-glow-md:0 4px 16px rgba(17,24,39,.24);
+  --brand-accent-glow-lg:0 8px 28px rgba(17,24,39,.32);
+  --brand-accent-glow-pulse-0:rgba(17,24,39,0);
+  --brand-accent-glow-pulse-50:rgba(17,24,39,.12);
   --text-main:#111827; --text-secondary:#4b5563; --text-muted:#9ca3af;
   --status-success:#1db87a; --status-success-bg:rgba(34,160,107,0.09);
   --status-danger:#f04040; --status-danger-bg:rgba(229,83,75,0.09);
@@ -129,13 +129,13 @@ if ('serviceWorker' in navigator) {
 }
 [data-theme="dark"] {
   --bg-body:#020203; --bg-surface:#090909; --bg-surface-hover:#101012;
-  --border-light:rgba(255,255,255,0.07); --border-focus:rgba(99,102,241,0.45);
-  --brand-primary:#f9fafb; --brand-accent:#6366f1; --brand-accent-subtle:rgba(99,102,241,.08); --brand-accent-soft:rgba(99,102,241,.12); --brand-accent-medium:rgba(99,102,241,.18);
-  --brand-accent-glow-sm:0 0 0 3px rgba(99,102,241,.18);
-  --brand-accent-glow-md:0 4px 16px rgba(99,102,241,.35);
-  --brand-accent-glow-lg:0 8px 28px rgba(99,102,241,.50);
-  --brand-accent-glow-pulse-0:rgba(99,102,241,0);
-  --brand-accent-glow-pulse-50:rgba(99,102,241,.18);
+  --border-light:rgba(255,255,255,0.07); --border-focus:rgba(249,250,251,0.35);
+  --brand-primary:#f9fafb; --brand-accent:#e4e4e7; --brand-accent-subtle:rgba(249,250,251,.08); --brand-accent-soft:rgba(249,250,251,.14); --brand-accent-medium:rgba(249,250,251,.20);
+  --brand-accent-glow-sm:0 0 0 3px rgba(249,250,251,.16);
+  --brand-accent-glow-md:0 4px 16px rgba(249,250,251,.22);
+  --brand-accent-glow-lg:0 8px 28px rgba(249,250,251,.30);
+  --brand-accent-glow-pulse-0:rgba(249,250,251,0);
+  --brand-accent-glow-pulse-50:rgba(249,250,251,.16);
   --text-main:#f9fafb; --text-secondary:#a1a1aa; --text-muted:#71717a;
   --status-danger-bg:rgba(229,83,75,0.14); --status-success-bg:rgba(34,160,107,0.13);
   --status-warn-bg:rgba(217,119,6,0.13);
@@ -3524,7 +3524,7 @@ const Core = {
       // — amaç kategori rengi marka renginden kopmasın, ama yan yana durduğunda
       // yine de ayırt edilebilsin.
       const root=document.documentElement;
-      const accentHex=getComputedStyle(root).getPropertyValue('--brand-accent').trim()||'#6257f0';
+      const accentHex=getComputedStyle(root).getPropertyValue('--brand-accent').trim()||'#16181d';
       const [baseH,baseS,baseL]=Core.Utils._hexToHsl(accentHex);
       let hash=0;for(let i=0;i<cat.length;i++)hash=(cat.charCodeAt(i)*2654435761)^((hash<<5)-hash);
       hash=Math.abs(hash);
@@ -4183,7 +4183,7 @@ const UI = {
       // Renk: CSS değişkenlerine bağlı olmayan sabit HEX — SVG fill= içinde CSS var() çalışmaz
       const INC_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-success').trim()||'#22a06b';
       const EXP_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--status-danger').trim()||'#e5534b';
-      const NET_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim()||'#6257f0';
+      const NET_COLOR=getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim()||'#16181d';
       const MUTED=isDark?'#9ca3af':'#9ca3af';
       const GRID=isDark?'rgba(255,255,255,.10)':'#e5e7eb';
       const measuredW=Math.round((c.parentElement||c).getBoundingClientRect().width);
@@ -7994,7 +7994,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       _actionMeta(action){
         const page=(action||'').split(':')[0];
-        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#6366f1';
+        const acc = getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#e4e4e7';
         const acBg = acc + '22';
         const map={
           recurring:{icon:'icon-repeat',   bg:acBg, color:'var(--brand-accent)'},
