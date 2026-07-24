@@ -107,7 +107,7 @@ if ('serviceWorker' in navigator) {
    SAGI FINANCE v18 — Mobile-first
    ══════════════════════════════════ */
 :root {
-  --sagi-safe-top:env(safe-area-inset-top,0px); --sagi-safe-bottom:env(safe-area-inset-bottom,0px);
+  --sagi-safe-top:env(safe-area-inset-top,0px); --sagi-safe-bottom:env(safe-area-inset-bottom,0px); --sagi-safe-left:env(safe-area-inset-left,0px); --sagi-safe-right:env(safe-area-inset-right,0px);
   --bg-body:#f0f2f5; --bg-surface:#fff; --bg-surface-hover:#f7f8fa;
   --border-light:rgba(0,0,0,0.07); --border-focus:rgba(17,24,39,0.28);
   --brand-primary:#111827; --brand-accent:#16181d; --brand-fixed-bg:#16181d; --brand-fixed-fg:#ffffff; --brand-accent-subtle:rgba(17,24,39,.06); --brand-accent-soft:rgba(17,24,39,.09); --brand-accent-medium:rgba(17,24,39,.14);
@@ -863,20 +863,22 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden;background:var(--bg-body)}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-/* SAGI TOUR — canlı, blur-çerçeve tabanlı tanıtım turu */
-/* Merkezli adımlar (karşılama/bitiş) için tam ekran karartma+blur */
+/* SAGI TOUR — basit versiyon: tek karartma + tek ortalı kart, adım
+   bazlı hedef vurgulama/blur çerçeve yok. */
 #sagiTourDim{position:fixed;inset:0;z-index:9797;background:rgba(10,10,14,.55);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
 [data-theme="light"] #sagiTourDim{background:rgba(20,20,30,.42)}
 #sagiTourDim.active{opacity:1;visibility:visible}
-/* Hedefi saran 4 dinamik panel — hedefin ÜSTÜNE hiçbir şey çizilmez, o
-   tamamen net/dokunulmamış kalır. Sadece konum/boyut animasyonlanır —
-   blur miktarı SABİT (backdrop-filter'ı animasyonlamak pahalıdır). */
-.sagi-tour-blur-panel{position:fixed;z-index:9797;background:rgba(10,10,14,.5);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;pointer-events:none;transition:top .32s cubic-bezier(.22,1,.36,1),left .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease}
-[data-theme="light"] .sagi-tour-blur-panel{background:rgba(20,20,30,.38)}
-.sagi-tour-blur-panel.active{opacity:1;pointer-events:auto}
-.sagi-tour-tooltip{position:fixed;z-index:9801;max-width:320px;width:calc(100vw - 40px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100vh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:18px 20px;opacity:0;transition:top .3s cubic-bezier(.22,1,.36,1),left .3s cubic-bezier(.22,1,.36,1),opacity .22s;pointer-events:none}
-.sagi-tour-tooltip.active{opacity:1;pointer-events:auto;animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
-@keyframes sagiTourTipIn{from{transform:scale(.96) translateY(3px)}to{transform:none}}
+.sagi-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9801;max-width:340px;width:calc(100vw - 48px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100vh - 48px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:28px 24px;text-align:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+/* ÖNEMLİ FIX: eski animasyon transform:scale(...)→none kullanıyordu, bu da
+   .sagi-tour-center'ın ortalamasını sağlayan translate(-50%,-50%)'i
+   animasyon süresince (.3sn) SİLİYORDU — kart o esnada ekranın yanlış
+   (sağ-alt kaymış) bir köşesinde belirip, animasyon bitince aniden
+   ortaya "zıplıyordu". Artık translate(-50%,-50%) animasyon boyunca da
+   korunuyor, kart hep merkezde kalıyor, sadece hafifçe büyüyor. */
+.sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourCenterIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes sagiTourCenterIn{from{transform:translate(-50%,-50%) scale(.96)}to{transform:translate(-50%,-50%) scale(1)}}
+.sagi-tour-center-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(98,87,240,.35)}
+.sagi-tour-center-icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.6}
 .sagi-tour-title{font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:6px;font-family:var(--font-display)}
 .sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:14px}
 .sagi-tour-progress{height:3px;border-radius:2px;background:var(--border-light);overflow:hidden;margin-bottom:12px}
@@ -892,11 +894,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .sagi-tour-next{font-size:13px;font-weight:800;color:#fff;background:var(--brand-accent);border:none;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s;white-space:nowrap}
 .sagi-tour-next:active{transform:scale(.95)}
 .sagi-tour-next svg{width:14px;height:14px}
-.sagi-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9801;max-width:340px;width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:28px 24px;text-align:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
-.sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourTipIn .3s cubic-bezier(.16,1,.3,1)}
-.sagi-tour-center-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(98,87,240,.35)}
-.sagi-tour-center-icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.6}
-@media (prefers-reduced-motion: reduce){.sagi-tour-blur-panel,.sagi-tour-tooltip,.sagi-tour-progress-fill{transition:opacity .15s !important}}
+@media (prefers-reduced-motion: reduce){.sagi-tour-center,.sagi-tour-progress-fill{transition:opacity .15s !important}}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 [data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-soft),transparent 70%);background-color:#000;filter:blur(3px);}
@@ -3623,15 +3621,12 @@ window.addEventListener('resize', () => { if (typeof _syncBnavPill === 'function
 window.addEventListener('load', () => { if (typeof _syncBnavPill === 'function') _syncBnavPill(); });
 
 // ═══════════════════════════════════════
-// SAGI TOUR — canlı, "blur çerçeve" tabanlı tanıtım turu
-// Ok/işaretçi ve tek renkli kutu YOK: hedef eleman OLDUĞU GİBİ (bulanıksız,
-// net) kalır; ekranın geri kalanı 4 dinamik panelle (üst/alt/sol/sağ)
-// bulanıklaştırılıp karartılır — "delik" gerçek bir maske değil, hedefin
-// etrafını saran 4 panelin BIRAKTIĞI boşluktur. Bulanıklık miktarı SABİT
-// tutulur (sadece panellerin konum/boyutu animasyonlanır) — backdrop-filter
-// animasyonu pahalıdır, konum/boyut animasyonu ucuzdur ve GPU dostu.
-// Uygulamadaki HER ana ekranı gezer (route değişimi otomatik), mobil ve
-// masaüstünde responsive çalışır.
+// SAGI TOUR — basit tanıtım turu
+// Hedef eleman vurgulama / blur çerçeve YOK. Her adım aynı tek kart:
+// ortada, tam ekran karartmanın üstünde. Adım bir sayfayla ilgiliyse o
+// sayfaya geçilir, kart yine ortada aynı şekilde durur — konum hesabı,
+// scroll takibi ya da "eleman hazır mı" bekleme mantığı yok, bu yüzden
+// önceki karmaşık sürümdeki yerleşim/hizalama sorunları da yok.
 // ═══════════════════════════════════════
 function _safeAreaInset(side) {
   try {
@@ -3644,136 +3639,40 @@ const SagiTour = {
   _idx: 0,
   _steps: [],
   _active: false,
-  _resizeBound: false,
-  _currentTarget: null,
-  _currentStep: null,
+  _hashBound: false,
 
   _buildSteps() {
     const isEn = window.LANG === 'en';
     const S = (tr, en) => isEn ? en : tr;
     return [
-      { center: true,
-        icon: '<path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+      { icon: '<path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
         title: S('SAGI Finance\'e Hoş Geldin', 'Welcome to SAGI Finance'),
-        desc: S('Tüm ekranların tam bir turu — istediğin an atlayabilirsin.', 'A full tour of every screen — skip anytime.') },
-
-      // ── DASHBOARD ──────────────────────────────────────────────
-      { route: '/dashboard', sel: '#kpiCardNetWorth', whole: true,
-        title: S('Net Varlığın', 'Your net worth'),
-        desc: S('Tüm hesapların toplamı, tek bakışta. Kaydırarak para birimine göre de görebilirsin.', 'All your accounts combined, at a glance. Swipe to see it per currency.') },
-      { route: '/dashboard', sel: '#view-dashboard .css-grid.grid-cols-4',
-        title: S('Aylık Özet', 'Monthly snapshot'),
-        desc: S('Bu ayki gider, gelir ve net nakit akışın, anlık güncelleniyor.', 'Expenses, income and net cash flow for this month, updated live.') },
-      { route: '/dashboard', sel: '#dashGoalsDebtsGrid',
-        title: S('Hedeflerin ve Borç/Alacak Özetin', 'Goals & debt summary'),
-        desc: S('Birikim hedeflerin ve kime borçlu/alacaklı olduğun, tek bakışta.', 'Your savings goals and who you owe or are owed, at a glance.') },
-      { route: '/dashboard', sel: '#dashTxUpcomingGrid',
-        title: S('Son İşlemler ve Yaklaşan Ödemeler', 'Recent activity & upcoming payments'),
-        desc: S('En son eklediğin işlemler ve yaklaşan sabit ödemelerin burada.', 'Your latest transactions and upcoming fixed payments live here.') },
-
-      // ── HESAPLAR ───────────────────────────────────────────────
-      { route: '/wallets', sel: '#view-wallets .transfer-actions-row',
-        title: S('Hesap Ekle ve Para Aktar', 'Add accounts & transfer money'),
-        desc: S('Banka hesabı, nakit, kredi kartı — istediğin kadar ekle, hesaplar arasında para aktar.', 'Bank accounts, cash, credit cards — add as many as you need, transfer between them.') },
-      { route: '/wallets', sel: '#walletsGrid',
-        title: S('Tüm Hesapların', 'All your accounts'),
-        desc: S('Bakiyeler burada — bir hesaba dokunarak detaylarını ve geçmişini görebilirsin.', 'Balances live here — tap any account to see its details and history.') },
-
-      // ── İŞLEMLER ───────────────────────────────────────────────
-      { route: '/transactions', sel: '#txPageTitleRow .btn-primary',
-        title: S('İşlem Ekle', 'Log a transaction'),
-        desc: S('Her gelir ve gideri buradan saniyeler içinde ekleyebilirsin.', 'Add every income and expense here in seconds.') },
-      { route: '/transactions', sel: '#txFilterCard',
-        title: S('Filtrele ve Ara', 'Filter & search'),
-        desc: S('Tarih, açıklama, tür veya hesaba göre işlemlerini daralt.', 'Narrow down your transactions by date, description, type or account.') },
-      { route: '/transactions', sel: '#txCardContainer',
-        title: S('İşlem Listen', 'Your transaction list'),
-        desc: S('Tüm işlemlerin burada — düzenleyebilir, silebilir, toplu seçim yapabilirsin.', 'All your transactions here — edit, delete, or bulk-select them.') },
-
-      // ── ABONELİKLER ────────────────────────────────────────────
-      { route: '/recurring', sel: '#view-recurring .btn-primary',
-        title: S('Abonelik Ekle', 'Add a subscription'),
-        desc: S('Netflix, kira, her ay tekrar eden sabit gider — bir kere ekle, SAGI her döngüde hatırlatsın.', 'Netflix, rent, any fixed monthly cost — add once, SAGI reminds you every cycle.') },
-      { route: '/recurring', sel: '#recurringGrid',
-        title: S('Aboneliklerin', 'Your subscriptions'),
-        desc: S('Tüm düzenli ödemelerin ve ödeme tarihleri burada.', 'All your recurring payments and their due dates live here.') },
-
-      // ── HEDEFLER ───────────────────────────────────────────────
-      { route: '/goals', sel: '#view-goals .btn-primary',
-        title: S('Hedef Belirle', 'Set a savings goal'),
-        desc: S('Bir tatil, acil durum fonu, ne olursa olsun — bir hedef koy, ilerlemeni takip et.', 'A trip, an emergency fund, anything — set a target and track your progress.') },
-      { route: '/goals', sel: '#goalsGrid',
-        title: S('Hedeflerin', 'Your goals'),
-        desc: S('Her hedefin ilerleme yüzdesini burada görürsün.', 'You can see each goal\'s progress percentage here.') },
-
-      // ── BORÇ & ALACAK ──────────────────────────────────────────
-      { route: '/debts', sel: '#view-debts .btn-primary',
-        title: S('Borç veya Alacak Ekle', 'Add a debt or receivable'),
-        desc: S('Kime borçlusun, kimden alacaklısın — vade tarihleriyle birlikte kaydet.', 'Who you owe, who owes you — log it with a due date.') },
-      { route: '/debts', sel: '#debtsGridWrap',
-        title: S('Borçların ve Alacakların', 'Your debts & receivables'),
-        desc: S('İki liste ayrı ayrı burada, vadesi yaklaşanlar öne çıkar.', 'Both lists live here separately, upcoming due dates surface first.') },
-
-      // ── ANALİZ ─────────────────────────────────────────────────
-      { route: '/analytics', sel: '#analyticsPeriodBar',
-        title: S('Zaman Aralığını Seç', 'Pick your timeframe'),
-        desc: S('Bu ay, 3, 6 veya 12 ay — tüm grafikler anında güncellenir.', 'This month, 3, 6, or 12 months — every chart updates instantly.') },
-      { route: '/analytics', sel: '#analyticsSummary',
-        title: S('Dönem Özeti', 'Period summary'),
-        desc: S('Seçtiğin dönem için gelir, gider ve net durum.', 'Income, expenses and net position for the period you picked.') },
-      { route: '/analytics', sel: '#trendBarChart', whole: true,
-        title: S('Gelir / Gider Trendi', 'Income vs. expense trend'),
-        desc: S('Zaman içindeki değişimi gör — Plus ile Tasarruf Skoru, tahmin ve aylık karşılaştırma da açılıyor.', 'See how things change over time — Plus also unlocks the Savings Score, forecast and month-over-month comparison.') },
-      { route: '/analytics', sel: '#analyticsDonutGridWrap',
-        title: S('Harcama Dağılımı ve Kategoriler', 'Spending breakdown & categories'),
-        desc: S('Paranın nereye gittiğini kategori bazında gör, dilimlere dokunarak işlemleri incele.', 'See where your money goes by category — tap a slice to inspect transactions.') },
-      { route: '/analytics', sel: '#view-analytics .card:last-child',
-        title: S('Kategori Bütçeleri', 'Category budgets'),
-        desc: S('Kategorilere aylık harcama limiti koy, aşınca uyarı al.', 'Set a monthly spending limit per category and get warned when you go over.') },
-
-      // ── BİLDİRİMLER ────────────────────────────────────────────
-      { route: '/notifications', sel: '#notifHeaderActions',
-        title: S('Bildirimlerini Yönet', 'Manage your notifications'),
-        desc: S('Tümünü okundu işaretle, temizle, ya da hangi uyarıları alacağını ayarla.', 'Mark all as read, clear them, or set which alerts you want to receive.') },
-
-      // ── HIZLI İŞLEM ────────────────────────────────────────────
-      { sel: '#qaBnavFab',
-        title: S('Hızlı İşlem', 'Quick actions'),
-        desc: S('Her yerden, her sayfadan hızlıca işlem/hedef/abonelik/borç eklemenin en kısa yolu.', 'The fastest way to add a transaction, goal, subscription or debt — from anywhere.') },
-
-      // ── AYARLAR ────────────────────────────────────────────────
-      { route: '/settings', sel: '#settingsRowPlus',
-        title: 'SAGI Plus',
-        desc: S('Sınırsız asistan, gelişmiş analiz, temalar, reklamsızlık — 7 günlük ücretsiz Plus Trial ile hepsini dene.', 'Unlimited assistant, advanced analytics, themes, ad-free — try it all with a free 7-day Plus Trial.') },
-      { route: '/settings', sel: '#settingsRowPersonalization',
-        title: S('Kişiselleştirme', 'Personalization'),
-        desc: S('İsim, para birimi, tema, dil — uygulamayı kendine göre ayarla.', 'Name, currency, theme, language — make the app yours.') },
-      { route: '/settings', sel: '#settingsRowNotifications',
-        title: S('Bildirim Ayarları', 'Notification settings'),
-        desc: S('Tam olarak ne hakkında uyarılmak istediğini sen seç.', 'Choose exactly what you want to be alerted about.') },
-      { route: '/settings', sel: '#settingsRowRates',
-        title: S('Döviz Kurları', 'Exchange rates'),
-        desc: S('Güncel kurları buradan takip edebilirsin.', 'Track current exchange rates here.') },
-      { route: '/settings', sel: '#settingsRowBottombar',
-        title: S('Alt Menü Düzeni', 'Bottom menu layout'),
-        desc: S('Alt navigasyondaki sekmeleri istediğin sırada özelleştir.', 'Customize the order of tabs in the bottom navigation.') },
-      { route: '/settings', sel: '#settingsRowCloud',
-        title: S('Bulut Senkronizasyonu', 'Cloud sync'),
-        desc: S('16 haneli anonim bir anahtar, verilerini cihazlar arasında senkronlar — hesap yok, e-posta yok.', 'A 16-digit anonymous key syncs your data across devices — no account, no email.') },
-      { route: '/settings', sel: '#settingsRowData',
-        title: S('Veri Yönetimi', 'Data management'),
-        desc: S('Yedek al, geri yükle, ya da verilerini tamamen sıfırla.', 'Back up, restore, or completely reset your data.') },
-      { route: '/settings', sel: '#settingsRowLegal',
-        title: S('Yasal Bilgiler', 'Legal'),
-        desc: S('Gizlilik politikası, kullanım şartları ve daha fazlası.', 'Privacy policy, terms of service and more.') },
-
-      // ── SAGI ASİSTAN ───────────────────────────────────────────
-      { sel: '#sagiChatBtn',
-        title: S('SAGI Asistan ile Tanış', 'Meet SAGI Assistant'),
-        desc: S('Finansal durumun hakkında ne istersen sor — gerçek verini okuyarak cevap veriyor.', 'Ask anything about your finances in plain language — it reads your real data.') },
-
-      { center: true,
-        icon: '<path d="M20 6 9 17l-5-5"/>',
+        desc: S('Uygulamayı hızlıca tanıyalım — sadece birkaç adım.', "Let's quickly get you familiar with the app — just a few steps.") },
+      { route: '/dashboard',
+        icon: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+        title: S('Ana Sayfa', 'Dashboard'),
+        desc: S('Net varlığın, aylık özetin ve son işlemlerin burada, tek bakışta.', 'Your net worth, monthly summary and recent activity, all at a glance.') },
+      { route: '/wallets',
+        icon: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+        title: S('Hesaplar', 'Accounts'),
+        desc: S('Banka, nakit, kredi kartı — hesaplarını ekle, aralarında para aktar.', 'Bank, cash, credit cards — add accounts and transfer money between them.') },
+      { route: '/transactions',
+        icon: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+        title: S('İşlemler', 'Transactions'),
+        desc: S('Her gelir ve gideri buradan saniyeler içinde ekle, filtrele, yönet.', 'Add, filter and manage every income and expense here in seconds.') },
+      { route: '/analytics',
+        icon: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+        title: S('Analiz', 'Analytics'),
+        desc: S('Harcama dağılımın ve gelir/gider trendin, grafiklerle burada.', 'Your spending breakdown and income/expense trend, visualized here.') },
+      { route: '/goals',
+        icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
+        title: S('Hedefler ve Borç/Alacak', 'Goals & Debts'),
+        desc: S('Birikim hedefleri koy, kime borçlu/alacaklı olduğunu takip et.', 'Set savings goals and track who you owe or are owed.') },
+      { route: '/settings',
+        icon: '<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>',
+        title: S('Ayarlar', 'Settings'),
+        desc: S('Tema, dil, bildirimler, bulut yedekleme ve daha fazlası burada.', 'Theme, language, notifications, cloud backup and more, here.') },
+      { icon: '<path d="M20 6 9 17l-5-5"/>',
         title: S('Hazırsın', 'You\'re all set'),
         desc: S('Bu turu istediğin zaman Ayarlar\'dan tekrar izleyebilirsin.', 'Replay this tour anytime from Settings.') },
     ];
@@ -3782,47 +3681,32 @@ const SagiTour = {
   _ensureDom() {
     if (document.getElementById('sagiTourDim')) return;
     const dim = document.createElement('div'); dim.id = 'sagiTourDim';
-    document.body.appendChild(dim);
     dim.addEventListener('click', () => this.skip());
-    // 4 blur paneli — hedefin üstü/altı/solu/sağı. Hedefin kendisi hiçbir
-    // panelle örtülmez, tamamen net kalır.
-    ['Top','Bottom','Left','Right'].forEach(pos => {
-      const p = document.createElement('div');
-      p.className = 'sagi-tour-blur-panel';
-      p.id = 'sagiTourBlur' + pos;
-      p.addEventListener('click', () => this.skip());
-      document.body.appendChild(p);
-    });
-    const tip = document.createElement('div'); tip.className = 'sagi-tour-tooltip'; tip.id = 'sagiTourTooltip';
+    document.body.appendChild(dim);
     const center = document.createElement('div'); center.className = 'sagi-tour-center'; center.id = 'sagiTourCenter';
-    document.body.appendChild(tip);
     document.body.appendChild(center);
   },
 
   start() {
-    if (window.location.hash.replace('#','') !== '/dashboard') window.location.hash = '/dashboard';
+    // _expectedHash'i hash'i DEĞİŞTİRMEDEN ÖNCE atıyoruz — aksi halde,
+    // tur kendi tetiklediği hash değişimini "beklenmeyen" sanıp kendini
+    // daha ekrana gelmeden kapatıyor (ilk basışta açılmama bug'ı buydu).
+    const targetHash = '#/dashboard';
+    this._expectedHash = targetHash;
+    if (window.location.hash !== targetHash) window.location.hash = '/dashboard';
     this._ensureDom();
     this._steps = this._buildSteps();
     this._idx = 0;
-    // Tur aktifken sayfa scrollunu kilitle — kullanıcı parmakla kaydırırsa
-    // blur panelleri (fixed konumlanmış) içerikle senkronunu kaybederdi.
     this._prevHtmlOverflow = document.documentElement.style.overflow;
     this._prevBodyOverflow = document.body.style.overflow;
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     this._active = true;
     setTimeout(() => this._render(), 150);
-    if (!this._resizeBound) {
-      this._resizeBound = true;
-      const reflow = () => { if (this._active) this._repositionCurrent(); };
-      window.addEventListener('resize', reflow);
-      window.addEventListener('orientationchange', () => setTimeout(reflow, 250));
-      if (window.visualViewport) window.visualViewport.addEventListener('resize', reflow);
-      // KRİTİK FIX: kullanıcı tur açıkken (ör. bottom nav'a) elle dokunup
-      // farklı bir sayfaya geçerse, tur bunu fark etmeden eski hedefi
-      // göstermeye devam ediyordu — "alakasız yerde" asılı kalan blur
-      // panelleri buradan geliyordu. Artık turun KENDİ tetiklediği hash
-      // değişimi dışında bir hashchange olursa turu temiz şekilde kapatıyoruz.
+    if (!this._hashBound) {
+      this._hashBound = true;
+      // Kullanıcı tur açıkken elle farklı bir sayfaya geçerse (ör. alt
+      // menüye dokunursa) turu temiz şekilde kapat.
       window.addEventListener('hashchange', () => {
         if (this._active && window.location.hash !== this._expectedHash) this._finish();
       });
@@ -3846,37 +3730,21 @@ const SagiTour = {
 
   _finish() {
     this._active = false;
-    this._currentTarget = null;
-    this._currentStep = null;
     try { localStorage.setItem('sagi_tour_seen', '1'); } catch (e) {}
     document.documentElement.style.overflow = this._prevHtmlOverflow || '';
     document.body.style.overflow = this._prevBodyOverflow || '';
-    this._hidePanels();
+    const dim = document.getElementById('sagiTourDim');
     const center = document.getElementById('sagiTourCenter');
+    if (dim) dim.classList.remove('active');
     if (center) center.classList.remove('active');
   },
 
   maybeAutoStart() {
     try {
       if (localStorage.getItem('sagi_tour_seen')) return;
-      localStorage.setItem('sagi_tour_seen', '1'); // ilk (ve tek) otomatik gösterim — yarıda kapatılsa bile bir daha kendiliğinden açılmaz
+      localStorage.setItem('sagi_tour_seen', '1'); // ilk (ve tek) otomatik gösterim
       setTimeout(() => this.start(), 900);
     } catch (e) {}
-  },
-
-  _hidePanels() {
-    ['Top','Bottom','Left','Right'].forEach(pos => {
-      const el = document.getElementById('sagiTourBlur' + pos);
-      if (el) el.classList.remove('active');
-    });
-    const dim = document.getElementById('sagiTourDim');
-    const tip = document.getElementById('sagiTourTooltip');
-    if (dim) dim.classList.remove('active');
-    if (tip) tip.classList.remove('active');
-  },
-
-  _iconSvg(step) {
-    return `<div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>`;
   },
 
   _footerHtml(isEn, isLast) {
@@ -3900,125 +3768,24 @@ const SagiTour = {
     const step = this._steps[this._idx];
     if (!step) { this._finish(); return; }
     const targetHash = step.route ? ('#' + step.route) : window.location.hash;
-    const navigating = step.route && window.location.hash !== targetHash;
     this._expectedHash = targetHash;
-    if (navigating) {
-      this._hidePanels(); // farklı sayfaya geçerken önce yumuşakça sıfırla
-      window.location.hash = step.route;
-    }
-    this._waitFor(step, 0);
-  },
-
-  // Hedef eleman henüz DOM'a gelmemiş/render olmamış olabilir (route geçişi,
-  // ağır bir liste render'ı vs.) — sabit bir setTimeout süresine güvenmek
-  // yerine kısa aralıklarla kontrol edip hazır olunca devam ediyoruz. Yavaş
-  // cihazlarda da güvenilir çalışır; hazırsa gecikme yaşanmaz.
-  _waitFor(step, attempt) {
-    if (!this._active) return;
-    if (step.center) { this._renderStep(step); return; }
-    const el = document.querySelector(step.sel);
-    const ready = el && el.offsetParent !== null && el.getBoundingClientRect().width > 0;
-    if (ready || attempt > 20) { this._renderStep(step); return; }
-    setTimeout(() => this._waitFor(step, attempt + 1), 80);
+    if (step.route && window.location.hash !== targetHash) window.location.hash = step.route;
+    this._renderStep(step);
   },
 
   _renderStep(step) {
     const isEn = window.LANG === 'en';
     const isLast = this._idx === this._steps.length - 1;
     const dim = document.getElementById('sagiTourDim');
-    const tip = document.getElementById('sagiTourTooltip');
     const center = document.getElementById('sagiTourCenter');
-    if (!dim || !tip || !center) return;
-
-    if (step.center) {
-      this._currentTarget = null;
-      this._currentStep = null;
-      this._hidePanels();
-      center.innerHTML = `
-        ${this._iconSvg(step)}
-        <div class="sagi-tour-title">${step.title}</div>
-        <div class="sagi-tour-desc">${step.desc}</div>
-        ${this._footerHtml(isEn, isLast)}`;
-      center.classList.add('active');
-      return;
-    }
-
-    center.classList.remove('active');
-    let target = document.querySelector(step.sel);
-    if (target && step.whole) target = target.closest('.card') || target;
-    if (!target || target.offsetParent === null) { this.next(); return; } // bu ekranda bu element yoksa/görünmüyorsa adımı atla
-    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    this._waitForScrollSettle(target, target.getBoundingClientRect().top, 0, () => {
-      this._currentTarget = target;
-      this._currentStep = step;
-      this._positionAt(target, step, isEn, isLast);
-    });
-  },
-
-  // scrollIntoView'ın animasyonu bitene kadar bekle — sabit bir süre tahmin
-  // etmek yerine, elemanın konumu art arda ölçümlerde artık DEĞİŞMİYORSA
-  // (scroll durmuş demektir) devam ediyoruz. Kısa/uzun scroll mesafesinde
-  // eşit derecede doğru çalışır.
-  _waitForScrollSettle(el, lastTop, attempt, cb) {
-    requestAnimationFrame(() => {
-      const top = el.getBoundingClientRect().top;
-      if (Math.abs(top - lastTop) < 0.5 || attempt > 30) { cb(); return; }
-      this._waitForScrollSettle(el, top, attempt + 1, cb);
-    });
-  },
-
-  // Pencere yeniden boyutlanınca / adres çubuğu açılıp kapanınca aktif adımı
-  // yeniden konumlandır (sayfa değiştirmeden, sadece ölçüm tazelenir).
-  _repositionCurrent() {
-    if (!this._currentTarget || !this._currentStep) return;
-    if (!document.body.contains(this._currentTarget)) return;
-    this._positionAt(this._currentTarget, this._currentStep, window.LANG === 'en', this._idx === this._steps.length - 1);
-  },
-
-  _positionAt(target, step, isEn, isLast) {
-    const dim = document.getElementById('sagiTourDim');
-    const tip = document.getElementById('sagiTourTooltip');
-    const bT = document.getElementById('sagiTourBlurTop');
-    const bB = document.getElementById('sagiTourBlurBottom');
-    const bL = document.getElementById('sagiTourBlurLeft');
-    const bR = document.getElementById('sagiTourBlurRight');
-    if (!dim || !tip || !bT || !bB || !bL || !bR) return;
-    dim.classList.remove('active');
-
-    const r = target.getBoundingClientRect();
-    const pad = 8;
-    const vv = window.visualViewport;
-    const vw = vv ? vv.width : window.innerWidth;
-    const vh = vv ? vv.height : window.innerHeight;
-    const top = Math.max(0, r.top - pad), bottom = Math.min(vh, r.bottom + pad);
-    const left = Math.max(0, r.left - pad), right = Math.min(vw, r.right + pad);
-
-    // 4 panel, hedefi bir çerçeve gibi sarar — hedefin üstüne HİÇBİR panel
-    // gelmez, tamamen net/bulanıksız kalır.
-    bT.style.cssText = `top:0px;left:0px;width:${vw}px;height:${top}px`;
-    bB.style.cssText = `top:${bottom}px;left:0px;width:${vw}px;height:${Math.max(0, vh - bottom)}px`;
-    bL.style.cssText = `top:${top}px;left:0px;width:${left}px;height:${Math.max(0, bottom - top)}px`;
-    bR.style.cssText = `top:${top}px;left:${right}px;width:${Math.max(0, vw - right)}px;height:${Math.max(0, bottom - top)}px`;
-    [bT, bB, bL, bR].forEach(p => p.classList.add('active'));
-
-    tip.innerHTML = `
+    if (!dim || !center) return;
+    dim.classList.add('active');
+    center.innerHTML = `
+      <div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>
       <div class="sagi-tour-title">${step.title}</div>
       <div class="sagi-tour-desc">${step.desc}</div>
       ${this._footerHtml(isEn, isLast)}`;
-    tip.classList.add('active');
-
-    // Tooltip'i hedefin altına/üstüne, ekran kenarına göre otomatik yerleştir.
-    // visualViewport + safe-area-inset kullanıyoruz — mobilde adres çubuğu
-    // açıkken innerHeight yanıltıcı olabiliyor, çentik/home-bar boşluklarına da saygı duyuyoruz.
-    const safeT = _safeAreaInset('top'), safeB = _safeAreaInset('bottom');
-    const tipRect = tip.getBoundingClientRect();
-    let tTop = r.bottom + pad + 14;
-    if (tTop + tipRect.height > vh - 16 - safeB) tTop = r.top - pad - 14 - tipRect.height;
-    if (tTop < 12 + safeT) tTop = Math.max(12 + safeT, Math.min(vh - tipRect.height - 12 - safeB, r.top));
-    let tLeft = r.left + r.width / 2 - tipRect.width / 2;
-    tLeft = Math.max(16, Math.min(vw - tipRect.width - 16, tLeft));
-    tip.style.top = tTop + 'px';
-    tip.style.left = tLeft + 'px';
+    center.classList.add('active');
   },
 };
 
