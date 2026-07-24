@@ -863,24 +863,24 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .onboarding-overlay{position:fixed;inset:0;z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;transition:opacity .6s ease,visibility .6s ease;overflow:hidden;background:var(--bg-body)}
 .onboarding-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-/* SAGI TOUR — basit versiyon: tek karartma + tek ortalı kart, adım
-   bazlı hedef vurgulama/blur çerçeve yok. */
-#sagiTourDim{position:fixed;inset:0;z-index:9797;background:rgba(10,10,14,.55);backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
-[data-theme="light"] #sagiTourDim{background:rgba(20,20,30,.42)}
-#sagiTourDim.active{opacity:1;visibility:visible}
-.sagi-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9801;max-width:340px;width:calc(100vw - 48px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100vh - 48px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:28px 24px;text-align:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
-/* ÖNEMLİ FIX: eski animasyon transform:scale(...)→none kullanıyordu, bu da
-   .sagi-tour-center'ın ortalamasını sağlayan translate(-50%,-50%)'i
-   animasyon süresince (.3sn) SİLİYORDU — kart o esnada ekranın yanlış
-   (sağ-alt kaymış) bir köşesinde belirip, animasyon bitince aniden
-   ortaya "zıplıyordu". Artık translate(-50%,-50%) animasyon boyunca da
-   korunuyor, kart hep merkezde kalıyor, sadece hafifçe büyüyor. */
-.sagi-tour-center.active{opacity:1;visibility:visible;animation:sagiTourCenterIn .3s cubic-bezier(.16,1,.3,1)}
-@keyframes sagiTourCenterIn{from{transform:translate(-50%,-50%) scale(.96)}to{transform:translate(-50%,-50%) scale(1)}}
-.sagi-tour-center-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(98,87,240,.35)}
-.sagi-tour-center-icon svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.6}
-.sagi-tour-title{font-size:16px;font-weight:800;color:var(--text-main);margin-bottom:6px;font-family:var(--font-display)}
-.sagi-tour-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:14px}
+/* SAGI TOUR — karartma/blur YOK. Sayfa tur açıkken de kaydırılabilir/
+   incelenebilir; sadece buton/link gibi tıklamalar (yanlışlıkla modal
+   açmasın diye) devre dışı kalır. Tur içeriği, uygulamanın kendi
+   "aşağıdan çıkan modal" diliyle aynı: altta sabit, üstten yuvarlak
+   köşeli, tutamaç çizgili bir şerit. */
+body.sagi-tour-active .app-main,
+body.sagi-tour-active .app-bottom-nav,
+body.sagi-tour-active .app-header,
+body.sagi-tour-active .app-sidebar{pointer-events:none}
+#sagiTourSheet{position:fixed;left:0;right:0;bottom:0;z-index:500;display:flex;justify-content:center;pointer-events:none;transform:translateY(100%);opacity:0;transition:transform .34s cubic-bezier(.16,1,.3,1),opacity .22s ease}
+#sagiTourSheet.active{transform:translateY(0);opacity:1;pointer-events:auto}
+.sagi-tour-card{position:relative;width:100%;max-width:480px;background:var(--bg-surface);border:1px solid var(--border-light);border-bottom:none;border-radius:var(--radius-xl) var(--radius-xl) 0 0;box-shadow:0 -10px 32px -8px rgba(0,0,0,.2);padding:22px 20px calc(16px + env(safe-area-inset-bottom,0px))}
+.sagi-tour-card::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:36px;height:4px;background:var(--border-light);border-radius:10px}
+.sagi-tour-head{display:flex;align-items:flex-start;gap:12px;margin:8px 0 14px}
+.sagi-tour-center-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--brand-accent),color-mix(in srgb,var(--brand-accent) 70%,#fff 15%));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 18px rgba(98,87,240,.35)}
+.sagi-tour-center-icon svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8}
+.sagi-tour-title{font-size:15px;font-weight:800;color:var(--text-main);margin-bottom:3px;font-family:var(--font-display)}
+.sagi-tour-desc{font-size:13px;color:var(--text-secondary);line-height:1.5}
 .sagi-tour-progress{height:3px;border-radius:2px;background:var(--border-light);overflow:hidden;margin-bottom:12px}
 .sagi-tour-progress-fill{height:100%;background:var(--brand-accent);border-radius:2px;transition:width .3s ease}
 .sagi-tour-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -894,7 +894,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .sagi-tour-next{font-size:13px;font-weight:800;color:#fff;background:var(--brand-accent);border:none;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s;white-space:nowrap}
 .sagi-tour-next:active{transform:scale(.95)}
 .sagi-tour-next svg{width:14px;height:14px}
-@media (prefers-reduced-motion: reduce){.sagi-tour-center,.sagi-tour-progress-fill{transition:opacity .15s !important}}
+@media (prefers-reduced-motion: reduce){#sagiTourSheet,.sagi-tour-progress-fill{transition:opacity .15s !important}}
 .mesh-bg{position:fixed;inset:-100%;width:300%;height:300%;background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.12),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.08),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-subtle),transparent 70%);background-color:var(--bg-body);
 animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 [data-theme="dark"] .mesh-bg{background:radial-gradient(ellipse 60% 40% at 30% 40%,var(--brand-accent-medium),transparent 65%),radial-gradient(ellipse 45% 55% at 75% 25%,rgba(34,160,107,.15),transparent 55%),radial-gradient(ellipse 50% 35% at 60% 75%,rgba(217,119,6,.10),transparent 60%),radial-gradient(ellipse 70% 50% at 50% 50%,var(--brand-accent-soft),transparent 70%);background-color:#000;filter:blur(3px);}
@@ -3679,12 +3679,10 @@ const SagiTour = {
   },
 
   _ensureDom() {
-    if (document.getElementById('sagiTourDim')) return;
-    const dim = document.createElement('div'); dim.id = 'sagiTourDim';
-    dim.addEventListener('click', () => this.skip());
-    document.body.appendChild(dim);
-    const center = document.createElement('div'); center.className = 'sagi-tour-center'; center.id = 'sagiTourCenter';
-    document.body.appendChild(center);
+    if (document.getElementById('sagiTourSheet')) return;
+    const sheet = document.createElement('div'); sheet.id = 'sagiTourSheet';
+    sheet.innerHTML = '<div class="sagi-tour-card" id="sagiTourCard"></div>';
+    document.body.appendChild(sheet);
   },
 
   start() {
@@ -3697,11 +3695,11 @@ const SagiTour = {
     this._ensureDom();
     this._steps = this._buildSteps();
     this._idx = 0;
-    this._prevHtmlOverflow = document.documentElement.style.overflow;
-    this._prevBodyOverflow = document.body.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
     this._active = true;
+    // Sayfa scroll'u KİLİTLENMİYOR — kullanıcı tur açıkken sayfayı
+    // gezip inceleyebilsin. Sadece tıklamalar (buton/link/modal açma)
+    // body.sagi-tour-active üzerinden CSS ile devre dışı bırakılıyor.
+    document.body.classList.add('sagi-tour-active');
     setTimeout(() => this._render(), 150);
     if (!this._hashBound) {
       this._hashBound = true;
@@ -3731,12 +3729,9 @@ const SagiTour = {
   _finish() {
     this._active = false;
     try { localStorage.setItem('sagi_tour_seen', '1'); } catch (e) {}
-    document.documentElement.style.overflow = this._prevHtmlOverflow || '';
-    document.body.style.overflow = this._prevBodyOverflow || '';
-    const dim = document.getElementById('sagiTourDim');
-    const center = document.getElementById('sagiTourCenter');
-    if (dim) dim.classList.remove('active');
-    if (center) center.classList.remove('active');
+    document.body.classList.remove('sagi-tour-active');
+    const sheet = document.getElementById('sagiTourSheet');
+    if (sheet) sheet.classList.remove('active');
   },
 
   maybeAutoStart() {
@@ -3776,16 +3771,19 @@ const SagiTour = {
   _renderStep(step) {
     const isEn = window.LANG === 'en';
     const isLast = this._idx === this._steps.length - 1;
-    const dim = document.getElementById('sagiTourDim');
-    const center = document.getElementById('sagiTourCenter');
-    if (!dim || !center) return;
-    dim.classList.add('active');
-    center.innerHTML = `
-      <div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>
-      <div class="sagi-tour-title">${step.title}</div>
-      <div class="sagi-tour-desc">${step.desc}</div>
+    const sheet = document.getElementById('sagiTourSheet');
+    const card = document.getElementById('sagiTourCard');
+    if (!sheet || !card) return;
+    card.innerHTML = `
+      <div class="sagi-tour-head">
+        <div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>
+        <div>
+          <div class="sagi-tour-title">${step.title}</div>
+          <div class="sagi-tour-desc">${step.desc}</div>
+        </div>
+      </div>
       ${this._footerHtml(isEn, isLast)}`;
-    center.classList.add('active');
+    sheet.classList.add('active');
   },
 };
 
