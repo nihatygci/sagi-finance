@@ -116,6 +116,8 @@ if ('serviceWorker' in navigator) {
   --brand-accent-glow-lg:0 8px 28px rgba(17,24,39,.32);
   --brand-accent-glow-pulse-0:rgba(17,24,39,0);
   --brand-accent-glow-pulse-50:rgba(17,24,39,.12);
+  --brand-accent-default:#16181d;
+  --loader-logo-glow:0 4px 16px rgba(17,24,39,.24);
   --text-main:#111827; --text-secondary:#4b5563; --text-muted:#9ca3af;
   --status-success:#1db87a; --status-success-bg:rgba(34,160,107,0.09);
   --status-danger:#f04040; --status-danger-bg:rgba(229,83,75,0.09);
@@ -136,6 +138,8 @@ if ('serviceWorker' in navigator) {
   --brand-accent-glow-lg:0 8px 28px rgba(255,255,255,.34);
   --brand-accent-glow-pulse-0:rgba(255,255,255,0);
   --brand-accent-glow-pulse-50:rgba(255,255,255,.20);
+  --brand-accent-default:#ffffff;
+  --loader-logo-glow:0 4px 16px rgba(255,255,255,.26);
   --text-main:#f9fafb; --text-secondary:#a1a1aa; --text-muted:#71717a;
   --status-danger-bg:rgba(229,83,75,0.14); --status-success-bg:rgba(34,160,107,0.13);
   --status-warn-bg:rgba(217,119,6,0.13);
@@ -1168,7 +1172,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
 <div id="appLoader">
   <div class="loader-brand">
-    <img src="./icon-192.png" alt="SAGI" style="width:44px;height:44px;border-radius:25px;box-shadow:var(--brand-accent-glow-md)">
+    <img src="./icon-192.png" alt="SAGI" style="width:44px;height:44px;border-radius:25px;box-shadow:var(--loader-logo-glow)">
     SAGI
   </div>
   <div class="loader-progress-wrap"><div class="loader-progress-fill" id="loaderBar"></div></div>
@@ -3137,6 +3141,24 @@ window._sagiAccentTones = function(hex) {
   const tone2 = '#' + [lighten(r,30),lighten(g,25),lighten(b,40)].map(v=>v.toString(16).padStart(2,'0')).join('');
   window._sagiAccentTone1 = tone1;
   window._sagiAccentTone2 = tone2;
+};
+
+// ═══════════════════════════════════════
+// Vurgu rengini native tema default'una döndürür (Plus panelindeki
+// "Varsayılan" seçeneği bunu çağırır). _sagiAccentTones ile set edilmiş
+// TÜM inline override'ları kaldırır, böylece --brand-accent ve türevleri
+// tekrar :root/[data-theme] içindeki sabit değerlere düşer. Ardından
+// wallet degrade tonlarının (tone1/tone2) da default'a göre yeniden
+// hesaplanması için _sagiAccentTones'u default renkle tekrar çalıştırır.
+// ═══════════════════════════════════════
+window._sagiAccentReset = function() {
+  const el = document.documentElement;
+  ['--brand-accent','--brand-accent-light','--brand-accent-fg','--brand-accent-subtle',
+   '--brand-accent-soft','--brand-accent-medium','--brand-accent-glow-sm',
+   '--brand-accent-glow-md','--brand-accent-glow-lg','--brand-accent-glow-pulse-0',
+   '--brand-accent-glow-pulse-50'].forEach(p => el.style.removeProperty(p));
+  const def = getComputedStyle(el).getPropertyValue('--brand-accent-default').trim();
+  if (def && typeof window._sagiAccentTones === 'function') window._sagiAccentTones(def);
 };
 
 // İlk yüklemede CSS'deki default accent ile çalıştır
