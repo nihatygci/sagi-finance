@@ -30,27 +30,27 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 :root{
-  --brand:#6257f0;--brand2:#6C4DFF;
-  --brand-soft:rgba(98,87,240,0.1);--brand-border:rgba(98,87,240,0.2);
+  --brand:#16181d;--brand2:#3a3a40;
+  --brand-soft:rgba(17,24,39,0.09);--brand-border:rgba(17,24,39,0.16);
   --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
   --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
   --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--shadow:none;}
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;}
 }
-body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(108,77,255,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(98,87,240,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
+body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(58,58,64,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(22,24,29,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
 .wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
 .app-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 @media(prefers-color-scheme:dark){.app-header{background:rgba(9,9,11,0.88);}}
 .header-inner{height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .brand-logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.01em;}
-.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(98,87,240,0.15);flex-shrink:0;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(22,24,29,0.15);flex-shrink:0;}
 .brand-logo small{font-size:12px;opacity:.45;font-style:italic;font-weight:600;margin-left:1px;}
 .header-actions{display:flex;align-items:center;gap:8px;}
 .lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
 .lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
-.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(98,87,240,0.3);}
+.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(22,24,29,0.3);}
 .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
 .back-btn:hover{background:var(--brand-soft);}
 .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
@@ -63,17 +63,17 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 /* CATEGORY TABS */
 .cat-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
 .cat-tab{padding:7px 16px;border-radius:999px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .2s;}
-.cat-tab.active,.cat-tab:hover{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 3px 10px rgba(98,87,240,0.25);}
-.plus-tab-badge{font-size:9px;font-weight:800;background:#4f46e5;color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;}
-.ai-tab-badge{font-size:9px;font-weight:800;background:linear-gradient(135deg,#6257f0,#a855f7);color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;}
+.cat-tab.active,.cat-tab:hover{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 3px 10px rgba(22,24,29,0.25);}
+.plus-tab-badge{font-size:9px;font-weight:800;background:#16181d;color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;}
+.ai-tab-badge{font-size:9px;font-weight:800;background:linear-gradient(135deg,#16181d,#52525b);color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;}
 
 /* ACCORDION */
 .faq-group{display:none;flex-direction:column;gap:8px;margin-bottom:8px;}
 .faq-group.visible{display:flex;}
 .faq-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:border-color .2s;}
 .faq-item:hover{border-color:var(--brand-border);}
-.faq-item.plus-item{border-left:3px solid rgba(99,102,241,0.4);}
-.faq-item.ai-item{border-left:3px solid rgba(168,85,247,0.4);}
+.faq-item.plus-item{border-left:3px solid rgba(22,24,29,0.4);}
+.faq-item.ai-item{border-left:3px solid rgba(82,82,91,0.4);}
 .faq-q{width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;text-align:left;}
 .faq-q-text{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);line-height:1.35;}
 .faq-icon{width:28px;height:28px;border-radius:9px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .25s,background .2s;}
@@ -86,7 +86,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .faq-a p:last-child{margin-bottom:0;}
 .faq-a a{color:var(--brand);font-weight:600;text-decoration:none;}
 .faq-a a:hover{text-decoration:underline;}
-.faq-a .plus-note{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:600;background:rgba(79,70,229,0.08);color:#4f46e5;border:1px solid rgba(79,70,229,0.15);}
+.faq-a .plus-note{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:600;background:rgba(22,24,29,0.08);color:#16181d;border:1px solid rgba(22,24,29,0.15);}
 
 /* Command table */
 .cmd-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
@@ -97,16 +97,16 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .cmd-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);margin-left:4px;vertical-align:middle;}
 
 /* CTA */
-.cta-card{margin-top:16px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:28px 24px;text-align:center;}
+.cta-card{margin-top:16px;background:linear-gradient(135deg,rgba(22,24,29,0.08),rgba(58,58,64,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:28px 24px;text-align:center;}
 .cta-card h2{font-family:var(--font-display);font-size:19px;font-weight:700;margin-bottom:10px;}
 .cta-card p{font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.7;}
-.cta-btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;font-size:14px;font-weight:700;padding:13px 28px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 16px rgba(98,87,240,0.3);}
+.cta-btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;font-size:14px;font-weight:700;padding:13px 28px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 16px rgba(22,24,29,0.3);}
 .cta-btn:hover{opacity:.88;transform:scale(1.02);}
 .cta-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 .site-footer{margin-top:40px;padding:28px 16px 44px;border-top:1px solid var(--border);}
 .footer-inner{max-width:720px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .footer-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;font-family:var(--font-display);color:var(--text);}
-.footer-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#6257f0,#6C4DFF);box-shadow:0 0 0 3px rgba(98,87,240,0.15);flex-shrink:0;}
+.footer-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#16181d,#3a3a40);box-shadow:0 0 0 3px rgba(22,24,29,0.15);flex-shrink:0;}
 .footer-version{font-size:11px;font-weight:600;color:var(--muted);background:var(--brand-soft);border:1px solid var(--brand-border);padding:2px 8px;border-radius:999px;}
 .footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;}
 .footer-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:color .2s;}
@@ -221,8 +221,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Modern tarayıcısı olan her platformda çalışır: iOS (Safari), Android (Chrome/Firefox), Windows, macOS ve Linux masaüstü. Android'de Google Play üzerinden de indirilebilir. Ana ekrana eklenince tam ekran PWA modunda açılır.</p>
-        <p class="t-en">Works on any platform with a modern browser: iOS (Safari), Android (Chrome/Firefox), Windows, macOS, and Linux desktop. Also available on Android via Google Play. When added to the home screen it opens in full-screen PWA mode.</p>
+        <p class="t-tr">Modern tarayıcısı olan her platformda çalışır: iOS (Safari), Android (Chrome/Firefox), Windows, macOS ve Linux masaüstü. Ana ekrana eklenince tam ekran PWA modunda açılır. Google Play üzerinden Android dağıtımı planlanmaktadır.</p>
+        <p class="t-en">Works on any platform with a modern browser: iOS (Safari), Android (Chrome/Firefox), Windows, macOS, and Linux desktop. When added to the home screen it opens in full-screen PWA mode. Distribution on Android via Google Play is planned.</p>
       </div>
     </div>
 
@@ -252,8 +252,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">SAGI Asistan, uygulama içinde açılan bir yapay zeka sohbet asistanıdır. Finansal verilerinizi anlayarak Türkçe sorularınızı yanıtlar, harcama alışkanlıklarınızı analiz eder ve kişisel önerilerde bulunur. Yanıtlar Cloudflare Workers üzerinden Google Gemini 2.0 Flash modeli aracılığıyla üretilir.</p>
-        <p class="t-en">SAGI Assistant is an AI chat assistant built into the app. It understands your financial data, answers questions in your language, analyses your spending habits, and offers personalised suggestions. Responses are generated via Cloudflare Workers using the Google Gemini 2.0 Flash model.</p>
+        <p class="t-tr">SAGI Asistan, uygulama içinde açılan bir yapay zeka sohbet asistanıdır. Finansal verilerinizi anlayarak sorularınızı yanıtlar, harcama alışkanlıklarınızı analiz eder ve kişisel önerilerde bulunur. Yanıtlar Cloudflare Workers üzerinden Google'ın Gemini modeli aracılığıyla üretilir.</p>
+        <p class="t-en">SAGI Assistant is an AI chat assistant built into the app. It understands your financial data, answers questions, analyses your spending habits, and offers personalised suggestions. Responses are generated via Cloudflare Workers using Google's Gemini model.</p>
       </div>
     </div>
 
@@ -276,8 +276,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Asistana yalnızca anonim finansal özetler iletilir. Bu özetler şunları içerir: bu ayki toplam gelir/gider, hesap bakiyeleri, abonelik tutarları, hedef ilerlemeleri ve kategori bazlı harcama toplamları. İşlem açıklamaları, alıcı/ödeyici isimleri veya herhangi bir kişisel tanımlayıcı bilgi asla gönderilmez.</p>
-        <p class="t-en">Only anonymous financial summaries are sent to the Assistant. These include: total income/expense for the current month, account balances, subscription amounts, goal progress, and category-level spending totals. Transaction descriptions, payee/payer names, or any personal identifiers are never transmitted.</p>
+        <p class="t-tr">Asistana, sorunuza doğru yanıt verebilmesi için finansal özetleriniz ve gerektiğinde işlem listeniz (tarih, tutar, kategori ve varsa sizin yazdığınız açıklama dahil) iletilir. Ad, e-posta veya kimlik bilgisi hiçbir zaman istenmez ya da gönderilmez — ancak hesap adı veya işlem açıklaması gibi serbest metin alanlarına kendiniz kişisel bilgi yazarsanız bu metin de yanıt üretimi için kullanılır. Ayrıntılar için <a href="./privacy.html">Gizlilik Politikası</a>'na bakınız.</p>
+        <p class="t-en">To answer accurately, the Assistant receives your financial summaries and, when relevant, your transaction list (date, amount, category, and any description you entered). Your name, email, or identity is never requested or transmitted — but if you type personal information into free-text fields like account names or transaction descriptions, that text is used to generate the response. See the <a href="./privacy.html">Privacy Policy</a> for details.</p>
       </div>
     </div>
 
@@ -342,8 +342,14 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
               <td>/yardim <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /help</td>
               <td><span class="t-tr">Tüm komutların listesi</span><span class="t-en">Full list of all commands</span></td>
             </tr>
+            <tr>
+              <td>/bellek <span class="cmd-badge t-tr">veya</span><span class="cmd-badge t-en">or</span> /memory</td>
+              <td><span class="t-tr">Asistanın sizinle ilgili kaydettiği notları görüntüle</span><span class="t-en">View the notes the Assistant has saved about you</span></td>
+            </tr>
           </tbody>
         </table>
+        <p class="t-tr" style="margin-top:10px;font-size:12px;color:var(--muted)">Bellek kaydını silmek için <strong>/bellek sil &lt;id&gt;</strong>, tamamını temizlemek için <strong>/bellek temizle</strong> kullanabilirsiniz.</p>
+        <p class="t-en" style="margin-top:10px;font-size:12px;color:var(--muted)">Use <strong>/memory delete &lt;id&gt;</strong> to remove a single entry, or <strong>/memory clear</strong> to erase all of it.</p>
       </div>
     </div>
 
@@ -390,8 +396,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Sohbet geçmişi yalnızca o oturum boyunca bellekte tutulur. Uygulama kapatıldığında veya panel yeniden açıldığında konuşma sıfırlanır. Asistan kişisel geçmişinizi sunucuda saklamaz.</p>
-        <p class="t-en">Chat history is kept in memory only for the duration of the session. When the app is closed or the panel is reopened, the conversation resets. The Assistant does not store your personal conversation history on any server.</p>
+        <p class="t-tr">Panel içindeki mesaj akışı yalnızca o oturum boyunca ekranda kalır. Ancak Asistan, sizinle ilgili hatırlamaya değer bulduğu kısa notları (ör. bir tercihiniz veya tekrar eden bir isteğiniz) oturumlar arası kalıcı olarak kaydedebilir. Bu notlar bulut anahtarınıza bağlı olarak Firestore'da saklanır; <strong>/bellek</strong> komutuyla görüntüleyebilir ve dilediğiniz zaman silebilirsiniz.</p>
+        <p class="t-en">The message thread in the panel only stays on screen for that session. However, the Assistant may permanently save short notes it finds worth remembering about you across sessions (e.g. a preference or a recurring request). These notes are stored in Firestore, linked to your cloud key; you can view them with the <strong>/memory</strong> command and delete them at any time.</p>
       </div>
     </div>
 
@@ -407,8 +413,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Ücretsiz katmanın tüm özelliklerine ek olarak: sınırsız SAGI Asistan erişimi, Tasarruf Skoru, Gelecek Ay Tahmini, Aylık Karşılaştırma, CSV dışa aktarma, reklamsız deneyim ve tema/font kişiselleştirme.</p>
-        <p class="t-en">Everything in the free tier, plus: unlimited SAGI Assistant access, Savings Score, Next-Month Forecast, Monthly Comparison, CSV export, ad-free experience, and theme/font customisation.</p>
+        <p class="t-tr">Ücretsiz katmanın tüm özelliklerine ek olarak: sınırsız SAGI Asistan erişimi, Tasarruf Skoru, Gelecek Ay Tahmini, Aylık Karşılaştırma, CSV &amp; PDF dışa aktarma, reklamsız deneyim ve tema/font kişiselleştirme.</p>
+        <p class="t-en">Everything in the free tier, plus: unlimited SAGI Assistant access, Savings Score, Next-Month Forecast, Monthly Comparison, CSV &amp; PDF export, ad-free experience, and theme/font customisation.</p>
       </div>
     </div>
 
@@ -455,8 +461,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Plus kullanıcıları Ayarlar'dan 8 renk teması arasında seçim yapabilir: Indigo, Violet, Mavi, Cyan, Yeşil, Pembe, Amber ve Slate. Font seçenekleri arasında Varsayılan, Manrope, DM Sans, Lexend, Exo 2 ve Oswald yer alır. Seçimler bulut sync ile tüm cihazlarınıza yansır.</p>
-        <p class="t-en">Plus users can choose from 8 colour themes in Settings: Indigo, Violet, Blue, Cyan, Emerald, Rose, Amber, and Slate. Font options include Default, Manrope, DM Sans, Lexend, Exo 2, and Oswald. Selections sync across all your devices via cloud sync.</p>
+        <p class="t-tr">Plus kullanıcıları Ayarlar'dan 11 renk teması arasında seçim yapabilir: İndigo, Safir, Turkuaz, Zümrüt, Zeytin, Bronz, Turuncu, Bordo, Fuşya, Mor ve Gümüş — ya da uygulamanın siyah/beyaz varsayılan temasına dönebilir. Font seçenekleri arasında Varsayılan, Manrope, DM Sans, Lexend, Exo 2 ve Oswald yer alır. Seçimler bulut sync ile tüm cihazlarınıza yansır.</p>
+        <p class="t-en">Plus users can choose from 11 colour themes in Settings: Indigo, Sapphire, Teal, Emerald, Olive, Bronze, Terracotta, Wine, Fuchsia, Violet, and Silver — or revert to the app's default black/white theme. Font options include Default, Manrope, DM Sans, Lexend, Exo 2, and Oswald. Selections sync across all your devices via cloud sync.</p>
       </div>
     </div>
 
@@ -470,15 +476,15 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <p class="t-tr">SAGI Plus üç planla sunulmaktadır:</p>
         <p class="t-en">SAGI Plus is available in three plans:</p>
         <ul>
-          <li class="t-tr"><strong>Aylık — $4,99/ay:</strong> İstediğiniz zaman iptal edebilirsiniz.</li>
+          <li class="t-tr"><strong>Aylık — ₺79/ay:</strong> İstediğiniz zaman iptal edebilirsiniz.</li>
           <li class="t-en"><strong>Monthly — $4.99/mo:</strong> Cancel anytime.</li>
-          <li class="t-tr"><strong>Yıllık — $39,99/yıl:</strong> Aylık plana göre %33 tasarruf. İstediğiniz zaman iptal edebilirsiniz.</li>
+          <li class="t-tr"><strong>Yıllık — ₺599/yıl:</strong> Aylık plana göre %33 tasarruf. İstediğiniz zaman iptal edebilirsiniz.</li>
           <li class="t-en"><strong>Yearly — $39.99/yr:</strong> 33% savings vs monthly. Cancel anytime.</li>
-          <li class="t-tr"><strong>Ömür Boyu — $99,99 (tek seferlik):</strong> Bir kez öde, sonsuza kadar kullan.</li>
-          <li class="t-en"><strong>Lifetime — $99.99 (one-time):</strong> Pay once, use forever.</li>
+          <li class="t-tr"><strong>Ömür Boyu — ₺1.999 (tek seferlik):</strong> Bir kez öde, sonsuza kadar kullan.</li>
+          <li class="t-en"><strong>Lifetime — $149.99 (one-time):</strong> Pay once, use forever.</li>
         </ul>
-        <p class="t-tr" style="margin-top:8px">Fiyatlar bölgeye göre değişebilir. Satın alma Google Play üzerinden yapılır. İade koşulları için <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent)">Kullanım Şartları</a>'nı inceleyiniz.</p>
-        <p class="t-en" style="margin-top:8px">Prices may vary by region. Purchases are processed via Google Play. See <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand-accent)">Terms of Service</a> for refund details.</p>
+        <p class="t-tr" style="margin-top:8px">Gösterilen tutarlar yaklaşıktır; kesin fiyat bulunduğunuz bölgeye göre Google Play satın alma ekranında gösterilir. İade koşulları için <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand)">Kullanım Şartları</a>'nı inceleyiniz.</p>
+        <p class="t-en" style="margin-top:8px">Amounts shown are approximate; the exact price for your region is shown on the Google Play checkout screen. See <a href="./terms.html" target="_blank" rel="noopener" style="color:var(--brand)">Terms of Service</a> for refund details.</p>
       </div>
     </div>
 
@@ -518,8 +524,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="faq-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       </button>
       <div class="faq-a">
-        <p class="t-tr">Asistana yalnızca toplu ve anonim finansal özetler gönderilir: bu ayki toplam gelir/gider rakamları, hesap bakiyeleri ve abonelik tutarları. İşlem açıklamaları, isimler veya kişisel tanımlayıcı herhangi bir veri gönderilmez. İstekler Cloudflare Workers üzerinden anonim biçimde iletilir.</p>
-        <p class="t-en">Only aggregated, anonymous financial summaries are sent to the Assistant: this month's total income/expense figures, account balances, and subscription amounts. Transaction descriptions, names, or any personal identifiers are not transmitted. Requests are proxied anonymously through Cloudflare Workers.</p>
+        <p class="t-tr">Asistana, yanıt üretebilmesi için finansal özetleriniz ve gerektiğinde işlem listeniz (tarih, tutar, kategori, varsa açıklama dahil) gönderilir. Ad, e-posta veya kimlik bilgisi asla istenmez ya da gönderilmez — ancak hesap adı gibi serbest metin alanlarına kendiniz kişisel bilgi girerseniz bu metin de işlenir. İstekler Cloudflare Workers üzerinden Google'ın Gemini modeline iletilir.</p>
+        <p class="t-en">To generate a response, the Assistant receives your financial summaries and, when relevant, your transaction list (date, amount, category, and any description). Your name, email, or identity is never requested or transmitted — but if you enter personal information into free-text fields like account names, that text is also processed. Requests are relayed through Cloudflare Workers to Google's Gemini model.</p>
       </div>
     </div>
 
@@ -633,7 +639,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <div class="footer-brand">
       <span class="footer-dot"></span>
       <strong>SAGI Finance</strong>
-      <span class="footer-version">v0.9.9</span>
+      <span class="footer-version">v0.9.86</span>
     </div>
     <nav class="footer-links">
       <a href="./privacy.html"><span class="t-tr">Gizlilik</span><span class="t-en">Privacy</span></a>

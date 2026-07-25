@@ -30,27 +30,27 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 :root{
-  --brand:#6257f0;--brand2:#6C4DFF;
-  --brand-soft:rgba(98,87,240,0.1);--brand-border:rgba(98,87,240,0.2);
+  --brand:#16181d;--brand2:#3a3a40;
+  --brand-soft:rgba(17,24,39,0.09);--brand-border:rgba(17,24,39,0.16);
   --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
   --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
   --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--shadow:none;}
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;}
 }
-body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(108,77,255,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(98,87,240,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
+body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(58,58,64,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(22,24,29,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
 .wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
 .app-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 @media(prefers-color-scheme:dark){.app-header{background:rgba(9,9,11,0.88);}}
 .header-inner{height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .brand-logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.01em;}
-.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(98,87,240,0.15);flex-shrink:0;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 0 0 4px rgba(22,24,29,0.15);flex-shrink:0;}
 .brand-logo small{font-size:12px;opacity:.45;font-style:italic;font-weight:600;margin-left:1px;}
 .header-actions{display:flex;align-items:center;gap:8px;}
 .lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
 .lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
-.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(98,87,240,0.3);}
+.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(22,24,29,0.3);}
 .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
 .back-btn:hover{background:var(--brand-soft);}
 .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
@@ -75,7 +75,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .value-icon svg{width:20px;height:20px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .value-card h3{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;}
 .value-card p{font-size:12px;color:var(--text2);line-height:1.6;}
-.highlight-card{margin-top:20px;background:linear-gradient(135deg,rgba(98,87,240,0.08),rgba(108,77,255,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
+.highlight-card{margin-top:20px;background:linear-gradient(135deg,rgba(22,24,29,0.08),rgba(58,58,64,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
 .highlight-icon{width:46px;height:46px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .highlight-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .highlight-card h3{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--brand);margin-bottom:6px;}
@@ -83,24 +83,24 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .stack-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);}
 /* PLUS section */
-.plus-section{background:linear-gradient(135deg,rgba(79,70,229,0.08) 0%,rgba(99,102,241,0.03) 100%);border:2px solid rgba(99,102,241,0.22);border-radius:var(--radius);padding:26px;}
-.plus-top-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;margin-bottom:18px;box-shadow:0 3px 12px rgba(79,70,229,0.35);}
+.plus-section{background:linear-gradient(135deg,rgba(22,24,29,0.08) 0%,rgba(22,24,29,0.03) 100%);border:2px solid rgba(22,24,29,0.22);border-radius:var(--radius);padding:26px;}
+.plus-top-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(135deg,#16181d,#3a3a40);color:#fff;margin-bottom:18px;box-shadow:0 3px 12px rgba(22,24,29,0.35);}
 .plus-top-badge svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.5;}
 .plus-section h2{font-family:var(--font-display);font-size:21px;font-weight:800;letter-spacing:-.02em;margin-bottom:8px;}
 .plus-desc{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:22px;}
 .plus-feats{display:flex;flex-direction:column;gap:9px;margin-bottom:22px;}
 .plus-feat{display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--surface);border-radius:14px;border:1px solid var(--border);transition:border-color .2s;}
-.plus-feat:hover{border-color:rgba(99,102,241,0.25);}
-.plus-feat-icon{width:34px;height:34px;border-radius:10px;background:rgba(79,70,229,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.plus-feat-icon svg{width:16px;height:16px;stroke:#4f46e5;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.plus-feat:hover{border-color:rgba(22,24,29,0.25);}
+.plus-feat-icon{width:34px;height:34px;border-radius:10px;background:rgba(22,24,29,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.plus-feat-icon svg{width:16px;height:16px;stroke:#16181d;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .plus-feat-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
 .plus-feat-sub{font-size:12px;color:var(--text2);}
 /* Tier comparison */
 .tier-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
 .tier-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 16px;}
-.tier-card.plus-tier{border:2px solid rgba(99,102,241,0.35);background:rgba(99,102,241,0.03);}
+.tier-card.plus-tier{border:2px solid rgba(22,24,29,0.35);background:rgba(22,24,29,0.03);}
 .tier-label{font-family:var(--font-display);font-size:13px;font-weight:800;margin-bottom:14px;color:var(--text);}
-.tier-card.plus-tier .tier-label{color:#4f46e5;}
+.tier-card.plus-tier .tier-label{color:#16181d;}
 .tier-rows{display:flex;flex-direction:column;gap:7px;}
 .tier-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
 .tier-row svg{width:14px;height:14px;stroke-width:2.5;flex-shrink:0;}
@@ -115,7 +115,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .site-footer{margin-top:40px;padding:28px 16px 44px;border-top:1px solid var(--border);}
 .footer-inner{max-width:720px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .footer-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;font-family:var(--font-display);color:var(--text);}
-.footer-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#6257f0,#6C4DFF);box-shadow:0 0 0 3px rgba(98,87,240,0.15);flex-shrink:0;}
+.footer-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#16181d,#3a3a40);box-shadow:0 0 0 3px rgba(22,24,29,0.15);flex-shrink:0;}
 .footer-version{font-size:11px;font-weight:600;color:var(--muted);background:var(--brand-soft);border:1px solid var(--brand-border);padding:2px 8px;border-radius:999px;}
 .footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;}
 .footer-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:color .2s;}
@@ -166,7 +166,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     </h1>
     <p class="t-tr">SAGI Finance, verilerinizin size ait olduğu, sunucuya gönderilmediği ve satılmadığı bir kişisel finans uygulamasıdır. Sıfır veri toplama, sıfır profilleme, sıfır satış.</p>
     <p class="t-en">SAGI Finance is a personal finance app where your data belongs to you, is not sent to servers, and is not sold. Zero data collection, zero profiling, zero selling.</p>
-    <div class="hero-meta">v0.9.9</div>
+    <div class="hero-meta">v0.9.86</div>
   </section>
 
   <div class="sections">
@@ -206,8 +206,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         SAGI Plus
       </div>
       <h2><span class="t-tr">Daha fazlasını keşfedin</span><span class="t-en">Unlock more</span></h2>
-      <p class="plus-desc t-tr">SAGI Plus, aylık veya yıllık abonelik yerine tek seferlik ödemeyle ömür boyu erişim sunar. Hesap, e-posta veya kişisel bilgi gerekmez.</p>
-      <p class="plus-desc t-en">SAGI Plus offers lifetime access with a one-time payment instead of a monthly or annual subscription. No account, email, or personal information required.</p>
+      <p class="plus-desc t-tr">SAGI Plus, Aylık, Yıllık veya tek seferlik Ömür Boyu plan seçenekleriyle sunulur. Hesap, e-posta veya kişisel bilgi gerekmez; abonelik planlarını istediğiniz zaman iptal edebilirsiniz.</p>
+      <p class="plus-desc t-en">SAGI Plus is available as Monthly, Yearly, or a one-time Lifetime plan. No account, email, or personal information required; subscription plans can be cancelled anytime.</p>
 
       <div class="plus-feats">
         <div class="plus-feat">
@@ -232,17 +232,17 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
           <div>
             <div class="plus-feat-name t-tr">Tema &amp; Font</div>
             <div class="plus-feat-name t-en">Theme &amp; Font</div>
-            <div class="plus-feat-sub t-tr">8 renk teması, çoklu font seçeneği, bulut sync ile senkronize</div>
-            <div class="plus-feat-sub t-en">8 color themes, multiple font options, synced via cloud</div>
+            <div class="plus-feat-sub t-tr">11 renk teması, 5 font seçeneği, bulut sync ile senkronize</div>
+            <div class="plus-feat-sub t-en">11 color themes, 5 font options, synced via cloud</div>
           </div>
         </div>
         <div class="plus-feat">
           <div class="plus-feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
           <div>
-            <div class="plus-feat-name t-tr">CSV Dışa Aktarma</div>
-            <div class="plus-feat-name t-en">CSV Export</div>
-            <div class="plus-feat-sub t-tr">Verilerinizi CSV formatında dışa aktarın</div>
-            <div class="plus-feat-sub t-en">Export your data in CSV format</div>
+            <div class="plus-feat-name t-tr">CSV &amp; PDF Rapor</div>
+            <div class="plus-feat-name t-en">CSV &amp; PDF Report</div>
+            <div class="plus-feat-sub t-tr">Verilerinizi CSV veya PDF olarak dışa aktarın, CSV ile geri yükleyin</div>
+            <div class="plus-feat-sub t-en">Export your data as CSV or PDF, and re-import from CSV</div>
           </div>
         </div>
         <div class="plus-feat">
@@ -280,7 +280,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
             <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Aylık Karşılaştırma</span><span class="t-en">Monthly Comparison</span></div>
             <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Reklamsız</span><span class="t-en">Ad-free</span></div>
             <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span class="t-tr">Tema &amp; Font</span><span class="t-en">Theme &amp; Font</span></div>
-            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>CSV Export</div>
+            <div class="tier-row yes"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>CSV &amp; PDF Export</div>
           </div>
         </div>
       </div>
@@ -293,16 +293,16 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <div class="t-tr" style="display:flex;flex-direction:column;gap:10px;margin:14px 0">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--border,rgba(0,0,0,.1))">
             <span style="font-size:14px;font-weight:700">Aylık</span>
-            <span style="font-size:18px;font-weight:900;color:var(--brand)">$4,99<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/ay</span></span>
+            <span style="font-size:18px;font-weight:900;color:var(--brand)">₺79<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/ay</span></span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--brand,#4f46e5);position:relative">
-            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#4f46e5);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">EN İYİ DEĞER</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--brand,#16181d);position:relative">
+            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#16181d);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">EN İYİ DEĞER</span>
             <span style="font-size:14px;font-weight:700">Yıllık</span>
-            <span style="font-size:18px;font-weight:900;color:var(--brand)">$39,99<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/yıl</span></span>
+            <span style="font-size:18px;font-weight:900;color:var(--brand)">₺599<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/yıl</span></span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--border,rgba(0,0,0,.1))">
             <span style="font-size:14px;font-weight:700">Ömür Boyu</span>
-            <span style="font-size:18px;font-weight:900;color:var(--brand)">$99,99</span>
+            <span style="font-size:18px;font-weight:900;color:var(--brand)">₺1.999</span>
           </div>
         </div>
 
@@ -312,19 +312,19 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
             <span style="font-size:14px;font-weight:700">Monthly</span>
             <span style="font-size:18px;font-weight:900;color:var(--brand)">$4.99<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/mo</span></span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--brand,#4f46e5);position:relative">
-            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#4f46e5);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">BEST VALUE</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--brand,#16181d);position:relative">
+            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#16181d);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">BEST VALUE</span>
             <span style="font-size:14px;font-weight:700">Yearly</span>
             <span style="font-size:18px;font-weight:900;color:var(--brand)">$39.99<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/yr</span></span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--border,rgba(0,0,0,.1))">
             <span style="font-size:14px;font-weight:700">Lifetime</span>
-            <span style="font-size:18px;font-weight:900;color:var(--brand)">$99.99</span>
+            <span style="font-size:18px;font-weight:900;color:var(--brand)">$149.99</span>
           </div>
         </div>
 
-        <div class="pricing-note t-tr">Abonelik yok · Verileriniz her zaman gizli · Hesap açmanıza gerek yok<br>Fiyatlar bölgeye göre değişebilir</div>
-        <div class="pricing-note t-en">No lock-in · Your data stays private · No account required<br>Prices may vary by region</div>
+        <div class="pricing-note t-tr">Tüm planlar Google Play üzerinden yönetilir · Verileriniz her zaman gizli · Hesap açmanıza gerek yok<br>Gösterilen tutarlar yaklaşıktır, kesin fiyat satın alma ekranında gösterilir</div>
+        <div class="pricing-note t-en">All plans are managed via Google Play · Your data stays private · No account required<br>Amounts shown are approximate — the exact price is shown at checkout</div>
         <div class="pricing-soon t-tr">Satın alma işlemleri Google Play üzerinden gerçekleştirilecek. İade ve iptal koşulları için <a href="./terms.html" style="color:var(--brand);font-weight:700;">Kullanım Şartları</a>'nı inceleyiniz.</div>
         <div class="pricing-soon t-en">Purchases will be processed via Google Play. See <a href="./terms.html" style="color:var(--brand);font-weight:700;">Terms of Service</a> for refund and cancellation details.</div>
       </div>
@@ -337,8 +337,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       </h2>
       <p class="t-tr">SAGI Finance, kişisel finans takibinin gerçekten özel olabileceğini kanıtlamak için geliştirildi. Çoğu fintech uygulaması verilerinizi reklam gelirine dönüştürür; biz tam tersini yapıyoruz: sıfır veri toplama, sıfır profilleme, sıfır satış.</p>
       <p class="t-en">SAGI Finance was built to prove that personal finance tracking can be genuinely private. Most fintech apps monetise your data through ads; we do the opposite — zero data collection, zero profiling, zero selling.</p>
-      <p class="t-tr">Uygulama PWA mimarisiyle tasarlandı; hafif, hızlı ve çevrimdışı çalışabilen bir yapı. Ücretsiz katman yalnızca localStorage kullanır. Plus katmanında anonim 16 haneli anahtar ile isteğe bağlı Firestore sync mevcuttur.</p>
-      <p class="t-en">The app is architected as a PWA — lightweight, fast, and offline-capable. The free tier uses only localStorage. The Plus tier adds optional Firestore sync via an anonymous 16-digit key.</p>
+      <p class="t-tr">Uygulama PWA mimarisiyle tasarlandı; hafif, hızlı ve çevrimdışı çalışabilen bir yapı. Veriler varsayılan olarak yalnızca cihazınızda (localStorage) tutulur; isteğe bağlı bulut senkronizasyonu anonim 16 haneli bir anahtarla çalışır ve <strong>ücretsiz katmanda dahil</strong> olan bir özelliktir. SAGI Plus; bulut sync'in üzerine AI Asistan, gelişmiş analiz, tema/font kişiselleştirme ve reklamsız kullanım ekler.</p>
+      <p class="t-en">The app is architected as a PWA — lightweight, fast, and offline-capable. Data is stored on your device (localStorage) by default; optional cloud sync works via an anonymous 16-digit key and is <strong>included in the free tier</strong>. SAGI Plus adds the AI Assistant, advanced analytics, theme/font personalization, and an ad-free experience on top of that.</p>
     </div>
 
     <!-- Teknoloji -->
@@ -352,9 +352,9 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <span class="pill">HTML / CSS / JS</span>
         <span class="pill">PWA + Service Worker</span>
         <span class="pill">localStorage</span>
-        <span class="pill">Firestore (Plus)</span>
+        <span class="pill">Firestore (Bulut Sync)</span>
         <span class="pill">Cloudflare Workers (AI)</span>
-        <span class="pill">Gemini 2.0 Flash (AI)</span>
+        <span class="pill">Google Gemini (AI)</span>
         <span class="pill">GitHub Pages</span>
       </div>
     </div>
@@ -377,7 +377,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <div class="footer-brand">
       <span class="footer-dot"></span>
       <strong>SAGI Finance</strong>
-      <span class="footer-version">v0.9.9</span>
+      <span class="footer-version">v0.9.86</span>
     </div>
     <nav class="footer-links">
       <a href="./privacy.html"><span class="t-tr">Gizlilik</span><span class="t-en">Privacy</span></a>
