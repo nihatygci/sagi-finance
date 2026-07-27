@@ -36,10 +36,10 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
   --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
   --border:rgba(0,0,0,0.07);--radius:22px;--radius-sm:14px;
   --shadow:0 2px 10px rgba(0,0,0,0.04);--shadow-md:0 10px 28px -6px rgba(0,0,0,0.08);
-  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
+  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;--on-brand:#ffffff;
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;--shadow-md:none;}
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;--shadow-md:none;--on-brand:#0a0a0b;}
 }
 body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(58,58,64,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(22,24,29,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
 .wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
@@ -52,7 +52,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .header-actions{display:flex;align-items:center;gap:8px;}
 .lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
 .lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
-.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(22,24,29,0.3);}
+.lang-btn.active{background:var(--brand);color:var(--on-brand);box-shadow:0 3px 10px rgba(22,24,29,0.3);}
 .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
 .back-btn:hover{background:var(--brand-soft);}
 .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
@@ -82,7 +82,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .contact-card{margin-top:10px;background:linear-gradient(135deg,rgba(22,24,29,0.07),rgba(58,58,64,0.02));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:26px 28px;}
 .contact-card h2{font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:8px;}
 .contact-card p{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:16px;}
-.contact-btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 16px rgba(22,24,29,0.3);}
+.contact-btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:var(--on-brand);font-size:13px;font-weight:700;padding:10px 20px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 16px rgba(22,24,29,0.3);}
 .contact-btn:hover{opacity:.88;transform:scale(1.02);}
 .contact-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 .site-footer{margin-top:40px;padding:28px 16px 44px;border-top:1px solid var(--border);}
@@ -324,8 +324,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <span class="t-tr">Çocukların Gizliliği</span>
         <span class="t-en">Children's Privacy</span>
       </h2>
-      <p class="t-tr">SAGI Finance 18 yaşın altındaki bireylere yönelik değildir ve bu yaş grubundan bilerek kişisel veri toplamaz. Finansal uygulamaların Türkiye'de reşit olmayanlara sunulması yasal kısıtlamalara tabidir. Uygulamayı kullanan kişi 18 yaşını doldurmuş olduğunu beyan etmiş sayılır. Eğer reşit olmayan birinin veri girdiğini düşünüyorsanız lütfen GitHub üzerinden bizimle iletişime geçin.</p>
-      <p class="t-en">SAGI Finance is not directed at individuals under 18 and does not knowingly collect personal data from this age group. Financial applications are subject to legal restrictions regarding minors in Turkey. By using the Application, you represent that you are at least 18 years of age. If you believe a minor has submitted data, please contact us via GitHub.</p>
+      <p class="t-tr">SAGI Finance 18 yaşın altındaki bireylere yönelik değildir ve bu yaş grubundan bilerek kişisel veri toplamaz. Finansal uygulamaların Türkiye'de reşit olmayanlara sunulması yasal kısıtlamalara tabidir. Uygulamayı kullanan kişi 18 yaşını doldurmuş olduğunu beyan etmiş sayılır. Eğer reşit olmayan birinin veri girdiğini düşünüyorsanız lütfen GitHub veya <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a> üzerinden bizimle iletişime geçin.</p>
+      <p class="t-en">SAGI Finance is not directed at individuals under 18 and does not knowingly collect personal data from this age group. Financial applications are subject to legal restrictions regarding minors in Turkey. By using the Application, you represent that you are at least 18 years of age. If you believe a minor has submitted data, please contact us via GitHub or <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a>.</p>
     </div>
 
     <!-- 9 — Politika Güncellemeleri -->
@@ -358,8 +358,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <li class="t-tr"><strong>İtiraz:</strong> Kişisel verilerinizin işlenmesine itiraz etme hakkı. Bulut sync'i her zaman devre dışı bırakabilir ve Firestore'daki verilerinizi silebilirsiniz.</li>
         <li class="t-en"><strong>Object:</strong> The right to object to the processing of your data. You may disable cloud sync and delete Firestore data at any time.</li>
       </ul>
-      <p class="t-tr" style="margin-top:12px">Bu haklarınızı kullanmak için GitHub üzerinden bizimle iletişime geçebilirsiniz. Talepten sonra en geç <strong>30 gün</strong> içinde yanıt verilir.</p>
-      <p class="t-en" style="margin-top:12px">To exercise these rights, please contact us via GitHub. Requests are responded to within <strong>30 days</strong>.</p>
+      <p class="t-tr" style="margin-top:12px">Bu haklarınızı kullanmak için GitHub veya <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a> üzerinden bizimle iletişime geçebilirsiniz. Talepten sonra en geç <strong>30 gün</strong> içinde yanıt verilir.</p>
+      <p class="t-en" style="margin-top:12px">To exercise these rights, please contact us via GitHub or <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a>. Requests are responded to within <strong>30 days</strong>.</p>
     </div>
 
     <!-- 11 — Yasal Onay Kaydı -->
@@ -384,8 +384,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       </h2>
       <p class="t-tr">6698 sayılı KVKK ve AB GDPR kapsamında veri sorumlusu, SAGI Finance uygulamasının bağımsız geliştiricisidir. Uygulama Türkiye merkezli bir bireysel geliştirici tarafından üretilmekte olup iletişim için GitHub adresi kullanılmaktadır. Bulut sync etkinleştirildiğinde veri işleme Google (Firestore, ABD merkezli) ve Cloudflare (Workers, küresel) altyapıları üzerinden de gerçekleşir; SAGI Plus satın alındığında ödeme işlemi Google Play üzerinden yürütülür ve AI Asistan yanıtları Google'ın Gemini modeliyle üretilir. Bu üçüncü tarafların kendi gizlilik politikaları geçerlidir.</p>
       <p class="t-en">For the purposes of KVKK (Law No. 6698) and the EU General Data Protection Regulation (GDPR), the data controller is the independent developer of the SAGI Finance application, an individual developer based in Turkey. Contact is handled via GitHub. When cloud sync is enabled, data processing also occurs through Google (Firestore, US-based) and Cloudflare (Workers, global) infrastructure; SAGI Plus purchases are processed via Google Play, and AI Assistant responses are generated using Google's Gemini model. Those third parties' own privacy policies apply.</p>
-      <p class="t-tr" style="margin-top:10px"><strong>AB/AEA kullanıcıları için not:</strong> GDPR kapsamındaki haklarınız (Madde 15 erişim, Madde 16 düzeltme, Madde 17 silme, Madde 21 itiraz) yaşadığınız ülkedeki tüketici hakları mevzuatı çerçevesinde geçerliliğini korur. Bu haklarınızı kullanmak için GitHub üzerinden yazılı talepte bulunabilirsiniz.</p>
-      <p class="t-en" style="margin-top:10px"><strong>Note for EU/EEA users:</strong> Your rights under the GDPR — including Article 15 (access), Article 16 (rectification), Article 17 (erasure), and Article 21 (objection) — remain valid and are not overridden by the governing law clause in the Terms of Service. To exercise these rights, please submit a written request via GitHub.</p>
+      <p class="t-tr" style="margin-top:10px"><strong>AB/AEA kullanıcıları için not:</strong> GDPR kapsamındaki haklarınız (Madde 15 erişim, Madde 16 düzeltme, Madde 17 silme, Madde 21 itiraz) yaşadığınız ülkedeki tüketici hakları mevzuatı çerçevesinde geçerliliğini korur. Bu haklarınızı kullanmak için GitHub veya <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a> üzerinden yazılı talepte bulunabilirsiniz.</p>
+      <p class="t-en" style="margin-top:10px"><strong>Note for EU/EEA users:</strong> Your rights under the GDPR — including Article 15 (access), Article 16 (rectification), Article 17 (erasure), and Article 21 (objection) — remain valid and are not overridden by the governing law clause in the Terms of Service. To exercise these rights, please submit a written request via GitHub or <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a>.</p>
     </div>
 
     <!-- İletişim -->
@@ -394,8 +394,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
         <span class="t-tr">Soru veya Geri Bildirim</span>
         <span class="t-en">Questions or Feedback</span>
       </h2>
-      <p class="t-tr">Gizlilik ile ilgili herhangi bir sorunuz için GitHub üzerinden ulaşabilirsiniz. Kişisel veri paylaşmanıza gerek yoktur.</p>
-      <p class="t-en">For any privacy-related questions, reach out via GitHub. No personal data is required.</p>
+      <p class="t-tr">Gizlilik ile ilgili herhangi bir sorunuz için GitHub veya <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a> üzerinden ulaşabilirsiniz. Kişisel veri paylaşmanıza gerek yoktur.</p>
+      <p class="t-en">For any privacy-related questions, reach out via GitHub or <a href="mailto:sagifinance.app@gmail.com" style="color:var(--brand)">sagifinance.app@gmail.com</a>. No personal data is required.</p>
       <a href="https://github.com/nihatygci/sagi/issues" target="_blank" rel="noopener" class="contact-btn">
         <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
         GitHub
