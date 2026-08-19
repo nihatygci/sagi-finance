@@ -706,7 +706,8 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 @media(max-width:768px){
   #notifFilterTabs{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
 }
-.notif-inbox-list{background:var(--bg-surface);border-radius:var(--radius-lg);border:1px solid var(--border-light);overflow:hidden;margin-bottom:16px}
+.notif-inbox-group{background:var(--bg-surface);border-radius:var(--radius-lg);border:1px solid var(--border-light);overflow:hidden;margin-bottom:16px}
+.notif-inbox-list{background:transparent;border-radius:0;border:none;overflow:visible;margin-bottom:0}
 .notif-inbox-item{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;position:relative}
 .notif-inbox-item:last-child{border-bottom:none}
 .notif-inbox-item:hover,.notif-inbox-item:active{background:var(--bg-surface-hover)}
@@ -723,7 +724,7 @@ input[type=checkbox].tx-select-cb{accent-color:var(--brand-accent);width:16px;he
 .notif-inbox-del:hover{opacity:1!important;color:var(--status-danger)}
 .notif-inbox-empty{text-align:center;padding:72px 20px;color:var(--text-muted);background:var(--bg-surface);border-radius:var(--radius-lg);border:1px solid var(--border-light)}
 .notif-inbox-empty-icon{width:52px;height:52px;margin:0 auto 16px;opacity:.2;display:block}
-.notif-inbox-section-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;padding:10px 20px 6px;background:var(--bg-body)}
+.notif-inbox-section-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;padding:12px 20px;background:var(--bg-body);border-bottom:1px solid var(--border-light)}
 /* Mobil */
 @media(max-width:768px){
   .notif-inbox-del{opacity:.5}
@@ -5131,10 +5132,17 @@ const App = {
     const tStr=new Date().toDateString();
     if(Core.state.settings.lastProcessedDate===tStr)return;
     const now=new Date(),cD=now.getDate();let add=0;
+    if(!Core.state.paidMonths) Core.state.paidMonths={};
+    const paidKey=now.getFullYear()+'_'+now.getMonth();
+    if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
     Core.state.recurring.forEach(s=>{
-      if(cD===s.day){
-        // Otomatik ödeme talimatı yoksa otomatik işlem oluşturma
-        if(!s.autoPay)return;
+      // Otomatik ödeme talimatı yoksa otomatik işlem oluşturma
+      if(!s.autoPay)return;
+      // "Bugün tam s.day mi" değil — "ödeme günü bu ayda geçti mi VE bu ay
+      // için henüz ödenmedi mi". Böylece kullanıcı ödeme gününde uygulamayı
+      // hiç açmasa bile (offline/kapalı), tekrar online olduğu an geciken
+      // ödeme sessizce ve anında işlenir — "gecikti" durumunda takılı kalmaz.
+      if(cD>=s.day && !Core.state.paidMonths[paidKey].includes(s.id)){
         const wc=App.Money.walletCur(s.wallet);
         const mc=App.Money.mainCur();
         const txAmount=App.ExchangeRate.convert(s.amount,mc,wc);
@@ -5145,10 +5153,7 @@ const App = {
         Core.state.transactions.push(tx);
         App.Money.applyTx(tx);
         // paidMonths güncelle — bildirim sistemi "ödenmedi" zannetmesin
-        if(!Core.state.paidMonths) Core.state.paidMonths={};
-        const paidKey=now.getFullYear()+'_'+now.getMonth();
-        if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
-        if(!Core.state.paidMonths[paidKey].includes(s.id)) Core.state.paidMonths[paidKey].push(s.id);
+        Core.state.paidMonths[paidKey].push(s.id);
         add++;
       }
     });
@@ -7751,8 +7756,10 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         };
 
         list.innerHTML=groups.map(g=>`
-          <div class="notif-inbox-section-label">${g.label}</div>
-          <div class="notif-inbox-list">${g.items.map(renderItem).join('')}</div>
+          <div class="notif-inbox-group">
+            <div class="notif-inbox-section-label">${g.label}</div>
+            <div class="notif-inbox-list">${g.items.map(renderItem).join('')}</div>
+          </div>
         `).join('');
 
         this.updateBadge();
