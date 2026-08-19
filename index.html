@@ -5027,7 +5027,7 @@ const App = {
         SagiTour.maybeAutoStart();
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         // Cloud sync (varsa) bu noktadan önce zaten tamamlandı — güncel veriyle kontrol et
-        App.processRecurring();
+        try { App.processRecurring(); } catch (e) { console.error('[Boot] processRecurring hatası:', e); }
         // KRİTİK FIX: App.ExchangeRate._loadCache() burada, Notifications.check()'ten
         // ÖNCE çağrılmalı. Eskiden sırası tersti (_loadCache() aşağıda, satır
         // sonuna yakındı) — bu yüzden check() çalıştığında App.ExchangeRate.rates.TRY
@@ -5135,27 +5135,28 @@ const App = {
     if(!Core.state.paidMonths) Core.state.paidMonths={};
     const paidKey=now.getFullYear()+'_'+now.getMonth();
     if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
-    Core.state.recurring.forEach(s=>{
-      // Otomatik ödeme talimatı yoksa otomatik işlem oluşturma
-      if(!s.autoPay)return;
-      // "Bugün tam s.day mi" değil — "ödeme günü bu ayda geçti mi VE bu ay
-      // için henüz ödenmedi mi". Böylece kullanıcı ödeme gününde uygulamayı
-      // hiç açmasa bile (offline/kapalı), tekrar online olduğu an geciken
-      // ödeme sessizce ve anında işlenir — "gecikti" durumunda takılı kalmaz.
-      if(cD>=s.day && !Core.state.paidMonths[paidKey].includes(s.id)){
-        const wc=App.Money.walletCur(s.wallet);
-        const mc=App.Money.mainCur();
-        const txAmount=App.ExchangeRate.convert(s.amount,mc,wc);
-        const desc = (typeof window.t === 'function')
-          ? t('subscriptionLabel',{name:s.name})
-          : (s.name + ' (Abonelik)');
-        const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:now.toISOString(),autoProcessed:true};
-        Core.state.transactions.push(tx);
-        App.Money.applyTx(tx);
-        // paidMonths güncelle — bildirim sistemi "ödenmedi" zannetmesin
-        Core.state.paidMonths[paidKey].push(s.id);
-        add++;
-      }
+    const list=Array.isArray(Core.state.recurring)?Core.state.recurring:[];
+    list.forEach(s=>{
+      try{
+        if(!s||!s.autoPay)return;
+        // "Bugün tam s.day mi" değil — "ödeme günü bu ayda geçti mi VE bu ay
+        // için henüz ödenmedi mi". Böylece kullanıcı ödeme gününde uygulamayı
+        // hiç açmasa bile (offline/kapalı), tekrar online olduğu an geciken
+        // ödeme sessizce ve anında işlenir — "gecikti" durumunda takılı kalmaz.
+        if(cD>=s.day && !Core.state.paidMonths[paidKey].includes(s.id)){
+          const wc=App.Money.walletCur(s.wallet);
+          const mc=App.Money.mainCur();
+          const txAmount=App.ExchangeRate.convert(s.amount,mc,wc);
+          const desc = (typeof window.t === 'function')
+            ? t('subscriptionLabel',{name:s.name})
+            : (s.name + ' (Abonelik)');
+          const tx={id:Core.Utils.generateId(),type:'expense',amount:txAmount,amountCurrency:wc,desc,cat:s.cat,wallet:s.wallet,date:now.toISOString(),autoProcessed:true};
+          Core.state.transactions.push(tx);
+          App.Money.applyTx(tx);
+          Core.state.paidMonths[paidKey].push(s.id);
+          add++;
+        }
+      }catch(e){ console.error('[processRecurring] abonelik işlenemedi:', s && s.id, e); }
     });
     if(add>0){
       Core.state.settings.lastProcessedDate=tStr;
@@ -5384,7 +5385,7 @@ const App = {
         UI.Router.init();
         SagiTour.maybeAutoStart();
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
-        App.processRecurring();
+        try { App.processRecurring(); } catch (e) { console.error('[Boot] processRecurring hatası:', e); }
         App.ExchangeRate._loadCache();
         Notifications.check();
         setInterval(()=>{ try{ App.processRecurring(); Notifications.check(); }catch(e){} }, 60*60*1000);
