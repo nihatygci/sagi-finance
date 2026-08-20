@@ -1900,6 +1900,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
             </div>
           </div>
+
+          <button class="btn btn-danger w-full" style="justify-content:center;margin-top:18px" onclick="App.Controllers.Settings.fullLogout()">
+            <span data-i18n="fullLogoutBtn">Çıkış Yap</span>
+          </button>
         </div><!-- /settings-menu-panel -->
 
         <!-- ── YASAL ANLAŞMALAR ── -->
@@ -5119,6 +5123,13 @@ const App = {
             setTimeout(()=>UI.Toasts.show(t('cloudMerged'),'success'),700);
           }
         }catch(e){}
+        // "Çıkış Yap" (fullLogout) sonrası reload — bkz. Settings.fullLogout()
+        try{
+          if(localStorage.getItem('sagi_logout_toast_pending')==='1'){
+            localStorage.removeItem('sagi_logout_toast_pending');
+            setTimeout(()=>UI.Toasts.show(t('fullLogoutDone'),'success'),700);
+          }
+        }catch(e){}
         // Buluta gidemeyen (bekleyen) değişiklik var mı kontrolü.
         // NOT: cloud-sync.js'nin _boot() fonksiyonu, sayfa her açıldığında
         // bekleyen bir push varsa BİR KERE otomatik olarak tekrar dener
@@ -8175,6 +8186,70 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           Core.Cloud.signOut();
           UI.Toasts.show(t('cloudSignedOut'),'success');
           this.renderCloudBox();
+        });
+      },
+
+      // TAM ÇIKIŞ — Ayarlar'ın en altındaki "Çıkış Yap" butonu.
+      // Kullanıcının elle tek tek yaptığı işlemi (önce bulut bağlantısını
+      // kes, sonra bu cihazdaki tüm yerel veriyi sil) TEK butona indirir.
+      // handleKeyNotFoundSignOut() ile AYNI tam-sıfırlama örüntüsünü
+      // kullanır — TEK FARK: burada anahtar Firebase'de bulunamadığı için
+      // değil, kullanıcı kendi isteğiyle çıkış yaptığı için siliyoruz.
+      // Bulut tarafındaki anahtar/veri SİLİNMEZ — sadece bu cihaz sıfırlanır,
+      // kullanıcı isterse "Mevcut Anahtarla Bağlan" ile geri dönebilir.
+      fullLogout(){
+        UI.Confirm.show(t('confFullLogout'),()=>{
+          // cloud-sync.js'deki 'pagehide' listener'ının, reload sırasında
+          // hafızadaki eski Core.state'i localStorage'a geri yazıp wipe'ı
+          // iptal etmesini engelle (bkz. handleKeyNotFoundSignOut).
+          window.__sagiForceLocalWipe = true;
+
+          try { Core.Cloud.signOut(); } catch(e) {}
+
+          // TÜM sagi_* localStorage key'lerini sil (onboarded dahil her şey)
+          try {
+            const toRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.indexOf('sagi_') === 0) toRemove.push(k);
+            }
+            toRemove.forEach(k => localStorage.removeItem(k));
+          } catch(e) {}
+
+          // Bellekteki state'i de doğrudan sıfırla (savunma katmanı).
+          try {
+            Core.state.settings.onboarded = false;
+            Core.state.settings.syncKey = '';
+            Core.state.wallets = [];
+            Core.state.transactions = [];
+            Core.state.recurring = [];
+            Core.state.goals = [];
+            Core.state.debts = [];
+            Core.state.budgets = [];
+          } catch(e) {}
+
+          // Marka/font CSS override'larını sıfırla (Plus kullanıcısıydıysa)
+          try{
+            const el = document.documentElement;
+            el.style.removeProperty('--brand-accent');
+            el.style.removeProperty('--brand-accent-light');
+            el.style.removeProperty('--brand-accent-subtle');
+            el.style.removeProperty('--brand-accent-soft');
+            el.style.removeProperty('--brand-accent-medium');
+            el.style.removeProperty('--font-display');
+            el.style.removeProperty('--font-sans');
+            document.body.style.fontFamily = '';
+          }catch(e){}
+
+          // URL hash'ini temizle — reload sonrası Router eski route'u okumasın
+          try{ history.replaceState(null,'',window.location.pathname+window.location.search); }catch(e){}
+
+          // Wipe loop'tan SONRA set ediyoruz (loop 'sagi_' ile başlayan her
+          // şeyi sildiği için, bunu önce koysak kendi bayrağımızı da silerdik).
+          // Reload sonrası boot kodu bunu okuyup "çıkış yapıldı" toast'ı gösterir.
+          try{ localStorage.setItem('sagi_logout_toast_pending','1'); }catch(e){}
+
+          location.reload();
         });
       },
 
