@@ -4177,9 +4177,24 @@ const Notifications = {
   async requestPermission(){
     if(!this.supported){UI.Toasts.show(t('msgNotifUnsup'),'error');return;}
     try{
+      // Tarayıcı/Android, izin daha önce bir kez reddedildiyse bir daha
+      // SORMAZ — Notification.requestPermission() anında (kullanıcıya hiç
+      // dialog göstermeden) 'denied' döner. Bunu "az önce kullanıcı reddetti"
+      // ile karıştırmamak için önceki durumu ayrıca kontrol ediyoruz.
+      const wasAlreadyDenied = Notification.permission === 'denied';
       const perm = await Notification.requestPermission();
-      if(perm==='granted'){UI.Toasts.show(t('msgNotifActive'));this.updateUI();}
-      else UI.Toasts.show(t('msgNotifDenied'),'error');
+      if(perm==='granted'){
+        UI.Toasts.show(t('msgNotifActive'));
+        this.updateUI();
+      } else if (wasAlreadyDenied) {
+        // Tarayıcı hiç sormadı, önceden kilitlenmiş — kullanıcıyı sistem
+        // ayarlarına yönlendir, aksi halde "sormuyor bile" şikayeti tekrarlar.
+        UI.Toasts.show(t('msgNotifBlockedGoToSettings') || (window.LANG==='en'
+          ? 'Notifications are blocked. Enable them from your device/browser settings for this app.'
+          : 'Bildirimler engellenmiş. Bu uygulama için cihaz/tarayıcı ayarlarından bildirimlere izin verin.'),'error');
+      } else {
+        UI.Toasts.show(t('msgNotifDenied'),'error');
+      }
     }catch(e){UI.Toasts.show(t('msgNotifFail'),'error');}
   },
   sendNotif(title,body,opts){
