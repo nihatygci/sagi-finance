@@ -4941,6 +4941,9 @@ const App = {
             if (_section === 'cloud') {
               App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
             }
+            if (_section === 'plus') {
+              App.Controllers.Settings.openSection && App.Controllers.Settings.openSection('plus');
+            }
             if (!_section || _section === 'personalization') {
               App.Controllers.Settings.renderForm && App.Controllers.Settings.renderForm();
             }
