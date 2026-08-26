@@ -955,7 +955,7 @@
       Core.state.settings.plusCustomColors  = [];
       Core.state.settings.plusKey           = '';
       Core.state.settings.chatTrialStart    = '';
-      Core.state.settings.plusStatus        = '';
+            Core.state.settings.plusStatus  = 'none';
       Core.state.settings.plusExpiresAt     = null;
       Core.state.settings.plusCancelledAt   = '';
       Core.state.settings.plusProvider      = '';
