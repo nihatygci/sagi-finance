@@ -129,6 +129,27 @@ if ('serviceWorker' in navigator) {
   --shadow-sm:0 2px 10px rgba(0,0,0,0.04); --shadow-md:0 10px 28px -6px rgba(0,0,0,0.08);
   --shadow-lg:0 24px 48px -12px rgba(0,0,0,0.13); --shadow-floating:0 12px 32px -8px rgba(0,0,0,0.16);
 }
+
+/* ── NATIVE APP HİSSİ ──────────────────────────────────────────
+   TWA (Trusted Web Activity) teknik olarak Chrome üzerinde çalışıyor,
+   ama kullanıcı bunu fark etmemeli. Aşağıdaki kurallar tarayıcıya özgü
+   davranışları (metin seçim balonu, uzun-basma menüsü, aşağı çekince
+   sayfa yenileme) kapatıp native bir app gibi hissettiriyor. */
+html, body {
+  overscroll-behavior-y: contain; /* pull-to-refresh kapalı */
+}
+* {
+  -webkit-touch-callout: none;   /* uzun basınca çıkan "resmi kaydet/kopyala" menüsü kapalı */
+  -webkit-user-select: none;
+  user-select: none;             /* metin seçim balonu kapalı */
+}
+input, textarea,
+[contenteditable="true"],
+.selectable, [data-selectable] {
+  -webkit-user-select: text;
+  user-select: text;             /* form alanlarında ve senin zaten user-select:all işaretlediğin yerlerde (sync key gibi) yazı seçimi serbest kalsın */
+}
+
 [data-theme="dark"] {
   --bg-body:#020203; --bg-surface:#090909; --bg-surface-hover:#101012;
   --border-light:rgba(255,255,255,0.07); --border-focus:rgba(245,245,247,0.40);
