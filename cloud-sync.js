@@ -1194,17 +1194,18 @@
       // yutuyor — throw ETMİYOR, sadece emitStatus('error'/'offline') yapıp
       // sessizce dönüyor. Bu yüzden loginWithKey() buraya kadar hep "başarılı"
       // resolve oluyordu, _pull()'un GERÇEKTEN remote veriyi çekip merge edip
-      // etmediğine bakılmaksızın. Sonuç: index.html'deki loginExisting() sahte
-      // bir "cloudLoginOk" toast'ı gösterip reload atıyordu; reload sonrası
-      // onboarded hâlâ false olduğundan kullanıcı tekrar onboarding ekranına
-      // düşüyordu ("giriş yapmıyor" hissi) — ama Core.state.settings.syncKey
-      // GERÇEK hesabın key'i olarak asılı kalmış oluyordu (bkz. yukarıdaki
-      // Core.state.settings.syncKey = key satırı, boot'tan ÖNCE yazılıyor).
-      // Burada boot'un GERÇEKTEN veri getirip getirmediğini (onboarded=true'ya
-      // ulaşıldı mı) doğruluyoruz; ulaşılmadıysa syncKey'i GERİ ALIP throw
-      // ediyoruz ki çağıran taraf gerçek durumu bilsin ve leftover key kalmasın.
-      if (!Core.state.settings.onboarded) {
-        console.warn('[Cloud] loginWithKey: boot sonrası onboarded=true olamadı — pull/merge tamamlanmamış olabilir, syncKey geri alınıyor.');
+      // etmediğine bakılmaksızın. Doğru sinyal Core.state.settings.onboarded
+      // DEĞİL — mergeState()'te 'onboarded' SETTINGS_PER_FIELD_KEYS listesinde
+      // yok, yani merge sonrası her zaman local'in ESKİ değeri (bu senaryoda
+      // false) kazanır; asıl onboarded=true düzeltmesi bir sonraki
+      // Core.DB.load()'daki "wallets.length>0" kontrolünden (reload sonrası)
+      // gelir, BURADA henüz gelmemiş olur — o yüzden bu alana bakmak her
+      // GERÇEK başarılı girişi de "başarısız" sayardı (yaşanan regresyon).
+      // Onun yerine _pull()'un içeride set ettiği _lastPullDocExists'e
+      // bakıyoruz — "doc gerçekten bulundu ve merge edildi mi" sorusunun
+      // doğrudan ve güvenilir cevabı bu.
+      if (this._lastPullDocExists !== true) {
+        console.warn('[Cloud] loginWithKey: pull tamamlanamadı (_lastPullDocExists=' + this._lastPullDocExists + ') — syncKey geri alınıyor.');
         Core.state.settings.syncKey = previousKey || '';
         localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
         throw new Error('SYNC_INCOMPLETE');
