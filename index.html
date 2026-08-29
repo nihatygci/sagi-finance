@@ -2509,6 +2509,15 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <label class="form-label" data-i18n="account">Hesap</label>
           <div id="txWalletPills" class="wallet-pill-wrap"></div>
         </div>
+        <div class="toggle-row" id="txInstallmentRow" style="display:none" onclick="UI.toggleCustomCheck('txInstallmentRow','tx_installment_on',function(v){document.getElementById('txInstallmentCountWrap').style.display=v==='1'?'block':'none';})">
+          <div><div style="font-size:14px;font-weight:600" data-i18n="installmentToggle">Taksitle</div></div>
+          <div class="toggle-track" id="txInstallmentTrack"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="form-group" id="txInstallmentCountWrap" style="display:none">
+          <label class="form-label" data-i18n="instCountLabel">Taksit Sayısı</label>
+          <input type="number" min="2" max="36" class="form-control" id="tx_installment_count" placeholder="12">
+        </div>
+        <input type="hidden" id="tx_installment_on" value="0">
         <div class="toggle-row" id="keepOpenRow" onclick="UI.toggleCustomCheck('keepOpenRow','tx_keep_open')">
           <div><div style="font-size:14px;font-weight:600" data-i18n="keepOpen">Kaydet ve bir tane daha ekle</div></div>
           <div class="toggle-track" id="keepOpenTrack"><div class="toggle-thumb"></div></div>
@@ -6807,9 +6816,31 @@ const App = {
       }
     },
     Transactions:{
-      setType(type,btn){document.getElementById('tx_type_val').value=type;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');},
+      setType(type,btn){document.getElementById('tx_type_val').value=type;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');this._syncInstallmentVisibility();},
       _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
-      _pickWallet(id,wrapId,hiddenId){document.getElementById(hiddenId).value=id;document.querySelectorAll(`#${wrapId} .wallet-pill`).forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));this._updateAmountHint();},
+      _pickWallet(id,wrapId,hiddenId){document.getElementById(hiddenId).value=id;document.querySelectorAll(`#${wrapId} .wallet-pill`).forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));this._updateAmountHint();if(hiddenId==='tx_wallet')this._syncInstallmentVisibility();},
+      _syncInstallmentVisibility(){
+        const row=document.getElementById('txInstallmentRow');
+        if(!row)return;
+        const wId=document.getElementById('tx_wallet').value;
+        const type=document.getElementById('tx_type_val').value;
+        const w=wId?Core.state.wallets.find(x=>x.id===wId):null;
+        const isEdit=!!document.getElementById('tx_id').value;
+        const show=!isEdit&&type==='expense'&&w&&w.type==='Kredi Kartı';
+        row.style.display=show?'flex':'none';
+        if(!show){
+          // Görünürlük kapandığında (hesap değişti, gelire geçildi, düzenleme
+          // modundaysa vb.) taksit durumunu da sıfırla — yarım kalmış bir
+          // "açık" durum arkada takılı kalıp yanlışlıkla kaydedilmesin.
+          const onEl=document.getElementById('tx_installment_on');
+          if(onEl)onEl.value='0';
+          row.classList.remove('active');
+          const track=row.querySelector('.toggle-track');
+          if(track)track.classList.remove('on');
+          const countWrap=document.getElementById('txInstallmentCountWrap');
+          if(countWrap)countWrap.style.display='none';
+        }
+      },
       _updateAmountHint(){
         const wId=document.getElementById('tx_wallet')?.value;
         const hint=document.getElementById('txAmountCurHint');
@@ -7170,9 +7201,14 @@ const App = {
         document.getElementById('tx_keep_open').value='0';
         const kt=document.getElementById('keepOpenTrack');if(kt)kt.classList.remove('on');
         const kr=document.getElementById('keepOpenRow');if(kr)kr.classList.remove('active');
+        document.getElementById('tx_installment_on').value='0';
+        const it=document.getElementById('txInstallmentTrack');if(it)it.classList.remove('on');
+        const ir=document.getElementById('txInstallmentRow');if(ir){ir.classList.remove('active');ir.style.display='none';}
+        const icw=document.getElementById('txInstallmentCountWrap');if(icw)icw.style.display='none';
+        document.getElementById('tx_installment_count').value='';
         UI.Modals.open('modalTx');
       },
-      edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat||t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));UI.Modals.open('modalTx');},
+      edit(id){const tx=Core.state.transactions.find(x=>x.id===id);if(!tx)return;this._renderWalletPills('txWalletPills','tx_wallet');document.getElementById('tx_id').value=tx.id;document.getElementById('tx_type_val').value=tx.type;document.getElementById('tx_amount').value=tx.amount;document.getElementById('tx_desc').value=tx.desc;document.getElementById('tx_cat_val').value=tx.cat;document.getElementById('tx_wallet').value=tx.wallet;document.getElementById('tx_date').value=tx.date;document.getElementById('txModalTitle').textContent=t('editTx');document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===tx.type));const txCb=document.getElementById('txCatBtn');if(txCb){const lbl=txCb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=tx.cat||t('selectCategory');txCb.classList.toggle('has-value',!!tx.cat);};document.querySelectorAll('#txWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${tx.wallet}'`)));document.getElementById('tx_installment_on').value='0';const _it=document.getElementById('txInstallmentTrack');if(_it)_it.classList.remove('on');const _ir=document.getElementById('txInstallmentRow');if(_ir){_ir.classList.remove('active');_ir.style.display='none';}const _icw=document.getElementById('txInstallmentCountWrap');if(_icw)_icw.style.display='none';UI.Modals.open('modalTx');},
       save(){
         const id=document.getElementById('tx_id').value;
         const type=document.getElementById('tx_type_val').value;
@@ -7184,6 +7220,48 @@ const App = {
         if(!amount||isNaN(amount)||amount<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
         if(!wId){UI.Toasts.show(t('msgAccReq'),'error');return;}
         const walletCur=App.Money.walletCur(wId);
+        // TAKSİTLİ SATIN ALMA — sadece YENİ kayıt + gider + kredi kartı +
+        // taksit anahtarı açıkken devreye girer (düzenlemede taksite
+        // dönüştürme desteklenmiyor, karmaşıklığı/riski artırmamak için
+        // bilerek dışarıda bırakıldı — düzenleme her zaman normal tekil
+        // işlem olarak kalır).
+        const installmentOn=!id&&type==='expense'&&document.getElementById('tx_installment_on').value==='1';
+        if(installmentOn){
+          const w=Core.state.wallets.find(x=>x.id===wId);
+          const count=parseInt(document.getElementById('tx_installment_count').value);
+          if(!w||w.type!=='Kredi Kartı'){UI.Toasts.show(t('msgAccReq'),'error');return;}
+          if(!count||isNaN(count)||count<2||count>36){UI.Toasts.show(t('msgInstallmentCountInvalid'),'error');return;}
+          const inst={
+            id:Core.Utils.generateId(), name:desc||cat, wallet:wId, totalAmount:amount,
+            currency:walletCur, installmentCount:count, day:Math.min(28,Math.max(1,parseInt(w.ccCutoffDay)||1)),
+            cat, paidCount:0, active:true, linkedTxIds:[], createdAt:Date.now(), _updatedAt:Date.now(),
+          };
+          const perMonth=inst.totalAmount/inst.installmentCount;
+          const chargeAmt=Math.round(perMonth*100)/100;
+          const chargeDesc=(typeof window.t==='function')
+            ? t('installmentChargeLabel',{name:inst.name,current:1,total:inst.installmentCount})
+            : (inst.name+' (1/'+inst.installmentCount+')');
+          const timeNow=new Date();
+          const tx={
+            id:Core.Utils.generateId(), type:'expense', amount:chargeAmt, amountCurrency:walletCur,
+            desc:chargeDesc, cat, wallet:wId,
+            date:date+'T'+(timeNow.toTimeString().slice(0,5))+':'+String(timeNow.getSeconds()).padStart(2,'0'),
+            linkedInstallmentId:inst.id, rateSnapshot:{...App.ExchangeRate.rates},
+          };
+          inst.paidCount=1;
+          inst.linkedTxIds=[tx.id];
+          if(!Array.isArray(Core.state.installments))Core.state.installments=[];
+          Core.state.installments.push(inst);
+          Core.state.transactions.push(tx);
+          App.Money.applyTx(tx);
+          Core.DB.saveNow();
+          App.Controllers.Dashboard.render();
+          UI.Modals.close('modalTx');
+          UI.Toasts.show(t('msgInstallmentAdded'));
+          this.renderTable();
+          App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+          return;
+        }
         const p={id:id||Core.Utils.generateId(),type,amount,amountCurrency:walletCur,desc,cat,wallet:wId,date:date+'T'+(new Date().toTimeString().slice(0,5))+':'+String(new Date().getSeconds()).padStart(2,'0'),rateSnapshot:{...App.ExchangeRate.rates}};
         if(id){
           const ix=Core.state.transactions.findIndex(x=>x.id===id);
@@ -7220,6 +7298,23 @@ const App = {
                 _ld.amount=Math.round((_ld.amount+_txAmt)*100)/100;
               }
               App.Controllers.Debts&&App.Controllers.Debts.render&&App.Controllers.Debts.render();
+            }
+            if(tx.linkedInstallmentId){
+              // Taksit işlemi silinirse taksitin ilerlemesini geri al —
+              // yoksa paidCount/linkedTxIds gerçek durumdan sapar ve
+              // processInstallments() bu ayı "zaten ödendi" sanmaya devam eder.
+              const _inst=(Core.state.installments||[]).find(i=>i.id===tx.linkedInstallmentId);
+              if(_inst){
+                _inst.paidCount=Math.max(0,(_inst.paidCount||0)-1);
+                _inst.linkedTxIds=(_inst.linkedTxIds||[]).filter(txId=>txId!==tx.id);
+                if(_inst.paidCount<_inst.installmentCount)_inst.active=true;
+                _inst._updatedAt=Date.now();
+                const _txDate=new Date(tx.date);
+                const _pKey=_txDate.getFullYear()+'_'+_txDate.getMonth();
+                if(Core.state.paidMonths&&Core.state.paidMonths[_pKey]){
+                  Core.state.paidMonths[_pKey]=Core.state.paidMonths[_pKey].filter(pid=>pid!==_inst.id);
+                }
+              }
             }
           }
           Core.state.transactions=Core.state.transactions.filter(t=>t.id!==id);

@@ -208,7 +208,7 @@ const LANGS = {
       addRecord:'Kayıt Ekle', editRecord:'Kaydı Düzenle',
 
       // Taksitlendirme
-      installments:'Taksitler',
+      installments:'Taksitler', installmentToggle:'Taksitle',
       installmentsTitle:'Taksitlerim', addInstallment:'Taksit Ekle',
       noInstallments:'Aktif taksit yok.',
       installmentsPaidSuffix:'ödendi', installmentRemainingSuffix:'kalan',
@@ -887,7 +887,7 @@ const LANGS = {
       addRecord:'Add Record', editRecord:'Edit Record',
 
       // Installments
-      installments:'Installments',
+      installments:'Installments', installmentToggle:'Pay in Installments',
       installmentsTitle:'My Installments', addInstallment:'Add Installment',
       noInstallments:'No active installments.',
       installmentsPaidSuffix:'paid', installmentRemainingSuffix:'remaining',
