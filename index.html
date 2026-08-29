@@ -5305,8 +5305,25 @@ const App = {
       try{
         if(!inst||!inst.active)return;
         if(inst.paidCount>=inst.installmentCount){inst.active=false;return;}
-        if(Core.state.paidMonths[paidKey].includes(inst.id))return;
         if(cD<(inst.day||1))return;
+        // ÇİFT-İŞLEME KORUMASI: paidMonths ikincil bir defter, bir merge/
+        // reload arasında senkron gecikmesiyle geride kalabilir. Asıl
+        // doğruluk kaynağı işlemlerin kendisi — bu ay bu taksit için
+        // (linkedInstallmentId ile) zaten bir kayıt varsa, paidMonths ne
+        // derse desin ASLA ikinci kez işleme. Bulursa paidMonths'u da
+        // kendiliğinden onarır (self-heal), bir daha taramaya gerek kalmaz.
+        const monthStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+        const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59,999).getTime();
+        const alreadyCharged=Core.state.transactions.some(tx=>{
+          if(!tx||tx.linkedInstallmentId!==inst.id)return false;
+          const tTime=new Date(tx.date).getTime();
+          return tTime>=monthStart&&tTime<=monthEnd;
+        });
+        if(alreadyCharged){
+          if(!Core.state.paidMonths[paidKey].includes(inst.id))Core.state.paidMonths[paidKey].push(inst.id);
+          return;
+        }
+        if(Core.state.paidMonths[paidKey].includes(inst.id))return;
         const w=Core.state.wallets.find(x=>x.id===inst.wallet);
         if(!w)return; // hesap silinmiş — taksit sessizce atlanır, kaybolmaz
         const wc=w.currency||inst.currency||App.Money.mainCur();
