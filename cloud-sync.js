@@ -1189,6 +1189,27 @@
 
       await this._boot();
       _applyThemeNow();
+
+      // KRİTİK FIX: _boot() kendi içindeki hatayı (ağ/timeout/izin sorunu vb.)
+      // yutuyor — throw ETMİYOR, sadece emitStatus('error'/'offline') yapıp
+      // sessizce dönüyor. Bu yüzden loginWithKey() buraya kadar hep "başarılı"
+      // resolve oluyordu, _pull()'un GERÇEKTEN remote veriyi çekip merge edip
+      // etmediğine bakılmaksızın. Sonuç: index.html'deki loginExisting() sahte
+      // bir "cloudLoginOk" toast'ı gösterip reload atıyordu; reload sonrası
+      // onboarded hâlâ false olduğundan kullanıcı tekrar onboarding ekranına
+      // düşüyordu ("giriş yapmıyor" hissi) — ama Core.state.settings.syncKey
+      // GERÇEK hesabın key'i olarak asılı kalmış oluyordu (bkz. yukarıdaki
+      // Core.state.settings.syncKey = key satırı, boot'tan ÖNCE yazılıyor).
+      // Burada boot'un GERÇEKTEN veri getirip getirmediğini (onboarded=true'ya
+      // ulaşıldı mı) doğruluyoruz; ulaşılmadıysa syncKey'i GERİ ALIP throw
+      // ediyoruz ki çağıran taraf gerçek durumu bilsin ve leftover key kalmasın.
+      if (!Core.state.settings.onboarded) {
+        console.warn('[Cloud] loginWithKey: boot sonrası onboarded=true olamadı — pull/merge tamamlanmamış olabilir, syncKey geri alınıyor.');
+        Core.state.settings.syncKey = previousKey || '';
+        localStorage.setItem(Core.DB.key, JSON.stringify(Core.state));
+        throw new Error('SYNC_INCOMPLETE');
+      }
+
       return Core.state;
     },
 

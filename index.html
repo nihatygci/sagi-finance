@@ -5226,7 +5226,14 @@ const App = {
         // Bottom bar — kullanıcı tercihine göre render et
         App.Controllers.BottomBar.renderNav();
         UI.Router.init();
-        SagiTour.maybeAutoStart();
+        // KRİTİK FIX: SagiTour.maybeAutoStart() BURADAN kaldırıldı. Bu blok
+        // her onboarded=true oturumda (yani mevcut anahtarla giriş yapan
+        // kullanıcılar dahil) çalışıyordu — tek koruma localStorage'daki
+        // 'sagi_tour_seen' flag'iydi, o da fullLogout()/handleKeyNotFoundSignOut()
+        // içindeki toplu 'sagi_*' silme döngüsüyle siliniyordu. Sonuç: çıkış
+        // yapıp mevcut bir hesaba anahtarla geri girildiğinde tur yanlışlıkla
+        // yeniden gösteriliyordu. Tur artık SADECE Onboarding.complete()'ten
+        // (gerçek/yeni onboarding tamamlanışı) tetikleniyor — bkz. o fonksiyon.
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         // Cloud sync (varsa) bu noktadan önce zaten tamamlandı — güncel veriyle kontrol et
         try { App.processRecurring(); } catch (e) { console.error('[Boot] processRecurring hatası:', e); }
@@ -5501,6 +5508,21 @@ const App = {
 
       setKeyMode(mode){
         this._keyMode = mode;
+        // KRİTİK FIX: "Şimdi Atla" (çevrim dışı devam) seçilince, daha önce
+        // yarım kalmış/görünüşte başarısız bir "Mevcut Anahtarla Bağlan"
+        // denemesinden kalma syncKey varsa (loginWithKey senkron olarak
+        // Core.state.settings.syncKey'i pull tamamlanmadan ÖNCE yazıyor —
+        // bkz. cloud-sync.js loginWithKey yorumu) temizliyoruz. Aksi halde
+        // kullanıcı "çevrim dışı devam et" deyip boş/varsayılan verilerle
+        // bitirdiğinde, complete() bu leftover syncKey'i olduğu gibi bırakır
+        // ve gerçek hesabın key'i, boş bir local state'e iliştirilmiş olarak
+        // kalır (tur + default ayarlar + arka planda gerçek veriyi ezme riski).
+        if(mode === 'skip'){
+          try{
+            Core.state.settings.syncKey = '';
+            localStorage.removeItem('sagi_pending_key');
+          }catch(e){}
+        }
         ['new','have','skip'].forEach(m => {
           const btn = document.getElementById('ob_keymode_'+m);
           const pn  = document.getElementById('ob_keypanel_'+m);
@@ -5626,6 +5648,15 @@ const App = {
         const chk = document.getElementById('ob_consent_chk');
         if(!chk || !chk.checked) return;
         // ─────────────────────────────────────────────────────────────────
+        // KRİTİK FIX (defans katmanı — bkz. setKeyMode('skip') yorumu):
+        // "Çevrim dışı devam et" modundan buraya gelindiyse syncKey KESİNLİKLE
+        // boş olmalı. setKeyMode('skip') bunu zaten temizliyor ama kullanıcı
+        // mod değiştirmeden (ör. direkt _refreshKeyAvailability() ile otomatik
+        // skip'e düşülen offline senaryosunda) buraya ulaşabileceğinden burada
+        // da garantiliyoruz — 'new' modunda (gerçek üretilmiş key) DOKUNMUYORUZ.
+        if(this._keyMode === 'skip' && Core.state.settings.syncKey){
+          Core.state.settings.syncKey = '';
+        }
         Core.state.settings.name=document.getElementById('ob_name').value.trim();
         Core.state.settings.currency=document.getElementById('ob_currency').value;
         Core.state.settings.lang=LANG;
