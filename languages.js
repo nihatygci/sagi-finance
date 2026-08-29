@@ -202,9 +202,24 @@ const LANGS = {
       reflectToBalance:'Hesap bakiyeme yansıt', accountOptional:'Hesap (İsteğe Bağlı)',
       payDebtTitle:'Ödeme Yap', collectTitle:'Tahsilat Al',
       partialPay:'Kısmi Ödeme', onlyRecord:'Sadece kaydı düş',
+      fullPay:'Tamamını Öde',
       noDebtRec:'Borç kaydı yok.', noReceivableRec:'Alacak kaydı yok.',
       dueDate:'Son Tarih:', noDueDate:'Vadesiz',
       addRecord:'Kayıt Ekle', editRecord:'Kaydı Düzenle',
+
+      // Taksitlendirme
+      installments:'Taksitler',
+      installmentsTitle:'Taksitlerim', addInstallment:'Taksit Ekle',
+      noInstallments:'Aktif taksit yok.',
+      installmentsPaidSuffix:'ödendi', installmentRemainingSuffix:'kalan',
+      instNameLabel:'Taksit Adı', instTotalLabel:'Toplam Tutar',
+      instCountLabel:'Taksit Sayısı', instDayLabel:'Ödeme Günü',
+      msgInstallmentAdded:'Taksit eklendi.', msgInstallmentDeleted:'Taksit silindi.',
+      msgInstallmentCountInvalid:'Taksit sayısı 2-36 arasında olmalı.',
+      msgNameReq:'Bir isim girmelisiniz.',
+      confDelInstallment:'Bu taksiti silmek istediğinize emin misiniz? Kalan taksitler artık otomatik işlenmeyecek.',
+      installmentChargeLabel:(vars)=>`${vars.name} (Taksit ${vars.current}/${vars.total})`,
+      deleteBtn:'Sil', cancelBtn:'İptal', saveBtn:'Kaydet',
 
       // Analiz
       analyticsSubtitle:'Harcama istatistikleri ve limitler',
@@ -866,9 +881,24 @@ const LANGS = {
       reflectToBalance:'Reflect on account balance', accountOptional:'Account (Optional)',
       payDebtTitle:'Make Payment', collectTitle:'Collect',
       partialPay:'Partial Payment', onlyRecord:'Record only',
+      fullPay:'Pay in Full',
       noDebtRec:'No debt records.', noReceivableRec:'No receivable records.',
       dueDate:'Due:', noDueDate:'No due date',
       addRecord:'Add Record', editRecord:'Edit Record',
+
+      // Installments
+      installments:'Installments',
+      installmentsTitle:'My Installments', addInstallment:'Add Installment',
+      noInstallments:'No active installments.',
+      installmentsPaidSuffix:'paid', installmentRemainingSuffix:'remaining',
+      instNameLabel:'Installment Name', instTotalLabel:'Total Amount',
+      instCountLabel:'Number of Installments', instDayLabel:'Charge Day',
+      msgInstallmentAdded:'Installment added.', msgInstallmentDeleted:'Installment deleted.',
+      msgInstallmentCountInvalid:'Installment count must be between 2 and 36.',
+      msgNameReq:'Please enter a name.',
+      confDelInstallment:'Delete this installment? Remaining charges will no longer be processed automatically.',
+      installmentChargeLabel:(vars)=>`${vars.name} (Installment ${vars.current}/${vars.total})`,
+      deleteBtn:'Delete', cancelBtn:'Cancel', saveBtn:'Save',
 
       // Analytics
       analyticsSubtitle:'Spending stats and limits',

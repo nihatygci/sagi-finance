@@ -3061,13 +3061,66 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="cc-date-val" id="cardDetailDaysLeft">-</div>
         </div>
       </div>
-      <!-- Borç: -->
+      <!-- Taksitlerim -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light)">
+        <div class="flex justify-between items-center mb-2">
+          <div class="font-bold" style="font-size:14px" data-i18n="installmentsTitle">Taksitlerim</div>
+          <button type="button" class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Wallets.openAddInstallment()"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-plus"/></svg> <span data-i18n="addInstallment">Taksit Ekle</span></button>
+        </div>
+        <div id="cardDetailInstallmentsList"></div>
+      </div>
       <div id="cardDetailDebt" style="display:none"></div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline" onclick="UI.Modals.close('modalCardDetail');App.Controllers.Transactions.quickFilter(App.Controllers.Wallets._lastDetailCardId)"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-list"/></svg> <span data-i18n="ccAllTx">Tüm İşlemler</span></button>
       <button type="button" class="btn btn-primary" id="cardDetailPayBtn" style="display:none"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-check"/></svg> <span data-i18n="ccPayNow">Ödeme Yap</span></button>
       <div id="cardDetailPaidBadge" style="display:none;align-items:center;gap:6px;padding:10px 16px;background:var(--status-success-bg);border:1px solid rgba(34,160,107,.2);border-radius:var(--radius-md);font-size:13px;font-weight:700;color:var(--status-success)"><svg style="width:14px;height:14px;stroke:var(--status-success);fill:none;stroke-width:2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="ccPaidThisMonthBadge">Bu Ay Ödendi</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAKSİT EKLE MODAL -->
+<div class="modal-overlay" id="modalAddInstallment">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <div class="modal-title-icon"><svg><use href="#icon-repeat"/></svg></div>
+        <h3 class="modal-title" data-i18n="addInstallment">Taksit Ekle</h3>
+      </div>
+      <button class="act-btn" onclick="App.Controllers.Wallets.closeAddInstallment()"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:16px 20px">
+      <input type="hidden" id="inst_wallet_id" value="">
+      <div class="form-group">
+        <label class="form-label" data-i18n="instNameLabel">Taksit Adı</label>
+        <input type="text" class="form-control" id="inst_name" placeholder="Örn. iPhone 15">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="instTotalLabel">Toplam Tutar (<span id="inst_wallet_cur">TRY</span>)</label>
+        <input type="number" step="0.01" min="0" class="form-control" id="inst_total" placeholder="0.00">
+      </div>
+      <div class="flex gap-3">
+        <div class="form-group" style="flex:1">
+          <label class="form-label" data-i18n="instCountLabel">Taksit Sayısı</label>
+          <input type="number" min="2" max="36" class="form-control" id="inst_count" placeholder="12">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label class="form-label" data-i18n="instDayLabel">Ödeme Günü</label>
+          <input type="number" min="1" max="28" class="form-control" id="inst_day" value="1">
+        </div>
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label" data-i18n="category">Kategori</label>
+        <div class="picker-btn" id="instCatBtn" onclick="UI.CatPicker.open('inst_cat','instCatBtn')">
+          <span id="instCatLabel" class="picker-btn-label" data-i18n="selectCategory">Kategori Seçin</span>
+          <svg class="nav-icon" style="width:18px;height:18px;color:var(--text-muted)"><use href="#icon-chevron-down"/></svg>
+        </div>
+        <input type="hidden" id="inst_cat" value="Diğer">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" onclick="App.Controllers.Wallets.closeAddInstallment()" data-i18n="cancelBtn">İptal</button>
+      <button type="button" class="btn btn-primary" onclick="App.Controllers.Wallets.saveInstallment()" data-i18n="saveBtn">Kaydet</button>
     </div>
   </div>
 </div>
@@ -3210,7 +3263,7 @@ window._sagiAccentReset = function() {
 // silme kayıtları (tombstone) ile çalışır.
 // Settings: her alan bağımsız _settingsTs timestamp ile izlenir —
 // "tema değiştiren cihaz, para birimi seçen cihazı ezmez".
-const MERGEABLE_ARRAYS = ['wallets','transactions','recurring','goals','debts','categories','budgets'];
+const MERGEABLE_ARRAYS = ['wallets','transactions','recurring','goals','debts','categories','budgets','installments'];
 
 // Settings per-field izleme — bu alanlar cihaz bazlı bağımsız merge edilir
 const SETTINGS_PER_FIELD_KEYS = [
@@ -3453,7 +3506,7 @@ const Core = {
   events:{},temp:{},
   on(e,l){if(!this.events[e])this.events[e]=[];this.events[e].push(l)},
   emit(e,d){if(this.events[e])this.events[e].forEach(l=>l(d))},
-  state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],categories:[],_tombstones:{},settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,syncKey:'',notifications:{abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false}}},
+  state:{wallets:[],transactions:[],recurring:[],goals:[],debts:[],budgets:[],categories:[],installments:[],_tombstones:{},settings:{name:'',theme:'light',currency:'TRY',anim:'on',privacy:'off',lastExport:0,onboarded:false,syncKey:'',notifications:{abonelik:false,borc:false,butce:false,haftalik:false,krediKarti:false,hedef:false,buyukHarcama:false,doviz:false}}},
   mergeState: mergeState,
   DB:{
     key:'sagi_v1_data',
@@ -4842,6 +4895,21 @@ const App = {
       const w=Core.state.wallets.find(x=>x.id===walletId);
       return (w&&w.currency)||Core.state.settings.currency||'TRY';
     },
+    // Bir kredi kartı hesabına bağlı, henüz tamamlanmamış taksitlerin
+    // KALAN toplamını (o hesabın kendi para biriminde) döner. Gerçek banka
+    // davranışını taklit ediyoruz: taksit açıldığı an limitten TÜM tutar
+    // "rezerve" edilir, her ay sadece bir dilimi fiilen işlenir (wallet.balance
+    // sadece işlenen dilimle değişir — bkz. processInstallments). Bu yüzden
+    // kullanılabilir limit hesabı, işlenmemiş taksit kalanını da düşmeli.
+    pendingInstallmentsTotal(walletId){
+      const list=Array.isArray(Core.state.installments)?Core.state.installments:[];
+      return list.filter(i=>i&&i.wallet===walletId&&i.active&&i.paidCount<i.installmentCount)
+        .reduce((sum,i)=>{
+          const perMonth=i.totalAmount/i.installmentCount;
+          const remaining=i.installmentCount-i.paidCount;
+          return sum+perMonth*remaining;
+        },0);
+    },
     mainCur(){return Core.state.settings.currency||'TRY';},
     toMain(tx,target){
       const tgt=target||this.mainCur();
@@ -5071,6 +5139,7 @@ const App = {
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         // Cloud sync (varsa) bu noktadan önce zaten tamamlandı — güncel veriyle kontrol et
         try { App.processRecurring(); } catch (e) { console.error('[Boot] processRecurring hatası:', e); }
+        try { App.processInstallments(); } catch (e) { console.error('[Boot] processInstallments hatası:', e); }
         // KRİTİK FIX: App.ExchangeRate._loadCache() burada, Notifications.check()'ten
         // ÖNCE çağrılmalı. Eskiden sırası tersti (_loadCache() aşağıda, satır
         // sonuna yakındı) — bu yüzden check() çalıştığında App.ExchangeRate.rates.TRY
@@ -5082,7 +5151,7 @@ const App = {
         App.ExchangeRate._loadCache();
         Notifications.check();
         // Periyodik bildirim kontrolü — sekme açık kaldığında da çalışsın (her saat)
-        setInterval(()=>{ try{ App.processRecurring(); Notifications.check(); }catch(e){} }, 60*60*1000);
+        setInterval(()=>{ try{ App.processRecurring(); App.processInstallments(); Notifications.check(); }catch(e){} }, 60*60*1000);
         // Bulut status değişince ayarlar sayfasındaki kutuyu güncelle
         Core.on('cloudStatusChanged', ()=>{
           App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
@@ -5216,6 +5285,58 @@ const App = {
       // Tarih güncellemesi (manuel ödeme olmasa da)
       Core.state.settings.lastProcessedDate=tStr;
       Core.DB.save();
+    }
+  },
+  // Kredi kartı taksitlerini işler — processRecurring() ile AYNI mantık
+  // (gün geldi mi, bu ay zaten işlendi mi), ama sınırlı sayıda (N taksit)
+  // çalışıp bitince kendini pasifleştiriyor. Kasıtlı olarak processRecurring
+  // ile aynı "günde bir kere" kapısını (lastProcessedDate) PAYLAŞMIYOR —
+  // kendi idempotency kontrolü (paidMonths[id] içinde mi) zaten aynı ayda
+  // ikinci kez ücretlendirmeyi engelliyor, bu yüzden günde birden fazla
+  // çağrılması (hourly interval, app yeniden açılışı vb.) zararsız ve gereksiz
+  // bir Core.DB.save() da tetiklemiyor (changed=false ise save edilmiyor).
+  processInstallments(){
+    const now=new Date(),cD=now.getDate();let add=0;
+    if(!Core.state.paidMonths) Core.state.paidMonths={};
+    const paidKey=now.getFullYear()+'_'+now.getMonth();
+    if(!Core.state.paidMonths[paidKey]) Core.state.paidMonths[paidKey]=[];
+    const list=Array.isArray(Core.state.installments)?Core.state.installments:[];
+    list.forEach(inst=>{
+      try{
+        if(!inst||!inst.active)return;
+        if(inst.paidCount>=inst.installmentCount){inst.active=false;return;}
+        if(Core.state.paidMonths[paidKey].includes(inst.id))return;
+        if(cD<(inst.day||1))return;
+        const w=Core.state.wallets.find(x=>x.id===inst.wallet);
+        if(!w)return; // hesap silinmiş — taksit sessizce atlanır, kaybolmaz
+        const wc=w.currency||inst.currency||App.Money.mainCur();
+        const perMonth=inst.totalAmount/inst.installmentCount;
+        const instNo=inst.paidCount+1;
+        const isLast=instNo>=inst.installmentCount;
+        // Yuvarlama artığı son taksitte toplanır (12'ye tam bölünmeyen
+        // tutarlarda kuruş kayması birikmesin diye).
+        const chargeAmt=isLast
+          ? Math.round((inst.totalAmount-perMonth*(inst.installmentCount-1))*100)/100
+          : Math.round(perMonth*100)/100;
+        const desc=(typeof window.t==='function')
+          ? t('installmentChargeLabel',{name:inst.name,current:instNo,total:inst.installmentCount})
+          : (inst.name+' ('+instNo+'/'+inst.installmentCount+')');
+        const tx={id:Core.Utils.generateId(),type:'expense',amount:chargeAmt,amountCurrency:wc,desc,cat:inst.cat||'Diğer',wallet:inst.wallet,date:now.toISOString(),autoProcessed:true,linkedInstallmentId:inst.id,rateSnapshot:{...App.ExchangeRate.rates}};
+        Core.state.transactions.push(tx);
+        App.Money.applyTx(tx);
+        inst.linkedTxIds=inst.linkedTxIds||[];
+        inst.linkedTxIds.push(tx.id);
+        inst.paidCount=instNo;
+        inst._updatedAt=Date.now();
+        if(inst.paidCount>=inst.installmentCount)inst.active=false;
+        Core.state.paidMonths[paidKey].push(inst.id);
+        add++;
+      }catch(e){ console.error('[processInstallments] taksit işlenemedi:', inst && inst.id, e); }
+    });
+    if(add>0){
+      Core.DB.save();
+      App.Controllers.Wallets.render&&App.Controllers.Wallets.render();
+      App.Controllers.Dashboard.render&&App.Controllers.Dashboard.render();
     }
   },
   Controllers:{
@@ -5436,9 +5557,10 @@ const App = {
         SagiTour.maybeAutoStart();
         setTimeout(()=>App.Controllers.NotifInbox&&App.Controllers.NotifInbox.updateBadge(),300);
         try { App.processRecurring(); } catch (e) { console.error('[Boot] processRecurring hatası:', e); }
+        try { App.processInstallments(); } catch (e) { console.error('[Boot] processInstallments hatası:', e); }
         App.ExchangeRate._loadCache();
         Notifications.check();
-        setInterval(()=>{ try{ App.processRecurring(); Notifications.check(); }catch(e){} }, 60*60*1000);
+        setInterval(()=>{ try{ App.processRecurring(); App.processInstallments(); Notifications.check(); }catch(e){} }, 60*60*1000);
         Core.on('cloudStatusChanged', ()=>{
           App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
           App.Controllers.Onboarding && App.Controllers.Onboarding._refreshKeyAvailability && App.Controllers.Onboarding._refreshKeyAvailability();
@@ -5667,11 +5789,33 @@ const App = {
         this.renderCCAlerts();
         const du=document.getElementById('dashUpcoming');
         if(du){
-          if(!Core.state.recurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
+          // Abonelikler + aktif taksitler birleşik "yaklaşan ödemeler" listesi.
+          // Taksitler her zaman autoPay:true sayılır (kart üzerinden otomatik
+          // işlenir, elle "öde" butonu yok — gerçek kredi kartı taksit
+          // davranışıyla tutarlı). Tutarlar recurring ile aynı sözleşmeye
+          // uysun diye (widget formatMoney(s.amount) çağrısında para birimi
+          // vermiyor, ana para birimi varsayıyor) taksit tutarını kartın
+          // kendi biriminden ana para birimine çeviriyoruz.
+          const mcUp=App.Money.mainCur();
+          const instItems=(Core.state.installments||[]).filter(i=>i&&i.active&&i.paidCount<i.installmentCount).map(i=>{
+            const perMonthWc=i.totalAmount/i.installmentCount;
+            const perMonthMc=App.ExchangeRate.convert(perMonthWc,i.currency||mcUp,mcUp);
+            return{
+              id:i.id, day:i.day,
+              name:`${i.name} (${i.paidCount+1}/${i.installmentCount})`,
+              amount:perMonthMc,
+              originalAmount:perMonthWc,
+              currency:i.currency||mcUp,
+              autoPay:true,
+              _isInstallment:true,
+            };
+          });
+          const combinedRecurring=[...Core.state.recurring,...instItems];
+          if(!combinedRecurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
           else{
             const today=new Date().getDate(),now2=new Date();
             const paidSet=App.Controllers.Dashboard._getPaidSet();
-            const unpaid=Core.state.recurring.filter(s=>!paidSet.has(s.id));
+            const unpaid=combinedRecurring.filter(s=>!paidSet.has(s.id));
             const near=unpaid.filter(s=>{
               const now3=new Date();
               const daysInMonth=new Date(now3.getFullYear(),now3.getMonth()+1,0).getDate();
@@ -5962,7 +6106,7 @@ const App = {
           const isCC=w.type==='Kredi Kartı';
           const ccLimit=parseFloat(w.ccLimit)||0;
           const ccDebt=Math.max(0,-(w.balance||0));
-          const ccAvail=Math.max(0,ccLimit-ccDebt);
+          const ccAvail=Math.max(0,ccLimit-ccDebt-App.Money.pendingInstallmentsTotal(w.id));
           const ccUsedPerc=ccLimit>0?Math.min(100,(ccDebt/ccLimit)*100):0;
           const today=new Date().getDate();
           // CC due date urgency
@@ -6311,7 +6455,7 @@ const App = {
         this._lastDetailCardId=cardId;
         const ccDebt=Math.max(0,-(cc.balance||0));
         const ccLimit=parseFloat(cc.ccLimit)||0;
-        const ccAvail=Math.max(0,ccLimit-ccDebt);
+        const ccAvail=Math.max(0,ccLimit-ccDebt-App.Money.pendingInstallmentsTotal(cardId));
         const ccUsedPerc=ccLimit>0?Math.min(100,(ccDebt/ccLimit)*100):0;
         const today=new Date().getDate();
         const dueDay=parseInt(cc.ccDueDay)||0;
@@ -6387,7 +6531,105 @@ const App = {
           if(payBtn)payBtn.style.display='none';
           if(paidBadge)paidBadge.style.display='none';
         }
+        this.renderInstallmentsList(cardId);
         UI.Modals.open('modalCardDetail');
+      },
+      // ── TAKSİTLENDİRME ────────────────────────────────────────────
+      renderInstallmentsList(cardId){
+        const container=document.getElementById('cardDetailInstallmentsList');
+        if(!container)return;
+        const mcIns=App.Money.mainCur();
+        const list=(Core.state.installments||[]).filter(i=>i&&i.wallet===cardId&&i.active&&i.paidCount<i.installmentCount);
+        if(!list.length){
+          container.innerHTML=`<div class="text-center color-muted text-caption" style="padding:10px 0">${t('noInstallments')}</div>`;
+          return;
+        }
+        container.innerHTML=list.map(inst=>{
+          const perMonth=inst.totalAmount/inst.installmentCount;
+          const remaining=inst.installmentCount-inst.paidCount;
+          const remAmt=perMonth*remaining;
+          const cur=inst.currency||mcIns;
+          return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+            <div style="flex:1;min-width:0">
+              <div class="font-bold" style="font-size:13px">${inst.name}</div>
+              <div class="text-caption color-muted" style="margin-top:2px">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
+            </div>
+            <button class="act-btn danger" onclick="App.Controllers.Wallets.deleteInstallment('${inst.id}')" title="${t('deleteBtn')||'Sil'}"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
+          </div>`;
+        }).join('');
+      },
+      openAddInstallment(){
+        const cardId=this._lastDetailCardId;
+        if(!cardId)return;
+        const cc=Core.state.wallets.find(x=>x.id===cardId);
+        if(!cc)return;
+        document.getElementById('inst_wallet_id').value=cardId;
+        const curLbl=document.getElementById('inst_wallet_cur');
+        if(curLbl)curLbl.textContent=cc.currency||App.Money.mainCur();
+        document.getElementById('inst_name').value='';
+        document.getElementById('inst_total').value='';
+        document.getElementById('inst_count').value='';
+        document.getElementById('inst_day').value=cc.ccCutoffDay||1;
+        const catSel=document.getElementById('inst_cat');
+        if(catSel)catSel.value='Diğer';
+        UI.Modals.close('modalCardDetail');
+        UI.Modals.open('modalAddInstallment');
+      },
+      closeAddInstallment(){
+        UI.Modals.close('modalAddInstallment');
+        const cardId=this._lastDetailCardId;
+        if(cardId)this.openCardDetail(cardId);
+      },
+      saveInstallment(){
+        const walletId=document.getElementById('inst_wallet_id').value;
+        const cc=Core.state.wallets.find(x=>x.id===walletId);
+        if(!cc){UI.Toasts.show(t('msgAccReq')||t('msgAccFirst'),'error');return;}
+        const name=document.getElementById('inst_name').value.trim();
+        const total=parseFloat(document.getElementById('inst_total').value);
+        const count=parseInt(document.getElementById('inst_count').value);
+        const day=parseInt(document.getElementById('inst_day').value)||1;
+        const catSel=document.getElementById('inst_cat');
+        const cat=(catSel&&catSel.value)||'Diğer';
+        if(!name){UI.Toasts.show(t('msgNameReq')||t('msgAmountReq'),'error');return;}
+        if(!total||isNaN(total)||total<=0){UI.Toasts.show(t('msgAmountReq'),'error');return;}
+        if(!count||isNaN(count)||count<2||count>36){UI.Toasts.show(t('msgInstallmentCountInvalid'),'error');return;}
+        const inst={
+          id:Core.Utils.generateId(),
+          name,
+          wallet:walletId,
+          totalAmount:total,
+          currency:cc.currency||App.Money.mainCur(),
+          installmentCount:count,
+          day:Math.min(28,Math.max(1,day)),
+          cat,
+          paidCount:0,
+          active:true,
+          linkedTxIds:[],
+          createdAt:Date.now(),
+          _updatedAt:Date.now(),
+        };
+        if(!Array.isArray(Core.state.installments))Core.state.installments=[];
+        Core.state.installments.push(inst);
+        Core.DB.saveNow();
+        UI.Modals.close('modalAddInstallment');
+        UI.Toasts.show(t('msgInstallmentAdded'));
+        this.openCardDetail(walletId);
+        this.render();
+        App.Controllers.Dashboard.render();
+      },
+      deleteInstallment(instId){
+        UI.Confirm.show(t('confDelInstallment'),()=>{
+          const inst=(Core.state.installments||[]).find(x=>x.id===instId);
+          if(!inst)return;
+          Core.state._tombstones=Core.state._tombstones||{};
+          Core.state._tombstones[instId]=Date.now();
+          Core.state.installments=Core.state.installments.filter(x=>x.id!==instId);
+          Core.DB.saveNow();
+          UI.Toasts.show(t('msgInstallmentDeleted'));
+          if(this._lastDetailCardId)this.openCardDetail(this._lastDetailCardId);
+          this.render();
+          App.Controllers.Dashboard.render();
+        });
       },
       openCardPayment(cardWalletId){
         const cc=Core.state.wallets.find(x=>x.id===cardWalletId);
@@ -7596,7 +7838,7 @@ const App = {
             const remainingInOrigCur=App.ExchangeRate.convert(i.amount,mc4,i.currency);
             origStr=`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">(${Core.Utils.formatMoney(remainingInOrigCur,i.currency)} / ${Core.Utils.formatMoney(i.originalAmount,i.currency)})</div>`;
           }
-          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
+          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}',true)" data-i18n-title="fullPay" title="${t('fullPay')}"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-check"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
         const d=Core.state.debts.filter(x=>x.dir==='borç'),rec=Core.state.debts.filter(x=>x.dir==='alacak');
         document.getElementById('debtsContainer').innerHTML=d.length?d.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noDebtRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('borç')">${t('addDebt')}</button></div>`;
         document.getElementById('receivablesContainer').innerHTML=rec.length?rec.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noReceivableRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('alacak')">${t('addReceivable')}</button></div>`;
@@ -7658,10 +7900,10 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       _onActionWalletChange(){
         const wId=document.getElementById('debt_action_wallet')?.value;
         const w=(wId&&wId!=='none')?Core.state.wallets.find(x=>x.id===wId):null;
-        if(!this._userPickedCur)App.CurrencySelect.fill('debt_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
+        if(!this._userPickedCur&&!Core.temp.debtFullPay)App.CurrencySelect.fill('debt_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('debt');
       },
-      prepAction(id){Core.temp.debtId=id;this._userPickedCur=false;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('debt_action_amount').value='';App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
+      prepAction(id,fullPay){Core.temp.debtId=id;Core.temp.debtFullPay=!!fullPay;this._userPickedCur=false;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');const amtEl=document.getElementById('debt_action_amount');const curEl=document.getElementById('debt_action_cur');App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());if(fullPay){amtEl.value=Math.round(d.amount*100)/100;amtEl.readOnly=true;if(curEl)curEl.disabled=true;}else{amtEl.value='';amtEl.readOnly=false;if(curEl)curEl.disabled=false;}App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
       executeAction(){
         const a=parseFloat(document.getElementById('debt_action_amount').value);
         const wId=document.getElementById('debt_action_wallet').value;
@@ -8118,7 +8360,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
 
       _syncColLabel(col){
-        const map = { wallets:'wallets', transactions:'transactions', recurring:'recurring', goals:'goals', debts:'debts', categories:'categories', budgets:'catBudgets' };
+        const map = { wallets:'wallets', transactions:'transactions', recurring:'recurring', goals:'goals', debts:'debts', categories:'categories', budgets:'catBudgets', installments:'installments' };
         return t(map[col] || col);
       },
 
