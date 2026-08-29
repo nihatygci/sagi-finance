@@ -4192,6 +4192,88 @@ const UI = {
         c._sagiOutsideTouchBound=true;
         document.addEventListener('touchstart',function hideOnOutside(e){ const tt=c.querySelector('#'+id+'_tooltip'); if(!c.contains(e.target)&&tt) tt.style.display='none'; },{passive:true});
       }
+    },
+    // Tek serili bar grafik — drawBarChart'ın gelir/gider'e SABİT ikili yapısına
+    // dokunmadan (o kod hiç değişmedi, mevcut trend grafiği risksiz kalıyor),
+    // aynı boyutlandırma/grid/tooltip desenini tekrar kullanan genel amaçlı bir
+    // tek-seri çizici. data: [{label, value}], opts: {color, seriesLabel}.
+    drawSingleBarChart(id,data,opts){
+      opts=opts||{};
+      const c=document.getElementById(id);if(!c)return;
+      c._sagiLastDataSingle=data; c._sagiLastOptsSingle=opts;
+      if(!c._sagiROSingle){
+        let rTimer=null;
+        const ro=new ResizeObserver(()=>{
+          clearTimeout(rTimer);
+          rTimer=setTimeout(()=>{ if(c._sagiLastDataSingle) this.drawSingleBarChart(id,c._sagiLastDataSingle,c._sagiLastOptsSingle); },120);
+        });
+        ro.observe(c.parentElement||c);
+        c._sagiROSingle=ro;
+      }
+      if(!data||!data.length){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">'+t('noData')+'</div>';return;}
+      const maxVal=Math.max(...data.map(d=>d.value),1);
+      const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+      const BAR_COLOR=opts.color||getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim()||'#16181d';
+      const MUTED=isDark?'#9ca3af':'#9ca3af';
+      const GRID=isDark?'rgba(255,255,255,.10)':'#e5e7eb';
+      const measuredW=Math.round((c.parentElement||c).getBoundingClientRect().width);
+      const W=measuredW>0?measuredW:360, H=180, PAD_T=15, PAD_B=29, CHART_H=H-PAD_B-PAD_T;
+      const n=data.length;
+      const MAX_SLOT=70;
+      const effW=Math.min(W,n*MAX_SLOT);
+      const xOffset=(W-effW)/2;
+      const slotW=effW/n;
+      const barW=Math.min(slotW*0.5,34);
+      const fmtShort=v=>{
+        const av=Math.abs(v);
+        const s=av>=1000000?(v/1000000).toFixed(1)+'M':av>=1000?(v/1000).toFixed(0)+'K':v.toFixed(0);
+        return s;
+      };
+      let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">`;
+      [0.33,0.66,1].forEach(f=>{
+        const y=H-PAD_B-CHART_H*f;
+        svg+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${GRID}" stroke-width="1" stroke-dasharray="4,3"/>`;
+        svg+=`<text x="4" y="${y-3}" fill="${MUTED}" font-size="8" font-weight="600">${fmtShort(maxVal*f)}</text>`;
+      });
+      data.forEach((d,i)=>{
+        const cx=xOffset+i*slotW+slotW/2;
+        const h=Math.max(2,(d.value/maxVal)*CHART_H);
+        const baseY=H-PAD_B;
+        svg+=`<g class="sagi-bar-slot-single" data-val="${Core.Utils.formatMoney(d.value)}" data-label="${d.label}" style="cursor:pointer">`;
+        svg+=`<rect x="${cx-slotW/2}" y="${PAD_T}" width="${slotW}" height="${CHART_H}" fill="transparent"/>`;
+        svg+=`<rect x="${cx-barW/2}" y="${baseY-h}" width="${barW}" height="${h}" fill="${BAR_COLOR}" rx="4" opacity="0.9"/>`;
+        svg+=`</g>`;
+        svg+=`<text x="${cx}" y="${H-6}" fill="${MUTED}" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.02em">${d.label}</text>`;
+      });
+      svg+='</svg>';
+      const legendHtml=opts.seriesLabel?`<div style="display:flex;gap:14px;justify-content:center;margin-bottom:6px;font-size:11px;font-weight:600;color:var(--text-muted)">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:${BAR_COLOR};display:inline-block"></span>${opts.seriesLabel}</span>
+      </div>`:'';
+      const tooltipHtml=`<div id="${id}_tooltip" style="display:none;position:absolute;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:8px;padding:8px 10px;font-size:11px;box-shadow:var(--shadow-md);pointer-events:none;z-index:5;white-space:nowrap"></div>`;
+      c.style.position='relative';
+      c.innerHTML=legendHtml+svg+tooltipHtml;
+      const tooltip=c.querySelector('#'+id+'_tooltip');
+      c.querySelectorAll('.sagi-bar-slot-single').forEach(slot=>{
+        const show=(evt)=>{
+          if(!tooltip)return;
+          tooltip.innerHTML=`<div style="font-weight:700;margin-bottom:3px">${slot.dataset.label}</div>
+            <div style="color:${BAR_COLOR}">${opts.seriesLabel||''}: ${slot.dataset.val}</div>`;
+          tooltip.style.display='block';
+          const rect=c.getBoundingClientRect();
+          const evtX=(evt.touches?evt.touches[0].clientX:evt.clientX)-rect.left;
+          tooltip.style.left=Math.min(Math.max(evtX-50,4),rect.width-150)+'px';
+          tooltip.style.top='4px';
+        };
+        const hide=()=>{ if(tooltip) tooltip.style.display='none'; };
+        slot.addEventListener('mouseenter',show);
+        slot.addEventListener('mousemove',show);
+        slot.addEventListener('mouseleave',hide);
+        slot.addEventListener('touchstart',(e)=>{show(e);},{passive:true});
+      });
+      if(!c._sagiOutsideTouchBoundSingle){
+        c._sagiOutsideTouchBoundSingle=true;
+        document.addEventListener('touchstart',function hideOnOutside(e){ const tt=c.querySelector('#'+id+'_tooltip'); if(!c.contains(e.target)&&tt) tt.style.display='none'; },{passive:true});
+      }
     }
   },
   toggleSelect(dropId,btnId){
