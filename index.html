@@ -2516,6 +2516,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="form-group" id="txInstallmentCountWrap" style="display:none">
           <label class="form-label" data-i18n="instCountLabel">Taksit Sayısı</label>
           <input type="number" min="2" max="36" class="form-control" id="tx_installment_count" placeholder="12">
+          <div class="text-caption color-muted mt-2" id="tx_installment_day_hint"></div>
         </div>
         <input type="hidden" id="tx_installment_on" value="0">
         <div class="toggle-row" id="keepOpenRow" onclick="UI.toggleCustomCheck('keepOpenRow','tx_keep_open')">
@@ -3114,10 +3115,12 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <input type="number" min="2" max="36" class="form-control" id="inst_count" placeholder="12">
         </div>
         <div class="form-group" style="flex:1">
-          <label class="form-label" data-i18n="instDayLabel">Ödeme Günü</label>
-          <input type="number" min="1" max="28" class="form-control" id="inst_day" value="1">
+          <label class="form-label" data-i18n="instDayLabel">Hesap Kesim Günü</label>
+          <div class="form-control" id="inst_day_display" style="display:flex;align-items:center;color:var(--text-muted);background:var(--bg-body)">1</div>
+          <input type="hidden" id="inst_day" value="1">
         </div>
       </div>
+      <div class="text-caption color-muted mb-2" style="margin-top:-6px" data-i18n="instDayHint">Taksitler kartın hesap kesim tarihinde işlenir, bu tarih Kart Bilgileri'nden değiştirilebilir.</div>
       <div class="form-group mb-0">
         <label class="form-label" data-i18n="category">Kategori</label>
         <div class="picker-btn" id="instCatBtn" onclick="UI.CatPicker.open('inst_cat','instCatBtn')">
@@ -6674,6 +6677,27 @@ const App = {
         UI.Modals.open('modalCardDetail');
       },
       // ── TAKSİTLENDİRME ────────────────────────────────────────────
+      // Bir taksitin SIRADAKİ kesim tarihini hesaplar. Gerçek Türkiye banka
+      // mantığı: her "hesap kesim günü" geldiğinde o döneme ait taksit
+      // ekstreye yansır. Bu ay için zaten bir tahsilat yapılmışsa (tx-scan
+      // ile kontrol — processInstallments() ile AYNI kontrol) sıradaki
+      // kesim gelecek aya kayar; henüz yapılmadıysa bu ayın kesim günü
+      // gösterilir (gün geçmiş olsa bile — bir sonraki processInstallments
+      // çalışmasında işlenecek olan budur).
+      _nextInstallmentChargeDate(inst){
+        const now=new Date();
+        const day=Math.min(28,Math.max(1,inst.day||1));
+        const monthStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+        const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59,999).getTime();
+        const chargedThisMonth=Core.state.transactions.some(tx=>{
+          if(!tx||tx.linkedInstallmentId!==inst.id)return false;
+          const tm=new Date(tx.date).getTime();
+          return tm>=monthStart&&tm<=monthEnd;
+        });
+        return chargedThisMonth
+          ? new Date(now.getFullYear(),now.getMonth()+1,day)
+          : new Date(now.getFullYear(),now.getMonth(),day);
+      },
       renderInstallmentsList(cardId){
         const container=document.getElementById('cardDetailInstallmentsList');
         if(!container)return;
@@ -6688,10 +6712,13 @@ const App = {
           const remaining=inst.installmentCount-inst.paidCount;
           const remAmt=perMonth*remaining;
           const cur=inst.currency||mcIns;
+          const nextDate=this._nextInstallmentChargeDate(inst);
+          const nextLabel=`${t('installmentNextChargePrefix')} ${Core.Utils.formatDate(nextDate)}`;
           return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
             <div style="flex:1;min-width:0">
               <div class="font-bold" style="font-size:13px">${inst.name}</div>
               <div class="text-caption color-muted" style="margin-top:2px">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
+              <div class="text-caption color-muted" style="margin-top:1px">${nextLabel}</div>
             </div>
             <button class="act-btn danger" onclick="App.Controllers.Wallets.deleteInstallment('${inst.id}')" title="${t('deleteBtn')||'Sil'}"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
           </div>`;
@@ -6708,7 +6735,10 @@ const App = {
         document.getElementById('inst_name').value='';
         document.getElementById('inst_total').value='';
         document.getElementById('inst_count').value='';
-        document.getElementById('inst_day').value=cc.ccCutoffDay||1;
+        const cutoffDay=Math.min(28,Math.max(1,parseInt(cc.ccCutoffDay)||1));
+        document.getElementById('inst_day').value=cutoffDay;
+        const dayDisplay=document.getElementById('inst_day_display');
+        if(dayDisplay)dayDisplay.textContent=cutoffDay;
         const catSel=document.getElementById('inst_cat');
         if(catSel)catSel.value='Diğer';
         UI.Modals.close('modalCardDetail');
@@ -6941,6 +6971,13 @@ const App = {
         const isEdit=!!document.getElementById('tx_id').value;
         const show=!isEdit&&type==='expense'&&w&&w.type==='Kredi Kartı';
         row.style.display=show?'flex':'none';
+        if(show){
+          const hintEl=document.getElementById('tx_installment_day_hint');
+          if(hintEl){
+            const cutoffDay=Math.min(28,Math.max(1,parseInt(w.ccCutoffDay)||1));
+            hintEl.textContent=`${t('instDayHintPrefix')} ${cutoffDay}`;
+          }
+        }
         if(!show){
           // Görünürlük kapandığında (hesap değişti, gelire geçildi, düzenleme
           // modundaysa vb.) taksit durumunu da sıfırla — yarım kalmış bir
