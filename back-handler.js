@@ -1,95 +1,97 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║           SAGI Finance — Mobile Back Handler v1.4               ║
+ * ║           SAGI Finance — Mobile Back Handler v2.0                ║
  * ║                                                                  ║
- * ║  Mobil tarayıcı/PWA geri tuşu (popstate) VE web'de ESC tuşu     ║
- * ║  davranışını uygulama mantığına entegre eder. History API       ║
- * ║  üzerinden her UI katmanı için ayrı geri adımı yönetir.         ║
+ * ║  SADECE küçük ekranlar / modaller için: fiziksel geri tuşu       ║
+ * ║  (popstate) ve web'de ESC tuşu, o an açık olan EN ÜST katmanı    ║
+ * ║  kapatır. Sayfa/route geçişleri bu dosyanın kapsamı DIŞINDA —    ║
+ * ║  hiçbirine karışmıyor, hiçbirini yönetmiyor.                     ║
  * ║                                                                  ║
- * ║  Öncelik sırası (en yüksekten en düşüğe):                       ║
- * ║    1. Açık modal / SAGI Chat / Plus onboarding overlay → kapat  ║
- * ║    2. Açık sidebar → sidebar'ı kapat                            ║
- * ║    3. Ayarlar alt sayfası açık → ayarlar menüsüne dön          ║
- * ║    4. Ana route dışı → önceki route'a git                       ║
- * ║    5. Ana sayfa (dashboard) → mobilde "Çıkmak için tekrar       ║
- * ║       basın" toast'ı; masaüstü web'de (ESC) no-op                ║
+ * ║  Öncelik sırası (en yüksekten en düşüğe):                        ║
+ * ║    1. Açık modal / SAGI Chat / Plus onboarding overlay → kapat   ║
+ * ║    2. Açık Hızlı İşlem paneli → kapat                            ║
+ * ║    3. Açık sidebar → kapat                                       ║
+ * ║    4. Açık ayarlar alt sayfası → ayarlar menüsüne dön            ║
+ * ║    Hiçbiri açık değilse: HİÇBİR ŞEY YAPMA. Fiziksel geri tuşu/    ║
+ * ║    ESC normal tarayıcı/TWA davranışına bırakılır.                ║
  * ║                                                                  ║
- * ║  ÖNEMLİ — v1.4: ASIL BUG BULUNDU VE DÜZELTİLDİ.                  ║
- * ║   handleBack() içindeki TÜM setTimeout(pushSentinel,...)         ║
- * ║   çağrıları kaldırıldı. Gecikmeli/kullanıcı jesti taşımayan      ║
- * ║   history.pushState() çağrıları, Chrome'un spam-koruması        ║
- * ║   tarafından algılanıp sayfanın TÜM hash/history navigasyonunu   ║
- * ║   (uygulamanın kendi route geçişleri dahil) sessizce kısıtlamasına║
- * ║   yol açıyordu — "sayfalar arası hiç geçemiyorum" bug'ının GERÇEK ║
- * ║   sebebi buydu (MutationObserver değil). pushSentinel() artık    ║
- * ║   HER ZAMAN senkron, trusted event akışı içinde çağrılıyor.      ║
- * ║                                                                  ║
- * ║  v1.3 mimari değişikliği (hâlâ geçerli):                         ║
- * ║   MutationObserver tabanlı otomatik açılış tespiti TAMAMEN       ║
- * ║   KALDIRILDI (animasyon-yoğun bu uygulamada Chrome'un history    ║
- * ║   throttle korumasını tetikleyip "sayfalar arası geçiş           ║
- * ║   yapamıyorum" bug'ına yol açıyordu). Bunun yerine index.html/   ║
- * ║   plus.js'teki GERÇEK açılış noktaları artık doğrudan            ║
- * ║   window.SAGIBackHandler.pushSentinel() çağırıyor:               ║
- * ║     - UI.Modals.open(id)                                        ║
- * ║     - sidebar toggle (mobileMenuBtn click handler)               ║
- * ║     - Settings._openSectionDirect(section)                      ║
- * ║     - plus.js: SAGIChat.open()                                  ║
- * ║     - plus.js: PlusOnboarding show() (#sagiObOverlay)            ║
- * ║   Bu dosya artık DOM'u hiç gözlemlemiyor — SIFIR ek maliyet.     ║
- * ║                                                                  ║
- * ║  v1.2'den kalan diğer düzeltmeler:                               ║
- * ║   - onPopState artık _sentinelActive'i kontrol ediyor (eski      ║
- * ║     e.state.sagiBackSentinel kontrolü normal hash navigasyonları ║
- * ║     araya girince neredeyse hiç true olmuyordu — ana bug)        ║
- * ║   - ESC tuşu için doğrudan handleBack() çağrısı eklendi          ║
+ * ║  v2.0 — KAPSAM DARALTILDI + İKİ DİNLEYİCİ ÇAKIŞMASI DÜZELTİLDİ:  ║
+ * ║   1) "Sayfa geçişi" ile ilgili HER ŞEY kaldırıldı: dashboard'a   ║
+ * ║      otomatik dönüş, "çıkmak için tekrar bas" toast'ı, route     ║
+ * ║      takibi (isOnDashboard/getCurrentRoute). Bunlar, uygulamanın ║
+ * ║      kendi hash-tabanlı navigasyonuyla history.pushState()       ║
+ * ║      üzerinden çakışıp "sayfalar arası geçemiyorum" bug'ına yol  ║
+ * ║      açıyordu. Artık bu dosya route'lara HİÇ dokunmuyor.         ║
+ * ║   2) index.html'in sonunda bu dosyadan TAMAMEN BAĞIMSIZ, kendi   ║
+ * ║      ESC dinleyicisi (document.addEventListener('keydown',...))  ║
+ * ║      bulundu ve kaldırıldı. İKİ dinleyici aynı anda kayıtlıydı — ║
+ * ║      bu ciddi bir güvenlik hatasına yol açıyordu: inline         ║
+ * ║      dinleyicide "modalKeyNotFound ESC ile ASLA kapanmaz" kuralı ║
+ * ║      vardı ama back-handler.js'in KENDİ mantığında bu istisna    ║
+ * ║      hiç yoktu — yani inline dinleyici doğru şekilde "hiçbir şey ║
+ * ║      yapma" deyip dursa bile, back-handler.js'in dinleyicisi AYNI║
+ * ║      ESC basışında bağımsız çalışıp modalKeyNotFound'u YİNE DE   ║
+ * ║      kapatıyordu (session güvenliği bypass riski). Bu istisna    ║
+ * ║      artık TEK yerde (burada) uygulanıyor.                       ║
+ * ║      Ayrıca o inline dinleyicinin kendisi de 2 noktada BOZUKTU:  ║
+ * ║      yanlış sidebar ID'si (#appSidebar — gerçek ID #sidebar) ve  ║
+ * ║      yanlış Hızlı İşlem paneli class'ı (.active — gerçek .open)  ║
+ * ║      kontrol ediyordu, o dallar hiçbir zaman çalışmıyordu.       ║
+ * ║   3) Hızlı İşlem paneli (#quickActionsPanel) artık bu dosyanın   ║
+ * ║      bildiği katmanlardan biri (doğru .open class'ıyla).         ║
+ * ║   4) MutationObserver YOK — bir önceki sürümde kaldırılmıştı,    ║
+ * ║      öyle kalıyor. index.html/plus.js'teki gerçek açılış         ║
+ * ║      noktaları (UI.Modals.open, sidebar toggle,                  ║
+ * ║      Settings._openSectionDirect, SAGIChat.open, PlusOnboarding  ║
+ * ║      show) doğrudan pushSentinel() çağırıyor — bu dosya hiçbir   ║
+ * ║      DOM'u gözlemlemiyor, sıfır ek maliyet.                      ║
+ * ║   5) pushSentinel() HER ZAMAN senkron çağrılıyor (setTimeout      ║
+ * ║      İÇİNDEN DEĞİL) — gecikmeli/jestsiz pushState çağrıları       ║
+ * ║      tarayıcının history throttle korumasını tetikleyip TÜM      ║
+ * ║      hash navigasyonunu bozabiliyordu, bu yüzden bu kural kesin.  ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
 (function () {
   'use strict';
 
-  const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-    window.matchMedia('(max-width: 1023px)').matches;
+  // ─── Yardımcı fonksiyonlar — her biri TEK bir "küçük ekran/modal" katmanı ─
 
-  // ─── Durum ───────────────────────────────────────────────────────
-  const State = {
-    exitPending: false,
-    exitTimer: null,
-    _exitToastEl: null,
-  };
-
-  // ─── Yardımcı fonksiyonlar ────────────────────────────────────────
-
-  function getOpenModal() {
-    return document.querySelector('.modal-overlay.active');
-  }
-
-  // KRİTİK EKLEME: plus.js'teki SAGI Chat paneli (#sagiChatPanel, 'active'
-  // DEĞİL 'open' class'ıyla açılıyor) ve Plus onboarding overlay'i
-  // (#sagiObOverlay, class toggle değil — açılışta document.body'ye
-  // eklenip kapanışta .remove() ile tamamen kaldırılıyor) .modal-overlay
-  // class'ını KULLANMIYOR, bu yüzden getOpenModal() bunları hiç görmüyordu.
-  // Geri/ESC bu ikisinde çalışmıyordu. getOpenOverlay() üçünü de tek yerden
-  // önceliklendiriyor.
   function getOpenOverlay() {
-    const modal = getOpenModal();
+    const modal = document.querySelector('.modal-overlay.active');
     if (modal) return { kind: 'modal', el: modal };
 
+    // SAGI Chat paneli 'active' DEĞİL 'open' class'ıyla açılıyor.
     const chatPanel = document.getElementById('sagiChatPanel');
     if (chatPanel && chatPanel.classList.contains('open')) {
       return { kind: 'sagiChat', el: chatPanel };
     }
 
+    // Plus onboarding overlay class toggle değil — açılışta DOM'a eklenip
+    // kapanışta .remove() ile tamamen kaldırılıyor. Varlığının kendisi "açık" demek.
     const obOverlay = document.getElementById('sagiObOverlay');
     if (obOverlay) return { kind: 'sagiOb', el: obOverlay };
 
     return null;
   }
 
+  function isQuickActionsOpen() {
+    const qa = document.getElementById('quickActionsPanel');
+    return !!(qa && qa.classList.contains('open'));
+  }
+
+  function closeQuickActions() {
+    if (window.App && App.Controllers && App.Controllers.QuickActions && App.Controllers.QuickActions.close) {
+      App.Controllers.QuickActions.close();
+    } else {
+      const qa = document.getElementById('quickActionsPanel');
+      if (qa) qa.classList.remove('open');
+    }
+  }
+
   function isSidebarOpen() {
     const sb = document.getElementById('sidebar');
-    return sb && sb.classList.contains('active');
+    return !!(sb && sb.classList.contains('active'));
   }
 
   function closeSidebar() {
@@ -100,97 +102,12 @@
   }
 
   function isSettingsDetailOpen() {
-    const hash = window.location.hash;
-    if (!hash.includes('/settings')) return false;
     return !!document.querySelector('.settings-detail-panel.active');
   }
 
-  function getCurrentRoute() {
-    const hash = window.location.hash.replace('#', '').replace(/^\/+$/, '');
-    return hash || '/dashboard';
-  }
-
-  function isOnDashboard() {
-    const hash = window.location.hash;
-    if (!hash || hash === '#' || hash === '#/' || hash === '#/dashboard') return true;
-    return false;
-  }
-
-  // ─── Çıkış toast'u ────────────────────────────────────────────────
-
-  function showExitToast() {
-    if (State._exitToastEl && document.body.contains(State._exitToastEl)) return;
-
-    const toast = document.createElement('div');
-    toast.className = 'sagi-exit-toast';
-    toast.innerHTML = `
-      <svg style="width:18px;height:18px;flex-shrink:0" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16 17 21 12 16 7"/>
-        <line x1="21" y1="12" x2="9" y2="12"/>
-      </svg>
-      <span>Çıkmak için tekrar basın</span>
-    `;
-
-    Object.assign(toast.style, {
-      position: 'fixed',
-      bottom: '96px',
-      left: '50%',
-      transform: 'translateX(-50%) translateY(16px)',
-      zIndex: '9999',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      padding: '12px 20px',
-      background: 'var(--bg-surface)',
-      color: 'var(--text-main)',
-      border: '1px solid var(--border-light)',
-      borderRadius: '99px',
-      boxShadow: 'var(--shadow-floating)',
-      fontSize: '14px',
-      fontWeight: '600',
-      fontFamily: 'var(--font-sans)',
-      opacity: '0',
-      transition: 'opacity .25s, transform .28s cubic-bezier(.16,1,.3,1)',
-      pointerEvents: 'none',
-      whiteSpace: 'nowrap',
-    });
-
-    document.body.appendChild(toast);
-    State._exitToastEl = toast;
-
-    requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateX(-50%) translateY(0)';
-    });
-
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(-50%) translateY(16px)';
-      setTimeout(() => {
-        if (toast.parentNode) toast.remove();
-        if (State._exitToastEl === toast) State._exitToastEl = null;
-      }, 350);
-    }, 3500);
-  }
-
-  function hideExitToast() {
-    if (State._exitToastEl) {
-      State._exitToastEl.style.opacity = '0';
-      setTimeout(() => {
-        if (State._exitToastEl && State._exitToastEl.parentNode) {
-          State._exitToastEl.remove();
-        }
-        State._exitToastEl = null;
-      }, 300);
-    }
-  }
-
-  // ─── Geri tuşu ana mantığı ────────────────────────────────────────
+  // ─── Geri tuşu / ESC ana mantığı ────────────────────────────────────
 
   function handleBack() {
-
     // 1️⃣ Açık modal / SAGI Chat / Plus onboarding overlay var mı?
     const overlay = getOpenOverlay();
     if (overlay) {
@@ -202,6 +119,11 @@
         else overlay.el.remove();
       } else {
         const id = overlay.el.id;
+        // modalKeyNotFound ASLA geri/ESC ile kapanmaz — X yok, backdrop
+        // click yok, ESC de yok. Tek çıkış yolu "Çıkış Yap" butonu
+        // (handleKeyNotFoundSignOut). Aksi halde kullanıcı, key silinmiş
+        // ama session localStorage'da duran "hayalet" bir oturumda kalır.
+        if (id === 'modalKeyNotFound') return;
         if (id === 'modalCatPicker') {
           if (window.UI && UI.CatPicker) UI.CatPicker.close();
         } else if (id === 'modalImportChoice') {
@@ -217,14 +139,21 @@
       return;
     }
 
-    // 2️⃣ Sidebar açık mı?
+    // 2️⃣ Hızlı İşlem paneli açık mı?
+    if (isQuickActionsOpen()) {
+      closeQuickActions();
+      pushSentinel();
+      return;
+    }
+
+    // 3️⃣ Sidebar açık mı?
     if (isSidebarOpen()) {
       closeSidebar();
       pushSentinel();
       return;
     }
 
-    // 3️⃣ Ayarlar alt sayfası açık mı?
+    // 4️⃣ Ayarlar alt sayfası açık mı?
     if (isSettingsDetailOpen()) {
       if (window.App && App.Controllers && App.Controllers.Settings) {
         App.Controllers.Settings.closeSection();
@@ -233,127 +162,45 @@
       return;
     }
 
-    // 4️⃣ Dashboard dışı bir sayfadayız — dashboard'a dön
-    if (!isOnDashboard()) {
-      window.location.hash = '#/dashboard';
-      pushSentinel();
-      return;
-    }
-
-    // 5️⃣ Dashboard'dayız — çıkış onayı
-    // KRİTİK FIX: Bu adım (çift basışta gerçekten uygulamadan çıkma) sadece
-    // mobil/PWA/TWA'da anlamlı — masaüstü web'de ESC ile buraya düşüldüğünde
-    // "tekrar basarsan çıkarız" tarzı bir davranış olmamalı (tarayıcı
-    // sekmesini kapatmaya/geri gitmeye çalışmak kullanıcıyı şaşırtır).
-    // IS_MOBILE tanımlıydı ama hiç kullanılmıyordu — artık gerçek ayrımı
-    // burada yapıyor.
-    if (!IS_MOBILE) {
-      pushSentinel();
-      return;
-    }
-
-    if (State.exitPending) {
-      clearTimeout(State.exitTimer);
-      State.exitPending = false;
-      hideExitToast();
-      window.history.go(-1);
-      return;
-    }
-
-    State.exitPending = true;
-    showExitToast();
-    State.exitTimer = setTimeout(() => {
-      State.exitPending = false;
-      hideExitToast();
-    }, 3500);
-    // Sentinel'i yenile ki ikinci basış yakalanabilsin
-    pushSentinel();
+    // Hiçbir küçük-ekran/modal katmanı açık değil — bu dosyanın işi burada
+    // biter. Sayfa/route geçişlerine hiç karışmıyoruz; fiziksel geri tuşu
+    // veya ESC normal tarayıcı/TWA davranışına bırakılır.
   }
 
-  // ─── History API entegrasyonu ─────────────────────────────────────
+  // ─── History API entegrasyonu ───────────────────────────────────────
 
   let _sentinelActive = false;
 
   function pushSentinel() {
-    // KRİTİK FIX (v1.4) — ASIL BUG BUYDU: pushSentinel() eskiden handleBack()
-    // içinde setTimeout(pushSentinel, 100-280) ile GECİKMELİ çağrılıyordu
-    // (kapanış animasyonu bitsin diye). Ama bu, history.pushState() çağrısını
-    // orijinal kullanıcı jestinden (geri tuşu/ESC basışı — trusted event)
-    // KOPARIYOR: setTimeout callback'i artık "user activation" taşımıyor.
-    // Tarayıcılar (özellikle Chrome), kullanıcı jesti OLMADAN yapılan history
-    // manipülasyonlarını spam/kötüye kullanım sinyali sayıp bir noktadan
-    // sonra SESSİZCE (konsola hata düşürmeden) o sayfadaki TÜM history/hash
-    // navigasyonunu kısıtlıyor — uygulamanın kendi location.hash tabanlı
-    // route değişimleri de dahil. Sonuç: back-handler.js varken TÜM sayfa
-    // geçişleri bozuluyordu (tek tık çalışmıyor, art arda hızlı iki tık bazen
-    // çalışıyordu), dosya kaldırılınca sorunsuzdu — çünkü sorunun kaynağı bu
-    // gecikmeli/jestsiz pushState çağrılarıydı.
-    //
-    // Çözüm: pushSentinel() artık HER YERDE senkron çağrılıyor — ya doğrudan
-    // trusted bir event handler'ın (popstate, click) içinde, ya da ondan
-    // senkron olarak zincirlenmiş bir çağrıda. Hiçbir yerde setTimeout
-    // içinden çağrılmıyor. Ayrıca zaten bir sentinel'in üzerindeysek
-    // (_sentinelActive true) tekrar push etmiyoruz — bir açık katman için
-    // tam olarak BİR sentinel yeterli, bu da toplam pushState çağrı sayısını
-    // ekstra azaltıyor.
+    // Zaten bir sentinel'in üzerindeysek tekrar push etmiyoruz — bir açık
+    // katman için tam olarak BİR sentinel yeterli ve doğrudur (birden fazla
+    // yığılırsa "bir basış = bir kapanış" garantisi bozulur). HER ZAMAN
+    // senkron çağrılır — setTimeout içinden ASLA (gecikmeli/jestsiz
+    // pushState çağrıları tarayıcının history throttle korumasını tetikleyip
+    // uygulamanın kendi route navigasyonunu bozabiliyordu).
     if (_sentinelActive) return;
     window.history.pushState({ sagiBackSentinel: true }, '', window.location.href);
     _sentinelActive = true;
   }
 
-  function onPopState(e) {
-    // KRİTİK FIX: history.pushState() sonrası geri tuşuna basılınca,
-    // popstate event'inin e.state'i GİDİLEN (bir önceki) entry'nin state'idir
-    // — az önce ATLADIĞIMIZ sentinel'in state'i DEĞİL. Yani location.hash ile
-    // yapılan her normal route değişimi (state=null) araya girdiğinde bu
-    // eski kontrol (e.state && e.state.sagiBackSentinel) her zaman false
-    // dönüyordu ve handleBack() neredeyse hiç çalışmıyordu — geri tuşu
-    // sessizce "hiçbir şey yapmamış" gibi görünüyordu. _sentinelActive zaten
-    // tam bunun için vardı ama hiç okunmuyordu; asıl sinyal bu olmalı: "az
-    // önce bizim bastırdığımız sentinel entry üzerindeydik ve şimdi bir
-    // popstate oldu" = kullanıcı gerçekten geri tuşuna bastı.
+  function onPopState() {
     if (_sentinelActive) {
       _sentinelActive = false;
-      // handleBack içindeki her dal kendi timing'iyle pushSentinel çağırıyor
       handleBack();
     }
   }
 
-  // ─── Route değişimi takibi ────────────────────────────────────────
-
+  // ─── Route değişiminde sidebar'ı otomatik kapat (güvenlik ağı) ─────
+  // Bu, "sayfa geçişi mantığı" değil — bir route değişse bile sidebar'ın
+  // açık takılı kalmaması için basit bir temizlik. Navigasyonun kendisine
+  // hiç karışmıyor, sadece reaksiyon veriyor.
   window.addEventListener('hashchange', () => {
-    if (State.exitPending) {
-      State.exitPending = false;
-      clearTimeout(State.exitTimer);
-      hideExitToast();
-    }
     if (isSidebarOpen()) closeSidebar();
   });
 
-  // ─── Modal / sidebar / ayarlar panel açılışını izle ────────────────
-  // KRİTİK MİMARİ DEĞİŞİKLİK: MutationObserver tabanlı otomatik tespit
-  // TAMAMEN KALDIRILDI. İki farklı MutationObserver denemesi (önce
-  // subtree:true+childList:true, sonra subtree:false ile "hafifletilmiş"
-  // hâli) bile animasyon-yoğun bu uygulamada (pill kayması, KPI pop-in,
-  // shine efektleri vs. — hepsi 'class' attribute değişimi) yeterince sık
-  // tetiklenip Chrome'un history/pushState throttle korumasını devreye
-  // sokuyordu; sonuç "sayfalar arası geçiş yapamıyorum" (hash navigasyonu
-  // sessizce, konsola hata düşmeden kısıtlanıyor) bug'ıydı.
-  //
-  // Artık DOM'u hiç gözlemlemiyoruz. Bunun yerine index.html/plus.js'teki
-  // GERÇEK açılış noktalarına (UI.Modals.open, sidebar toggle,
-  // Settings._openSectionDirect, SAGIChat.open, PlusOnboarding show)
-  // doğrudan `window.SAGIBackHandler.pushSentinel()` çağrısı eklendi.
-  // Bu, SADECE gerçekten bir şey açıldığında çalışır — hiçbir animasyon
-  // veya route render'ı bunu tetiklemez, MutationObserver'ın getirdiği
-  // performans riski bütünüyle ortadan kalkmış oldu.
-
-  // ─── ESC tuşu (web) ────────────────────────────────────────────────
-  // KRİTİK FIX: Dosyada ESC için HİÇ kod yoktu — sadece popstate (mobil/PWA
-  // donanım geri tuşu) dinleniyordu. ESC, tarayıcı history'sini tetiklemez,
-  // bu yüzden web'de bu sistem baştan beri devre dışıydı. ESC, history/
-  // sentinel mekanizmasından tamamen bağımsız olarak DOĞRUDAN handleBack()'i
-  // çağırır — history.pushState/popstate'e hiç ihtiyaç yok.
+  // ─── ESC tuşu (web) ──────────────────────────────────────────────────
+  // ESC tarayıcı history'sini tetiklemez, bu yüzden history/sentinel
+  // mekanizmasından tamamen bağımsız olarak DOĞRUDAN handleBack()'i çağırır.
   function onKeyDown(e) {
     if (e.key !== 'Escape' && e.key !== 'Esc') return;
     handleBack();
@@ -362,17 +209,14 @@
   function init() {
     window.addEventListener('popstate', onPopState);
     document.addEventListener('keydown', onKeyDown);
-
     pushSentinel();
-
-    console.log('[SAGI BackHandler] Başlatıldı. v1.3 (MutationObserver kaldırıldı — doğrudan hook mimarisi)');
+    console.log('[SAGI BackHandler] Başlatıldı. v2.0 (sadece modal/panel kapsamı)');
   }
 
-  // ─── Dışa aktar ───────────────────────────────────────────────────
+  // ─── Dışa aktar ──────────────────────────────────────────────────────
   window.SAGIBackHandler = {
     handleBack,
     pushSentinel,
-    getState: () => ({ ...State }),
   };
 
   init();

@@ -8456,6 +8456,14 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         const targetDetail = document.getElementById('settingsDetail-' + section);
         if(!targetDetail) return;
         this._activeSection = section;
+        // FIX: pushSentinel() burada, fonksiyonun tetiklendiği orijinal
+        // (senkron, kullanıcı jestine bağlı) noktada çağrılıyor — aşağıdaki
+        // setTimeout(...,200) callback'lerinin İÇİNDE DEĞİL. Gecikmeli/
+        // jestsiz pushState çağrıları tarayıcının history throttle
+        // korumasını tetikleyip route navigasyonunu bozabiliyordu (bkz.
+        // back-handler.js'teki aynı sınıf hatanın notu) — bu iki çağrı
+        // noktası da o kuralı ihlal ediyordu, şimdi tek ve senkron.
+        if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
         // Slide out menu (sadece menü görünüyorsa)
         if(menuPanel.style.display !== 'none'){
           menuPanel.classList.add('slide-out');
@@ -8464,7 +8472,6 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             menuPanel.classList.remove('slide-out');
             document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
             targetDetail.classList.add('active');
-            if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
             window.scrollTo(0, 0);
             if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
             if(section === 'cloud') this.renderCloudBox();
@@ -8474,7 +8481,6 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           // Zaten bir section açıkken başka section'a geçiş (settingsSlideIn ile)
           document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
           targetDetail.classList.add('active');
-          if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
           window.scrollTo(0, 0);
           if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
           if(section === 'cloud') this.renderCloudBox();
@@ -9609,6 +9615,7 @@ App.Controllers.QuickActions = {
     document.getElementById('quickActionsPanel')?.classList.add('open');
     document.getElementById('qaBackdrop')?.classList.add('open');
     document.getElementById('qaBnavFab')?.classList.add('open');
+    if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
   },
 
   close(){
@@ -10044,45 +10051,6 @@ App.Controllers.BottomBar = {
 };
 
 document.addEventListener('DOMContentLoaded',()=>App.init());
-// ESC ile modal/panel/settings kapama
-document.addEventListener('keydown', function(e) {
-  if (e.key !== 'Escape') return;
-
-  // 1. Açık modal varsa kapat
-  const openModal = document.querySelector('.modal-overlay.active');
-  if (openModal) {
-    // modalKeyNotFound KAPATILAMAZ — X yok, backdrop click yok, ESC de yok.
-    // Tek çıkış yolu "Çıkış Yap" butonu (handleKeyNotFoundSignOut). Aksi
-    // halde kullanıcı ESC ile modalı kapatıp "hayalet" bir oturumda
-    // (key silinmiş ama session localStorage'da duruyor) kalmaya devam eder.
-    if (openModal.id === 'modalKeyNotFound') return;
-    const closeBtn = openModal.querySelector('[onclick*="close"], [onclick*="Close"], [onclick*="cancel"], [onclick*="Cancel"]');
-    if (closeBtn) { closeBtn.click(); return; }
-    openModal.classList.remove('active');
-    return;
-  }
-
-  // 2. Quick Actions paneli açıksa kapat
-  const qa = document.getElementById('quickActionsPanel');
-  if (qa && qa.classList.contains('active')) {
-    App.Controllers.QuickActions.close();
-    return;
-  }
-
-  // 3. Ayarlar alt ekranı açıksa ana menüye dön
-  const activeDetail = document.querySelector('.settings-detail-panel.active');
-  if (activeDetail) {
-    App.Controllers.Settings.closeSection();
-    return;
-  }
-
-  // 4. Sidebar açıksa kapat (mobil)
-  const sidebar = document.getElementById('appSidebar');
-  if (sidebar && sidebar.classList.contains('open')) {
-    App.Controllers.Nav.closeSidebar();
-    return;
-  }
-});
 </script>
 <!-- QUICK ACTIONS PANEL -->
 <div class="qa-backdrop" id="qaBackdrop" onclick="App.Controllers.QuickActions.close()"></div>
