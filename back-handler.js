@@ -22,6 +22,9 @@
  * ║   - Modal/sidebar/ayarlar paneli tespiti tek, evrensel bir       ║
  * ║     MutationObserver'a taşındı (document.body, subtree:true) —   ║
  * ║     sonradan DOM'a eklenen modallar artık kaçmıyor                ║
+ * ║   - SAGI Chat paneli (#sagiChatPanel, 'open' class'ı) ve Plus     ║
+ * ║     onboarding overlay'i (#sagiObOverlay, class değil DOM         ║
+ * ║     ekleme/çıkarma ile açılıyor) artık geri/ESC kapsamında        ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
@@ -42,6 +45,28 @@
 
   function getOpenModal() {
     return document.querySelector('.modal-overlay.active');
+  }
+
+  // KRİTİK EKLEME: plus.js'teki SAGI Chat paneli (#sagiChatPanel, 'active'
+  // DEĞİL 'open' class'ıyla açılıyor) ve Plus onboarding overlay'i
+  // (#sagiObOverlay, class toggle değil — açılışta document.body'ye
+  // eklenip kapanışta .remove() ile tamamen kaldırılıyor) .modal-overlay
+  // class'ını KULLANMIYOR, bu yüzden getOpenModal() bunları hiç görmüyordu.
+  // Geri/ESC bu ikisinde çalışmıyordu. getOpenOverlay() üçünü de tek yerden
+  // önceliklendiriyor.
+  function getOpenOverlay() {
+    const modal = getOpenModal();
+    if (modal) return { kind: 'modal', el: modal };
+
+    const chatPanel = document.getElementById('sagiChatPanel');
+    if (chatPanel && chatPanel.classList.contains('open')) {
+      return { kind: 'sagiChat', el: chatPanel };
+    }
+
+    const obOverlay = document.getElementById('sagiObOverlay');
+    if (obOverlay) return { kind: 'sagiOb', el: obOverlay };
+
+    return null;
   }
 
   function isSidebarOpen() {
@@ -148,21 +173,29 @@
 
   function handleBack() {
 
-    // 1️⃣ Açık modal var mı?
-    const modal = getOpenModal();
-    if (modal) {
-      const id = modal.id;
-      if (id === 'modalCatPicker') {
-        if (window.UI && UI.CatPicker) UI.CatPicker.close();
-      } else if (id === 'modalImportChoice') {
-        if (window.App && App.Controllers && App.Controllers.Settings) {
-          App.Controllers.Settings._cancelImport();
-        }
+    // 1️⃣ Açık modal / SAGI Chat / Plus onboarding overlay var mı?
+    const overlay = getOpenOverlay();
+    if (overlay) {
+      if (overlay.kind === 'sagiChat') {
+        if (window.App && App.SAGIChat && App.SAGIChat.close) App.SAGIChat.close();
+        else overlay.el.classList.remove('open');
+      } else if (overlay.kind === 'sagiOb') {
+        if (window.App && App.PlusOnboarding && App.PlusOnboarding.hide) App.PlusOnboarding.hide();
+        else overlay.el.remove();
       } else {
-        if (window.UI && UI.Modals) UI.Modals.close(id);
-        else modal.classList.remove('active');
+        const id = overlay.el.id;
+        if (id === 'modalCatPicker') {
+          if (window.UI && UI.CatPicker) UI.CatPicker.close();
+        } else if (id === 'modalImportChoice') {
+          if (window.App && App.Controllers && App.Controllers.Settings) {
+            App.Controllers.Settings._cancelImport();
+          }
+        } else {
+          if (window.UI && UI.Modals) UI.Modals.close(id);
+          else overlay.el.classList.remove('active');
+        }
       }
-      // Modal closing animasyonu 230ms — bittikten sonra sentinel push et
+      // Modal/panel kapanış animasyonu ~230-350ms — bittikten sonra sentinel push et
       setTimeout(pushSentinel, 280);
       return;
     }
@@ -281,26 +314,42 @@
            el.classList.contains('settings-detail-panel');
   }
 
+  // SAGI Chat paneli 'active' değil 'open' class'ı kullanıyor — ayrı kontrol.
+  function isNowOpenTrapElement(el) {
+    if (!(el instanceof Element)) return false;
+    if (isTrackedTrapElement(el)) return el.classList.contains('active');
+    if (el.id === 'sagiChatPanel') return el.classList.contains('open');
+    return false;
+  }
+
+  // #sagiObOverlay class toggle değil, doğrudan DOM'a ekleme/çıkarma ile
+  // açılıp kapanıyor — varlığının kendisi "açık" demek.
+  function isStandaloneOverlayNode(el) {
+    return el instanceof Element && el.id === 'sagiObOverlay';
+  }
+
   function initUniversalTrapObserver() {
     const observer = new MutationObserver((mutations) => {
       for (const m of mutations) {
-        // Durum 1: izlenen bir eleman 'active' class'ı ALDI (var olan eleman)
+        // Durum 1: izlenen bir eleman aktif class'ını ALDI (var olan eleman)
         if (m.type === 'attributes' && m.attributeName === 'class') {
-          if (isTrackedTrapElement(m.target) && m.target.classList.contains('active')) {
+          if (isNowOpenTrapElement(m.target)) {
             pushSentinel();
             return;
           }
         }
-        // Durum 2: DOM'a YENİ eklenen bir modal doğrudan 'active' class'ıyla geldi
+        // Durum 2: DOM'a YENİ eklenen bir modal/overlay doğrudan açık geldi
         if (m.type === 'childList' && m.addedNodes && m.addedNodes.length) {
           for (const node of m.addedNodes) {
             if (node.nodeType !== 1) continue;
-            if (isTrackedTrapElement(node) && node.classList.contains('active')) {
+            if (isNowOpenTrapElement(node) || isStandaloneOverlayNode(node)) {
               pushSentinel();
               return;
             }
-            // Eklenen node'un içinde aktif bir modal/panel varsa (nested) onu da yakala
-            const nested = node.querySelector && node.querySelector('.modal-overlay.active, #sidebar.active, .settings-detail-panel.active');
+            // Eklenen node'un içinde aktif bir modal/panel/overlay varsa (nested) onu da yakala
+            const nested = node.querySelector && node.querySelector(
+              '.modal-overlay.active, #sidebar.active, .settings-detail-panel.active, #sagiChatPanel.open, #sagiObOverlay'
+            );
             if (nested) { pushSentinel(); return; }
           }
         }
