@@ -3963,6 +3963,11 @@ const UI = {
       if(!m)return;
       m.classList.remove('closing');
       m.classList.add('active');
+      // Geri tuşu/ESC tuzağı: MutationObserver YERİNE doğrudan çağrı —
+      // bkz. back-handler.js'teki "sayfalar arası geçiş yapamıyorum" notu.
+      // MutationObserver, animasyon kaynaklı class değişimlerini de
+      // yakalayıp Chrome'un history throttle korumasını tetikleyebiliyordu.
+      if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
     },
     close(id){
       const m=document.getElementById(id);
@@ -5053,7 +5058,11 @@ const App = {
       const mBtn=document.getElementById('mobileMenuBtn'),sb=document.getElementById('sidebar'),ov=document.getElementById('mobileOverlay');
       if(window.innerWidth>=1024){const spb=document.getElementById('sidePrivacyBtn');if(spb)spb.style.display='block';}
       if(mBtn&&sb&&ov){
-        mBtn.addEventListener('click',()=>{const a=sb.classList.contains('active');a?(sb.classList.remove('active'),ov.classList.remove('active')):(sb.classList.add('active'),ov.classList.add('active'));});
+        mBtn.addEventListener('click',()=>{
+          const a=sb.classList.contains('active');
+          if(a){ sb.classList.remove('active'); ov.classList.remove('active'); }
+          else { sb.classList.add('active'); ov.classList.add('active'); if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel(); }
+        });
         ov.addEventListener('click',()=>{sb.classList.remove('active');ov.classList.remove('active');});
         document.querySelectorAll('.nav-link').forEach(l=>l.addEventListener('click',()=>{if(window.innerWidth<1024){sb.classList.remove('active');ov.classList.remove('active');}}));
       }
@@ -8455,6 +8464,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             menuPanel.classList.remove('slide-out');
             document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
             targetDetail.classList.add('active');
+            if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
             window.scrollTo(0, 0);
             if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
             if(section === 'cloud') this.renderCloudBox();
@@ -8464,6 +8474,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           // Zaten bir section açıkken başka section'a geçiş (settingsSlideIn ile)
           document.querySelectorAll('.settings-detail-panel').forEach(p => p.classList.remove('active'));
           targetDetail.classList.add('active');
+          if(window.SAGIBackHandler) window.SAGIBackHandler.pushSentinel();
           window.scrollTo(0, 0);
           if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
           if(section === 'cloud') this.renderCloudBox();

@@ -1,30 +1,38 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║           SAGI Finance — Mobile Back Handler v1.2               ║
+ * ║           SAGI Finance — Mobile Back Handler v1.3               ║
  * ║                                                                  ║
  * ║  Mobil tarayıcı/PWA geri tuşu (popstate) VE web'de ESC tuşu     ║
  * ║  davranışını uygulama mantığına entegre eder. History API       ║
  * ║  üzerinden her UI katmanı için ayrı geri adımı yönetir.         ║
  * ║                                                                  ║
  * ║  Öncelik sırası (en yüksekten en düşüğe):                       ║
- * ║    1. Açık modal → modalı kapat                                 ║
+ * ║    1. Açık modal / SAGI Chat / Plus onboarding overlay → kapat  ║
  * ║    2. Açık sidebar → sidebar'ı kapat                            ║
  * ║    3. Ayarlar alt sayfası açık → ayarlar menüsüne dön          ║
  * ║    4. Ana route dışı → önceki route'a git                       ║
  * ║    5. Ana sayfa (dashboard) → mobilde "Çıkmak için tekrar       ║
  * ║       basın" toast'ı; masaüstü web'de (ESC) no-op                ║
  * ║                                                                  ║
- * ║  v1.2 değişiklikleri:                                            ║
+ * ║  ÖNEMLİ — v1.3 mimari değişikliği:                               ║
+ * ║   MutationObserver tabanlı otomatik açılış tespiti TAMAMEN       ║
+ * ║   KALDIRILDI (animasyon-yoğun bu uygulamada Chrome'un history    ║
+ * ║   throttle korumasını tetikleyip "sayfalar arası geçiş           ║
+ * ║   yapamıyorum" bug'ına yol açıyordu). Bunun yerine index.html/   ║
+ * ║   plus.js'teki GERÇEK açılış noktaları artık doğrudan            ║
+ * ║   window.SAGIBackHandler.pushSentinel() çağırıyor:               ║
+ * ║     - UI.Modals.open(id)                                        ║
+ * ║     - sidebar toggle (mobileMenuBtn click handler)               ║
+ * ║     - Settings._openSectionDirect(section)                      ║
+ * ║     - plus.js: SAGIChat.open()                                  ║
+ * ║     - plus.js: PlusOnboarding show() (#sagiObOverlay)            ║
+ * ║   Bu dosya artık DOM'u hiç gözlemlemiyor — SIFIR ek maliyet.     ║
+ * ║                                                                  ║
+ * ║  v1.2'den kalan diğer düzeltmeler:                               ║
  * ║   - onPopState artık _sentinelActive'i kontrol ediyor (eski      ║
  * ║     e.state.sagiBackSentinel kontrolü normal hash navigasyonları ║
  * ║     araya girince neredeyse hiç true olmuyordu — ana bug)        ║
  * ║   - ESC tuşu için doğrudan handleBack() çağrısı eklendi          ║
- * ║   - Modal/sidebar/ayarlar paneli tespiti tek, evrensel bir       ║
- * ║     MutationObserver'a taşındı (document.body, subtree:true) —   ║
- * ║     sonradan DOM'a eklenen modallar artık kaçmıyor                ║
- * ║   - SAGI Chat paneli (#sagiChatPanel, 'open' class'ı) ve Plus     ║
- * ║     onboarding overlay'i (#sagiObOverlay, class değil DOM         ║
- * ║     ekleme/çıkarma ile açılıyor) artık geri/ESC kapsamında        ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
@@ -315,97 +323,22 @@
   });
 
   // ─── Modal / sidebar / ayarlar panel açılışını izle ────────────────
-  // KRİTİK FIX: Eskiden 3 ayrı fonksiyon (patchSidebarToggle/patchModalOpen/
-  // patchSettingsDetail), SADECE kendi çağrıldığı ANDA DOM'da zaten var olan
-  // elemanlara MutationObserver takıyordu (querySelectorAll anlık bir liste
-  // döndürür, sonradan DOM'a eklenen elemanları KAPSAMAZ). Route değişiminde
-  // (routeChanged event'i) tekrar çağrılıyordu ama aynı route içinde
-  // sonradan dinamik oluşturulan bir modal (ör. bir buton tıklanınca
-  // innerHTML/appendChild ile eklenen modal) hiç izlenmiyordu — o modal
-  // açıldığında sentinel push edilmediği için geri tuşu/ESC o modalda hiç
-  // çalışmıyordu. "Bazı modallarda çalışıyor bazılarında çalışmıyor" hissi
-  // buradan geliyordu. Artık document.body üzerinde TEK bir observer var,
-  // subtree:true ile — hem sonradan eklenen elemanları hem de class
-  // değişikliklerini DOM'da nerede/ne zaman olursa olsun yakalıyor, ayrı
-  // patch fonksiyonlarına veya routeChanged'e bağımlı kalmıyor.
-  function isTrackedTrapElement(el) {
-    if (!(el instanceof Element)) return false;
-    return el.classList.contains('modal-overlay') ||
-           el.id === 'sidebar' ||
-           el.classList.contains('settings-detail-panel');
-  }
-
-  // SAGI Chat paneli 'active' değil 'open' class'ı kullanıyor — ayrı kontrol.
-  function isNowOpenTrapElement(el) {
-    if (!(el instanceof Element)) return false;
-    if (isTrackedTrapElement(el)) return el.classList.contains('active');
-    if (el.id === 'sagiChatPanel') return el.classList.contains('open');
-    return false;
-  }
-
-  // #sagiObOverlay class toggle değil, doğrudan DOM'a ekleme/çıkarma ile
-  // açılıp kapanıyor — varlığının kendisi "açık" demek.
-  function isStandaloneOverlayNode(el) {
-    return el instanceof Element && el.id === 'sagiObOverlay';
-  }
-
-  function initUniversalTrapObserver() {
-    const observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        // Durum 1: izlenen bir eleman aktif class'ını ALDI (var olan eleman)
-        if (m.type === 'attributes' && m.attributeName === 'class') {
-          if (isNowOpenTrapElement(m.target)) {
-            pushSentinel();
-            return;
-          }
-        }
-        // Durum 2: DOM'a YENİ eklenen bir modal/overlay doğrudan açık geldi
-        if (m.type === 'childList' && m.addedNodes && m.addedNodes.length) {
-          for (const node of m.addedNodes) {
-            if (node.nodeType !== 1) continue;
-            if (isNowOpenTrapElement(node) || isStandaloneOverlayNode(node)) {
-              pushSentinel();
-              return;
-            }
-            // NOT: Nested querySelector taraması buradan KALDIRILDI. Tüm
-            // dinamik overlay'ler (bkz. plus.js'teki appendChild çağrıları)
-            // doğrudan document.body'nin ÇOCUĞU olarak ekleniyor — hiçbiri
-            // başka bir konteynerin içine iç içe eklenmiyor. O yüzden bu
-            // node'un kendisini kontrol etmek yeterli, içini taramaya gerek
-            // yok (ki bu tarama zaten aşağıdaki asıl performans düzeltmesiyle
-            // artık pratikte hiç tetiklenmiyor olurdu).
-          }
-        }
-      }
-    });
-
-    // KRİTİK PERFORMANS FIX: Eskiden TEK bir observe() çağrısıyla hem
-    // attributes hem childList, subtree:true (yani document.body'nin
-    // ALTINDAKİ HER ŞEY) izleniyordu. childList+subtree:true, SPA'nın her
-    // route geçişinde/chart yeniden çiziminde/liste render'ında DOM'da olan
-    // YÜZLERCE değişikliği de yakalıyordu ve her birinde querySelector
-    // taraması çalıştırıyordu — bu da ana thread'i kilitleyip sayfa
-    // geçişlerini donduruyordu ("sayfalar arası geçiş yapamıyorum" bug'ı
-    // buydu). Çözüm: iki ayrı observe() çağrısı, farklı kapsamlarla —
-    // attributes hâlâ subtree:true (ucuz: sadece class değişince tetiklenir,
-    // attributeFilter ile zaten filtreli), childList ise subtree:FALSE
-    // (sadece document.body'nin DOĞRUDAN çocukları) çünkü kontrol ettik:
-    // plus.js'teki tüm dinamik overlay'ler (#sagiObOverlay dahil) zaten
-    // document.body.appendChild(...) ile doğrudan body'ye ekleniyor, hiçbiri
-    // iç içe değil. Aynı observer instance'ı birden fazla observe() çağrısını
-    // destekler, callback ikisinden gelen mutation'ları da alır.
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class'],
-      subtree: true,
-    });
-    observer.observe(document.body, {
-      childList: true,
-      subtree: false,
-    });
-  }
-
-  // ─── Başlatma ─────────────────────────────────────────────────────
+  // KRİTİK MİMARİ DEĞİŞİKLİK: MutationObserver tabanlı otomatik tespit
+  // TAMAMEN KALDIRILDI. İki farklı MutationObserver denemesi (önce
+  // subtree:true+childList:true, sonra subtree:false ile "hafifletilmiş"
+  // hâli) bile animasyon-yoğun bu uygulamada (pill kayması, KPI pop-in,
+  // shine efektleri vs. — hepsi 'class' attribute değişimi) yeterince sık
+  // tetiklenip Chrome'un history/pushState throttle korumasını devreye
+  // sokuyordu; sonuç "sayfalar arası geçiş yapamıyorum" (hash navigasyonu
+  // sessizce, konsola hata düşmeden kısıtlanıyor) bug'ıydı.
+  //
+  // Artık DOM'u hiç gözlemlemiyoruz. Bunun yerine index.html/plus.js'teki
+  // GERÇEK açılış noktalarına (UI.Modals.open, sidebar toggle,
+  // Settings._openSectionDirect, SAGIChat.open, PlusOnboarding show)
+  // doğrudan `window.SAGIBackHandler.pushSentinel()` çağrısı eklendi.
+  // Bu, SADECE gerçekten bir şey açıldığında çalışır — hiçbir animasyon
+  // veya route render'ı bunu tetiklemez, MutationObserver'ın getirdiği
+  // performans riski bütünüyle ortadan kalkmış oldu.
 
   // ─── ESC tuşu (web) ────────────────────────────────────────────────
   // KRİTİK FIX: Dosyada ESC için HİÇ kod yoktu — sadece popstate (mobil/PWA
@@ -424,17 +357,7 @@
 
     pushSentinel();
 
-    const ready = () => {
-      initUniversalTrapObserver();
-    };
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', ready);
-    } else {
-      ready();
-    }
-
-    console.log('[SAGI BackHandler] Başlatıldı. v1.2');
+    console.log('[SAGI BackHandler] Başlatıldı. v1.3 (MutationObserver kaldırıldı — doğrudan hook mimarisi)');
   }
 
   // ─── Dışa aktar ───────────────────────────────────────────────────
