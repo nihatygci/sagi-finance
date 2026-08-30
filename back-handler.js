@@ -1,17 +1,27 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║           SAGI Finance — Mobile Back Handler v1.1               ║
+ * ║           SAGI Finance — Mobile Back Handler v1.2               ║
  * ║                                                                  ║
- * ║  Mobil tarayıcı/PWA geri tuşu davranışını uygulama mantığına   ║
- * ║  entegre eder. History API üzerinden her UI katmanı için        ║
- * ║  ayrı geri adımı yönetir.                                       ║
+ * ║  Mobil tarayıcı/PWA geri tuşu (popstate) VE web'de ESC tuşu     ║
+ * ║  davranışını uygulama mantığına entegre eder. History API       ║
+ * ║  üzerinden her UI katmanı için ayrı geri adımı yönetir.         ║
  * ║                                                                  ║
  * ║  Öncelik sırası (en yüksekten en düşüğe):                       ║
  * ║    1. Açık modal → modalı kapat                                 ║
  * ║    2. Açık sidebar → sidebar'ı kapat                            ║
  * ║    3. Ayarlar alt sayfası açık → ayarlar menüsüne dön          ║
  * ║    4. Ana route dışı → önceki route'a git                       ║
- * ║    5. Ana sayfa (dashboard) → "Çıkmak için tekrar basın" toast  ║
+ * ║    5. Ana sayfa (dashboard) → mobilde "Çıkmak için tekrar       ║
+ * ║       basın" toast'ı; masaüstü web'de (ESC) no-op                ║
+ * ║                                                                  ║
+ * ║  v1.2 değişiklikleri:                                            ║
+ * ║   - onPopState artık _sentinelActive'i kontrol ediyor (eski      ║
+ * ║     e.state.sagiBackSentinel kontrolü normal hash navigasyonları ║
+ * ║     araya girince neredeyse hiç true olmuyordu — ana bug)        ║
+ * ║   - ESC tuşu için doğrudan handleBack() çağrısı eklendi          ║
+ * ║   - Modal/sidebar/ayarlar paneli tespiti tek, evrensel bir       ║
+ * ║     MutationObserver'a taşındı (document.body, subtree:true) —   ║
+ * ║     sonradan DOM'a eklenen modallar artık kaçmıyor                ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
@@ -183,6 +193,17 @@
     }
 
     // 5️⃣ Dashboard'dayız — çıkış onayı
+    // KRİTİK FIX: Bu adım (çift basışta gerçekten uygulamadan çıkma) sadece
+    // mobil/PWA/TWA'da anlamlı — masaüstü web'de ESC ile buraya düşüldüğünde
+    // "tekrar basarsan çıkarız" tarzı bir davranış olmamalı (tarayıcı
+    // sekmesini kapatmaya/geri gitmeye çalışmak kullanıcıyı şaşırtır).
+    // IS_MOBILE tanımlıydı ama hiç kullanılmıyordu — artık gerçek ayrımı
+    // burada yapıyor.
+    if (!IS_MOBILE) {
+      setTimeout(pushSentinel, 100);
+      return;
+    }
+
     if (State.exitPending) {
       clearTimeout(State.exitTimer);
       State.exitPending = false;
@@ -211,7 +232,17 @@
   }
 
   function onPopState(e) {
-    if (e.state && e.state.sagiBackSentinel) {
+    // KRİTİK FIX: history.pushState() sonrası geri tuşuna basılınca,
+    // popstate event'inin e.state'i GİDİLEN (bir önceki) entry'nin state'idir
+    // — az önce ATLADIĞIMIZ sentinel'in state'i DEĞİL. Yani location.hash ile
+    // yapılan her normal route değişimi (state=null) araya girdiğinde bu
+    // eski kontrol (e.state && e.state.sagiBackSentinel) her zaman false
+    // dönüyordu ve handleBack() neredeyse hiç çalışmıyordu — geri tuşu
+    // sessizce "hiçbir şey yapmamış" gibi görünüyordu. _sentinelActive zaten
+    // tam bunun için vardı ama hiç okunmuyordu; asıl sinyal bu olmalı: "az
+    // önce bizim bastırdığımız sentinel entry üzerindeydik ve şimdi bir
+    // popstate oldu" = kullanıcı gerçekten geri tuşuna bastı.
+    if (_sentinelActive) {
       _sentinelActive = false;
       // handleBack içindeki her dal kendi timing'iyle pushSentinel çağırıyor
       handleBack();
@@ -229,70 +260,82 @@
     if (isSidebarOpen()) closeSidebar();
   });
 
-  // ─── Sidebar açılışını izle ───────────────────────────────────────
+  // ─── Modal / sidebar / ayarlar panel açılışını izle ────────────────
+  // KRİTİK FIX: Eskiden 3 ayrı fonksiyon (patchSidebarToggle/patchModalOpen/
+  // patchSettingsDetail), SADECE kendi çağrıldığı ANDA DOM'da zaten var olan
+  // elemanlara MutationObserver takıyordu (querySelectorAll anlık bir liste
+  // döndürür, sonradan DOM'a eklenen elemanları KAPSAMAZ). Route değişiminde
+  // (routeChanged event'i) tekrar çağrılıyordu ama aynı route içinde
+  // sonradan dinamik oluşturulan bir modal (ör. bir buton tıklanınca
+  // innerHTML/appendChild ile eklenen modal) hiç izlenmiyordu — o modal
+  // açıldığında sentinel push edilmediği için geri tuşu/ESC o modalda hiç
+  // çalışmıyordu. "Bazı modallarda çalışıyor bazılarında çalışmıyor" hissi
+  // buradan geliyordu. Artık document.body üzerinde TEK bir observer var,
+  // subtree:true ile — hem sonradan eklenen elemanları hem de class
+  // değişikliklerini DOM'da nerede/ne zaman olursa olsun yakalıyor, ayrı
+  // patch fonksiyonlarına veya routeChanged'e bağımlı kalmıyor.
+  function isTrackedTrapElement(el) {
+    if (!(el instanceof Element)) return false;
+    return el.classList.contains('modal-overlay') ||
+           el.id === 'sidebar' ||
+           el.classList.contains('settings-detail-panel');
+  }
 
-  function patchSidebarToggle() {
-    const sb = document.getElementById('sidebar');
-    if (!sb) return;
-
+  function initUniversalTrapObserver() {
     const observer = new MutationObserver((mutations) => {
-      mutations.forEach((m) => {
-        if (m.attributeName === 'class') {
-          if (sb.classList.contains('active')) {
+      for (const m of mutations) {
+        // Durum 1: izlenen bir eleman 'active' class'ı ALDI (var olan eleman)
+        if (m.type === 'attributes' && m.attributeName === 'class') {
+          if (isTrackedTrapElement(m.target) && m.target.classList.contains('active')) {
             pushSentinel();
+            return;
           }
         }
-      });
+        // Durum 2: DOM'a YENİ eklenen bir modal doğrudan 'active' class'ıyla geldi
+        if (m.type === 'childList' && m.addedNodes && m.addedNodes.length) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType !== 1) continue;
+            if (isTrackedTrapElement(node) && node.classList.contains('active')) {
+              pushSentinel();
+              return;
+            }
+            // Eklenen node'un içinde aktif bir modal/panel varsa (nested) onu da yakala
+            const nested = node.querySelector && node.querySelector('.modal-overlay.active, #sidebar.active, .settings-detail-panel.active');
+            if (nested) { pushSentinel(); return; }
+          }
+        }
+      }
     });
 
-    observer.observe(sb, { attributes: true });
-  }
-
-  // ─── Modal açılışını izle ─────────────────────────────────────────
-
-  function patchModalOpen() {
-    document.querySelectorAll('.modal-overlay').forEach((modal) => {
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((m) => {
-          if (m.attributeName === 'class') {
-            if (modal.classList.contains('active')) {
-              pushSentinel();
-            }
-          }
-        });
-      });
-      observer.observe(modal, { attributes: true });
-    });
-  }
-
-  // ─── Ayarlar detail paneli açılışını izle ─────────────────────────
-
-  function patchSettingsDetail() {
-    document.querySelectorAll('.settings-detail-panel').forEach((panel) => {
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((m) => {
-          if (m.attributeName === 'class') {
-            if (panel.classList.contains('active')) {
-              pushSentinel();
-            }
-          }
-        });
-      });
-      observer.observe(panel, { attributes: true });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: true,
+      childList: true,
     });
   }
 
   // ─── Başlatma ─────────────────────────────────────────────────────
 
+  // ─── ESC tuşu (web) ────────────────────────────────────────────────
+  // KRİTİK FIX: Dosyada ESC için HİÇ kod yoktu — sadece popstate (mobil/PWA
+  // donanım geri tuşu) dinleniyordu. ESC, tarayıcı history'sini tetiklemez,
+  // bu yüzden web'de bu sistem baştan beri devre dışıydı. ESC, history/
+  // sentinel mekanizmasından tamamen bağımsız olarak DOĞRUDAN handleBack()'i
+  // çağırır — history.pushState/popstate'e hiç ihtiyaç yok.
+  function onKeyDown(e) {
+    if (e.key !== 'Escape' && e.key !== 'Esc') return;
+    handleBack();
+  }
+
   function init() {
     window.addEventListener('popstate', onPopState);
+    document.addEventListener('keydown', onKeyDown);
 
     pushSentinel();
 
     const ready = () => {
-      patchSidebarToggle();
-      patchModalOpen();
-      patchSettingsDetail();
+      initUniversalTrapObserver();
     };
 
     if (document.readyState === 'loading') {
@@ -301,16 +344,7 @@
       ready();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.Core && Core.on) {
-        Core.on('routeChanged', () => {
-          patchModalOpen();
-          patchSettingsDetail();
-        });
-      }
-    });
-
-    console.log('[SAGI BackHandler] Başlatıldı. v1.1');
+    console.log('[SAGI BackHandler] Başlatıldı. v1.2');
   }
 
   // ─── Dışa aktar ───────────────────────────────────────────────────
