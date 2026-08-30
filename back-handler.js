@@ -1,6 +1,6 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║           SAGI Finance — Mobile Back Handler v1.3               ║
+ * ║           SAGI Finance — Mobile Back Handler v1.4               ║
  * ║                                                                  ║
  * ║  Mobil tarayıcı/PWA geri tuşu (popstate) VE web'de ESC tuşu     ║
  * ║  davranışını uygulama mantığına entegre eder. History API       ║
@@ -14,7 +14,17 @@
  * ║    5. Ana sayfa (dashboard) → mobilde "Çıkmak için tekrar       ║
  * ║       basın" toast'ı; masaüstü web'de (ESC) no-op                ║
  * ║                                                                  ║
- * ║  ÖNEMLİ — v1.3 mimari değişikliği:                               ║
+ * ║  ÖNEMLİ — v1.4: ASIL BUG BULUNDU VE DÜZELTİLDİ.                  ║
+ * ║   handleBack() içindeki TÜM setTimeout(pushSentinel,...)         ║
+ * ║   çağrıları kaldırıldı. Gecikmeli/kullanıcı jesti taşımayan      ║
+ * ║   history.pushState() çağrıları, Chrome'un spam-koruması        ║
+ * ║   tarafından algılanıp sayfanın TÜM hash/history navigasyonunu   ║
+ * ║   (uygulamanın kendi route geçişleri dahil) sessizce kısıtlamasına║
+ * ║   yol açıyordu — "sayfalar arası hiç geçemiyorum" bug'ının GERÇEK ║
+ * ║   sebebi buydu (MutationObserver değil). pushSentinel() artık    ║
+ * ║   HER ZAMAN senkron, trusted event akışı içinde çağrılıyor.      ║
+ * ║                                                                  ║
+ * ║  v1.3 mimari değişikliği (hâlâ geçerli):                         ║
  * ║   MutationObserver tabanlı otomatik açılış tespiti TAMAMEN       ║
  * ║   KALDIRILDI (animasyon-yoğun bu uygulamada Chrome'un history    ║
  * ║   throttle korumasını tetikleyip "sayfalar arası geçiş           ║
@@ -203,15 +213,14 @@
           else overlay.el.classList.remove('active');
         }
       }
-      // Modal/panel kapanış animasyonu ~230-350ms — bittikten sonra sentinel push et
-      setTimeout(pushSentinel, 280);
+      pushSentinel();
       return;
     }
 
     // 2️⃣ Sidebar açık mı?
     if (isSidebarOpen()) {
       closeSidebar();
-      setTimeout(pushSentinel, 100);
+      pushSentinel();
       return;
     }
 
@@ -220,16 +229,14 @@
       if (window.App && App.Controllers && App.Controllers.Settings) {
         App.Controllers.Settings.closeSection();
       }
-      // closeSection slide-out animasyonu ~200ms
-      setTimeout(pushSentinel, 280);
+      pushSentinel();
       return;
     }
 
     // 4️⃣ Dashboard dışı bir sayfadayız — dashboard'a dön
     if (!isOnDashboard()) {
       window.location.hash = '#/dashboard';
-      // Router view geçiş animasyonu 200ms
-      setTimeout(pushSentinel, 260);
+      pushSentinel();
       return;
     }
 
@@ -241,7 +248,7 @@
     // IS_MOBILE tanımlıydı ama hiç kullanılmıyordu — artık gerçek ayrımı
     // burada yapıyor.
     if (!IS_MOBILE) {
-      setTimeout(pushSentinel, 100);
+      pushSentinel();
       return;
     }
 
@@ -260,7 +267,7 @@
       hideExitToast();
     }, 3500);
     // Sentinel'i yenile ki ikinci basış yakalanabilsin
-    setTimeout(pushSentinel, 100);
+    pushSentinel();
   }
 
   // ─── History API entegrasyonu ─────────────────────────────────────
@@ -268,26 +275,27 @@
   let _sentinelActive = false;
 
   function pushSentinel() {
-    // KRİTİK FIX (v1.3): Koruma yoktu — MutationObserver her class/DOM
-    // değişikliğinde (bir modal açıkken dashboard'un kendi kendine yeniden
-    // render olması, bir toast'ın gelip gitmesi, bir grafik animasyonu vb.)
-    // pushSentinel()'i tekrar tekrar çağırıyordu. Bu iki ayrı gerçek soruna
-    // yol açıyordu:
-    //  1) "Bir basış = bir kapanış" garantisi bozuluyordu — aynı açık katman
-    //     için birden fazla sentinel yığılınca, geri tuşuna bir kez basmak
-    //     sadece EN ÜSTTEKİ fazladan sentinel'i tüketiyordu, kullanıcı hâlâ
-    //     aynı modalde kalıyor ve "geri tuşu çalışmıyor" gibi görünüyordu.
-    //  2) history.pushState() çok sık çağrılınca (Chrome'da ~100 çağrı/10sn
-    //     sınırı var) tarayıcı bir noktadan sonra pushState'i sessizce
-    //     yok sayıyor/hata fırlatıyor — bu da normal route navigasyonunu
-    //     (uygulamanın kendi location.hash tabanlı geçişlerini) etkileyip
-    //     "sayfa geçişi yapamıyorum" hissi yaratabiliyordu.
-    // Çözüm: zaten bir sentinel'in üzerindeysek (_sentinelActive true) tekrar
-    // push etmiyoruz — bir açık katman için tam olarak BİR sentinel yeterli
-    // ve doğru olan budur. onPopState, handleBack'ten ÖNCE _sentinelActive'i
-    // false'a çekiyor, yani "bir sonraki basış için yeniden kur" akışı
-    // (handleBack içindeki setTimeout(pushSentinel,...) çağrıları) hiç
-    // etkilenmiyor — o an zaten false olduğu için normal şekilde push eder.
+    // KRİTİK FIX (v1.4) — ASIL BUG BUYDU: pushSentinel() eskiden handleBack()
+    // içinde setTimeout(pushSentinel, 100-280) ile GECİKMELİ çağrılıyordu
+    // (kapanış animasyonu bitsin diye). Ama bu, history.pushState() çağrısını
+    // orijinal kullanıcı jestinden (geri tuşu/ESC basışı — trusted event)
+    // KOPARIYOR: setTimeout callback'i artık "user activation" taşımıyor.
+    // Tarayıcılar (özellikle Chrome), kullanıcı jesti OLMADAN yapılan history
+    // manipülasyonlarını spam/kötüye kullanım sinyali sayıp bir noktadan
+    // sonra SESSİZCE (konsola hata düşürmeden) o sayfadaki TÜM history/hash
+    // navigasyonunu kısıtlıyor — uygulamanın kendi location.hash tabanlı
+    // route değişimleri de dahil. Sonuç: back-handler.js varken TÜM sayfa
+    // geçişleri bozuluyordu (tek tık çalışmıyor, art arda hızlı iki tık bazen
+    // çalışıyordu), dosya kaldırılınca sorunsuzdu — çünkü sorunun kaynağı bu
+    // gecikmeli/jestsiz pushState çağrılarıydı.
+    //
+    // Çözüm: pushSentinel() artık HER YERDE senkron çağrılıyor — ya doğrudan
+    // trusted bir event handler'ın (popstate, click) içinde, ya da ondan
+    // senkron olarak zincirlenmiş bir çağrıda. Hiçbir yerde setTimeout
+    // içinden çağrılmıyor. Ayrıca zaten bir sentinel'in üzerindeysek
+    // (_sentinelActive true) tekrar push etmiyoruz — bir açık katman için
+    // tam olarak BİR sentinel yeterli, bu da toplam pushState çağrı sayısını
+    // ekstra azaltıyor.
     if (_sentinelActive) return;
     window.history.pushState({ sagiBackSentinel: true }, '', window.location.href);
     _sentinelActive = true;
