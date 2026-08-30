@@ -260,6 +260,27 @@
   let _sentinelActive = false;
 
   function pushSentinel() {
+    // KRİTİK FIX (v1.3): Koruma yoktu — MutationObserver her class/DOM
+    // değişikliğinde (bir modal açıkken dashboard'un kendi kendine yeniden
+    // render olması, bir toast'ın gelip gitmesi, bir grafik animasyonu vb.)
+    // pushSentinel()'i tekrar tekrar çağırıyordu. Bu iki ayrı gerçek soruna
+    // yol açıyordu:
+    //  1) "Bir basış = bir kapanış" garantisi bozuluyordu — aynı açık katman
+    //     için birden fazla sentinel yığılınca, geri tuşuna bir kez basmak
+    //     sadece EN ÜSTTEKİ fazladan sentinel'i tüketiyordu, kullanıcı hâlâ
+    //     aynı modalde kalıyor ve "geri tuşu çalışmıyor" gibi görünüyordu.
+    //  2) history.pushState() çok sık çağrılınca (Chrome'da ~100 çağrı/10sn
+    //     sınırı var) tarayıcı bir noktadan sonra pushState'i sessizce
+    //     yok sayıyor/hata fırlatıyor — bu da normal route navigasyonunu
+    //     (uygulamanın kendi location.hash tabanlı geçişlerini) etkileyip
+    //     "sayfa geçişi yapamıyorum" hissi yaratabiliyordu.
+    // Çözüm: zaten bir sentinel'in üzerindeysek (_sentinelActive true) tekrar
+    // push etmiyoruz — bir açık katman için tam olarak BİR sentinel yeterli
+    // ve doğru olan budur. onPopState, handleBack'ten ÖNCE _sentinelActive'i
+    // false'a çekiyor, yani "bir sonraki basış için yeniden kur" akışı
+    // (handleBack içindeki setTimeout(pushSentinel,...) çağrıları) hiç
+    // etkilenmiyor — o an zaten false olduğu için normal şekilde push eder.
+    if (_sentinelActive) return;
     window.history.pushState({ sagiBackSentinel: true }, '', window.location.href);
     _sentinelActive = true;
   }
