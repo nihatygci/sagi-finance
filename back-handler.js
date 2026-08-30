@@ -367,21 +367,41 @@
               pushSentinel();
               return;
             }
-            // Eklenen node'un içinde aktif bir modal/panel/overlay varsa (nested) onu da yakala
-            const nested = node.querySelector && node.querySelector(
-              '.modal-overlay.active, #sidebar.active, .settings-detail-panel.active, #sagiChatPanel.open, #sagiObOverlay'
-            );
-            if (nested) { pushSentinel(); return; }
+            // NOT: Nested querySelector taraması buradan KALDIRILDI. Tüm
+            // dinamik overlay'ler (bkz. plus.js'teki appendChild çağrıları)
+            // doğrudan document.body'nin ÇOCUĞU olarak ekleniyor — hiçbiri
+            // başka bir konteynerin içine iç içe eklenmiyor. O yüzden bu
+            // node'un kendisini kontrol etmek yeterli, içini taramaya gerek
+            // yok (ki bu tarama zaten aşağıdaki asıl performans düzeltmesiyle
+            // artık pratikte hiç tetiklenmiyor olurdu).
           }
         }
       }
     });
 
+    // KRİTİK PERFORMANS FIX: Eskiden TEK bir observe() çağrısıyla hem
+    // attributes hem childList, subtree:true (yani document.body'nin
+    // ALTINDAKİ HER ŞEY) izleniyordu. childList+subtree:true, SPA'nın her
+    // route geçişinde/chart yeniden çiziminde/liste render'ında DOM'da olan
+    // YÜZLERCE değişikliği de yakalıyordu ve her birinde querySelector
+    // taraması çalıştırıyordu — bu da ana thread'i kilitleyip sayfa
+    // geçişlerini donduruyordu ("sayfalar arası geçiş yapamıyorum" bug'ı
+    // buydu). Çözüm: iki ayrı observe() çağrısı, farklı kapsamlarla —
+    // attributes hâlâ subtree:true (ucuz: sadece class değişince tetiklenir,
+    // attributeFilter ile zaten filtreli), childList ise subtree:FALSE
+    // (sadece document.body'nin DOĞRUDAN çocukları) çünkü kontrol ettik:
+    // plus.js'teki tüm dinamik overlay'ler (#sagiObOverlay dahil) zaten
+    // document.body.appendChild(...) ile doğrudan body'ye ekleniyor, hiçbiri
+    // iç içe değil. Aynı observer instance'ı birden fazla observe() çağrısını
+    // destekler, callback ikisinden gelen mutation'ları da alır.
     observer.observe(document.body, {
       attributes: true,
       attributeFilter: ['class'],
       subtree: true,
+    });
+    observer.observe(document.body, {
       childList: true,
+      subtree: false,
     });
   }
 
