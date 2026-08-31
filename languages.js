@@ -243,7 +243,7 @@ const LANGS = {
       // Ayarlar
       settingsSubtitle:'Uygulama tercihlerinizi yönetin',
       personalization:'Kişiselleştirme',
-      notifTitle:'Bildirimler', notifDesc:'Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.',
+      notifTitle:'Bildirim Ayarları', notifDesc:'Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.',
       notifAskPermMsg:'Bildirimlere izin vermek için butona tıklayın.',
       notifAskPermBtn:'Bildirimlere İzin Ver', notifActive:'✓ Bildirimler aktif',
       notifMaster:'Bildirimleri Etkinleştir', notifMasterOn:'Bildirimler açık',
@@ -931,7 +931,7 @@ const LANGS = {
       // Settings
       settingsSubtitle:'Manage your preferences',
       personalization:'Personalization',
-      notifTitle:'Notifications', notifDesc:'Get reminders for upcoming payments and due dates.',
+      notifTitle:'Notification Settings', notifDesc:'Get reminders for upcoming payments and due dates.',
       notifAskPermMsg:'Click to allow notifications.',
       notifAskPermBtn:'Enable Notifications', notifActive:'✓ Notifications active',
       notifMaster:'Enable Notifications', notifMasterOn:'Notifications enabled',

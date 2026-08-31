@@ -1818,36 +1818,6 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div id="settingsRowNotifications" onclick="App.Controllers.Settings.openSection('notifications')">
-            <div class="settings-menu-row">
-              <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
-                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-bell"/></svg>
-                </div>
-                <div class="settings-menu-row-text">
-                  <div class="title" data-i18n="notifTitle">Bildirimler</div>
-                  <div class="subtitle" data-i18n="notifMenuHint">Hatırlatmalar ve uyarılar</div>
-                </div>
-              </div>
-              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
-            </div>
-          </div>
-
-          <div id="settingsRowRates" onclick="App.Controllers.Settings.openSection('rates')">
-            <div class="settings-menu-row">
-              <div class="settings-menu-row-left">
-                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
-                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-transfer"/></svg>
-                </div>
-                <div class="settings-menu-row-text">
-                  <div class="title" data-i18n="ratesTitle">Döviz Kurları</div>
-                  <div class="subtitle" data-i18n="ratesMenuHint">Güncel kur değerleri</div>
-                </div>
-              </div>
-              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
-            </div>
-          </div>
-
           <div id="settingsRowBottombar" onclick="App.Controllers.Settings.openSection('bottombar')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
@@ -1863,15 +1833,15 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
           </div>
 
-          <div id="settingsRowCloud" onclick="App.Controllers.Settings.openSection('cloud')">
+          <div id="settingsRowNotifications" onclick="App.Controllers.Settings.openSection('notifications')">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
                 <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
-                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-cloud"/></svg>
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-bell"/></svg>
                 </div>
                 <div class="settings-menu-row-text">
-                  <div class="title" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</div>
-                  <div class="subtitle" data-i18n="cloudMenuHint">Cihazlar arası eşleşme</div>
+                  <div class="title" data-i18n="notifTitle">Bildirim Ayarları</div>
+                  <div class="subtitle" data-i18n="notifMenuHint">Hatırlatmalar ve uyarılar</div>
                 </div>
               </div>
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
@@ -1907,6 +1877,22 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
             </div>
           </div>
+
+          <div id="settingsRowRates" onclick="App.Controllers.Settings.openSection('rates')">
+            <div class="settings-menu-row">
+              <div class="settings-menu-row-left">
+                <div class="settings-menu-icon" style="background:var(--brand-accent-subtle);color:var(--brand-accent)">
+                  <svg class="nav-icon" style="width:18px;height:18px"><use href="#icon-transfer"/></svg>
+                </div>
+                <div class="settings-menu-row-text">
+                  <div class="title" data-i18n="ratesTitle">Döviz Kurları</div>
+                  <div class="subtitle" data-i18n="ratesMenuHint">Güncel kur değerleri</div>
+                </div>
+              </div>
+              <svg class="settings-chevron nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-right"/></svg>
+            </div>
+          </div>
+
           <div onclick="document.getElementById('onboardingScreen')&&(document.getElementById('onboardingScreen').style.opacity='0');SagiTour.start()">
             <div class="settings-menu-row">
               <div class="settings-menu-row-left">
@@ -2081,7 +2067,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
             <span data-i18n="settings">Ayarlar</span>
           </button>
-          <div class="settings-detail-title" data-i18n="notifTitle">Bildirimler</div>
+          <div class="settings-detail-title" data-i18n="notifTitle">Bildirim Ayarları</div>
           <div class="settings-detail-sub" data-i18n="notifDesc">Yaklaşan ödemeler ve vadeli işlemler için hatırlatma alın.</div>
           <div class="card">
             <div class="toggle-row" id="notifMasterRow" onclick="App.Notifications.toggleMaster()">
@@ -2183,19 +2169,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 
 
         <!-- ── BULUT SENKRONİZASYONU ── -->
-        <div class="settings-detail-panel" id="settingsDetail-cloud">
-          <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
-            <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
-            <span data-i18n="settings">Ayarlar</span>
-          </button>
-          <div class="settings-detail-title" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</div>
-          <div class="settings-detail-sub" data-i18n="cloudSyncDesc">Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın.</div>
-          <div class="card" style="border-color:var(--brand-accent-medium)">
-            <div id="cloudSyncBox"><!-- JS render eder --></div>
-          </div>
-        </div>
-
-        <!-- ── VERİ YÖNETİMİ ── -->
+        <!-- ── VERİ YÖNETİMİ (Bulut Senkronizasyonu buraya birleştirildi) ── -->
         <div class="settings-detail-panel" id="settingsDetail-data">
           <button class="settings-back-btn" onclick="App.Controllers.Settings.closeSection()">
             <svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-chevron-left"/></svg>
@@ -2203,6 +2177,17 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           </button>
           <div class="settings-detail-title" data-i18n="dataManagement">Veri Yönetimi</div>
           <div class="settings-detail-sub" data-i18n="dataDesc">Verileriniz varsayılan olarak yalnızca bu cihazda saklanır; Bulut Senkronizasyonu etkinleştirilirse isteğe bağlı olarak Firebase'e yedeklenir. Düzenli yedek almanızı öneririz.</div>
+          <!-- Bulut Senkronizasyonu (eskiden ayrı bir sayfaydı) -->
+          <div style="margin-bottom:18px">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="nav-icon" style="width:16px;height:16px;color:var(--brand-accent)"><use href="#icon-cloud"/></svg>
+              <div class="font-bold" style="font-size:15px" data-i18n="cloudSyncTitle">Bulut Senkronizasyonu</div>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.6" data-i18n="cloudSyncDesc">Verilerinizi başka cihazlarda da görüntülemek için anahtarınızı kullanın.</div>
+            <div class="card" style="border-color:var(--brand-accent-medium)">
+              <div id="cloudSyncBox"><!-- JS render eder --></div>
+            </div>
+          </div>
           <div class="card" style="border-color:rgba(229,83,75,.18);display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
             <!-- Yedek Al -->
             <div style="padding:18px 20px;border-bottom:1px solid var(--border-light)">
@@ -3910,7 +3895,7 @@ const SagiTour = {
 const UI = {
   Router:{
     routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
-    settingsSections:['personalization','notifications','rates','bottombar','cloud','data','plus','plus/assistant','legal'],
+    settingsSections:['personalization','notifications','rates','bottombar','data','plus','plus/assistant','legal'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
       let hash=window.location.hash.replace('#','')||'/dashboard';
@@ -5130,7 +5115,7 @@ const App = {
                 App.Controllers.QuickActions.renderEditor();
               }, 50);
             }
-            if (_section === 'cloud') {
+            if (_section === 'data') {
               App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
             }
             if (_section === 'plus') {
@@ -8474,7 +8459,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             targetDetail.classList.add('active');
             window.scrollTo(0, 0);
             if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
-            if(section === 'cloud') this.renderCloudBox();
+            if(section === 'data') this.renderCloudBox();
             if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
           }, 200);
         } else {
@@ -8483,7 +8468,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           targetDetail.classList.add('active');
           window.scrollTo(0, 0);
           if(section === 'bottombar') setTimeout(() => { App.Controllers.BottomBar.renderEditor(); App.Controllers.QuickActions.renderEditor(); }, 50);
-          if(section === 'cloud') this.renderCloudBox();
+          if(section === 'data') this.renderCloudBox();
           if(section === 'notifications' && typeof Notifications !== 'undefined') Notifications.updateUI();
         }
       },
