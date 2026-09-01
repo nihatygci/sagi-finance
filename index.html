@@ -1718,6 +1718,20 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         </div>
       </div>
 
+      <!-- Haftanın Günü Harcama Paterni + En Büyük Harcamalar -->
+      <div class="css-grid grid-cols-2 mb-5 stagger-3">
+        <div class="card">
+          <h2 class="card-title mb-2" data-i18n="weekdayPatternTitle">Haftanın Günü Paterni</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px" data-i18n="weekdayPatternHint">Hangi günler daha çok harcıyorsunuz</p>
+          <div id="weekdayPatternChart" style="height:180px"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title mb-2" data-i18n="biggestTxTitle">En Büyük Harcamalar</h2>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px" data-i18n="biggestTxHint">Bu dönemin en büyük 8 işlemi</p>
+          <div id="biggestTxList"></div>
+        </div>
+      </div>
+
       <!-- Bütçe Limitleri -->
       <div class="card stagger-4">
         <div class="flex justify-between items-center mb-5">
@@ -7739,6 +7753,63 @@ const App = {
         // (SAGI Asistan, Tasarruf Skoru ve Tahmin SAGI Plus'a taşındı)
 
         App.Controllers.Budgets.render(this._monthlyExpenseCats());
+
+        // ── Haftanın Günü Paterni + En Büyük Harcamalar (Free) ──
+        this._renderWeekdayPattern(allTx);
+        this._renderBiggestTx(allTx);
+      },
+
+      _renderWeekdayPattern(allTx){
+        const chartEl = document.getElementById('weekdayPatternChart');
+        if(!chartEl) return;
+        const mc = Core.state.settings.currency || 'TRY';
+        const dayNames = t('weekdayShortNames').split(',');
+        // Pazartesi=0 ... Pazar=6 sırasıyla topluyoruz (JS getDay() Pazar=0
+        // döndürür, Türkiye alışkanlığına göre haftayı Pazartesi başlatıyoruz).
+        const totals = [0,0,0,0,0,0,0];
+        allTx.filter(tx=>tx.type==='expense').forEach(tx=>{
+          const jsDay = new Date(tx.date).getDay(); // 0=Paz,1=Pzt,...
+          const idx = (jsDay+6)%7; // 0=Pzt ... 6=Paz
+          totals[idx] += this._toMain(tx);
+        });
+        const data = dayNames.map((label,i)=>({label, value: Math.round(totals[i]*100)/100}));
+        if(!totals.some(v=>v>0)){
+          chartEl.innerHTML = `<div class="text-center color-muted text-caption" style="padding:40px 0">${t('noExpData')}</div>`;
+          return;
+        }
+        UI.ChartEngine.drawSingleBarChart('weekdayPatternChart', data, {
+          color: getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || '#16181d',
+          seriesLabel: t('analyticsKpiExpense'),
+        });
+      },
+
+      _renderBiggestTx(allTx){
+        const listEl = document.getElementById('biggestTxList');
+        if(!listEl) return;
+        const mainCur = Core.state.settings.currency || 'TRY';
+        const expTx = allTx.filter(tx=>tx.type==='expense');
+        if(!expTx.length){
+          listEl.innerHTML = `<div class="text-center color-muted text-caption" style="padding:20px 0">${t('noExpData')}</div>`;
+          return;
+        }
+        const top = expTx
+          .map(tx=>({tx, amtMain: this._toMain(tx)}))
+          .sort((a,b)=>b.amtMain-a.amtMain)
+          .slice(0,8);
+        listEl.innerHTML = top.map(({tx,amtMain})=>{
+          const w = Core.state.wallets.find(x=>x.id===tx.wallet);
+          const cc = Core.Utils.getCatColor(tx.cat);
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light)">
+            <div style="min-width:0;flex:1">
+              <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tx.desc||tx.cat}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:5px">
+                <span style="width:7px;height:7px;border-radius:50%;background:${cc};display:inline-block;flex-shrink:0"></span>
+                ${tx.cat} · ${Core.Utils.formatDate(tx.date)}
+              </div>
+            </div>
+            <div style="font-weight:700;font-size:13px;color:var(--status-danger);white-space:nowrap;margin-left:10px">${Core.Utils.formatMoney(amtMain,mainCur)}</div>
+          </div>`;
+        }).join('');
       },
 
       _monthlyExpenseCats(){
