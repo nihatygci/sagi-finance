@@ -4267,6 +4267,115 @@ const UI = {
         c._sagiOutsideTouchBoundSingle=true;
         document.addEventListener('touchstart',function hideOnOutside(e){ const tt=c.querySelector('#'+id+'_tooltip'); if(!c.contains(e.target)&&tt) tt.style.display='none'; },{passive:true});
       }
+    },
+    // Çizgi grafik — net değer trendi ve tahmin grafiği için ortak primitif.
+    // data: [{label, value, projected?}] — 'projected:true' işaretli noktalar
+    // (örn. tahmin edilen gelecek ay) kesikli çizgi + boş halkalı nokta ile
+    // ayrı stillendirilir, aynı grafikte "geçmiş" ve "tahmin"i net ayırır.
+    // opts: {color, seriesLabel, showArea, negativeColor}
+    drawLineChart(id,data,opts){
+      opts=opts||{};
+      const c=document.getElementById(id);if(!c)return;
+      c._sagiLastDataLine=data; c._sagiLastOptsLine=opts;
+      if(!c._sagiROLine){
+        let rTimer=null;
+        const ro=new ResizeObserver(()=>{
+          clearTimeout(rTimer);
+          rTimer=setTimeout(()=>{ if(c._sagiLastDataLine) this.drawLineChart(id,c._sagiLastDataLine,c._sagiLastOptsLine); },120);
+        });
+        ro.observe(c.parentElement||c);
+        c._sagiROLine=ro;
+      }
+      if(!data||data.length<2){c.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0">'+t('noData')+'</div>';return;}
+      const vals=data.map(d=>d.value);
+      const maxVal=Math.max(...vals,0), minVal=Math.min(...vals,0);
+      const range=(maxVal-minVal)||1;
+      const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+      const LINE_COLOR=opts.color||getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim()||'#16181d';
+      const MUTED=isDark?'#9ca3af':'#9ca3af';
+      const GRID=isDark?'rgba(255,255,255,.10)':'#e5e7eb';
+      const measuredW=Math.round((c.parentElement||c).getBoundingClientRect().width);
+      const W=measuredW>0?measuredW:360, H=180, PAD_T=18, PAD_B=29, PAD_X=8;
+      const CHART_H=H-PAD_B-PAD_T, CHART_W=W-PAD_X*2;
+      const n=data.length;
+      const fmtShort=v=>{
+        const av=Math.abs(v);
+        const s=av>=1000000?(v/1000000).toFixed(1)+'M':av>=1000?(v/1000).toFixed(0)+'K':v.toFixed(0);
+        return (v<0?'-':'')+s.replace('-','');
+      };
+      const xAt=i=>PAD_X+(n===1?CHART_W/2:(CHART_W*i/(n-1)));
+      const yAt=v=>PAD_T+CHART_H-((v-minVal)/range)*CHART_H;
+
+      let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">`;
+      [0,0.5,1].forEach(f=>{
+        const y=PAD_T+CHART_H*(1-f);
+        const val=minVal+range*f;
+        svg+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${GRID}" stroke-width="1" stroke-dasharray="4,3"/>`;
+        svg+=`<text x="4" y="${y-3}" fill="${MUTED}" font-size="8" font-weight="600">${fmtShort(val)}</text>`;
+      });
+      // 0 çizgisi (negatif değer içeren grafiklerde referans)
+      if(minVal<0 && maxVal>0){
+        const zy=yAt(0);
+        svg+=`<line x1="0" y1="${zy}" x2="${W}" y2="${zy}" stroke="${MUTED}" stroke-width="1" opacity="0.4"/>`;
+      }
+
+      // Alan dolgusu (opsiyonel) — sadece 'düz' (projected olmayan) segment için
+      if(opts.showArea){
+        const baseY=yAt(Math.max(minVal,0));
+        let path=`M ${xAt(0)} ${baseY} `;
+        data.forEach((d,i)=>{ path+=`L ${xAt(i)} ${yAt(d.value)} `; });
+        path+=`L ${xAt(n-1)} ${baseY} Z`;
+        svg+=`<path d="${path}" fill="${LINE_COLOR}" opacity="0.08"/>`;
+      }
+
+      // Çizgi segmentleri — projected geçişinde kesikli çizgiye dönüşür
+      for(let i=0;i<n-1;i++){
+        const isDashed = data[i].projected || data[i+1].projected;
+        svg+=`<line x1="${xAt(i)}" y1="${yAt(data[i].value)}" x2="${xAt(i+1)}" y2="${yAt(data[i+1].value)}" stroke="${LINE_COLOR}" stroke-width="2.5" ${isDashed?'stroke-dasharray="6,4"':''} stroke-linecap="round"/>`;
+      }
+      // Noktalar + tooltip hedefleri + x ekseni etiketleri
+      data.forEach((d,i)=>{
+        const cx=xAt(i), cy=yAt(d.value);
+        svg+=`<g class="sagi-line-point" data-val="${Core.Utils.formatMoney(d.value)}" data-label="${d.label}${d.projected?(' ('+(opts.projectedSuffix||'')+')'):''}" style="cursor:pointer">`;
+        svg+=`<rect x="${cx-Math.max(14,CHART_W/n/2)}" y="${PAD_T}" width="${Math.max(28,CHART_W/n)}" height="${CHART_H}" fill="transparent"/>`;
+        if(d.projected){
+          svg+=`<circle cx="${cx}" cy="${cy}" r="4" fill="var(--bg-surface)" stroke="${LINE_COLOR}" stroke-width="2"/>`;
+        } else {
+          svg+=`<circle cx="${cx}" cy="${cy}" r="3.5" fill="${LINE_COLOR}"/>`;
+        }
+        svg+=`</g>`;
+        svg+=`<text x="${cx}" y="${H-6}" fill="${MUTED}" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.02em">${d.label}</text>`;
+      });
+      svg+='</svg>';
+
+      const legendHtml=opts.seriesLabel?`<div style="display:flex;gap:14px;justify-content:center;margin-bottom:6px;font-size:11px;font-weight:600;color:var(--text-muted)">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:2px;background:${LINE_COLOR};display:inline-block;border-radius:1px"></span>${opts.seriesLabel}</span>
+      </div>`:'';
+      const tooltipHtml=`<div id="${id}_tooltip" style="display:none;position:absolute;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:8px;padding:8px 10px;font-size:11px;box-shadow:var(--shadow-md);pointer-events:none;z-index:5;white-space:nowrap"></div>`;
+      c.style.position='relative';
+      c.innerHTML=legendHtml+svg+tooltipHtml;
+      const tooltip=c.querySelector('#'+id+'_tooltip');
+      c.querySelectorAll('.sagi-line-point').forEach(pt=>{
+        const show=(evt)=>{
+          if(!tooltip)return;
+          tooltip.innerHTML=`<div style="font-weight:700;margin-bottom:3px">${pt.dataset.label}</div>
+            <div style="color:${LINE_COLOR}">${opts.seriesLabel||''}: ${pt.dataset.val}</div>`;
+          tooltip.style.display='block';
+          const rect=c.getBoundingClientRect();
+          const evtX=(evt.touches?evt.touches[0].clientX:evt.clientX)-rect.left;
+          tooltip.style.left=Math.min(Math.max(evtX-50,4),rect.width-150)+'px';
+          tooltip.style.top='4px';
+        };
+        const hide=()=>{ if(tooltip) tooltip.style.display='none'; };
+        pt.addEventListener('mouseenter',show);
+        pt.addEventListener('mousemove',show);
+        pt.addEventListener('mouseleave',hide);
+        pt.addEventListener('touchstart',(e)=>{show(e);},{passive:true});
+      });
+      if(!c._sagiOutsideTouchBoundLine){
+        c._sagiOutsideTouchBoundLine=true;
+        document.addEventListener('touchstart',function hideOnOutside(e){ const tt=c.querySelector('#'+id+'_tooltip'); if(!c.contains(e.target)&&tt) tt.style.display='none'; },{passive:true});
+      }
     }
   },
   toggleSelect(dropId,btnId){
