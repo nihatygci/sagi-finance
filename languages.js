@@ -179,6 +179,10 @@ const LANGS = {
       paymentDay:'Ödeme günü', payNowConfirm:'Aboneliği Öde',
       msgPayConfirmDone:'Ödeme yapıldı ve kaydedildi.',
       payConfirmTitle:'Ödeme Onayla', payConfirmFrom:'Hangi hesaptan ödensin?',
+      payConfirmAmtHint:'Tutarı düzenleyebilirsiniz',
+      fillFromTemplate:'Şablondan Doldur', saveAsTemplate:'Şablon Olarak Kaydet',
+      templatesTitle:'Şablonlarım', noTemplates:'Kayıtlı şablon yok. Bir işlem eklerken \'Şablon Olarak Kaydet\'i açarsanız burada görünür.',
+      confDelTemplate:'Bu şablonu silmek istediğinize emin misiniz?', msgTemplateDeleted:'Şablon silindi.',
 
       // Hedefler (Goals)
       goalsSubtitle:'Birikim planlarınız ve ilerlemeniz',
@@ -882,6 +886,10 @@ const LANGS = {
       paymentDay:'Payment day', payNowConfirm:'Pay Subscription',
       msgPayConfirmDone:'Payment processed and recorded.',
       payConfirmTitle:'Confirm Payment', payConfirmFrom:'Pay from which account?',
+      payConfirmAmtHint:'You can edit the amount',
+      fillFromTemplate:'Fill from Template', saveAsTemplate:'Save as Template',
+      templatesTitle:'My Templates', noTemplates:"No saved templates yet. Turn on 'Save as Template' when adding a transaction to create one.",
+      confDelTemplate:'Delete this template?', msgTemplateDeleted:'Template deleted.',
 
       // Goals
       goalsSubtitle:'Your savings plans and progress',

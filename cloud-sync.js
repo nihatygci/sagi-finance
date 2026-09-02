@@ -144,7 +144,7 @@
     }
     // Fallback: mergeState yoksa — per-field settings + _updatedAt item merge
     const merged = JSON.parse(JSON.stringify(local));
-    ['wallets','transactions','recurring','goals','debts','categories','budgets','installments'].forEach(function (col) {
+    ['wallets','transactions','recurring','goals','debts','categories','budgets','installments','templates'].forEach(function (col) {
       const la = Array.isArray(local[col])  ? local[col]  : [];
       const ra = Array.isArray(remote[col]) ? remote[col] : [];
       const map = new Map();
@@ -866,7 +866,7 @@
     // ── analyzeSync ──────────────────────────────────────────────────────
     // Kolon listesi tek yerde tanımlı — hem burada hem preview modalının
     // kategori etiketleme kısmında (index.html) AYNI liste kullanılmalı.
-    _SYNC_COLS: ['wallets','transactions','recurring','goals','debts','categories','budgets','installments'],
+    _SYNC_COLS: ['wallets','transactions','recurring','goals','debts','categories','budgets','installments','templates'],
     _localBreakdown() {
       const details = {};
       let total = 0;
@@ -1349,7 +1349,7 @@
     hasMeaningfulLocalData() {
       const s = Core.state;
       if (!s) return false;
-      const arrays = ['wallets','transactions','goals','debts','categories','budgets','recurring','installments'];
+      const arrays = ['wallets','transactions','goals','debts','categories','budgets','recurring','installments','templates'];
       return arrays.some(k => Array.isArray(s[k]) && s[k].length > 0);
     },
 
@@ -1363,7 +1363,7 @@
         if (!snap.exists) return false;
         const data = snap.data() || {};
         const remoteState = data.state || {};
-        const arrays = ['wallets','transactions','goals','debts','categories','budgets','recurring','installments'];
+        const arrays = ['wallets','transactions','goals','debts','categories','budgets','recurring','installments','templates'];
         return arrays.some(k => Array.isArray(remoteState[k]) && remoteState[k].length > 0);
       } catch (e) {
         return false;
@@ -1436,7 +1436,7 @@
           notifMaster: false, theme: 'light', lang: 'tr', anim: 'on', privacy: 'off', currency: 'TRY',
           consentDate: null, consentVersion: null, consentLang: null, consentMethod: null,
         },
-        wallets: [], transactions: [], recurring: [], goals: [], debts: [], categories: [], budgets: [], installments: [], _tombstones: {},
+        wallets: [], transactions: [], recurring: [], goals: [], debts: [], categories: [], budgets: [], installments: [], templates: [], _tombstones: {},
       };
       // KRİTİK FIX: bkz. index.html'deki window._refreshMergeBaseline yorumu.
       if (typeof window._refreshMergeBaseline === 'function') window._refreshMergeBaseline();
