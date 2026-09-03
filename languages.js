@@ -53,8 +53,8 @@ const LANGS = {
     ui: {
       // Navigasyon
       dashboard:'Ana Sayfa', netWorth:'Net Varlık', monthExpense:'Bu Ay Gider', monthIncome:'Bu Ay Gelir',
-      cashFlow:'Aylık Nakit Akışı', goals:'Hedeflerim', debts:'Borç & Alacak', debtSummary:'Borç & Alacak',
-      recentTx:'Son İşlemler', upcoming:'Yaklaşan Ödemeler', wallets:'Hesaplarım', transactions:'İşlemler',
+      cashFlow:'Aylık Nakit Akışı', goals:'Hedefler', debts:'Borç & Alacak', debtSummary:'Borç & Alacak',
+      recentTx:'Son İşlemler', upcoming:'Yaklaşan Ödemeler', wallets:'Hesaplar', transactions:'İşlemler',
       recurring:'Abonelikler', analytics:'Analiz', settings:'Ayarlar', privacyPolicy:'Gizlilik Politikası',
       mainMenu:'Ana Menü',
 
@@ -182,6 +182,11 @@ const LANGS = {
       payConfirmAmtHint:'Tutarı düzenleyebilirsiniz',
       fillFromTemplate:'Şablondan Doldur', saveAsTemplate:'Şablon Olarak Kaydet',
       templatesTitle:'Şablonlarım', noTemplates:'Kayıtlı şablon yok. Bir işlem eklerken \'Şablon Olarak Kaydet\'i açarsanız burada görünür.',
+      templatesSubtitle:'İşlem eklerken tek dokunuşla doldurun',
+      emptyTemplatesTitle:'Henüz şablon yok',
+      installmentsPageTitle:'Taksitlerim', installmentsPageSubtitle:'Kredi kartlarınızdaki aktif taksitler',
+      emptyInstNoCardsTitle:'Kredi kartı yok',
+      emptyInstNoCardsDesc:'Taksit eklemek için önce Hesaplar sayfasından bir kredi kartı ekleyin.',
       confDelTemplate:'Bu şablonu silmek istediğinize emin misiniz?', msgTemplateDeleted:'Şablon silindi.',
 
       // Hedefler (Goals)
@@ -889,6 +894,11 @@ const LANGS = {
       payConfirmAmtHint:'You can edit the amount',
       fillFromTemplate:'Fill from Template', saveAsTemplate:'Save as Template',
       templatesTitle:'My Templates', noTemplates:"No saved templates yet. Turn on 'Save as Template' when adding a transaction to create one.",
+      templatesSubtitle:'Fill a transaction in one tap',
+      emptyTemplatesTitle:'No templates yet',
+      installmentsPageTitle:'My Installments', installmentsPageSubtitle:'Active installments across your credit cards',
+      emptyInstNoCardsTitle:'No credit cards',
+      emptyInstNoCardsDesc:'Add a credit card from the Accounts page first to start adding installments.',
       confDelTemplate:'Delete this template?', msgTemplateDeleted:'Template deleted.',
 
       // Goals

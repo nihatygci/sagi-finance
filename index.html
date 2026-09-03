@@ -1483,8 +1483,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <span data-i18n="notifInboxTitle">Bildirimler</span>
         <span id="sideNotifBadge" style="display:none;margin-left:auto;font-size:10px;font-weight:800;background:var(--status-danger);color:#fff;padding:1px 7px;border-radius:99px"></span>
       </a>
-      <a href="#/wallets" class="nav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg>Hesaplarım</a>
+      <a href="#/wallets" class="nav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg>Hesaplar</a>
       <a href="#/transactions" class="nav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg>İşlemler</a>
+      <a href="#/templates" class="nav-link" data-route="/templates"><svg class="nav-icon"><use href="#icon-copy"/></svg><span data-i18n="templatesTitle">Şablonlarım</span></a>
+      <a href="#/installments" class="nav-link" data-route="/installments"><svg class="nav-icon"><use href="#icon-repeat"/></svg><span data-i18n="installmentsPageTitle">Taksitlerim</span></a>
       <a href="#/analytics" class="nav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg>Analiz</a>
       <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
       <a href="#/goals" class="nav-link" data-route="/goals"><svg class="nav-icon"><use href="#icon-target"/></svg>Hedefler</a>
@@ -1529,7 +1531,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
       <div class="css-grid grid-cols-2 mb-5 stagger-2" id="dashGoalsDebtsGrid">
         <div class="card">
-          <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-target"/></svg><span data-i18n="goals">Hedeflerim</span></h2><a href="#/goals" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
+          <div class="card-header"><h2 class="card-title"><svg class="nav-icon color-accent"><use href="#icon-target"/></svg><span data-i18n="goals">Hedefler</span></h2><a href="#/goals" class="btn btn-outline btn-sm" data-i18n="viewAll">Tümü</a></div>
           <div id="dashGoals" class="flex flex-col gap-4 dash-scroll-panel"></div>
         </div>
         <div class="card">
@@ -1561,7 +1563,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <!-- HESAPLAR -->
     <div id="view-wallets" class="view">
       <div class="page-title-row">
-        <div><h1 class="text-h1" data-i18n="wallets">Hesaplarım</h1><p class="text-subtitle" data-i18n="walletsSubtitle">Tüm hesaplarınız ve bakiyeleri</p></div>
+        <div><h1 class="text-h1" data-i18n="wallets">Hesaplar</h1><p class="text-subtitle" data-i18n="walletsSubtitle">Tüm hesaplarınız ve bakiyeleri</p></div>
         <div class="transfer-actions-row">
           <button class="btn btn-outline" onclick="App.Controllers.Transfer.openModal()" title="Para Aktar"><svg class="nav-icon"><use href="#icon-transfer"/></svg><span data-i18n="transferBtn">Para Aktar</span></button>
           <button class="btn btn-primary" onclick="App.Controllers.Wallets.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addWallet">Hesap Ekle</span></button>
@@ -1664,6 +1666,22 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
       </div>
     </div>
 
+    <!-- ŞABLONLAR -->
+    <div id="view-templates" class="view">
+      <div class="page-title-row">
+        <div><h1 class="text-h1" data-i18n="templatesTitle">Şablonlarım</h1><p class="text-subtitle" data-i18n="templatesSubtitle">İşlem eklerken tek dokunuşla doldurun</p></div>
+      </div>
+      <div id="templatesGrid" class="stagger-1"></div>
+    </div>
+
+    <!-- TAKSİTLER -->
+    <div id="view-installments" class="view">
+      <div class="page-title-row">
+        <div><h1 class="text-h1" data-i18n="installmentsPageTitle">Taksitlerim</h1><p class="text-subtitle" data-i18n="installmentsPageSubtitle">Kredi kartlarınızdaki aktif taksitler</p></div>
+      </div>
+      <div id="installmentsGrid" class="stagger-1"></div>
+    </div>
+
     <!-- ABONELİKLER -->
     <div id="view-recurring" class="view">
       <div class="page-title-row">
@@ -1744,7 +1762,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <!-- HEDEFLER -->
     <div id="view-goals" class="view">
       <div class="page-title-row">
-        <div><h1 class="text-h1" data-i18n="goals">Hedeflerim</h1><p class="text-subtitle" data-i18n="goalsSubtitle">Birikim planlarınız ve ilerlemeniz</p></div>
+        <div><h1 class="text-h1" data-i18n="goals">Hedefler</h1><p class="text-subtitle" data-i18n="goalsSubtitle">Birikim planlarınız ve ilerlemeniz</p></div>
         <button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addGoal">Hedef Ekle</span></button>
       </div>
       <div class="css-grid grid-cols-3 stagger-1" id="goalsGrid"></div>
@@ -2522,7 +2540,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <div class="form-group" id="txInstallmentCountWrap" style="display:none">
           <label class="form-label" data-i18n="instCountLabel">Taksit Sayısı</label>
           <input type="number" min="2" max="36" class="form-control" id="tx_installment_count" placeholder="12">
-          <div class="text-caption color-muted mt-2" id="tx_installment_day_hint"></div>
+          <div class="text-caption color-muted mt-2" style="text-transform:none;letter-spacing:normal;font-weight:500" id="tx_installment_day_hint"></div>
         </div>
         <input type="hidden" id="tx_installment_on" value="0">
         <div class="toggle-row" id="keepOpenRow" onclick="UI.toggleCustomCheck('keepOpenRow','tx_keep_open')">
@@ -2960,13 +2978,16 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="modal-body">
       <div style="text-align:center;margin-bottom:20px">
         <div class="font-bold" style="font-size:17px" id="payConfirmName"></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px">
-          <input type="number" step="0.01" min="0" class="font-display font-bold color-danger" id="payConfirmAmtInput"
-            style="font-size:28px;letter-spacing:-.02em;border:none;background:transparent;text-align:right;width:140px;padding:0;outline:none"
-            oninput="App.FxPreview.update('pay')">
-          <span class="font-display font-bold color-danger" style="font-size:16px" id="payConfirmAmtCur"></span>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px">
+          <div style="display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--brand-accent-medium);background:var(--brand-accent-subtle);border-radius:12px;padding:8px 14px">
+            <input type="number" step="0.01" min="0" class="font-display font-bold color-danger" id="payConfirmAmtInput"
+              style="font-size:26px;letter-spacing:-.02em;border:none;background:transparent;text-align:right;width:120px;padding:0;outline:none"
+              oninput="App.FxPreview.update('pay')">
+            <span class="font-display font-bold color-danger" style="font-size:15px" id="payConfirmAmtCur"></span>
+            <svg style="width:15px;height:15px;color:var(--brand-accent);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </div>
         </div>
-        <div class="text-caption color-muted" style="margin-top:4px" data-i18n="payConfirmAmtHint">Tutarı düzenleyebilirsiniz</div>
+        <div class="text-caption color-muted" style="margin-top:4px;text-transform:none;letter-spacing:normal;font-weight:500" data-i18n="payConfirmAmtHint">Tutarı düzenleyebilirsiniz</div>
       </div>
       <div class="form-group mb-0">
         <label class="form-label" data-i18n="payConfirmFrom">Hangi hesaptan ödensin?</label>
@@ -3152,7 +3173,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <input type="hidden" id="inst_day" value="1">
         </div>
       </div>
-      <div class="text-caption color-muted mb-2" style="margin-top:-6px" data-i18n="instDayHint">Taksitler kartın hesap kesim tarihinde işlenir, bu tarih Kart Bilgileri'nden değiştirilebilir.</div>
+      <div class="text-caption color-muted mb-2" style="margin-top:-6px;text-transform:none;letter-spacing:normal;font-weight:500" data-i18n="instDayHint">Taksitler kartın hesap kesim tarihinde işlenir, bu tarih Kart Bilgileri'nden değiştirilebilir.</div>
       <div class="form-group mb-0">
         <label class="form-label" data-i18n="category">Kategori</label>
         <div class="picker-btn" id="instCatBtn" onclick="UI.CatPicker.open('inst_cat','instCatBtn')">
@@ -3941,7 +3962,7 @@ const SagiTour = {
 
 const UI = {
   Router:{
-    routes:['/dashboard','/wallets','/transactions','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
+    routes:['/dashboard','/wallets','/transactions','/templates','/installments','/analytics','/recurring','/goals','/debts','/settings','/notifications'],
     settingsSections:['personalization','notifications','rates','bottombar','data','plus','plus/assistant','legal'],
     init(){window.addEventListener('hashchange',()=>this.handleRoute());this.handleRoute();},
     handleRoute(){
@@ -5209,6 +5230,8 @@ const App = {
         if(r==='/dashboard')App.Controllers.Dashboard.render();
         if(r==='/wallets')App.Controllers.Wallets.render();
         if(r==='/transactions')App.Controllers.Transactions.renderSetup();
+        if(r==='/templates')App.Controllers.Templates.render();
+        if(r==='/installments')App.Controllers.Installments.render();
         if(r==='/analytics')App.Controllers.Analytics.render();
         if(r==='/recurring')App.Controllers.Recurring.render();
         if(r==='/goals')App.Controllers.Goals.render();
@@ -6890,18 +6913,19 @@ const App = {
           return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
             <div style="flex:1;min-width:0">
               <div class="font-bold" style="font-size:13px">${inst.name}</div>
-              <div class="text-caption color-muted" style="margin-top:2px">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
-              <div class="text-caption color-muted" style="margin-top:1px">${nextLabel}</div>
+              <div class="text-caption color-muted" style="margin-top:2px;text-transform:none;letter-spacing:normal;font-weight:500">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
+              <div class="text-caption color-muted" style="margin-top:1px;text-transform:none;letter-spacing:normal;font-weight:500">${nextLabel}</div>
             </div>
             <button class="act-btn danger" onclick="App.Controllers.Wallets.deleteInstallment('${inst.id}')" title="${t('deleteBtn')||'Sil'}"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
           </div>`;
         }).join('');
       },
-      openAddInstallment(){
-        const cardId=this._lastDetailCardId;
+      openAddInstallment(cardIdOverride){
+        const cardId=cardIdOverride||this._lastDetailCardId;
         if(!cardId)return;
         const cc=Core.state.wallets.find(x=>x.id===cardId);
         if(!cc)return;
+        this._instAddFromPage=!!cardIdOverride;
         document.getElementById('inst_wallet_id').value=cardId;
         const curLbl=document.getElementById('inst_wallet_cur');
         if(curLbl)curLbl.textContent=cc.currency||App.Money.mainCur();
@@ -6914,13 +6938,17 @@ const App = {
         if(dayDisplay)dayDisplay.textContent=cutoffDay;
         const catSel=document.getElementById('inst_cat');
         if(catSel)catSel.value='Diğer';
-        UI.Modals.close('modalCardDetail');
+        if(!cardIdOverride)UI.Modals.close('modalCardDetail');
         UI.Modals.open('modalAddInstallment');
       },
       closeAddInstallment(){
         UI.Modals.close('modalAddInstallment');
-        const cardId=this._lastDetailCardId;
-        if(cardId)this.openCardDetail(cardId);
+        if(this._instAddFromPage){
+          if(App.Controllers.Installments)App.Controllers.Installments.render();
+        }else{
+          const cardId=this._lastDetailCardId;
+          if(cardId)this.openCardDetail(cardId);
+        }
       },
       saveInstallment(){
         const walletId=document.getElementById('inst_wallet_id').value;
@@ -6955,7 +6983,11 @@ const App = {
         Core.DB.saveNow();
         UI.Modals.close('modalAddInstallment');
         UI.Toasts.show(t('msgInstallmentAdded'));
-        this.openCardDetail(walletId);
+        if(this._instAddFromPage){
+          if(App.Controllers.Installments)App.Controllers.Installments.render();
+        }else{
+          this.openCardDetail(walletId);
+        }
         this.render();
         App.Controllers.Dashboard.render();
       },
@@ -6968,7 +7000,12 @@ const App = {
           Core.state.installments=Core.state.installments.filter(x=>x.id!==instId);
           Core.DB.saveNow();
           UI.Toasts.show(t('msgInstallmentDeleted'));
-          if(this._lastDetailCardId)this.openCardDetail(this._lastDetailCardId);
+          const onInstallmentsPage=document.getElementById('view-installments')?.classList.contains('active');
+          if(onInstallmentsPage&&App.Controllers.Installments){
+            App.Controllers.Installments.render();
+          }else if(this._lastDetailCardId){
+            this.openCardDetail(this._lastDetailCardId);
+          }
           this.render();
           App.Controllers.Dashboard.render();
         });
@@ -7683,32 +7720,43 @@ const App = {
       }
     },
     Templates:{
+      _buildRow(tmpl){
+        const mc=Core.state.settings.currency||'TRY';
+        const w=Core.state.wallets.find(x=>x.id===tmpl.wallet);
+        const cc=Core.Utils.getCatColor(tmpl.cat);
+        const sign=tmpl.type==='income'?'+':'-';
+        const color=tmpl.type==='income'?'var(--status-success)':'var(--status-danger)';
+        return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer" onclick="App.Controllers.Templates.apply('${tmpl.id}')">
+          <div style="flex:1;min-width:0">
+            <div class="font-bold" style="font-size:13px">${tmpl.name}</div>
+            <div class="text-caption color-muted" style="margin-top:2px;display:flex;align-items:center;gap:5px">
+              <span style="width:7px;height:7px;border-radius:50%;background:${cc};display:inline-block;flex-shrink:0"></span>
+              ${tmpl.cat}${w?' · '+w.name:''}
+            </div>
+          </div>
+          <div style="font-weight:700;font-size:13px;color:${color};white-space:nowrap">${sign}${Core.Utils.formatMoney(tmpl.amount,tmpl.currency||mc)}</div>
+          <button class="act-btn danger" style="flex-shrink:0" onclick="event.stopPropagation();App.Controllers.Templates.delete('${tmpl.id}')" title="${t('deleteBtn')||'Sil'}"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
+        </div>`;
+      },
+      // Şablonlar sayfası (kalıcı görünüm) — /templates route'unda render edilir.
+      render(){
+        const g=document.getElementById('templatesGrid');
+        if(!g)return;
+        const list=Core.state.templates||[];
+        if(!list.length){
+          g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-copy"/></svg></div><h3>${t('emptyTemplatesTitle')}</h3><p>${t('noTemplates')}</p></div>`;
+          return;
+        }
+        g.innerHTML=`<div class="card">${list.map(tmpl=>this._buildRow(tmpl)).join('')}</div>`;
+      },
+      // Şablon seçici modal — işlem ekleme akışı içinden ("Şablondan Doldur") açılır.
       openPicker(){
         const list=Core.state.templates||[];
         const listEl=document.getElementById('templatePickerList');
         if(!listEl)return;
-        if(!list.length){
-          listEl.innerHTML=`<div class="text-center color-muted text-caption" style="padding:20px 0">${t('noTemplates')}</div>`;
-        }else{
-          const mc=Core.state.settings.currency||'TRY';
-          listEl.innerHTML=list.map(tmpl=>{
-            const w=Core.state.wallets.find(x=>x.id===tmpl.wallet);
-            const cc=Core.Utils.getCatColor(tmpl.cat);
-            const sign=tmpl.type==='income'?'+':'-';
-            const color=tmpl.type==='income'?'var(--status-success)':'var(--status-danger)';
-            return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer" onclick="App.Controllers.Templates.apply('${tmpl.id}')">
-              <div style="flex:1;min-width:0">
-                <div class="font-bold" style="font-size:13px">${tmpl.name}</div>
-                <div class="text-caption color-muted" style="margin-top:2px;display:flex;align-items:center;gap:5px">
-                  <span style="width:7px;height:7px;border-radius:50%;background:${cc};display:inline-block;flex-shrink:0"></span>
-                  ${tmpl.cat}${w?' · '+w.name:''}
-                </div>
-              </div>
-              <div style="font-weight:700;font-size:13px;color:${color};white-space:nowrap">${sign}${Core.Utils.formatMoney(tmpl.amount,tmpl.currency||mc)}</div>
-              <button class="act-btn danger" style="flex-shrink:0" onclick="event.stopPropagation();App.Controllers.Templates.delete('${tmpl.id}')" title="${t('deleteBtn')||'Sil'}"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
-            </div>`;
-          }).join('');
-        }
+        listEl.innerHTML=list.length
+          ? list.map(tmpl=>this._buildRow(tmpl)).join('')
+          : `<div class="text-center color-muted text-caption" style="padding:20px 0">${t('noTemplates')}</div>`;
         UI.Modals.open('modalTemplatePicker');
       },
       apply(id){
@@ -7737,8 +7785,55 @@ const App = {
           Core.state.templates=(Core.state.templates||[]).filter(x=>x.id!==id);
           Core.DB.saveNow();
           UI.Toasts.show(t('msgTemplateDeleted'));
-          this.openPicker();
+          const onTemplatesPage=document.getElementById('view-templates')?.classList.contains('active');
+          if(onTemplatesPage)this.render();
+          else this.openPicker();
         });
+      },
+    },
+    // Taksitler sayfası — tüm kredi kartlarındaki aktif taksitleri, karta
+    // göre gruplanmış şekilde gösterir. Satır stili/hesaplama mantığı
+    // (kalan tutar, sıradaki kesim tarihi) Wallets._nextInstallmentChargeDate
+    // ile AYNI — kod tekrarı yerine doğrudan o metodu çağırıyor.
+    Installments:{
+      render(){
+        const g=document.getElementById('installmentsGrid');
+        if(!g)return;
+        const mcIns=App.Money.mainCur();
+        const cards=Core.state.wallets.filter(w=>w.type==='Kredi Kartı');
+        if(!cards.length){
+          g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-repeat"/></svg></div><h3>${t('emptyInstNoCardsTitle')}</h3><p>${t('emptyInstNoCardsDesc')}</p></div>`;
+          return;
+        }
+        g.innerHTML=cards.map(cc=>{
+          const list=(Core.state.installments||[]).filter(i=>i&&i.wallet===cc.id&&i.active&&i.paidCount<i.installmentCount);
+          const rowsHtml=list.length?list.map(inst=>{
+            const perMonth=inst.totalAmount/inst.installmentCount;
+            const remaining=inst.installmentCount-inst.paidCount;
+            const remAmt=perMonth*remaining;
+            const cur=inst.currency||mcIns;
+            const nextDate=App.Controllers.Wallets._nextInstallmentChargeDate(inst);
+            const nextLabel=`${t('installmentNextChargePrefix')} ${Core.Utils.formatDate(nextDate)}`;
+            return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+              <div style="flex:1;min-width:0">
+                <div class="font-bold" style="font-size:13px">${inst.name}</div>
+                <div class="text-caption color-muted" style="margin-top:2px;text-transform:none;letter-spacing:normal;font-weight:500">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
+                <div class="text-caption color-muted" style="margin-top:1px;text-transform:none;letter-spacing:normal;font-weight:500">${nextLabel}</div>
+              </div>
+              <button class="act-btn danger" onclick="App.Controllers.Wallets.deleteInstallment('${inst.id}')" title="${t('deleteBtn')||'Sil'}"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
+            </div>`;
+          }).join(''):`<div class="text-center color-muted text-caption" style="padding:10px 0">${t('noInstallments')}</div>`;
+          return`<div class="card mb-4">
+            <div class="flex justify-between items-center mb-3">
+              <div class="flex items-center gap-2">
+                <svg class="nav-icon" style="width:16px;height:16px;color:var(--brand-accent)"><use href="#icon-wallet"/></svg>
+                <div class="font-bold" style="font-size:15px">${cc.name}</div>
+              </div>
+              <button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Wallets.openAddInstallment('${cc.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-plus"/></svg>${t('addInstallment')}</button>
+            </div>
+            ${rowsHtml}
+          </div>`;
+        }).join('');
       },
     },
     Analytics:{
