@@ -181,10 +181,10 @@ const LANGS = {
       payConfirmTitle:'Ödeme Onayla', payConfirmFrom:'Hangi hesaptan ödensin?',
       payConfirmAmtHint:'Tutarı düzenleyebilirsiniz',
       fillFromTemplate:'Şablondan Doldur', saveAsTemplate:'Şablon Olarak Kaydet',
-      templatesTitle:'Şablonlarım', noTemplates:'Kayıtlı şablon yok. Bir işlem eklerken \'Şablon Olarak Kaydet\'i açarsanız burada görünür.',
+      templatesTitle:'Şablonlar', noTemplates:'Kayıtlı şablon yok. Bir işlem eklerken \'Şablon Olarak Kaydet\'i açarsanız burada görünür.',
       templatesSubtitle:'İşlem eklerken tek dokunuşla doldurun',
       emptyTemplatesTitle:'Henüz şablon yok',
-      installmentsPageTitle:'Taksitlerim', installmentsPageSubtitle:'Kredi kartlarınızdaki aktif taksitler',
+      installmentsPageTitle:'Taksitler', installmentsPageSubtitle:'Kredi kartlarınızdaki aktif taksitler',
       emptyInstNoCardsTitle:'Kredi kartı yok',
       emptyInstNoCardsDesc:'Taksit eklemek için önce Hesaplar sayfasından bir kredi kartı ekleyin.',
       confDelTemplate:'Bu şablonu silmek istediğinize emin misiniz?', msgTemplateDeleted:'Şablon silindi.',
@@ -218,7 +218,7 @@ const LANGS = {
 
       // Taksitlendirme
       installments:'Taksitler', installmentToggle:'Taksitle',
-      installmentsTitle:'Taksitlerim', addInstallment:'Taksit Ekle',
+      installmentsTitle:'Taksitler', addInstallment:'Taksit Ekle',
       noInstallments:'Aktif taksit yok.',
       installmentsPaidSuffix:'ödendi', installmentRemainingSuffix:'kalan',
       instNameLabel:'Taksit Adı', instTotalLabel:'Toplam Tutar',

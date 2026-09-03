@@ -232,6 +232,17 @@ table{width:100%;border-collapse:collapse}
 [data-theme="dark"] .nav-link.active{background:var(--brand-accent-soft)}
 .nav-icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 
+/* AÇILIR ALT MENÜ GRUBU (İşlemler > Şablonlar/Taksitler) */
+.nav-group-parent-row{display:flex;align-items:stretch;gap:4px;margin-bottom:3px}
+.nav-group-parent-row .nav-link{flex:1;margin-bottom:0}
+.nav-group-toggle{display:flex;align-items:center;justify-content:center;width:34px;flex-shrink:0;border-radius:var(--radius-md);color:var(--text-secondary);cursor:pointer;transition:all .18s ease;background:none;border:none;padding:0}
+.nav-group-toggle:hover{color:var(--text-main);background:var(--bg-surface-hover)}
+.nav-group-toggle .nav-icon{transition:transform .22s cubic-bezier(.4,0,.2,1)}
+.nav-group.expanded .nav-group-toggle .nav-icon{transform:rotate(180deg)}
+.nav-group-children{max-height:0;overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1)}
+.nav-group.expanded .nav-group-children{max-height:140px}
+.nav-sublink{padding-left:38px!important;font-size:13.5px}
+
 /* BOTTOM NAV */
 .app-bottom-nav{display:flex;position:fixed;bottom:10px;left:10px;right:10px;height:var(--nav-h);background:rgba(255,255,255,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(0,0,0,.07);border-radius:26px;box-shadow:0 8px 32px -8px rgba(0,0,0,.18),0 1px 0 rgba(255,255,255,.6) inset;z-index:60;align-items:center;justify-content:space-around;padding:0 6px}
 [data-theme="dark"] .app-bottom-nav{background:rgba(22,22,26,.97);border-color:rgba(255,255,255,.08);box-shadow:0 8px 32px -8px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.04) inset}
@@ -1484,9 +1495,18 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <span id="sideNotifBadge" style="display:none;margin-left:auto;font-size:10px;font-weight:800;background:var(--status-danger);color:#fff;padding:1px 7px;border-radius:99px"></span>
       </a>
       <a href="#/wallets" class="nav-link" data-route="/wallets"><svg class="nav-icon"><use href="#icon-wallet"/></svg>Hesaplar</a>
-      <a href="#/transactions" class="nav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg>İşlemler</a>
-      <a href="#/templates" class="nav-link" data-route="/templates"><svg class="nav-icon"><use href="#icon-copy"/></svg><span data-i18n="templatesTitle">Şablonlarım</span></a>
-      <a href="#/installments" class="nav-link" data-route="/installments"><svg class="nav-icon"><use href="#icon-repeat"/></svg><span data-i18n="installmentsPageTitle">Taksitlerim</span></a>
+      <div class="nav-group" id="navGroupTransactions">
+        <div class="nav-group-parent-row">
+          <a href="#/transactions" class="nav-link" data-route="/transactions"><svg class="nav-icon"><use href="#icon-list"/></svg>İşlemler</a>
+          <button type="button" class="nav-group-toggle" onclick="this.closest('.nav-group').classList.toggle('expanded')" aria-label="Alt menüyü aç/kapat">
+            <svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-chevron-down"/></svg>
+          </button>
+        </div>
+        <div class="nav-group-children">
+          <a href="#/templates" class="nav-link nav-sublink" data-route="/templates"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-copy"/></svg><span data-i18n="templatesTitle">Şablonlar</span></a>
+          <a href="#/installments" class="nav-link nav-sublink" data-route="/installments"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg><span data-i18n="installmentsPageTitle">Taksitler</span></a>
+        </div>
+      </div>
       <a href="#/analytics" class="nav-link" data-route="/analytics"><svg class="nav-icon"><use href="#icon-chart"/></svg>Analiz</a>
       <a href="#/recurring" class="nav-link" data-route="/recurring"><svg class="nav-icon"><use href="#icon-repeat"/></svg>Abonelikler</a>
       <a href="#/goals" class="nav-link" data-route="/goals"><svg class="nav-icon"><use href="#icon-target"/></svg>Hedefler</a>
@@ -1669,7 +1689,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <!-- ŞABLONLAR -->
     <div id="view-templates" class="view">
       <div class="page-title-row">
-        <div><h1 class="text-h1" data-i18n="templatesTitle">Şablonlarım</h1><p class="text-subtitle" data-i18n="templatesSubtitle">İşlem eklerken tek dokunuşla doldurun</p></div>
+        <div><h1 class="text-h1" data-i18n="templatesTitle">Şablonlar</h1><p class="text-subtitle" data-i18n="templatesSubtitle">İşlem eklerken tek dokunuşla doldurun</p></div>
       </div>
       <div id="templatesGrid" class="stagger-1"></div>
     </div>
@@ -1677,7 +1697,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <!-- TAKSİTLER -->
     <div id="view-installments" class="view">
       <div class="page-title-row">
-        <div><h1 class="text-h1" data-i18n="installmentsPageTitle">Taksitlerim</h1><p class="text-subtitle" data-i18n="installmentsPageSubtitle">Kredi kartlarınızdaki aktif taksitler</p></div>
+        <div><h1 class="text-h1" data-i18n="installmentsPageTitle">Taksitler</h1><p class="text-subtitle" data-i18n="installmentsPageSubtitle">Kredi kartlarınızdaki aktif taksitler</p></div>
       </div>
       <div id="installmentsGrid" class="stagger-1"></div>
     </div>
@@ -2566,7 +2586,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
     <div class="modal-header">
       <div class="modal-title-row">
         <div class="modal-title-icon"><svg><use href="#icon-copy"/></svg></div>
-        <h3 class="modal-title" data-i18n="templatesTitle">Şablonlarım</h3>
+        <h3 class="modal-title" data-i18n="templatesTitle">Şablonlar</h3>
       </div>
       <button class="act-btn" onclick="UI.Modals.close('modalTemplatePicker')"><svg class="nav-icon"><use href="#icon-x"/></svg></button>
     </div>
@@ -3124,10 +3144,10 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
           <div class="cc-date-val" id="cardDetailDaysLeft">-</div>
         </div>
       </div>
-      <!-- Taksitlerim -->
+      <!-- Taksitler -->
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light)">
         <div class="flex justify-between items-center mb-2">
-          <div class="font-bold" style="font-size:14px" data-i18n="installmentsTitle">Taksitlerim</div>
+          <div class="font-bold" style="font-size:14px" data-i18n="installmentsTitle">Taksitler</div>
           <button type="button" class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Wallets.openAddInstallment()"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-plus"/></svg> <span data-i18n="addInstallment">Taksit Ekle</span></button>
         </div>
         <div id="cardDetailInstallmentsList"></div>
@@ -4007,6 +4027,10 @@ const UI = {
       // Nav link highlight — settings alt route'larında da /settings aktif
       document.querySelectorAll('.nav-link,.bnav-link').forEach(n=>n.classList.remove('active'));
       document.querySelectorAll(`[data-route="${hash}"]`).forEach(n=>n.classList.add('active'));
+      // Şablonlar/Taksitler İşlemler alt grubunda — o sayfadayken grup
+      // kapalı kalıp aktif linki gizlemesin diye otomatik açılıyor.
+      const txGroup=document.getElementById('navGroupTransactions');
+      if(txGroup&&(hash==='/templates'||hash==='/installments'))txGroup.classList.add('expanded');
       if (typeof _syncBnavPill === 'function') _syncBnavPill();
     }
   },
