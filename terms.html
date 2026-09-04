@@ -8,6 +8,7 @@
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="./version.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-126D10KFSK"></script>
 <script>
@@ -129,8 +130,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <p class="t-tr">SAGI Finance uygulamasını kullanarak ("Uygulama") aşağıdaki koşulları okuduğunuzu, anladığınızı ve bunlara uymayı kabul ettiğinizi beyan edersiniz. Koşulları kabul etmiyorsanız Uygulamayı kullanmayınız.</p>
     <p class="t-en">By accessing or using the SAGI Finance application ("Application"), you acknowledge that you have read, understood, and agree to be bound by the following terms. If you do not agree, please discontinue use of the Application.</p>
     <div class="hero-meta">
-      <span class="t-tr">Yürürlük tarihi: Temmuz 2026 · v0.9.86</span>
-      <span class="t-en">Effective date: July 2026 · v0.9.86</span>
+      <span class="t-tr">Yürürlük tarihi: Temmuz 2026 · v<span class="sagi-ver"></span></span>
+      <span class="t-en">Effective date: July 2026 · v<span class="sagi-ver"></span></span>
     </div>
 
     <div class="highlight-card">
@@ -277,7 +278,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
     <div class="footer-brand">
       <span class="footer-dot"></span>
       <strong>SAGI Finance</strong>
-      <span class="footer-version">v0.9.86</span>
+      <span class="footer-version">v<span class="sagi-ver"></span></span>
     </div>
     <nav class="footer-links">
       <a href="./privacy.html"><span class="t-tr">Gizlilik</span><span class="t-en">Privacy</span></a>
@@ -293,6 +294,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 <script>
 (function(){
   'use strict';
+  document.querySelectorAll('.sagi-ver').forEach(function(el){el.textContent=(window.SAGI_VERSION&&window.SAGI_VERSION.app)||'?';});
   var KEY='sagi_lang';
   function applyLang(l){
     document.documentElement.setAttribute('data-lang',l);

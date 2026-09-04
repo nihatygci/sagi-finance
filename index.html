@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#0B0B0F">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="./manifest.json">
+<script src="./version.js"></script>
 <script src="./languages.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-126D10KFSK"></script>
@@ -94,6 +95,16 @@ if ('serviceWorker' in navigator) {
       doNav(0);
     }
   });
+}
+function sagiFillVersion() {
+  document.querySelectorAll('.sagi-ver').forEach(el => {
+    el.textContent = (window.SAGI_VERSION && window.SAGI_VERSION.app) || '?';
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', sagiFillVersion);
+} else {
+  sagiFillVersion();
 }
 </script>
 <script>
@@ -2042,7 +2053,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             </div>
             <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between">
               <div style="font-size:12px;color:var(--text-muted);font-weight:600">SAGI Finance</div>
-              <div style="font-size:12px;color:var(--text-muted)">v0.9.86</div>
+              <div style="font-size:12px;color:var(--text-muted)">v<span class="sagi-ver"></span></div>
             </div>
           </div>
         </div><!-- /settingsDetail-legal -->
