@@ -1,6 +1,6 @@
 # SAGI Finance
 
-**v0.9.996** — Privacy-first personal finance PWA. All data stays on your device.
+**v1.4.0** — Privacy-first personal finance PWA. All data stays on your device.
 
 ---
 
