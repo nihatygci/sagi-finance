@@ -1,134 +1,84 @@
 # SAGI Finance
 
-**v1.4.0** — Privacy-first personal finance PWA. All data stays on your device.
+**v1.4.0** — Privacy-first personal finance PWA.
+
+> Version is maintained manually here — GitHub renders markdown statically and can't read `version.js`. Sync this line with `SAGI_VERSION.app` on release.
+
+🇹🇷 [Türkçe](#türkçe) · 🇬🇧 [English](#english)
 
 ---
 
-## Overview
+## Türkçe
 
-SAGI Finance is a progressive web app built to prove that personal finance tracking can be genuinely private. Most fintech apps monetise your data through ads and profiling. SAGI does the opposite: zero data collection, zero profiling, zero selling.
+Verileri cihazda tutan, reklam/profilleme yapmayan, ücretsiz kişisel finans PWA'sı. Framework yok, tek sayfa, offline çalışır, tarayıcıdan doğrudan yüklenir.
 
-The app is architected as a single-page PWA with no framework dependency. It loads in milliseconds, works fully offline, and installs directly from the browser with no app store required.
+**Ücretsiz özellikler:** çoklu hesap/cüzdan (TRY/USD/EUR/GBP), gelir-gider takibi, esnek sıklıklı abonelik/düzenli ödeme yönetimi (aylık, 2-3-4-6 ayda bir, yıllık), hedefler, borç/alacak takibi, bütçe limitleri, bildirim merkezi, çoklu dil (TR/EN), offline çalışma, 4 günlük SAGI Asistan denemesi (sohbet + gelişmiş analiz dahil).
 
----
+**Bulut Senkronizasyonu (ücretsiz, opsiyonel):** 16 haneli anonim anahtarla çalışır, hesap/e-posta gerekmez. Firestore üzerinden gerçek zamanlı senkron, çakışma çözümü `lastModified` ile.
 
-## Features
+**SAGI Plus (`PLUS-XXXX-XXXX-XXXX-XXXX` anahtarıyla açılır):**
+- SAGI Asistan sınırsız (Gemini 2.5 Flash-Lite, Cloudflare Workers üzerinden)
+- Tasarruf Skoru, Ay Sonu Tahmini, Aylık Karşılaştırma
+- CSV & PDF dışa aktarma
+- Tema (11 renk) ve font (11 seçenek) kişiselleştirme
+- Reklamsız
 
-### Core (Free)
-
-- **Wallets** — Create multiple accounts (cash, bank, savings, credit card, etc.) in TRY, USD, EUR, or GBP. Live FX preview on cross-currency transfers.
-- **Transactions** — Income and expense tracking with custom categories, notes, and recurring entries.
-- **Recurring** — Scheduled income/expense entries that auto-generate on their due dates.
-- **Goals** — Savings goals with progress tracking and target dates.
-- **Debts** — Borrow/lend tracking with due dates and paid-month logging.
-- **Subscriptions** — Monthly/annual subscription management with per-item currency support.
-- **Transfers** — Move funds between wallets with currency conversion.
-- **Budgets** — Per-category monthly budget limits with real-time usage indicators.
-- **Notification Center** — Persistent in-app inbox with filter tabs (budget alerts, subscription reminders, debt due dates, weekly summaries). Badge indicator on sidebar and bottom nav.
-- **Multi-currency** — TRY, USD, EUR, GBP throughout the app. User-selected currency persists across account switches.
-- **Offline-first** — Full functionality with no internet connection. Service worker uses a network-first strategy; a refresh prompt appears when a new version is ready.
-- **PWA Install** — Installable on Android, iOS, and desktop directly from the browser.
-- **Bilingual** — Turkish and English, auto-detected from browser language with manual override.
-- **AI Trial** — 4-day SAGI Asistan trial included in the free tier (no Plus key required).
-
-### Cloud Sync (Free, optional)
-
-Sync is opt-in and anonymous. No account, email, or personal information is required.
-
-- A 16-digit hex key (`XXXX-XXXX-XXXX-XXXX`) acts as the device identifier. The key is stored as a Firestore document ID under `users/{key}`.
-- All data writes are debounced (700 ms) and pushed to Firestore after each local save.
-- `onSnapshot` provides real-time pull — changes made on another device appear instantly.
-- Conflict resolution uses `lastModified` timestamps (last-write-wins).
-- Offline persistence is enabled via `enablePersistence({ synchronizeTabs: true })`, with graceful fallback for unsupported browsers.
-
-### SAGI Plus
-
-SAGI Plus is a premium tier unlocked with a key prefixed `PLUS-XXXX-XXXX-XXXX-XXXX`. The key works across all devices without creating an account.
-
-**Plus features:**
-
-| Feature | Description |
+| Plan | Fiyat |
 |---|---|
-| SAGI Asistan | AI-powered personal finance advisor, unlimited. Powered by Gemini 2.0 Flash Lite via Cloudflare Workers. Slash commands (`/gelir`, `/gider`, `/ozet`, `/hedefler`, `/yardim`, etc.) generate instant responses from local data without a round-trip to the model. |
-| Advanced Analytics | Savings Score (savings rate 60% + income/expense balance 40%, out of 100), Next-Month Forecast, Monthly Comparison chart. |
-| Theme & Font | 8 accent color themes with dynamic CSS variable propagation. Custom color palette with Firebase persistence. Multiple font options (Manrope, Lexend, Exo 2, etc.). Changes sync across devices via cloud. |
-| CSV Export | Full transaction history exportable in CSV format. |
-| Ad-free | No advertisements. |
+| Aylık | $4.99 |
+| Yıllık | $39.99 |
+| Ömür Boyu | $149.99 (tek seferlik) |
 
-**Pricing:**
+Fiyatlar Google Play üzerinden işlenir, bölgeye göre değişebilir; uygulama içinde canlı fiyat gösterilir.
+
+**Teknoloji:** Vanilla HTML/CSS/JS, Service Worker (PWA), localStorage, Firebase Firestore (sync), Cloudflare Workers + Gemini 2.5 Flash-Lite (AI), GitHub Pages (hosting).
+
+**Gizlilik:** Kişisel veri toplanmaz. AI asistana yalnızca anonim toplu finansal özetler gönderilir — işlem açıklamaları ve kimlik bilgisi asla iletilmez. Detaylar: [privacy.html](./privacy.html)
+
+---
+
+## English
+
+A free, privacy-first personal finance PWA. Data stays on-device, no ads, no profiling, no framework — single-page, offline-capable, installable straight from the browser.
+
+**Free features:** multi-wallet accounts (TRY/USD/EUR/GBP), income/expense tracking, flexible-interval recurring payments & subscriptions (monthly, every 2-3-4-6 months, or yearly), savings goals, debt tracking, budget limits, notification center, TR/EN bilingual, offline-first, 4-day SAGI Asistan trial (chat + advanced analytics included).
+
+**Cloud Sync (free, optional):** anonymous 16-digit key, no account or email. Real-time sync via Firestore, `lastModified`-based conflict resolution.
+
+**SAGI Plus** (unlocked with a `PLUS-XXXX-XXXX-XXXX-XXXX` key):
+- Unlimited SAGI Asistan (Gemini 2.5 Flash-Lite via Cloudflare Workers)
+- Savings Score, Next-Month Forecast, Monthly Comparison
+- CSV & PDF export
+- Theme (11 colors) and font (11 options) customization
+- Ad-free
 
 | Plan | Price |
 |---|---|
-| Monthly | $4.99 / month |
-| Yearly | $39.99 / year |
-| Lifetime | $99.99 (one-time) |
+| Monthly | $4.99 |
+| Yearly | $39.99 |
+| Lifetime | $149.99 (one-time) |
 
-Purchases processed via Google Play. No account required. Prices may vary by region.
+Processed via Google Play; prices may vary by region, live price shown in-app.
 
----
+**Tech stack:** Vanilla HTML/CSS/JS, Service Worker (PWA), localStorage, Firebase Firestore (sync), Cloudflare Workers + Gemini 2.5 Flash-Lite (AI), GitHub Pages (hosting).
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | Vanilla HTML / CSS / JavaScript (no framework) |
-| PWA | Service Worker, Web App Manifest |
-| Local storage | `localStorage` |
-| Cloud sync | Firebase Firestore |
-| AI backend | Cloudflare Workers + Gemini 2.0 Flash Lite |
-| Hosting | GitHub Pages |
+**Privacy:** No personal data is collected. Only anonymous aggregated financial summaries are sent to the AI assistant — transaction descriptions and identifiers are never transmitted. Details: [privacy.html](./privacy.html)
 
 ---
 
 ## File Structure
 
 ```
-index.html          Main application shell and UI
-core.js             State management, event system, localStorage persistence
-cloud-sync.js       Firebase Firestore sync module (Core.Cloud namespace)
-firebase-config.js  Firebase initialisation and offline persistence setup
-languages.js        Turkish / English i18n strings
-about.html          About page
-faq.html            FAQ (TR/EN)
-privacy.html        Privacy Policy
-terms.html          Terms of Service
-contact.html        Contact page
+index.html            Main app shell + inline state management (Core)
+version.js             Single source of truth for the app version
+cloud-sync.js          Firebase Firestore sync (Core.Cloud)
+firebase-config.js     Firebase init + offline persistence
+languages.js            TR/EN i18n strings
+privacy.html · terms.html · about.html · contact.html · faq.html
 ```
 
-> `plus.js` — the SAGI Plus module — is kept in a private repository and is not part of this public codebase.
+> `plus.js` (SAGI Plus module) is kept in a private repository, not included here.
 
 ---
-
-## Architecture Notes
-
-**State management** — `Core.state` is the single data store, loaded from `localStorage` on boot and written back via `Core.DB.save()`. Every save automatically queues a Firestore push if a sync key is present.
-
-**Cloud sync flow** — On app start with a sync key: initial pull from Firestore → compare `lastModified` timestamps → merge if remote is newer → attach `onSnapshot` listener for real-time updates. `forwardKey` in a Firestore document triggers a seamless key migration (e.g. free key → PLUS key) with an automatic reload.
-
-**Plus key migration** — When a user upgrades, their existing sync key document is rewritten with a `PLUS-` prefixed key. `initialPull` detects `forwardKey` or a remote PLUS key and migrates automatically across all open devices.
-
-**AI privacy** — Only anonymous aggregated financial summaries are sent to the assistant: total monthly income/expense, account balances, subscription totals, goal progress, and category-level spending. Transaction descriptions, payee names, and personal identifiers are never transmitted. All requests are proxied through Cloudflare Workers.
-
-**Consent tracking** — On first launch, the user's acceptance of the Terms and Privacy Policy is recorded locally (`consentDate`, `consentVersion`, `consentLang`, `consentMethod`). If cloud sync is active, this record is also written to Firestore.
-
----
-
-## Privacy
-
-SAGI Finance collects no personal data. The free tier never contacts any server. Optional cloud sync uses an anonymous key — no name, email, or account is ever created. The AI assistant sends only aggregated, non-identifiable financial summaries.
-
-See [privacy.html](./privacy.html) for the full Privacy Policy.
-
----
-
-## Contributing
-
-The main application is open source. To contribute or report an issue, open a pull request or file an issue on GitHub.
-
-Note: `plus.js` (the SAGI Plus module) is not included in this repository.
-
----
-
-## License
 
 © 2026 SAGI Finance. All rights reserved.
