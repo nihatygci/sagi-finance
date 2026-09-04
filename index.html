@@ -2734,13 +2734,23 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <input type="hidden" id="rec_id" value="">
         <input type="hidden" id="rec_wallet" value="">
         <div class="form-group"><label class="form-label" data-i18n="recNameLabel">Abonelik Adı</label><input type="text" class="form-control" id="rec_name" data-i18n-ph="recNamePh" placeholder="Örn: Netflix, Kira, Elektrik" required autocomplete="off"></div>
-        <div class="form-group mb-0"><label class="form-label" data-i18n="monthlyAmount">Aylık Tutar</label>
+        <div class="form-group mb-0"><label class="form-label" data-i18n="recAmountLabel">Tutar</label>
           <div class="flex gap-2">
             <input type="number" step="0.01" class="form-control" id="rec_amount" placeholder="0,00" required inputmode="decimal" style="flex:1">
             <select class="form-control" id="rec_currency" style="width:100px">
               <option value="TRY">₺ TRY</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option><option value="GBP">£ GBP</option>
             </select>
           </div>
+        </div>
+        <div class="form-group mb-0" style="margin-top:14px"><label class="form-label" data-i18n="recFrequencyLabel">Ne Sıklıkla?</label>
+          <select class="form-control" id="rec_freq">
+            <option value="1" data-i18n="freqMonthly">Her Ay</option>
+            <option value="2" data-i18n="freqEvery2">2 Ayda Bir</option>
+            <option value="3" data-i18n="freqEvery3">3 Ayda Bir</option>
+            <option value="4" data-i18n="freqEvery4">4 Ayda Bir</option>
+            <option value="6" data-i18n="freqEvery6">6 Ayda Bir</option>
+            <option value="12" data-i18n="freqYearly">Yılda Bir</option>
+          </select>
         </div>
         <div class="form-group mb-0" style="margin-top:14px"><label class="form-label" data-i18n="dayOfMonth">Ayın Kaçında?</label><input type="number" min="1" max="31" class="form-control" id="rec_day" value="1" required></div>
         <div class="form-group" style="margin-top:18px">
@@ -3709,6 +3719,31 @@ const Core = {
   },
   Utils:{
     generateId:()=>Date.now().toString(36)+Math.random().toString(36).substr(2),
+    // "Kaç ayda bir" abonelikleri için: verilen ayın epoch'tan itibaren sıra
+    // numarası (yıl*12+ay). anchorMonths ile karşılaştırılıp bu ayın ödeme
+    // ayı olup olmadığı belirlenir.
+    monthsSinceEpoch:(d)=>{d=d||new Date();return d.getFullYear()*12+d.getMonth();},
+    // s.intervalMonths yoksa/1 ise her ay (eski kayıtlarla geriye dönük uyumlu).
+    // 2+ ise, s.anchorMonths'tan itibaren her intervalMonths ayda bir "sırası
+    // gelmiş" sayılır. anchorMonths kaydın ilk oluşturulduğu aydır.
+    isRecDue:(s,refDate)=>{
+      const freq=parseInt(s&&s.intervalMonths)||1;
+      if(freq<=1)return true;
+      const cur=Core.Utils.monthsSinceEpoch(refDate);
+      const anchor=(s&&s.anchorMonths!=null)?s.anchorMonths:cur;
+      const diff=cur-anchor;
+      return diff>=0 && diff%freq===0;
+    },
+    // Bu ay sırası gelmemiş bir abonelik için kaç ay sonra sırası gelecek (>=1)
+    monthsUntilNextDue:(s,refDate)=>{
+      const freq=parseInt(s&&s.intervalMonths)||1;
+      if(freq<=1)return 0;
+      const cur=Core.Utils.monthsSinceEpoch(refDate);
+      const anchor=(s&&s.anchorMonths!=null)?s.anchorMonths:cur;
+      const diff=cur-anchor;
+      const mod=((diff%freq)+freq)%freq;
+      return mod===0?freq:(freq-mod);
+    },
     walletTypeLabel:(type)=>{const map={'Nakit':'walletTypeCash','Banka Hesabı':'walletTypeBank','Kredi Kartı':'walletTypeCredit','Yatırım':'walletTypeInvest'};return typeof t==='function'&&map[type]?t(map[type]):type;},
     formatMoney:(a,cur)=>{
       if(typeof App!=='undefined'&&App.Money&&App.Money.format)return App.Money.format(a,cur);
@@ -5568,6 +5603,8 @@ const App = {
     list.forEach(s=>{
       try{
         if(!s||!s.autoPay)return;
+        // Kaç ayda bir sırası geliyor kontrolü — sırası bu ay değilse hiç işleme.
+        if(!Core.Utils.isRecDue(s,now))return;
         // "Bugün tam s.day mi" değil — "ödeme günü bu ayda geçti mi VE bu ay
         // için henüz ödenmedi mi". Böylece kullanıcı ödeme gününde uygulamayı
         // hiç açmasa bile (offline/kapalı), tekrar online olduğu an geciken
@@ -6161,7 +6198,8 @@ const App = {
               _isInstallment:true,
             };
           });
-          const combinedRecurring=[...Core.state.recurring,...instItems];
+          const dueRecurring=Core.state.recurring.filter(s=>Core.Utils.isRecDue(s,new Date()));
+          const combinedRecurring=[...dueRecurring,...instItems];
           if(!combinedRecurring.length){du.innerHTML=`<div class="text-center color-muted text-subtitle" style="padding:16px 0">${t('noRecNote')}</div>`;}
           else{
             const today=new Date().getDate(),now2=new Date();
@@ -8212,16 +8250,19 @@ const App = {
         const now=new Date();
         const paidSet=App.Controllers.Dashboard._getPaidSet();
         g.innerHTML=Core.state.recurring.map(s=>{
-          const isPaid=paidSet.has(s.id);
+          const dueThisMonth=Core.Utils.isRecDue(s,now);
+          const isPaid=dueThisMonth&&paidSet.has(s.id);
           const paidBadge=isPaid?`<span class="paid-badge"><svg><use href="#icon-check"/></svg>${t('paidThisMonth')}</span>`:'';
           const autoPayBadge=s.autoPay?`<span class="autopay-badge">${t('autoPayLabel')}</span>`:'';
-          const payBtn=!isPaid&&!s.autoPay?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:'';
-          const dayLabel=t('onDayOfMonth',{day:s.day});
+          const notDueBadge=!dueThisMonth?`<span class="text-caption" style="font-size:11px;font-weight:700;color:var(--text-muted)">${t('notDueThisMonth')}</span>`:'';
+          const payBtn=(dueThisMonth&&!isPaid&&!s.autoPay)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payBtn')}</button>`:'';
+          const freqLabel=t('recFreqLabel',s.intervalMonths||1);
+          const dayLabel=dueThisMonth?t('onDayOfMonth',{day:s.day}):t('nextDueInMonths',Core.Utils.monthsUntilNextDue(s,now));
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:var(--brand-accent-medium)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
               <div style="min-width:0;flex:1">
                 <div class="font-bold" style="font-size:17px">${s.name}</div>
-                <div class="text-caption mt-1 color-accent">${s.cat}</div>
+                <div class="text-caption mt-1 color-accent">${s.cat}${(s.intervalMonths||1)>1?' · '+freqLabel:''}</div>
               </div>
               <div class="flex gap-1" style="flex-shrink:0">
                 ${payBtn}
@@ -8229,7 +8270,7 @@ const App = {
                 <button class="act-btn danger" onclick="App.Controllers.Recurring.delete('${s.id}')" title="Sil"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button>
               </div>
             </div>
-            <div class="flex gap-2 flex-wrap mb-3">${isPaid?paidBadge:''} ${autoPayBadge}</div>
+            <div class="flex gap-2 flex-wrap mb-3">${isPaid?paidBadge:''} ${autoPayBadge} ${notDueBadge}</div>
             <div class="flex items-center gap-2 mb-4 text-subtitle font-medium"><svg class="nav-icon" style="width:13px"><use href="#icon-wallet"/></svg>${Core.state.wallets.find(w=>w.id===s.wallet)?.name||t('deleted')}</div>
             <div class="flex justify-between items-end pt-4" style="border-top:1px solid var(--border-light)">
               <div class="text-subtitle">${dayLabel}</div>
@@ -8238,7 +8279,7 @@ const App = {
           </div>`;
         }).join('');
       },
-      openModal(editId){this._renderWalletPills();document.getElementById('rec_id').value=editId||'';document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');}const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent=t('addRecurring');
+      openModal(editId){this._renderWalletPills();document.getElementById('rec_id').value=editId||'';document.getElementById('rec_name').value='';document.getElementById('rec_amount').value='';document.getElementById('rec_day').value='1';const freqEl0=document.getElementById('rec_freq');if(freqEl0)freqEl0.value='1';document.getElementById('rec_cat_val').value='';document.getElementById('rec_wallet').value='';const cb=document.getElementById('recCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');}const titleEl=document.getElementById('recModalTitle');if(titleEl)titleEl.textContent=t('addRecurring');
         // Reset auto-pay UI
         const apHidden=document.getElementById('rec_autopay');const apTrack=document.getElementById('recAutoPayTrack');const apRow=document.getElementById('recAutoPayRow');const apDetails=document.getElementById('recAutoPayDetails');
         if(apHidden)apHidden.value='0';if(apTrack)apTrack.classList.remove('on');if(apRow)apRow.classList.remove('active');if(apDetails)apDetails.style.display='none';
@@ -8253,6 +8294,7 @@ const App = {
         document.getElementById('rec_name').value=s.name;
         document.getElementById('rec_amount').value=s.originalAmount||s.amount;
         document.getElementById('rec_day').value=s.day;
+        const freqEl=document.getElementById('rec_freq');if(freqEl)freqEl.value=String(s.intervalMonths||1);
         const recCurEl2=document.getElementById('rec_currency');if(recCurEl2)recCurEl2.value=s.currency||(Core.state.settings.currency||'TRY');
         document.getElementById('rec_cat_val').value=s.cat;
         document.getElementById('rec_wallet').value=s.wallet;
@@ -8293,7 +8335,14 @@ const App = {
       save(){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst'),'error');const wId=document.getElementById('rec_wallet').value;if(!wId)return UI.Toasts.show(t('msgAccReq'),'error');const name=document.getElementById('rec_name').value.trim();if(!name)return UI.Toasts.show(t('msgRecNameReq'),'error');const rawAmount=parseFloat(document.getElementById('rec_amount').value);if(!rawAmount)return UI.Toasts.show(t('msgAmountReq'),'error');const recCurEl=document.getElementById('rec_currency');const recCur=recCurEl?recCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const amount=App.ExchangeRate.convert(rawAmount,recCur,mc);const cat=document.getElementById('rec_cat_val').value;if(!cat)return UI.Toasts.show(t('msgCatReq'),'error');const catFinal=cat||'Abonelik';
         const recId=document.getElementById('rec_id').value;
         const autoPay=document.getElementById('rec_autopay')?.value==='1';
-        const recObj={name,amount,originalAmount:rawAmount,currency:recCur,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1,autoPay};
+        const intervalMonths=parseInt(document.getElementById('rec_freq')?.value)||1;
+        // anchorMonths: bu abonelik hangi ayda "başlıyor" sayılacak — her
+        // intervalMonths ayda bir sırası bu aydan itibaren gelir. Var olan
+        // bir kaydı düzenlerken anchor'ı korur (döngü kaymasın), yeni kayıt
+        // veya eski (anchor'sız) kayıtta bu ayı başlangıç kabul eder.
+        const existingRec=recId?Core.state.recurring.find(x=>x.id===recId):null;
+        const anchorMonths=(existingRec&&existingRec.anchorMonths!=null)?existingRec.anchorMonths:Core.Utils.monthsSinceEpoch(new Date());
+        const recObj={name,amount,originalAmount:rawAmount,currency:recCur,cat:catFinal,wallet:wId,day:parseInt(document.getElementById('rec_day').value)||1,autoPay,intervalMonths,anchorMonths};
         if(recId){
           const ix=Core.state.recurring.findIndex(x=>x.id===recId);
           if(ix!==-1)Core.state.recurring[ix]={...Core.state.recurring[ix],...recObj};
