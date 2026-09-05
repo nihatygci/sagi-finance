@@ -2160,8 +2160,14 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
               <div class="toggle-track" id="notifMasterTrack"><div class="toggle-thumb"></div></div>
             </div>
             <div id="notifPermBox" style="background:var(--brand-accent-subtle);border:1px solid var(--brand-accent-medium);border-radius:var(--radius-md);padding:16px;margin:12px 0;display:none">
-              <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
-              <button class="btn btn-primary btn-sm w-full" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
+              <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px" id="notifAskPermMsg" data-i18n="notifAskPermMsg">Bildirimlere izin vermek için butona tıklayın.</p>
+              <button class="btn btn-primary btn-sm w-full" id="notifAskPermBtn" data-i18n="notifAskPermBtn" onclick="App.Notifications.requestPermission()">Bildirimlere İzin Ver</button>
+              <div id="notifBlockedSteps" style="display:none;font-size:13px;color:var(--text-secondary);line-height:1.7;background:var(--bg-body);border-radius:var(--radius-sm);padding:12px 14px;margin-top:4px">
+                <div style="font-weight:700;margin-bottom:4px" data-i18n="notifBlockedStepsTitle">Nasıl açılır:</div>
+                <div data-i18n="notifBlockedStep1">1. Cihaz Ayarları → Uygulamalar → SAGI Finance</div>
+                <div data-i18n="notifBlockedStep2">2. Bildirimler'e dokunun, izni açın</div>
+                <div data-i18n="notifBlockedStep3">3. Uygulamaya geri dönün</div>
+              </div>
             </div>
             <div id="notifSubToggles" style="transition:opacity .25s;margin-top:12px;display:flex;flex-direction:column;gap:10px">
               <div class="toggle-row" id="notifAbonelik" onclick="App.Notifications.toggleSetting('abonelik')">
@@ -4625,6 +4631,45 @@ const Notifications = {
       }
     }catch(e){UI.Toasts.show(t('msgNotifFail'),'error');}
   },
+  // İlk yükleme / ilk ziyaret sırasında bir kereliğine gösterilen, nazik bir
+  // "bildirim izni ister misin" daveti. Tarayıcının kendi native izin
+  // diyaloğunu HİÇ context vermeden köre köre açmak yerine (bu, kullanıcı
+  // bilgisiz şekilde reddedince İZİN KALICI OLARAK KİLİTLENİR — bir daha
+  // asla otomatik sorulamaz), önce KENDİ arayüzümüzde "neden" açıklıyoruz.
+  // Kullanıcı "Evet" derse ANCAK O ZAMAN gerçek native isteği tetikliyoruz —
+  // bu, tarayıcıların da önerdiği "pre-permission priming" deseni.
+  maybeShowPrimingPrompt(){
+    if(!this.supported)return;
+    if(Core.state.settings.notifPrimeShown)return;
+    if(Notification.permission!=='default')return; // zaten cevaplanmış (verilmiş ya da reddedilmiş) — tekrar sorma
+    Core.state.settings.notifPrimeShown=true;
+    Core.DB.save();
+    UI.Confirm.showOptions(
+      t('notifPrimeMsg'),
+      [
+        {label:t('notifPrimeYes'), action:'enable'},
+        {label:t('notifPrimeLater'), action:'cancel'},
+      ],
+      (action)=>{
+        if(action==='enable'){
+          Core.state.settings.notifMaster=true;
+          // Sadece izni isteyip hiçbir kategoriyi açık bırakmamak anlamsız
+          // olurdu (izin verilse bile hiç bildirim gelmezdi) — en genel
+          // faydalı 4 kategoriyi varsayılan açık koyuyoruz, kullanıcı
+          // Ayarlar'dan istediği an kapatabilir/değiştirebilir.
+          Core.state.settings.notifications=Object.assign(
+            {abonelik:true,borc:true,butce:true,krediKarti:true},
+            Core.state.settings.notifications||{}
+          );
+          this.requestPermission().then(()=>{
+            this.updateUI();
+            Core.DB.save();
+            if(Core.Cloud&&Core.Cloud.rememberCurrentPrefs)Core.Cloud.rememberCurrentPrefs();
+          });
+        }
+      }
+    );
+  },
   sendNotif(title,body,opts){
     opts=opts||{};
     var action=opts.action||'dashboard';
@@ -4731,7 +4776,26 @@ const Notifications = {
     if(masterRow){masterOn?masterRow.classList.add('active'):masterRow.classList.remove('active');}
     if(masterDesc){masterDesc.textContent=masterOn?t('notifMasterOn'):t('notifMasterOff');}
     const permBox=document.getElementById('notifPermBox');
-    if(permBox)permBox.style.display=(!granted&&masterOn)?'block':'none';
+    const isDenied=Notification.permission==='denied';
+    if(permBox){
+      permBox.style.display=(!granted&&masterOn)?'block':'none';
+      const askMsgEl=document.getElementById('notifAskPermMsg');
+      const askBtnEl=document.getElementById('notifAskPermBtn');
+      const blockedStepsEl=document.getElementById('notifBlockedSteps');
+      if(isDenied){
+        // İzin kalıcı olarak reddedilmiş — tarayıcı bir daha SORMAZ, butona
+        // bassa da hiçbir şey olmaz. Bunu köre köre "İzin Ver" butonu
+        // göstererek gizlemek yerine, kullanıcıya AÇIKÇA sistem ayarlarına
+        // gitmesi gerektiğini ve adımlarını gösteriyoruz.
+        if(askMsgEl)askMsgEl.textContent=t('notifBlockedMsg');
+        if(askBtnEl)askBtnEl.style.display='none';
+        if(blockedStepsEl)blockedStepsEl.style.display='block';
+      }else{
+        if(askMsgEl)askMsgEl.textContent=t('notifAskPermMsg');
+        if(askBtnEl)askBtnEl.style.display='';
+        if(blockedStepsEl)blockedStepsEl.style.display='none';
+      }
+    }
     const sub=document.getElementById('notifSubToggles');
     if(sub){sub.style.opacity=masterOn?'1':'0.35';sub.style.pointerEvents=masterOn?'':'none';}
     const notifs=Core.state.settings.notifications||{};
@@ -5335,7 +5399,16 @@ const App = {
         else if(hash==='/settings'&&App.Controllers.Settings.renderForm)App.Controllers.Settings.renderForm();
       });
       document.addEventListener('visibilitychange',()=>{
-        if(document.visibilityState==='visible')App.ExchangeRate.ensureFresh();
+        if(document.visibilityState==='visible'){
+          App.ExchangeRate.ensureFresh();
+          // Bildirim izni uygulamanın DIŞINDA (Android sistem ayarları)
+          // değişmiş olabilir — sekmeye/uygulamaya her geri dönüşte gerçek
+          // durumu yeniden okuyup Ayarlar sayfasındaki gösterimi senkron
+          // tutuyoruz. Önceden bu kontrol hiç yapılmıyordu; kullanıcı izni
+          // sistem ayarlarından değiştirip geri döndüğünde uygulama içi
+          // gösterim bayat kalabiliyordu.
+          if(typeof Notifications!=='undefined'&&Notifications.supported)Notifications.updateUI();
+        }
       });
       window.addEventListener('focus',()=>App.ExchangeRate.ensureFresh());
       // ── Buluttan her veri geldiğinde (açılış pull'u VEYA realtime listener) ──
@@ -5525,10 +5598,8 @@ const App = {
             ? Core.Cloud._waitForFirebaseAndNotify()
             : setTimeout(()=>{ if(Core.Cloud && Core.Cloud.isAvailable()) Core.emit('cloudStatusChanged', Core.Cloud.status); }, 300);
         }
-        if(Notifications.supported && Notification.permission==='default' && Core.state.settings.onboarded){
-          setTimeout(()=>{
-            UI.Confirm.show(t('confNotifPerm'),()=>Notifications.requestPermission());
-          }, 2000);
+        if(Notifications.supported && Core.state.settings.onboarded){
+          setTimeout(()=>{ try{ Notifications.maybeShowPrimingPrompt(); }catch(e){} }, 2500);
         }
         App.ExchangeRate._loadCache();
         App.ExchangeRate.ensureFresh().then(()=>{
@@ -5959,6 +6030,8 @@ const App = {
         try { App.processInstallments(); } catch (e) { console.error('[Boot] processInstallments hatası:', e); }
         App.ExchangeRate._loadCache();
         Notifications.check();
+        // İlk kurulum turuyla çakışmasın diye biraz daha uzun gecikme.
+        setTimeout(()=>{ try{ Notifications.maybeShowPrimingPrompt(); }catch(e){} },4000);
         setInterval(()=>{ try{ App.processRecurring(); App.processInstallments(); Notifications.check(); }catch(e){} }, 60*60*1000);
         Core.on('cloudStatusChanged', ()=>{
           App.Controllers.Settings.renderCloudBox && App.Controllers.Settings.renderCloudBox();
