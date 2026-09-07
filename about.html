@@ -35,10 +35,10 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
   --brand-soft:rgba(17,24,39,0.09);--brand-border:rgba(17,24,39,0.16);
   --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
   --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
-  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
+  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;--on-brand:#ffffff;
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;}
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;--on-brand:#0a0a0b;}
 }
 body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(58,58,64,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(22,24,29,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
 .wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
@@ -51,7 +51,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .header-actions{display:flex;align-items:center;gap:8px;}
 .lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
 .lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
-.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(22,24,29,0.3);}
+.lang-btn.active{background:var(--brand);color:var(--on-brand);box-shadow:0 3px 10px rgba(22,24,29,0.3);}
 .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
 .back-btn:hover{background:var(--brand-soft);}
 .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
@@ -233,8 +233,8 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
           <div>
             <div class="plus-feat-name t-tr">Tema &amp; Font</div>
             <div class="plus-feat-name t-en">Theme &amp; Font</div>
-            <div class="plus-feat-sub t-tr">11 renk teması, 5 font seçeneği, bulut sync ile senkronize</div>
-            <div class="plus-feat-sub t-en">11 color themes, 5 font options, synced via cloud</div>
+            <div class="plus-feat-sub t-tr">11 renk teması, 11 font seçeneği, bulut sync ile senkronize</div>
+            <div class="plus-feat-sub t-en">11 color themes, 11 font options, synced via cloud</div>
           </div>
         </div>
         <div class="plus-feat">
@@ -297,7 +297,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
             <span style="font-size:18px;font-weight:900;color:var(--brand)">₺79<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/ay</span></span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--brand,#16181d);position:relative">
-            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#16181d);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">EN İYİ DEĞER</span>
+            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#16181d);color:var(--on-brand,#fff);font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">EN İYİ DEĞER</span>
             <span style="font-size:14px;font-weight:700">Yıllık</span>
             <span style="font-size:18px;font-weight:900;color:var(--brand)">₺599<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/yıl</span></span>
           </div>
@@ -314,7 +314,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
             <span style="font-size:18px;font-weight:900;color:var(--brand)">$4.99<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/mo</span></span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-body,rgba(0,0,0,.04));border-radius:10px;border:1.5px solid var(--brand,#16181d);position:relative">
-            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#16181d);color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">BEST VALUE</span>
+            <span style="position:absolute;top:-10px;right:12px;background:var(--brand,#16181d);color:var(--on-brand,#fff);font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px">BEST VALUE</span>
             <span style="font-size:14px;font-weight:700">Yearly</span>
             <span style="font-size:18px;font-weight:900;color:var(--brand)">$39.99<span style="font-size:12px;font-weight:400;color:var(--text-muted)">/yr</span></span>
           </div>

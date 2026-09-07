@@ -35,10 +35,10 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
   --brand-soft:rgba(17,24,39,0.09);--brand-border:rgba(17,24,39,0.16);
   --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
   --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
-  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
+  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;--on-brand:#ffffff;
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;}
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;--on-brand:#0a0a0b;}
 }
 body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(58,58,64,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(22,24,29,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
 .wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
@@ -51,7 +51,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .header-actions{display:flex;align-items:center;gap:8px;}
 .lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
 .lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
-.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(22,24,29,0.3);}
+.lang-btn.active{background:var(--brand);color:var(--on-brand);box-shadow:0 3px 10px rgba(22,24,29,0.3);}
 .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
 .back-btn:hover{background:var(--brand-soft);}
 .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}

@@ -35,10 +35,10 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
   --brand-soft:rgba(17,24,39,0.09);--brand-border:rgba(17,24,39,0.16);
   --bg:#f0f2f5;--surface:#ffffff;--text:#111827;--text2:#4b5563;--muted:#9ca3af;
   --border:rgba(0,0,0,0.07);--radius:22px;--shadow:0 2px 10px rgba(0,0,0,0.04);
-  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;
+  --font-body:'Inter',sans-serif;--font-display:'Outfit',sans-serif;--on-brand:#ffffff;
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;}
+  :root{--bg:#020203;--surface:#090909;--text:#f9fafb;--text2:#a1a1aa;--muted:#52525b;--border:rgba(255,255,255,0.07);--brand:#ffffff;--brand2:#d4d4d8;--brand-soft:rgba(255,255,255,0.16);--brand-border:rgba(255,255,255,0.24);--shadow:none;--on-brand:#0a0a0b;}
 }
 body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,rgba(58,58,64,0.07) 0%,transparent 35%),radial-gradient(circle at 10% 90%,rgba(22,24,29,0.06) 0%,transparent 35%),var(--bg);color:var(--text);min-height:100vh;line-height:1.65;font-size:16px;}
 .wrapper{max-width:720px;margin:0 auto;padding:0 16px;}
@@ -51,7 +51,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .header-actions{display:flex;align-items:center;gap:8px;}
 .lang-switcher{display:flex;align-items:center;padding:3px;border-radius:999px;background:var(--brand-soft);border:1px solid var(--brand-border);}
 .lang-btn{border:none;background:none;padding:6px 13px;font-size:12px;font-weight:800;letter-spacing:.05em;border-radius:999px;cursor:pointer;color:var(--text2);transition:all .2s;}
-.lang-btn.active{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(22,24,29,0.3);}
+.lang-btn.active{background:var(--brand);color:var(--on-brand);box-shadow:0 3px 10px rgba(22,24,29,0.3);}
 .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--brand);text-decoration:none;padding:9px 14px;border-radius:999px;border:1.5px solid var(--brand-border);transition:all .2s;white-space:nowrap;}
 .back-btn:hover{background:var(--brand-soft);}
 .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
@@ -68,7 +68,7 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
 .card-icon svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .contact-card h3{font-family:var(--font-display);font-size:16px;font-weight:700;}
 .contact-card p{font-size:13px;color:var(--text2);line-height:1.65;flex:1;}
-.card-link{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 3px 12px rgba(22,24,29,0.25);margin-top:4px;}
+.card-link{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:var(--on-brand);font-size:13px;font-weight:700;padding:10px 18px;border-radius:999px;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 3px 12px rgba(22,24,29,0.25);margin-top:4px;}
 .card-link:hover{opacity:.88;transform:scale(1.02);}
 .card-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;}
 .notice-card{margin-top:12px;background:linear-gradient(135deg,rgba(22,24,29,0.08),rgba(58,58,64,0.03));border:1.5px solid var(--brand-border);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:flex-start;gap:18px;}
@@ -149,6 +149,16 @@ body{font-family:var(--font-body);background:radial-gradient(circle at 80% 10%,r
       <a href="https://github.com/nihatygci/sagi/issues" target="_blank" rel="noopener" class="card-link">
         <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         <span class="t-tr">Issue Aç</span><span class="t-en">Open Issue</span>
+      </a>
+    </div>
+    <div class="contact-card">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+      <h3 class="t-tr">E-posta</h3><h3 class="t-en">Email</h3>
+      <p class="t-tr">GitHub kullanmıyorsanız doğrudan e-posta ile de ulaşabilirsiniz.</p>
+      <p class="t-en">If you don't use GitHub, you can also reach us directly by email.</p>
+      <a href="mailto:sagifinance.app@gmail.com" class="card-link">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span class="t-tr">E-posta Gönder</span><span class="t-en">Send Email</span>
       </a>
     </div>
     <div class="contact-card">
