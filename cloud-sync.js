@@ -1409,6 +1409,26 @@
       try { Core.emit('stateChanged', Core.state); } catch (e) {}
     },
 
+    // ── _deleteSubcollection (GÜVENLİK FIX yardımcısı) ──────────────────────
+    // Bir alt koleksiyondaki TÜM dokümanları siler (500'lük batch'ler halinde,
+    // Firestore'un tek batch limiti nedeniyle). Client SDK'da recursive delete
+    // yoktur, bu yüzden önce listeleyip sonra batch ile siliyoruz.
+    async _deleteSubcollection(key, subName) {
+      if (!key || !this.isAvailable()) return;
+      try {
+        const subRef = this._docRef(key).collection(subName);
+        let snap = await subRef.limit(500).get();
+        while (!snap.empty) {
+          const batch = window._fbDB.batch();
+          snap.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          snap = await subRef.limit(500).get();
+        }
+      } catch (e) {
+        console.warn('[Cloud] _deleteSubcollection(' + subName + ') hatası:', e);
+      }
+    },
+
     // ── deleteAccount ─────────────────────────────────────────────────────
     async deleteAccount() {
       const key = Core.state.settings.syncKey;
@@ -1420,8 +1440,15 @@
 
       if (key && this.isAvailable()) {
         try {
+          // GÜVENLİK FIX: Firestore'da bir dokümanı silmek alt koleksiyonlarını
+          // OTOMATİK silmez. /users/{key} silinse bile /chat/{dateId} ve
+          // /assistant/{docId} alt koleksiyonları eskiden kalıyordu — "Hesabımı
+          // Sil" gerçekte tüm veriyi silmiyordu. Önce alt koleksiyonları,
+          // sonra ana dokümanı sil.
+          await this._deleteSubcollection(key, 'chat');
+          await this._deleteSubcollection(key, 'assistant');
           await this._docRef(key).delete();
-          console.log('[Cloud] Hesap silindi:', key);
+          console.log('[Cloud] Hesap silindi (ana doküman + alt koleksiyonlar):', key);
         } catch (e) {
           console.warn('[Cloud] deleteAccount hatası:', e);
         }

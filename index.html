@@ -3279,6 +3279,20 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════════════
+// GÜVENLİK: Genel HTML-escape yardımcısı (XSS önlemi).
+// Kullanıcının serbest metin girdiği HER alan (hesap/cüzdan adı,
+// kategori, hedef, abonelik, borç, işlem açıklaması/notu vb.)
+// innerHTML/insertAdjacentHTML'e yazılmadan önce bu fonksiyondan
+// geçmelidir. plus.js'te de aynı isim/implementasyonla ayrıca
+// tanımlı — iki dosya da window scope'unu paylaştığı için çakışma
+// olmaz, hangisi sonra yüklenirse aynısını yazar.
+function _sagiEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 // ═══════════════════════════════════════
 // ACCENT TONE HESAPLAMA — Global
 // plus.js'deki _applyColorHex bu fonksiyonu çağırır.
@@ -4043,7 +4057,7 @@ const SagiTour = {
         <div class="sagi-tour-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${step.icon || ''}</svg></div>
         <div>
           <div class="sagi-tour-title">${step.title}</div>
-          <div class="sagi-tour-desc">${step.desc}</div>
+          <div class="sagi-tour-desc">${_sagiEsc(step.desc)}</div>
         </div>
       </div>
       ${this._footerHtml(isEn, isLast)}`;
@@ -6063,7 +6077,7 @@ const App = {
         if(mTx.length>0){
           const cats={};mTx.forEach(tx=>cats[tx.cat]=(cats[tx.cat]||0)+App.Money.toMain(tx));
           const topCat=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
-          text=t('insightHigh',{cat:topCat[0],amount:Core.Utils.formatMoney(topCat[1])});
+          text=t('insightHigh',{cat:_sagiEsc(topCat[0]),amount:Core.Utils.formatMoney(topCat[1])});
           const b=Core.state.budgets.find(x=>x.cat===topCat[0]);
           if(b){const p=(topCat[1]/b.amount)*100;if(p>100)text+=`<span class="color-danger">${t('insightOver')}</span>`;else if(p>80)text+=t('insightClose');else text+=t('insightOk');}
         }
@@ -6200,7 +6214,7 @@ const App = {
         _buildKpiSlides('flow', flowSlides);
 
         const dg=document.getElementById('dashGoals');
-        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c='var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${g.name}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
+        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c='var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${_sagiEsc(g.name)}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
 
         const dd=document.getElementById('dashDebts');
         if(dd){
@@ -6237,7 +6251,7 @@ const App = {
                     <svg class="nav-icon" style="width:16px;height:16px"><use href="#${icon}"/></svg>
                   </div>
                   <div style="flex:1;min-width:0">
-                    <div class="font-bold" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name||'—'}</div>
+                    <div class="font-bold" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_sagiEsc(d.name||'—')}</div>
                     <div class="text-caption color-muted" style="margin-top:1px">${isOwed?t('debtDir_borc'):t('debtDir_alacak')}</div>
                   </div>
                   <div class="font-display font-bold" style="font-size:14px;color:${color};flex-shrink:0">${amt}</div>
@@ -6312,7 +6326,7 @@ const App = {
                 const dispAmt=Core.Utils.formatMoney(s.amount);
                 const origInfo=recCur!==(Core.state.settings.currency||'TRY')&&s.originalAmount?` (${Core.Utils.formatMoney(s.originalAmount,recCur)})`:'';
                 const payBtn=s.autoPay?`<span class="text-caption" style="font-size:11px;font-weight:700;color:var(--text-secondary);white-space:nowrap" title="${t('autoPayBtnDisabledTitle')}">${t('autoPayLabel')}</span>`:`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Dashboard.confirmPay('${s.id}')">${t('payBtn')}</button>`;
-                return`<div class="upcoming-item" style="${urgency}"><div style="flex:1;min-width:0"><div class="font-bold" style="font-size:14px">${s.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="upcoming-item-actions"><div class="font-display font-bold color-danger" style="font-size:15px;text-align:right">-${dispAmt}${origInfo}</div>${payBtn}</div></div>`;
+                return`<div class="upcoming-item" style="${urgency}"><div style="flex:1;min-width:0"><div class="font-bold" style="font-size:14px">${_sagiEsc(s.name)}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${label}</div></div><div class="upcoming-item-actions"><div class="font-display font-bold color-danger" style="font-size:15px;text-align:right">-${dispAmt}${origInfo}</div>${payBtn}</div></div>`;
               };
               const sorted=[...list].sort((a,b)=>{
                 const da=a.day-today, db=b.day-today;
@@ -6368,7 +6382,7 @@ const App = {
         if(m){
           document.getElementById('payConfirmName').textContent=s.name;
           const wSel=document.getElementById('payConfirmWallet');
-          wSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
+          wSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
           if(s.wallet)wSel.value=s.wallet;
           Core.temp._payRecId=recId;
           this._userPickedCur=false;
@@ -6500,8 +6514,8 @@ const App = {
           return `<div class="dash-tx-row" onclick="App.Controllers.Transactions.openDetailModal('${tx.id}')">
             <div style="width:4px;height:36px;border-radius:2px;background:${color};flex-shrink:0"></div>
             <div class="dash-tx-row-left">
-              <div class="dash-tx-row-title">${tx.desc || tx.cat}</div>
-              <div class="dash-tx-row-sub">${tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
+              <div class="dash-tx-row-title">${_sagiEsc(tx.desc || tx.cat)}</div>
+              <div class="dash-tx-row-sub">${_sagiEsc(tx.cat)} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
             </div>
             <div class="dash-tx-row-amount" style="color:${color}">${sign}${Core.Utils.formatMoney(tx.amount, txCur)}</div>
           </div>`;
@@ -6537,8 +6551,8 @@ const App = {
           return`<div class="dash-tx-row" onclick="App.Controllers.Transactions.openDetailModal('${tx.id}')">
             <div style="width:4px;height:36px;border-radius:2px;background:${color};flex-shrink:0"></div>
             <div class="dash-tx-row-left">
-              <div class="dash-tx-row-title">${tx.desc||tx.cat}</div>
-              <div class="dash-tx-row-sub">${tx.cat} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
+              <div class="dash-tx-row-title">${_sagiEsc(tx.desc||tx.cat)}</div>
+              <div class="dash-tx-row-sub">${_sagiEsc(tx.cat)} · ${Core.Utils.formatDate(tx.date)}${timeStr}</div>
             </div>
             <div class="dash-tx-row-amount" style="color:${color}">${sign}${Core.Utils.formatMoney(tx.amount,txCur)}</div>
           </div>`;
@@ -6590,7 +6604,7 @@ const App = {
           const dueLabel=daysUntilDue===null?'':(daysUntilDue===0?'<span style="color:var(--status-danger);font-weight:700;font-size:11px">Bugün son ödeme!</span>':`<span style="color:var(--status-warn);font-size:11px;font-weight:600">${daysUntilDue} gün sonra son ödeme</span>`);
           return`<div class="upcoming-item" style="${urgStyle}margin-bottom:8px">
             <div style="flex:1;min-width:0">
-              <div class="font-bold" style="font-size:14px">${cc.name}</div>
+              <div class="font-bold" style="font-size:14px">${_sagiEsc(cc.name)}</div>
               <div class="text-caption" style="text-transform:none;margin-top:2px">${dueLabel||t('ccCreditDebtFallback')}</div>
             </div>
             <div class="upcoming-item-actions">
@@ -6637,8 +6651,8 @@ const App = {
           const maskedNum=`•••• •••• •••• ${(w.id||'0000').slice(-4).toUpperCase()}`;
 
           const mainAmount=isCC
-            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${t('ccDebtBadge')}</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">${t('ccRemainingLimit')}</div></div>`:''}`
-            : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${w.name}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
+            ? `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${_sagiEsc(w.name)}</div><div class="flex items-end gap-2 mb-1"><div class="font-display font-bold" style="font-size:28px;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(ccDebt,w.currency)}</div>${ccDebt>0?`<div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${t('ccDebtBadge')}</div>`:''}</div>${ccLimit>0?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:13px;font-weight:700;opacity:.85">${Core.Utils.formatMoney(ccAvail,w.currency)}</div><div style="font-size:10px;opacity:.55;font-weight:600;text-transform:uppercase;letter-spacing:.07em">${t('ccRemainingLimit')}</div></div>`:''}`
+            : `<div class="text-caption mb-1" style="color:rgba(255,255,255,.8)">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div><div class="font-medium mb-1" style="font-size:16px;opacity:.9">${_sagiEsc(w.name)}</div><div class="font-display font-bold mb-3" style="font-size:28px;letter-spacing:-1px;display:flex;align-items:baseline">${Core.Utils.formatMoneyHTML(w.balance,w.currency)}</div>`;
           const standardBtns=isCC
             ? `<div class="flex gap-2 mt-3">${ccDebt>0?`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-weight:700" onclick="App.Controllers.Wallets.openCardPayment('${w.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('payCard')}</button>`:`<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button>`}<button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Wallets.openCardDetail('${w.id}')">${t('ccCardDetailBtn')}</button></div>`
             : `<div class="flex gap-2"><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickAdd('${w.id}')">${t('addTxOnCard')}</button><button class="btn btn-sm w-full" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)" onclick="App.Controllers.Transactions.quickFilter('${w.id}')">${t('viewHistory')}</button></div>`;
@@ -6812,10 +6826,10 @@ const App = {
       },
       upd(){
         const wallets=Core.state.wallets;
-        const opt=wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
+        const opt=wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
         ['goal_action_wallet','trn_from','trn_to'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opt;});
         const da=document.getElementById('debt_action_wallet');if(da)da.innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+opt;
-        if(document.getElementById('filterTxWallet'))document.getElementById('filterTxWallet').innerHTML='<option value="all">'+t('filterAllWallets')+'</option>'+wallets.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+        if(document.getElementById('filterTxWallet'))document.getElementById('filterTxWallet').innerHTML='<option value="all">'+t('filterAllWallets')+'</option>'+wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)}</option>`).join('');
       },
       setCur(cur,btn){document.getElementById('wal_currency').value=cur;document.querySelectorAll('#walCurSeg .tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');},
       onTypeChange(typeVal,el){
@@ -6937,7 +6951,7 @@ const App = {
         if(!w)return;
         const related=Core.state.transactions.filter(tx=>tx.wallet===id);
         if(related.length>0){
-          UI.Confirm.show(t('confDelWallet',{name:w.name,n:related.length}),()=>{
+          UI.Confirm.show(t('confDelWallet',{name:_sagiEsc(w.name),n:related.length}),()=>{
             Core.state.transactions=Core.state.transactions.filter(tx=>tx.wallet!==id);
             Core.state.recurring=Core.state.recurring.filter(r=>r.wallet!==id);
             Core.state.wallets=Core.state.wallets.filter(x=>x.id!==id);
@@ -7077,7 +7091,7 @@ const App = {
           const nextLabel=`${t('installmentNextChargePrefix')} ${Core.Utils.formatDate(nextDate)}`;
           return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
             <div style="flex:1;min-width:0">
-              <div class="font-bold" style="font-size:13px">${inst.name}</div>
+              <div class="font-bold" style="font-size:13px">${_sagiEsc(inst.name)}</div>
               <div class="text-caption color-muted" style="margin-top:2px;text-transform:none;letter-spacing:normal;font-weight:500">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
               <div class="text-caption color-muted" style="margin-top:1px;text-transform:none;letter-spacing:normal;font-weight:500">${nextLabel}</div>
             </div>
@@ -7224,7 +7238,7 @@ const App = {
         const fromSel=document.getElementById('payCardFromWallet');
         const sources=Core.state.wallets.filter(w=>w.id!==cardWalletId);
         if(!sources.length){UI.Toasts.show(t('msgAccFirst'),'error');return;}
-        fromSel.innerHTML=sources.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
+        fromSel.innerHTML=sources.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
         UI.Modals.open('modalPayCard');
       },
       setCardPayAmount(type){
@@ -7335,7 +7349,7 @@ const App = {
     },
     Transactions:{
       setType(type,btn){document.getElementById('tx_type_val').value=type;document.querySelectorAll('.tx-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');this._syncInstallmentVisibility();},
-      _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
+      _renderWalletPills(wrapId,hiddenId){const wrap=document.getElementById(wrapId);if(!wrap)return;const curVal=document.getElementById(hiddenId)?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Transactions._pickWallet('${w.id}','${wrapId}','${hiddenId}')"><div><div class="wallet-pill-name">${_sagiEsc(w.name)}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id,wrapId,hiddenId){document.getElementById(hiddenId).value=id;document.querySelectorAll(`#${wrapId} .wallet-pill`).forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));this._updateAmountHint();if(hiddenId==='tx_wallet')this._syncInstallmentVisibility();},
       _syncInstallmentVisibility(){
         const row=document.getElementById('txInstallmentRow');
@@ -7551,7 +7565,7 @@ const App = {
           const cbCol=sm?`<td style="padding-left:14px;width:36px"><input type="checkbox" class="tx-select-cb" data-id="${tx.id}" ${isSel?'checked':''} onclick="event.stopPropagation();App.Controllers.Transactions.toggleSelect('${tx.id}')"></td>`:'';
           const rowAttrs=sm?` data-tx-id="${tx.id}" onclick="App.Controllers.Transactions.toggleSelect('${tx.id}')" style="cursor:pointer;border-left:3px solid ${color}"`:` data-tx-id="${tx.id}" style="border-left:3px solid ${color}"`;
           const rowClass=isSel?' class="tx-row-selected"':'';
-          return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${tx.desc||tx.cat}</div></td><td><span class="badge" style="background-color:${Core.Utils.getCatColor(tx.cat)}18;color:${Core.Utils.getCatColor(tx.cat)}">${tx.cat}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
+          return`<tr${rowClass}${rowAttrs}>${cbCol}<td style="padding-left:${sm?'8':'22'}px"><div class="font-medium" style="font-size:13px">${Core.Utils.formatDate(tx.date)}</div><div style="font-size:11px;color:var(--text-muted)">${tx.date&&tx.date.includes('T')?(new Date(tx.date).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})):''}</div></td><td><div class="font-bold">${_sagiEsc(tx.desc||tx.cat)}</div></td><td><span class="badge" style="background-color:${_sagiEsc(Core.Utils.getCatColor(tx.cat))}18;color:${_sagiEsc(Core.Utils.getCatColor(tx.cat))}">${_sagiEsc(tx.cat)}</span></td><td style="font-size:14px">${wN}</td><td class="text-right font-display font-bold" style="color:${color};font-size:15px;letter-spacing:-.5px">${tx.type==='income'?'+':'-'}${Core.Utils.formatMoney(tx.amount,txCurD)}</td>${sm?'':`<td class="text-center" style="padding-right:22px"><button class="act-btn" onclick="App.Controllers.Transactions.edit('${tx.id}')" data-i18n-title="edit" title="${t('edit')}"><svg class="nav-icon" style="width:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Transactions.delete('${tx.id}')" data-i18n-title="delete" title="${t('delete')}"><svg class="nav-icon" style="width:14px"><use href="#icon-trash"/></svg></button></td>`}</tr>`;
         }).join('');
         // ── MOBİL KART LİSTESİ ──
         const ml=document.getElementById('txMobileList');
@@ -7586,8 +7600,8 @@ const App = {
               <div class="tx-mobile-card-left">
                 <div class="tx-mobile-dot" style="background:${color}"></div>
                 <div class="tx-mobile-info">
-                  <div class="tx-mobile-title">${tx.desc||tx.cat}</div>
-                  <div class="tx-mobile-meta"><span style="display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;background:${catColor}18;color:${catColor}">${tx.cat}</span> · ${walletName}</div>
+                  <div class="tx-mobile-title">${_sagiEsc(tx.desc||tx.cat)}</div>
+                  <div class="tx-mobile-meta"><span style="display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;background:${catColor}18;color:${catColor}">${_sagiEsc(tx.cat)}</span> · ${_sagiEsc(walletName)}</div>
                 </div>
               </div>
               <div class="tx-mobile-right">
@@ -7624,9 +7638,9 @@ const App = {
           const catColor=Core.Utils.getCatColor(tx.cat);
           rowsEl.innerHTML=`
             <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailDate')}</span><span class="tx-detail-value">${dateStr}${timeStr?' · '+timeStr:''}</span></div>
-            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailCategory')}</span><span class="tx-detail-value" style="color:${catColor}">${tx.cat}</span></div>
-            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailAccount')}</span><span class="tx-detail-value">${walletName}</span></div>
-            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailDescription')}</span><span class="tx-detail-value">${tx.desc}</span></div>`:''}
+            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailCategory')}</span><span class="tx-detail-value" style="color:${catColor}">${_sagiEsc(tx.cat)}</span></div>
+            <div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailAccount')}</span><span class="tx-detail-value">${_sagiEsc(walletName)}</span></div>
+            ${tx.desc?`<div class="tx-detail-row"><span class="tx-detail-label">${t('txDetailDescription')}</span><span class="tx-detail-value">${_sagiEsc(tx.desc)}</span></div>`:''}
           `;
         }
         if(modal){
@@ -7893,7 +7907,7 @@ const App = {
         const color=tmpl.type==='income'?'var(--status-success)':'var(--status-danger)';
         return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer" onclick="App.Controllers.Templates.apply('${tmpl.id}')">
           <div style="flex:1;min-width:0">
-            <div class="font-bold" style="font-size:13px">${tmpl.name}</div>
+            <div class="font-bold" style="font-size:13px">${_sagiEsc(tmpl.name)}</div>
             <div class="text-caption color-muted" style="margin-top:2px;display:flex;align-items:center;gap:5px">
               <span style="width:7px;height:7px;border-radius:50%;background:${cc};display:inline-block;flex-shrink:0"></span>
               ${tmpl.cat}${w?' · '+w.name:''}
@@ -7981,7 +7995,7 @@ const App = {
             const nextLabel=`${t('installmentNextChargePrefix')} ${Core.Utils.formatDate(nextDate)}`;
             return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
               <div style="flex:1;min-width:0">
-                <div class="font-bold" style="font-size:13px">${inst.name}</div>
+                <div class="font-bold" style="font-size:13px">${_sagiEsc(inst.name)}</div>
                 <div class="text-caption color-muted" style="margin-top:2px;text-transform:none;letter-spacing:normal;font-weight:500">${inst.paidCount}/${inst.installmentCount} ${t('installmentsPaidSuffix')} · ${Core.Utils.formatMoney(remAmt,cur)} ${t('installmentRemainingSuffix')}</div>
                 <div class="text-caption color-muted" style="margin-top:1px;text-transform:none;letter-spacing:normal;font-weight:500">${nextLabel}</div>
               </div>
@@ -7992,7 +8006,7 @@ const App = {
             <div class="flex justify-between items-center mb-3">
               <div class="flex items-center gap-2">
                 <svg class="nav-icon" style="width:16px;height:16px;color:var(--brand-accent)"><use href="#icon-wallet"/></svg>
-                <div class="font-bold" style="font-size:15px">${cc.name}</div>
+                <div class="font-bold" style="font-size:15px">${_sagiEsc(cc.name)}</div>
               </div>
               <button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px" onclick="App.Controllers.Wallets.openAddInstallment('${cc.id}')"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-plus"/></svg>${t('addInstallment')}</button>
             </div>
@@ -8191,7 +8205,7 @@ const App = {
           const cc = Core.Utils.getCatColor(tx.cat);
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light)">
             <div style="min-width:0;flex:1">
-              <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tx.desc||tx.cat}</div>
+              <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_sagiEsc(tx.desc||tx.cat)}</div>
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:5px">
                 <span style="width:7px;height:7px;border-radius:50%;background:${cc};display:inline-block;flex-shrink:0"></span>
                 ${tx.cat} · ${Core.Utils.formatDate(tx.date)}
@@ -8274,7 +8288,7 @@ const App = {
           const txCur=tx.amountCurrency||(w&&w.currency)||mainCur;
           const amtMain=App.Money.toMain(tx);
           const origStr=txCur!==mainCur?` <span style="font-size:11px;color:var(--text-muted)">(${Core.Utils.formatMoney(tx.amount,txCur)})</span>`:'';
-          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${tx.desc||catName}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${w?w.name:t('deleted')}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-${isIncome?'success':'danger'})">${Core.Utils.formatMoney(amtMain,mainCur)}</div>${origStr}</div></div>`;
+          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light)"><div><div style="font-weight:600;font-size:14px">${_sagiEsc(tx.desc||catName)}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${Core.Utils.formatDate(tx.date)} · ${_sagiEsc(w?w.name:t('deleted'))}</div></div><div class="text-right"><div style="font-weight:700;color:var(--status-${isIncome?'success':'danger'})">${Core.Utils.formatMoney(amtMain,mainCur)}</div>${origStr}</div></div>`;
         }).join('');
         const noTxHtml=`<div style="text-align:center;color:var(--text-muted);padding:20px">${t('catModalNoTx')}</div>`;
         const totalLabel=t('catModalMonthTotal')||'Bu Ay Toplam';
@@ -8314,7 +8328,7 @@ const App = {
           const spent=spentInBudCur,perc=Math.min((spent/b.amount)*100,100),isOver=spent>b.amount;
           const barC=isOver?'var(--status-danger)':(perc>80?'var(--status-warn)':'var(--brand-accent)');
           const curBadge=budCur!==mc?` <span style="font-size:11px;opacity:.7">${budCur}</span>`:'';
-          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${b.cat}${curBadge}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Budgets.edit('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Budgets.delete('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button></div></div><div class="flex justify-between text-subtitle mb-2"><span class="${isOver?'color-danger':''} font-bold">${Core.Utils.formatMoney(spent,budCur)}</span><span>${t('limit')} ${Core.Utils.formatMoney(b.amount,budCur)}</span></div><div class="progress-track" style="height:7px"><div class="progress-fill" style="width:${perc}%;background:${barC}"></div></div></div>`;
+          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${_sagiEsc(b.cat)}${curBadge}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Budgets.edit('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Budgets.delete('${b.id}')"><svg class="nav-icon" style="width:14px;height:14px"><use href="#icon-trash"/></svg></button></div></div><div class="flex justify-between text-subtitle mb-2"><span class="${isOver?'color-danger':''} font-bold">${Core.Utils.formatMoney(spent,budCur)}</span><span>${t('limit')} ${Core.Utils.formatMoney(b.amount,budCur)}</span></div><div class="progress-track" style="height:7px"><div class="progress-fill" style="width:${perc}%;background:${barC}"></div></div></div>`;
         }).join('');
       },
       openModal(){document.getElementById('bud_id').value='';document.getElementById('bud_cat').value='';document.getElementById('bud_amount').value='';const cb=document.getElementById('budCatBtn');if(cb){const lbl=cb.querySelector('.picker-btn-label');if(lbl)lbl.textContent=t('selectCategory');cb.classList.remove('has-value');}UI.Modals.open('modalBudget');},
@@ -8326,7 +8340,7 @@ const App = {
       _renderCatPills(){const wrap=document.getElementById('recCatPills');if(!wrap)return;const cur=document.getElementById('rec_cat_val')?.value||'';const cats=['Kira','Elektrik','Su','Doğalgaz','Telefon','İnternet','Fatura','Abonelik','Sigorta','Ulaşım','Eğitim'];wrap.innerHTML=cats.map(c=>`<div class="cat-pill${c===cur?' selected':''}" onclick="App.Controllers.Recurring._pickCat('${c}')">${c}</div>`).join('');},
       _pickCat(name){document.getElementById('rec_cat_val').value=name;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.toggle('selected',p.textContent===name));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=name;lbl.style.display='inline';}const ci=document.getElementById('rec_cat_custom');if(ci)ci.value='';},
       setCatCustom(val){document.getElementById('rec_cat_val').value=val;document.querySelectorAll('#recCatPills .cat-pill').forEach(p=>p.classList.remove('selected'));const lbl=document.getElementById('recCatSelected');if(lbl){lbl.textContent=val||'';lbl.style.display=val?'inline':'none';}},
-      _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${w.name}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
+      _renderWalletPills(){const wrap=document.getElementById('recWalletPills');if(!wrap)return;const curVal=document.getElementById('rec_wallet')?.value||'';if(!Core.state.wallets.length){wrap.innerHTML=`<div class="text-caption" style="color:var(--text-muted);padding:8px 0">${t('msgAccFirst')}</div>`;return;}wrap.innerHTML=Core.state.wallets.map(w=>`<div class="wallet-pill${w.id===curVal?' selected':''}" onclick="App.Controllers.Recurring._pickWallet('${w.id}')"><div><div class="wallet-pill-name">${_sagiEsc(w.name)}</div><div class="text-caption" style="text-transform:none;margin-top:2px">${Core.Utils.walletTypeLabel(w.type)}${w.currency&&w.currency!=='TRY'?' · '+w.currency:''}</div></div><div class="flex items-center gap-3"><div class="wallet-pill-balance">${Core.Utils.formatMoney(w.balance,w.currency)}</div><div class="wallet-pill-check"><svg class="nav-icon"><use href="#icon-check"/></svg></div></div></div>`).join('');},
       _pickWallet(id){document.getElementById('rec_wallet').value=id;document.querySelectorAll('#recWalletPills .wallet-pill').forEach(p=>p.classList.toggle('selected',p.getAttribute('onclick').includes(`'${id}'`)));},
       render(){
         const g=document.getElementById('recurringGrid');
@@ -8345,8 +8359,8 @@ const App = {
           return`<div class="card"${isPaid?' style="border-color:rgba(34,160,107,.25)"':''}${s.autoPay&&!isPaid?' style="border-color:var(--brand-accent-medium)"':''}>
             <div class="flex justify-between items-start mb-4 gap-2">
               <div style="min-width:0;flex:1">
-                <div class="font-bold" style="font-size:17px">${s.name}</div>
-                <div class="text-caption mt-1 color-accent">${s.cat}${(s.intervalMonths||1)>1?' · '+freqLabel:''}</div>
+                <div class="font-bold" style="font-size:17px">${_sagiEsc(s.name)}</div>
+                <div class="text-caption mt-1 color-accent">${_sagiEsc(s.cat)}${(s.intervalMonths||1)>1?' · '+freqLabel:''}</div>
               </div>
               <div class="flex gap-1" style="flex-shrink:0">
                 ${payBtn}
@@ -8441,7 +8455,7 @@ const App = {
         const desc=`${s.name} (Abonelik)`;
         const related=Core.state.transactions.filter(t=>t.desc===desc&&t.wallet===s.wallet);
         if(related.length>0){
-          UI.Confirm.show(t('confDelRec',{name:s.name,n:related.length}),()=>{
+          UI.Confirm.show(t('confDelRec',{name:_sagiEsc(s.name),n:related.length}),()=>{
             related.forEach(tx=>{
               App.Money.revertTx(tx);
               App.Controllers.Dashboard.unmarkPaidIfNeeded&&App.Controllers.Dashboard.unmarkPaidIfNeeded(tx.desc);
@@ -8484,7 +8498,7 @@ const App = {
         const currentInMc=gc!==mc3?App.ExchangeRate.convert(x.current,gc,mc3):x.current;
         const targetInMc=gc!==mc3?App.ExchangeRate.convert(goalOriginalTarget,gc,mc3):goalOriginalTarget;
         const mcConvStr=gc!==mc3?` (${Core.Utils.formatMoney(currentInMc,mc3)} / ${Core.Utils.formatMoney(targetInMc,mc3)})`:'';
-        return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${x.name}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,gc)} / ${Core.Utils.formatMoney(goalOriginalTarget,gc)}${mcConvStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
+        return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${_sagiEsc(x.name)}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,gc)} / ${Core.Utils.formatMoney(goalOriginalTarget,gc)}${mcConvStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.originalTarget||g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');const gcEl=document.getElementById('goal_currency');if(gcEl)gcEl.value=g.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalGoal');}},
       save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
@@ -8495,7 +8509,7 @@ const App = {
         if(!this._userPickedCur)App.CurrencySelect.fill('goal_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('goal');
       },
-      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;this._userPickedCur=false;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');UI.Modals.open('modalGoalAction');},
+      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;this._userPickedCur=false;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');UI.Modals.open('modalGoalAction');},
       executeAction(){
         const a=parseFloat(document.getElementById('goal_action_amount').value);
         const wId=document.getElementById('goal_action_wallet').value;
@@ -8533,7 +8547,7 @@ const App = {
       openModal(){
         if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirstTransfer'),'error');
         const fromSel=document.getElementById('trn_from');
-        fromSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
+        fromSel.innerHTML=Core.state.wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');
         this._userPickedCur=false;
         this.updateToOptions();
         const amtInput=document.getElementById('trn_amount');
@@ -8614,11 +8628,11 @@ const App = {
         const fId=document.getElementById('trn_from').value;
         const tE=document.getElementById('trn_to');
         let o='<optgroup label="'+t('accounts')+'">';
-        Core.state.wallets.forEach(w=>{if(w.id!==fId)o+=`<option value="w:${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`;});
+        Core.state.wallets.forEach(w=>{if(w.id!==fId)o+=`<option value="w:${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`;});
         o+='</optgroup>';
         if(Core.state.goals.length){
           o+='<optgroup label="'+t('goalsLabel')+'">';
-          Core.state.goals.forEach(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const gc=g.currency||Core.state.settings.currency||'TRY';o+=`<option value="g:${g.id}">${g.name} (${Core.Utils.formatMoney(g.current,gc)} / ${Core.Utils.formatMoney(gTargetOwn,gc)})</option>`;});
+          Core.state.goals.forEach(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const gc=g.currency||Core.state.settings.currency||'TRY';o+=`<option value="g:${g.id}">${_sagiEsc(g.name)} (${Core.Utils.formatMoney(g.current,gc)} / ${Core.Utils.formatMoney(gTargetOwn,gc)})</option>`;});
           o+='</optgroup>';
         }
         tE.innerHTML=o;
@@ -8675,12 +8689,12 @@ const App = {
             const remainingInOrigCur=App.ExchangeRate.convert(i.amount,mc4,i.currency);
             origStr=`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">(${Core.Utils.formatMoney(remainingInOrigCur,i.currency)} / ${Core.Utils.formatMoney(i.originalAmount,i.currency)})</div>`;
           }
-          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${i.name}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}',true)" data-i18n-title="fullPay" title="${t('fullPay')}"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-check"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
+          return`<div class="card p-5"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:15px">${_sagiEsc(i.name)}</div><div class="text-right"><div class="font-display font-bold ${c}" style="font-size:21px;letter-spacing:-.5px">${Core.Utils.formatMoney(i.amount,mc4)}</div>${origStr}</div></div><div class="flex justify-between items-center mt-4 pt-4" style="border-top:1px dashed var(--border-light)"><div class="text-caption">${i.date?`${t('dueDate')} ${Core.Utils.formatDate(i.date)}`:t('noDueDate')}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}',true)" data-i18n-title="fullPay" title="${t('fullPay')}"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-check"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.prepAction('${i.id}')" data-i18n-title="partialPay" title="Kısmi Ödeme"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-repeat"/></svg></button><button class="act-btn" onclick="App.Controllers.Debts.edit('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Debts.delete('${i.id}')"><svg class="nav-icon" style="width:16px;height:16px"><use href="#icon-trash"/></svg></button></div></div></div>`;};
         const d=Core.state.debts.filter(x=>x.dir==='borç'),rec=Core.state.debts.filter(x=>x.dir==='alacak');
         document.getElementById('debtsContainer').innerHTML=d.length?d.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noDebtRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('borç')">${t('addDebt')}</button></div>`;
         document.getElementById('receivablesContainer').innerHTML=rec.length?rec.map(rC).join(''):`<div class="empty-state" style="padding:24px 12px"><div class="icon-wrapper" style="width:48px;height:48px;margin-bottom:12px"><svg class="nav-icon" style="width:20px;height:20px"><use href="#icon-briefcase"/></svg></div><p style="margin-bottom:12px">${t('noReceivableRec')}</p><button class="btn btn-outline btn-sm" onclick="App.Controllers.Debts.openModal('alacak')">${t('addReceivable')}</button></div>`;
       },
-      _fillDebtWallets(){const dwd=document.getElementById('debtWalletDrop');if(!dwd)return;dwd.innerHTML=Core.state.wallets.map(w=>`<div class="custom-select-option" data-walid="${w.id}" data-walname="${w.name}" onclick="App.Controllers.Debts._pickDebtWallet(this)">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</div>`).join('')||'<div class="custom-select-option" style="color:var(--text-muted)">Hesap yok</div>';},
+      _fillDebtWallets(){const dwd=document.getElementById('debtWalletDrop');if(!dwd)return;dwd.innerHTML=Core.state.wallets.map(w=>`<div class="custom-select-option" data-walid="${w.id}" data-walname="${_sagiEsc(w.name)}" onclick="App.Controllers.Debts._pickDebtWallet(this)">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</div>`).join('')||'<div class="custom-select-option" style="color:var(--text-muted)">Hesap yok</div>';},
 _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.walid;document.getElementById('debtWalletLabel').textContent=el.dataset.walname;document.querySelectorAll('#debtWalletDrop .custom-select-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');document.getElementById('debtWalletDrop').classList.remove('open');document.getElementById('debtWalletBtn').classList.remove('open');},
       setDir(dir,btn){document.getElementById('debt_dir').value=dir;document.querySelectorAll('[data-debt-dir]').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');else{const b=document.querySelector(`[data-debt-dir="${dir}"]`);if(b)b.classList.add('active');}},openModal(dir){const finalDir=dir||'borç';document.getElementById('debt_dir').value=finalDir;document.querySelectorAll('[data-debt-dir]').forEach(b=>b.classList.toggle('active',b.dataset.debtDir===finalDir));document.getElementById('debt_id').value='';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debtLinkRow').classList.remove('active');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent=t('addRecord');App.Controllers.Wallets.upd();this._fillDebtWallets();UI.Modals.open('modalDebt');},
       edit(id){const d=Core.state.debts.find(x=>x.id===id);if(d){document.getElementById('debt_id').value=d.id;document.getElementById('debt_dir').value=d.dir;this.setDir(d.dir,null);document.getElementById('debt_name').value=d.name;document.getElementById('debt_amount').value=d.originalAmount||d.amount;document.getElementById('debt_date').value=d.date||'';document.getElementById('debt_link_val').value='0';document.getElementById('debtLinkTrack').classList.remove('on');document.getElementById('debt_wallet_wrap').style.display='none';document.getElementById('debtModalTitle').textContent=t('editRecord');const dcEl=document.getElementById('debt_currency');if(dcEl)dcEl.value=d.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalDebt');}},
@@ -8740,7 +8754,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         if(!this._userPickedCur&&!Core.temp.debtFullPay)App.CurrencySelect.fill('debt_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('debt');
       },
-      prepAction(id,fullPay){Core.temp.debtId=id;Core.temp.debtFullPay=!!fullPay;this._userPickedCur=false;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${w.name} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');const amtEl=document.getElementById('debt_action_amount');const curEl=document.getElementById('debt_action_cur');App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());if(fullPay){amtEl.value=Math.round(d.amount*100)/100;amtEl.readOnly=true;if(curEl)curEl.disabled=true;}else{amtEl.value='';amtEl.readOnly=false;if(curEl)curEl.disabled=false;}App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
+      prepAction(id,fullPay){Core.temp.debtId=id;Core.temp.debtFullPay=!!fullPay;this._userPickedCur=false;const d=Core.state.debts.find(x=>x.id===id);if(!d)return;document.getElementById('debtActionTitle').textContent=d.dir==='borç'?t('payDebtTitle'):t('collectTitle');document.getElementById('debt_action_wallet').innerHTML='<option value="none">'+t('onlyRecord')+'</option>'+Core.state.wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');const amtEl=document.getElementById('debt_action_amount');const curEl=document.getElementById('debt_action_cur');App.CurrencySelect.fill('debt_action_cur',App.Money.mainCur());if(fullPay){amtEl.value=Math.round(d.amount*100)/100;amtEl.readOnly=true;if(curEl)curEl.disabled=true;}else{amtEl.value='';amtEl.readOnly=false;if(curEl)curEl.disabled=false;}App.FxPreview._hide('fx_preview_debt');UI.Modals.open('modalDebtAction');},
       executeAction(){
         const a=parseFloat(document.getElementById('debt_action_amount').value);
         const wId=document.getElementById('debt_action_wallet').value;
@@ -9765,7 +9779,15 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
       },
       exportCSV(){
         const BOM = '\uFEFF';
-        const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+        // GÜVENLİK: CSV formula injection önlemi. Bir hücre =, +, -, @ ile
+        // başlıyorsa Excel/Sheets bunu formül sanıp çalıştırabilir (örn. bir
+        // cüzdan/kategori adına yazılmış =HYPERLINK(...) gibi). Başına tek
+        // tırnak (') koyup metne çeviriyoruz.
+        const esc = v => {
+          let s = String(v==null?'':v);
+          if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+          return '"' + s.replace(/"/g,'""') + '"';
+        };
         const date = new Date().toISOString().split('T')[0];
         let csv = BOM;
         csv += '## HESAPLAR\r\n';
@@ -9917,8 +9939,11 @@ _executeImport(){
     const mergeArr = (existing, incoming) => {
       if(!Array.isArray(incoming)) return existing;
       const map = {};
-      existing.forEach(item => { if(item.id) map[item.id] = item; });
-      incoming.forEach(item => { if(item.id) map[item.id] = item; });
+      // GÜVENLİK: __proto__ gibi bir id, map'in prototipini değiştirebilir
+      // (savunma amaçlı — Object.values zaten sadece own-property döndürür).
+      const isBadKey = id => id === '__proto__' || id === 'constructor' || id === 'prototype';
+      existing.forEach(item => { if(item.id && !isBadKey(item.id)) map[item.id] = item; });
+      incoming.forEach(item => { if(item.id && !isBadKey(item.id)) map[item.id] = item; });
       return Object.values(map);
     };
     Core.state.wallets      = mergeArr(Core.state.wallets,       d.wallets      || []);
@@ -9929,7 +9954,11 @@ _executeImport(){
     Core.state.budgets      = mergeArr(Core.state.budgets || [], d.budgets      || []);
     // Settings: sadece eksik alanları doldur, mevcut ayarları koruma
     if(d.settings){
+      // GÜVENLİK: __proto__/constructor/prototype anahtarlarını atla —
+      // aksi halde kötü niyetli bir JSON, Core.state.settings'in prototipini
+      // değiştirebilir (prototype pollution).
       Object.keys(d.settings).forEach(k => {
+        if(k === '__proto__' || k === 'constructor' || k === 'prototype') return;
         if(Core.state.settings[k] === undefined || Core.state.settings[k] === null || Core.state.settings[k] === ''){
           Core.state.settings[k] = d.settings[k];
         }
