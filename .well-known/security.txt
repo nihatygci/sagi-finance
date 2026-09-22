@@ -1,0 +1,4 @@
+Contact: mailto:sagifinance.app@gmail.com
+Expires: 2027-09-21T00:00:00.000Z
+Preferred-Languages: tr, en
+Canonical: https://sagifinance.app/.well-known/security.txt
