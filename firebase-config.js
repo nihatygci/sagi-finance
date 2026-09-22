@@ -24,6 +24,35 @@
   try {
     firebase.initializeApp(firebaseConfig);
 
+    // ── App Check (reCAPTCHA Enterprise) ────────────────────────────────────
+    // GÜVENLİK: App Check, Firestore'a gelen isteklerin gerçekten bu
+    // uygulamadan geldiğini doğrulayan bir katman ekliyor. initializeApp'ten
+    // HEMEN SONRA, firebase.firestore() çağrılmadan ÖNCE etkinleştirilmeli.
+    //
+    // ÖNEMLİ: Bu sadece App Check token'larının İSTEKLERE eklenmesini sağlar.
+    // Firestore'un bu token'ları ZORUNLU tutup tutmayacağı (Enforce modu)
+    // AYRI bir ayar — Firebase Console → App Check → APIs → Firestore'da
+    // elle değiştirilir. Bu kod tek başına hiçbir mevcut kullanıcıyı
+    // etkilemez/kilitlemez; sadece token göndermeye başlar (Monitor modunda).
+    // Enforce moduna geçiş, App Check'in birkaç gün "Monitor"da sorunsuz
+    // çalıştığı doğrulandıktan SONRA, ayrı bir adımda yapılmalı.
+    try {
+      if (typeof firebase.appCheck === 'function') {
+        firebase.appCheck().activate(
+          new firebase.appCheck.ReCaptchaEnterpriseProvider('6Lfo68gtAAAAADdgXKKj5H-aEgVf1wh1PSjVvG8I'),
+          true // isTokenAutoRefreshEnabled
+        );
+        console.log('[SAGI] App Check etkinleştirildi (Monitor modu).');
+      } else {
+        console.warn('[SAGI] App Check SDK yüklenmedi, atlanıyor.');
+      }
+    } catch (appCheckErr) {
+      // App Check başarısız olsa bile uygulamanın geri kalanı normal çalışmaya
+      // devam etmeli — bu opsiyonel bir güvenlik katmanı, tek nokta arızası
+      // olmamalı.
+      console.warn('[SAGI] App Check başlatma hatası (uygulama normal devam ediyor):', appCheckErr);
+    }
+
     // ── Yeni Firestore persistence API ───────────────────────────────────────
     // enablePersistence() → deprecated (Firebase 10.x uyarısı)
     // Yeni yol: initializeFirestore() + experimentalForceLongPolling veya
