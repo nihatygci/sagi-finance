@@ -9352,6 +9352,8 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
             Core.state.goals = [];
             Core.state.debts = [];
             Core.state.budgets = [];
+            Core.state.installments = [];
+            Core.state.templates = [];
           } catch(e) {}
 
           // Marka/font CSS override'larını sıfırla (Plus kullanıcısıydıysa)
@@ -9426,6 +9428,8 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
           Core.state.goals = [];
           Core.state.debts = [];
           Core.state.budgets = [];
+          Core.state.installments = [];
+          Core.state.templates = [];
         } catch(e) {}
 
         // Marka/font CSS override'larını sıfırla (Plus kullanıcısıydıysa)
@@ -9571,6 +9575,7 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
                 Core.state.wallets = []; Core.state.transactions = []; Core.state.goals = [];
                 Core.state.debts = []; Core.state.categories = []; Core.state.budgets = [];
                 Core.state.recurring = []; Core.state._tombstones = {};
+                Core.state.installments = []; Core.state.templates = [];
                 // KRİTİK FIX: notifInbox burada unutulmuştu — "tertemiz başla"
                 // seçilse bile cihazda kalan eski bildirimler yeni/boş hesaba
                 // taşınıp Firestore'a öyle yükleniyordu. Diğer dizilerle
@@ -9953,6 +9958,8 @@ _executeImport(){
     Core.state.goals        = mergeArr(Core.state.goals,         d.goals        || []);
     Core.state.debts        = mergeArr(Core.state.debts,         d.debts        || []);
     Core.state.budgets      = mergeArr(Core.state.budgets || [], d.budgets      || []);
+    Core.state.installments = mergeArr(Core.state.installments || [], d.installments || []);
+    Core.state.templates    = mergeArr(Core.state.templates    || [], d.templates    || []);
     // Settings: sadece eksik alanları doldur, mevcut ayarları koruma
     if(d.settings){
       // GÜVENLİK: __proto__/constructor/prototype anahtarlarını atla —
@@ -10056,6 +10063,8 @@ _executeImport(){
         Core.state.debts        = [];
         Core.state.budgets      = [];
         Core.state.categories   = [];
+        Core.state.installments = [];
+        Core.state.templates    = [];
         Core.state._tombstones  = {};
         // Diğer dizilerle aynı muamele — "Tüm Verileri Sil" bildirimleri de kapsamalı.
         Core.state.notifInbox   = [];
