@@ -1817,6 +1817,13 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
         <button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()"><svg class="nav-icon"><use href="#icon-plus"/></svg><span data-i18n="addGoal">Hedef Ekle</span></button>
       </div>
       <div class="css-grid grid-cols-3 stagger-1" id="goalsGrid"></div>
+      <div id="goalsCompletedWrap" style="display:none;margin-top:36px">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="nav-icon color-accent"><use href="#icon-check"/></svg>
+          <h2 class="card-title"><span data-i18n="completedGoals">Tamamlananlar</span> <span id="goalsCompletedCount" class="color-muted" style="font-weight:600"></span></h2>
+        </div>
+        <div class="css-grid grid-cols-3" id="goalsCompletedGrid"></div>
+      </div>
     </div>
 
     <!-- BORÇ & ALACAK -->
@@ -2862,6 +2869,7 @@ animation:meshDrift 18s ease-in-out infinite;z-index:-1;filter:blur(2px);}
             <input type="number" step="0.01" class="form-control" id="goal_action_amount" placeholder="0.00" required oninput="App.FxPreview.update('goal')" style="flex:1">
             <select class="form-control" id="goal_action_cur" style="width:100px;flex-shrink:0" onchange="App.Controllers.Goals._userPickedCur=true;App.FxPreview.update('goal')"></select>
           </div>
+          <div id="goal_remaining_wrap" style="display:none;margin-top:10px"><button type="button" class="btn btn-outline btn-sm w-full" id="goal_remaining_btn" onclick="App.Controllers.Goals.fillRemaining()"></button></div>
         </div>
         <div id="fx_preview_goal" style="display:none;margin-top:12px;padding:11px 14px;background:var(--bg-body);border:1px solid var(--border-light);border-radius:var(--radius-md)">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -4902,7 +4910,7 @@ const Notifications = {
     if(notifs.hedef){
       Core.state.goals.forEach(g=>{
         const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;
-        if(!gTargetOwn||g.current>=gTargetOwn)return;
+        if(g.completed||!gTargetOwn||g.current>=gTargetOwn)return;
         const pct=Math.floor((g.current/gTargetOwn)*100);
         // %75 veya %90 milestone
         [75,90].forEach(milestone=>{
@@ -6215,7 +6223,7 @@ const App = {
         _buildKpiSlides('flow', flowSlides);
 
         const dg=document.getElementById('dashGoals');
-        if(dg){const ag=Core.state.goals.slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c='var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${_sagiEsc(g.name)}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
+        if(dg){const ag=Core.state.goals.filter(g=>!g.completed).slice(0,3);if(!ag.length)dg.innerHTML=`<div class="text-center" style="padding:16px 0"><span class="color-muted text-subtitle">${t('noGoal')}</span></div>`;else dg.innerHTML=ag.map(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const p=Math.min((g.current/gTargetOwn)*100,100),c='var(--brand-accent)';return`<div style="padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-light);background:var(--bg-body)"><div class="flex justify-between items-center mb-2"><div class="font-bold" style="font-size:14px">${_sagiEsc(g.name)}</div><div class="font-display font-bold" style="color:${c};font-size:16px">%${Math.floor(p)}</div></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div></div>`;}).join('');}
 
         const dd=document.getElementById('dashDebts');
         if(dd){
@@ -8477,14 +8485,19 @@ const App = {
       }
     },
     Goals:{
-      render(){const g=document.getElementById('goalsGrid');if(!Core.state.goals.length){g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-target"/></svg></div><h3>${t('emptyGoalTitle')}</h3><p>${t('emptyGoalDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;return;}g.innerHTML=Core.state.goals.map(x=>{
-        // İlerleme yüzdesi: hedefin KENDİ para biriminde current/target oranı
-        // (target zaten mc'ye çevrilmiş tutuluyordu — yüzde hesabı için current'ı
-        // da aynı baza, yani target'ın orijinal hedef para birimi karşılığına göre alıyoruz)
+      _target(g){return g.originalTarget!=null?g.originalTarget:g.target;},
+      _isFull(g){const gt=this._target(g);return !!gt&&g.current>=gt-0.005;},
+      _remaining(g){return Math.max(0,this._target(g)-g.current);},
+      _card(x){
         const mc3=Core.state.settings.currency||'TRY';
         const gc=x.currency||mc3;
-        const goalOriginalTarget=x.originalTarget!=null?x.originalTarget:x.target;
-        const p=Math.min((x.current/goalOriginalTarget)*100,100),c='var(--brand-accent)';let dH='';if(x.date){
+        const goalOriginalTarget=this._target(x);
+        const done=!!x.completed,full=this._isFull(x);
+        const p=Math.min((x.current/goalOriginalTarget)*100,100),c='var(--brand-accent)';
+        let dH='';
+        if(done){
+          if(x.completedAt)dH=`<div class="text-caption mb-3 color-muted">${t('goalCompletedOn')} ${Core.Utils.formatDate(x.completedAt)}</div>`;
+        }else if(x.date){
           const diffMs=new Date(x.date)-new Date();
           const diffDays=Math.ceil(diffMs/(1000*3600*24));
           let timeLabel;
@@ -8494,15 +8507,41 @@ const App = {
           else timeLabel=`(${Math.floor(diffDays/30)} ${t('monthsLeft')})`;
           dH=`<div class="text-caption mb-3 color-warn">${t('endDateLabel')} ${Core.Utils.formatDate(x.date)} ${timeLabel}</div>`;
         }
-        // Ana gösterim: hedefin KENDİ para biriminde current/target.
-        // Parantez: ana para birimine (mc3) çevrilmiş karşılığı — sadece farklıysa gösterilir.
         const currentInMc=gc!==mc3?App.ExchangeRate.convert(x.current,gc,mc3):x.current;
         const targetInMc=gc!==mc3?App.ExchangeRate.convert(goalOriginalTarget,gc,mc3):goalOriginalTarget;
         const mcConvStr=gc!==mc3?` (${Core.Utils.formatMoney(currentInMc,mc3)} / ${Core.Utils.formatMoney(targetInMc,mc3)})`:'';
-        return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${_sagiEsc(x.name)}</div><div class="flex gap-2"><button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button><button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,gc)} / ${Core.Utils.formatMoney(goalOriginalTarget,gc)}${mcConvStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3"><button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button></div></div>`;}).join('');},
+        const badge=done?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--brand-accent-subtle);color:var(--brand-accent);margin-left:8px;white-space:nowrap"><svg class="nav-icon" style="width:12px;height:12px"><use href="#icon-check"/></svg>${t('goalCompletedBadge')}</span>`:'';
+        const editBtn=done?'':`<button class="act-btn" onclick="App.Controllers.Goals.edit('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-edit"/></svg></button>`;
+        const actions=done
+          ?`<button class="btn btn-outline w-full" onclick="App.Controllers.Goals.reopen('${x.id}')">${t('reopenGoal')}</button>`
+          :(full
+            ?`<button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.complete('${x.id}')">${t('completeGoal')}</button>`
+            :`<button class="btn btn-outline w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','sub')">${t('withdraw')}</button><button class="btn btn-primary w-full" onclick="App.Controllers.Goals.prepAction('${x.id}','add')">${t('deposit')}</button>`);
+        return`<div class="card"><div class="flex justify-between items-center mb-3"><div class="flex items-center" style="min-width:0"><div class="font-bold" style="font-size:17px;letter-spacing:-.02em">${_sagiEsc(x.name)}</div>${badge}</div><div class="flex gap-2">${editBtn}<button class="act-btn danger" onclick="App.Controllers.Goals.delete('${x.id}')"><svg class="nav-icon" style="width:16px"><use href="#icon-trash"/></svg></button></div></div>${dH}<div class="font-display font-bold mb-2" style="font-size:40px;color:${c};letter-spacing:-.04em">%${Math.floor(p)}</div><div class="text-subtitle mb-4 font-medium">${Core.Utils.formatMoney(x.current,gc)} / ${Core.Utils.formatMoney(goalOriginalTarget,gc)}${mcConvStr}</div><div class="progress-track mb-4" style="height:9px"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div><div class="flex gap-3">${actions}</div></div>`;
+      },
+      render(){
+        const g=document.getElementById('goalsGrid');
+        const wrap=document.getElementById('goalsCompletedWrap'),cg=document.getElementById('goalsCompletedGrid'),cc=document.getElementById('goalsCompletedCount');
+        const all=Core.state.goals;
+        const active=all.filter(x=>!x.completed);
+        const done=all.filter(x=>x.completed).sort((a,b)=>String(b.completedAt||'').localeCompare(String(a.completedAt||'')));
+        if(!all.length){
+          g.innerHTML=`<div class="empty-state"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-target"/></svg></div><h3>${t('emptyGoalTitle')}</h3><p>${t('emptyGoalDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;
+          if(wrap)wrap.style.display='none';
+          return;
+        }
+        g.innerHTML=active.length
+          ?active.map(x=>this._card(x)).join('')
+          :`<div class="empty-state" style="grid-column:1/-1"><div class="icon-wrapper"><svg class="nav-icon"><use href="#icon-check"/></svg></div><h3>${t('allGoalsDoneTitle')}</h3><p>${t('allGoalsDoneDesc')}</p><button class="btn btn-primary" onclick="App.Controllers.Goals.openModal()">${t('addGoal')}</button></div>`;
+        if(wrap){
+          wrap.style.display=done.length?'':'none';
+          if(cg)cg.innerHTML=done.map(x=>this._card(x)).join('');
+          if(cc)cc.textContent='('+done.length+')';
+        }
+      },
       openModal(){document.getElementById('goal_id').value='';document.getElementById('goal_date').value='';document.getElementById('goalModalTitle').textContent=t('newGoal');UI.Modals.open('modalGoal');},
       edit(id){const g=Core.state.goals.find(x=>x.id===id);if(g){document.getElementById('goal_id').value=g.id;document.getElementById('goal_name').value=g.name;document.getElementById('goal_target').value=g.originalTarget||g.target;document.getElementById('goal_current').value=g.current;document.getElementById('goal_date').value=g.date||'';document.getElementById('goalModalTitle').textContent=t('editGoal');const gcEl=document.getElementById('goal_currency');if(gcEl)gcEl.value=g.currency||(Core.state.settings.currency||'TRY');UI.Modals.open('modalGoal');}},
-      save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
+      save(){const id=document.getElementById('goal_id').value;const goalCurEl=document.getElementById('goal_currency');const goalCur=goalCurEl?goalCurEl.value:(Core.state.settings.currency||'TRY');const mc=Core.state.settings.currency||'TRY';const rawTarget=parseFloat(document.getElementById('goal_target').value);const target=App.ExchangeRate.convert(rawTarget,goalCur,mc);const p={id:id||Core.Utils.generateId(),name:document.getElementById('goal_name').value,target,originalTarget:rawTarget,currency:goalCur,current:parseFloat(document.getElementById('goal_current').value)||0,date:document.getElementById('goal_date').value||null};if(id){const _o=Core.state.goals.find(x=>x.id===id);if(_o&&_o.completed){p.completed=true;p.completedAt=_o.completedAt;}const ix=Core.state.goals.findIndex(x=>x.id===id);if(ix!==-1)Core.state.goals[ix]=p;}else Core.state.goals.push(p);Core.DB.save();UI.Modals.close('modalGoal');this.render();UI.Toasts.show(t('msgGoalSaved'));},
       _userPickedCur: false,
       _onActionWalletChange(){
         const wId=document.getElementById('goal_action_wallet')?.value;
@@ -8510,7 +8549,25 @@ const App = {
         if(!this._userPickedCur)App.CurrencySelect.fill('goal_action_cur',w?(w.currency||'TRY'):App.Money.mainCur());
         App.FxPreview.update('goal');
       },
-      prepAction(id,type){if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;this._userPickedCur=false;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');UI.Modals.open('modalGoalAction');},
+      prepAction(id,type){const _g=Core.state.goals.find(x=>x.id===id);if(!_g)return;if(_g.completed)return UI.Toasts.show(t('msgGoalIsCompleted'),'error');if(type==='add'&&this._isFull(_g))return UI.Toasts.show(t('msgGoalAlreadyFull'),'error');if(!Core.state.wallets.length)return UI.Toasts.show(t('msgAccFirst2'),'error');Core.temp.goalId=id;Core.temp.goalType=type;this._userPickedCur=false;document.getElementById('goal_action_amount').value='';const walOpts=Core.state.wallets.map(w=>`<option value="${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`).join('');document.getElementById('goal_action_wallet').innerHTML=walOpts;const firstW=Core.state.wallets[0];App.CurrencySelect.fill('goal_action_cur',firstW?(firstW.currency||'TRY'):App.Money.mainCur());document.getElementById('goalActionTitle').textContent=type==='add'?t('goalDepositTitle'):t('goalWithdrawTitle');document.getElementById('goalActionBtn').textContent=type==='add'?t('deposit'):t('withdraw');App.FxPreview._hide('fx_preview_goal');Core.temp.goalFillKey=null;this._setupRemaining(_g,type);UI.Modals.open('modalGoalAction');},
+      _setupRemaining(g,type){
+        const w=document.getElementById('goal_remaining_wrap'),b=document.getElementById('goal_remaining_btn');
+        if(!w||!b)return;
+        if(type!=='add'){w.style.display='none';return;}
+        const gc=g.currency||App.Money.mainCur();
+        b.textContent=t('depositRemaining',Core.Utils.formatMoney(this._remaining(g),gc));
+        w.style.display='';
+      },
+      fillRemaining(){
+        const g=Core.state.goals.find(x=>x.id===Core.temp.goalId);if(!g)return;
+        const gc=g.currency||App.Money.mainCur();
+        const rem=this._remaining(g);if(rem<=0)return;
+        const txCur=App.CurrencySelect.get('goal_action_cur');
+        const v=(Math.round(App.ExchangeRate.convert(rem,gc,txCur)*100)/100).toFixed(2);
+        document.getElementById('goal_action_amount').value=v;
+        Core.temp.goalFillKey=v+'|'+txCur;
+        App.FxPreview.update('goal');
+      },
       executeAction(){
         const a=parseFloat(document.getElementById('goal_action_amount').value);
         const wId=document.getElementById('goal_action_wallet').value;
@@ -8523,13 +8580,23 @@ const App = {
         // Hedefin kendi para birimi — yoksa (eski hedefler) ana para birimi varsayılır
         const gc=g.currency||mc;
         // txCur → wc: hesaptan düşülecek gerçek tutar
-        const deductFromWallet=App.ExchangeRate.convert(a,txCur,wc);
+        let deductFromWallet=App.ExchangeRate.convert(a,txCur,wc);
         // txCur → gc: hedefe yansıyacak tutar, HEDEFİN KENDİ PARA BİRİMİNDE
         // (eskiden mc'ye çevrilip ekleniyordu — bu, hedefin oluşturulurken seçilen
         // para biriminde değil, hesabın/ana para biriminde büyümesine sebep oluyordu)
-        const amountInGoalCur=App.ExchangeRate.convert(a,txCur,gc);
+        let amountInGoalCur=App.ExchangeRate.convert(a,txCur,gc);
+        if(g.completed)return UI.Toasts.show(t('msgGoalIsCompleted'),'error');
         if(Core.temp.goalType==='add'){
+          const _rem=this._remaining(g);
+          if(Core.temp.goalFillKey===a.toFixed(2)+'|'+txCur&&_rem>0){
+            // "Kalan tutari yatir": hedefi tam 100 yap, hesaptan da kalanin karsiligi dussun
+            amountInGoalCur=_rem;deductFromWallet=App.ExchangeRate.convert(_rem,gc,wc);
+          }else if(amountInGoalCur>_rem+0.005){
+            return UI.Toasts.show(t('msgGoalOverDeposit',Core.Utils.formatMoney(_rem,gc)),'error');
+          }
           g.current+=amountInGoalCur;
+          if(this._target(g)-g.current<0.005)g.current=this._target(g);
+
           const tx={id:Core.Utils.generateId(),type:'expense',amount:deductFromWallet,amountCurrency:wc,desc:t('savingsDeposit',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }else{
@@ -8539,9 +8606,22 @@ const App = {
           const tx={id:Core.Utils.generateId(),type:'income',amount:backInWalletCur,amountCurrency:wc,desc:t('savingsWithdraw',{name:g.name}),cat:'Birikim',wallet:wId,date:new Date().toISOString(),rateSnapshot:{...App.ExchangeRate.rates}};
           Core.state.transactions.push(tx);App.Money.applyTx(tx);
         }
-        Core.DB.saveNow();UI.Modals.close('modalGoalAction');this.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();App.Controllers.Dashboard.render();UI.Toasts.show(t('msgActionDone'));
+        Core.DB.saveNow();UI.Modals.close('modalGoalAction');this.render();App.Controllers.Wallets.render&&App.Controllers.Wallets.render();App.Controllers.Dashboard.render();UI.Toasts.show(t(Core.temp.goalType==='add'&&this._isFull(g)?'msgGoalReached':'msgActionDone'));
       },
-      delete(id){UI.Confirm.show(t('confDelGoal'),()=>{Core.state.goals=Core.state.goals.filter(g=>g.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgGoalDeleted'));});}
+      delete(id){UI.Confirm.show(t((Core.state.goals.find(x=>x.id===id)||{}).completed?'confDelGoalDone':'confDelGoal'),()=>{Core.state.goals=Core.state.goals.filter(g=>g.id!==id);Core.DB.save();this.render();UI.Toasts.show(t('msgGoalDeleted'));});},
+      complete(id){
+        const g=Core.state.goals.find(x=>x.id===id);if(!g)return;
+        if(!this._isFull(g))return UI.Toasts.show(t('msgGoalNotFull'),'error');
+        g.completed=true;g.completedAt=new Date().toISOString();
+        Core.DB.saveNow();this.render();App.Controllers.Dashboard.render();
+        UI.Toasts.show(t('msgGoalCompleted'));
+      },
+      reopen(id){
+        const g=Core.state.goals.find(x=>x.id===id);if(!g)return;
+        delete g.completed;delete g.completedAt;
+        Core.DB.saveNow();this.render();App.Controllers.Dashboard.render();
+        UI.Toasts.show(t('msgGoalReopened'));
+      }
     },
     Transfer:{
       _userPickedCur: false,
@@ -8631,9 +8711,10 @@ const App = {
         let o='<optgroup label="'+t('accounts')+'">';
         Core.state.wallets.forEach(w=>{if(w.id!==fId)o+=`<option value="w:${w.id}">${_sagiEsc(w.name)} (${Core.Utils.formatMoney(w.balance,w.currency)})</option>`;});
         o+='</optgroup>';
-        if(Core.state.goals.length){
+        const _tg=Core.state.goals.filter(g=>!g.completed&&!App.Controllers.Goals._isFull(g));
+        if(_tg.length){
           o+='<optgroup label="'+t('goalsLabel')+'">';
-          Core.state.goals.forEach(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const gc=g.currency||Core.state.settings.currency||'TRY';o+=`<option value="g:${g.id}">${_sagiEsc(g.name)} (${Core.Utils.formatMoney(g.current,gc)} / ${Core.Utils.formatMoney(gTargetOwn,gc)})</option>`;});
+          _tg.forEach(g=>{const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;const gc=g.currency||Core.state.settings.currency||'TRY';o+=`<option value="g:${g.id}">${_sagiEsc(g.name)} (${Core.Utils.formatMoney(g.current,gc)} / ${Core.Utils.formatMoney(gTargetOwn,gc)})</option>`;});
           o+='</optgroup>';
         }
         tE.innerHTML=o;
@@ -8669,7 +8750,14 @@ const App = {
         }else if(tType==='g'){
           const g=Core.state.goals.find(x=>x.id===tId);
           if(!g){UI.Toasts.show(t('msgAccReq'),'error');return;}
-          g.current+=App.ExchangeRate.convert(a,txCur,mc);
+          if(g.completed){UI.Toasts.show(t('msgGoalIsCompleted'),'error');return;}
+          const _gc=g.currency||mc;
+          const _add=App.ExchangeRate.convert(a,txCur,_gc);
+          const _rem=App.Controllers.Goals._remaining(g);
+          if(_add>_rem+0.005){UI.Toasts.show(t('msgGoalOverDeposit',Core.Utils.formatMoney(_rem,_gc)),'error');return;}
+          g.current+=_add;
+          if(App.Controllers.Goals._target(g)-g.current<0.005)g.current=App.Controllers.Goals._target(g);
+
           outTx.desc=t('transferToGoal',{name:g.name});
           outTx.cat='Birikim';
         }
@@ -9819,11 +9907,11 @@ _pickDebtWallet(el){document.getElementById('debt_wallet').value=el.dataset.wali
         });
         if(Core.state.goals.length){
           csv += '\r\n## HEDEFLER\r\n';
-          csv += 'Ad,Hedef Tutar,Mevcut,Para Birimi,Son Tarih\r\n';
+          csv += 'Ad,Hedef Tutar,Mevcut,Para Birimi,Son Tarih,Durum\r\n';
           Core.state.goals.forEach(g=>{
             const gTargetOwn=g.originalTarget!=null?g.originalTarget:g.target;
             const gc=g.currency||Core.state.settings.currency||'TRY';
-            csv += [esc(g.name), gTargetOwn, g.current, gc, esc(g.date||'')].join(',') + '\r\n';
+            csv += [esc(g.name), gTargetOwn, g.current, gc, esc(g.date||''), g.completed?'Tamamlandı':'Devam Ediyor'].join(',') + '\r\n';
           });
         }
         const a=document.createElement('a');
