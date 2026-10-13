@@ -14,7 +14,7 @@
 //  • Bildirime tıklanınca uygulamayı aç / odağa al
 // ════════════════════════════════════════════════════════════════
 
-const VERSION    = 'v5';
+const VERSION    = 'v6';
 const CACHE_APP  = `sagi-app-${VERSION}`;   // HTML, font CSS
 const CACHE_FONT = `sagi-fonts-${VERSION}`; // Font dosyaları
 
