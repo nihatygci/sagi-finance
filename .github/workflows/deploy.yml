@@ -5,17 +5,8 @@ on:
     branches: [main]
   repository_dispatch:
     types: [plus-updated]
-  # Manuel "fresh" tetikleme için — Actions sekmesinden "Run workflow" ile
-  # BRAND NEW bir run_id başlatılır, hiçbir kalıntı artifact taşımaz.
-  # "Re-run failed jobs" YERİNE bunu kullan: re-run AYNI run_id'yi tekrar
-  # kullanır, kalıntı artifact temizliği her denemede %100 garanti değildir
-  # (GitHub API'nin ara sıra gecikmeli/başarısız DELETE yanıtları verebilmesi
-  # yüzünden) — art arda re-run'lar artifact sayısını 1→2→3... diye
-  # biriktirebilir. workflow_dispatch her zaman temiz sıfırdan başlar.
   workflow_dispatch:
 
-# Aynı anda (push + repository_dispatch üst üste gelirse) birden fazla
-# deploy run'ı çakışmasın diye — yenisi başlayınca eskisi iptal edilir.
 concurrency:
   group: pages-deploy
   cancel-in-progress: true
@@ -24,7 +15,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  actions: write   # eski artifact'ları silebilmek için gerekli
+  actions: write
 
 jobs:
   deploy:
@@ -49,105 +40,17 @@ jobs:
       - name: operations.js kopyala
         run: cp sagi-plus-temp/operations.js operations.js
 
-      - name: firebase-config.js oluştur
-        env:
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
-        run: |
-          cat > firebase-config.js << EOF
-          (function () {
-            'use strict';
-
-            const firebaseConfig = {
-              apiKey:            "${FIREBASE_API_KEY}",
-              authDomain:        "${FIREBASE_AUTH_DOMAIN}",
-              projectId:         "${FIREBASE_PROJECT_ID}",
-              storageBucket:     "${FIREBASE_STORAGE_BUCKET}",
-              messagingSenderId: "${FIREBASE_MESSAGING_SENDER_ID}",
-              appId:             "${FIREBASE_APP_ID}",
-              measurementId:     "${FIREBASE_MEASUREMENT_ID}"
-            };
-
-            window._fbReady = false;
-            window._fbDB    = null;
-            window._fbErr   = '';
-
-            if (typeof firebase === 'undefined') {
-              console.warn('[SAGI] Firebase SDK yüklenmedi.');
-              window._fbErr = 'sdk-missing';
-              return;
-            }
-
-            try {
-              firebase.initializeApp(firebaseConfig);
-              const db = firebase.firestore();
-              window._fbDB = db;
-
-              db.enablePersistence({ synchronizeTabs: true })
-                .catch(function(err) {
-                  if (err.code === 'failed-precondition') {
-                    console.info('[SAGI] Persistence: çoklu sekme modu.');
-                  } else if (err.code === 'unimplemented') {
-                    console.info('[SAGI] Tarayıcı offline persistence desteklemiyor.');
-                  }
-                })
-                .finally(function() {
-                  window._fbReady = true;
-                  console.log('[SAGI] Firebase Firestore hazır.');
-                  setTimeout(function() {
-                    if (window.Core && window.Core.Cloud) {
-                      window.Core.Cloud.status = 'idle';
-                      try { window.Core.emit('cloudStatusChanged', 'idle'); } catch(e) {}
-                    }
-                  }, 700);
-                });
-
-              console.log('[SAGI] Firebase Firestore başlatıldı.');
-            } catch (e) {
-              console.warn('[SAGI] Firebase başlatma hatası:', e);
-              window._fbErr   = (e && e.message) || 'init-failed';
-              window._fbDB    = null;
-              window._fbReady = false;
-            }
-          })();
-          EOF
-
-          echo "=== Dosya oluştu mu ==="
-          ls -la firebase-config.js
-
       - name: Pages için hazırla
         uses: actions/configure-pages@v5
 
-      # KRİTİK FIX: "Re-run failed jobs" ile bu job tekrar çalıştırılırsa,
-      # önceki denemenin yüklediği "github-pages" artifact'ı run'da kalıyor.
-      # Bu step yeniden upload yapmadan ÖNCE, bu run_id'ye ait aynı isimli
-      # eski artifact'ları siler — böylece "Deploy et" adımında
-      # "Multiple artifacts named github-pages" hatası bir daha oluşmaz.
       - name: Eski github-pages artifact'larını temizle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Bu run (${{ github.run_id }}, attempt ${{ github.run_attempt }}) için mevcut 'github-pages' artifact'ları kontrol ediliyor..."
           ids=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name=="github-pages") | .id')
-          if [ -z "$ids" ]; then
-            echo "Temizlenecek eski artifact yok."
-          else
-            for id in $ids; do
-              echo "Siliniyor: artifact id=$id"
-              # Silme HATASINI artık YUTMUYORUZ — set -e ile job burada patlar.
-              # Sessizce yutulan bir silme hatası, artifact'ın kalıp bir
-              # sonraki denemede sayının 1→2→3 diye birikmesine sebep oluyordu.
-              gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
-              echo "  Silindi: $id"
-            done
-          fi
-          echo "Doğrulama: kalan 'github-pages' artifact sayısı:"
-          gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '[.artifacts[] | select(.name=="github-pages")] | length'
+          for id in $ids; do
+            gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
+          done
 
       - name: Dosyaları yükle
         uses: actions/upload-pages-artifact@v3
